@@ -1,0 +1,78 @@
+import type { Config } from 'jest';
+import nextJest from 'next/jest';
+
+/**
+ * Create Jest configuration with Next.js defaults
+ * This allows Jest to work with Next.js imports, SSR, and App Router
+ */
+const createJestConfig = nextJest({
+  // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
+  dir: './',
+});
+
+/**
+ * Custom Jest configuration
+ */
+const customJestConfig: Config = {
+  // Setup files
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+
+  // Module paths
+  moduleNameMapper: {
+    // Handle path aliases (must match tsconfig.json)
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+
+  // Test environment
+  testEnvironment: 'jest-environment-jsdom',
+
+  // Coverage configuration
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/*.stories.{js,jsx,ts,tsx}',
+    '!src/**/__tests__/**',
+    '!src/**/tests/**',
+    '!src/app/**', // Exclude Next.js pages from coverage (they're tested via E2E)
+  ],
+
+  // Coverage thresholds (enforces 95% coverage requirement)
+  coverageThreshold: {
+    global: {
+      branches: 95,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+  },
+
+  // Test match patterns
+  testMatch: [
+    '**/__tests__/**/*.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)',
+  ],
+
+  // Transform files
+  transformIgnorePatterns: [
+    '/node_modules/',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ],
+
+  // Module file extensions
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+
+  // Verbose output
+  verbose: true,
+
+  // Clear mocks between tests
+  clearMocks: true,
+
+  // Restore mocks
+  restoreMocks: true,
+
+  // Max workers for parallel testing
+  maxWorkers: '50%',
+};
+
+// Export Jest config
+export default createJestConfig(customJestConfig);
