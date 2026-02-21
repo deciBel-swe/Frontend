@@ -1,4 +1,4 @@
-# SoundGround - Social Streaming Platform
+# DeciBel - Social Streaming Platform
 
 > A modern music streaming platform built with Next.js, TypeScript, and Tailwind CSS
 
