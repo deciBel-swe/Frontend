@@ -1,6 +1,6 @@
 # Code Style Guide
 
-> Unified coding standards and design patterns for the SoundGround frontend
+> Unified coding standards and design patterns for the DeciBel frontend
 
 ## Table of Contents
 
