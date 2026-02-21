@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-> **Team workflow and collaboration guide for the SoundGround frontend**
+> **Team workflow and collaboration guide for the DeciBel frontend**
 
 ## 📋 Table of Contents
 
