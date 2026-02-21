@@ -1,6 +1,6 @@
 # Deployment Guidelines
 
-> CI/CD pipeline and deployment workflow for SoundGround frontend
+> CI/CD pipeline and deployment workflow for DeciBel frontend
 
 ## 🔄 CI/CD Overview
 
