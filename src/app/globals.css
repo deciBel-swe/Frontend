@@ -226,8 +226,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  padding: 5;
-  margin: 5;
+  padding: 0;
+  margin: 0;
 }
 
 html {
@@ -241,7 +241,5 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Reserve space at bottom for the persistent player bar */
-  padding-bottom: var(--spacing-player-bar);
 }
 

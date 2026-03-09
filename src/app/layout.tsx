@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import './globals.css';
 
 /**
@@ -37,8 +38,10 @@ export const metadata: Metadata = {
  * Root Layout Component
  *
  * - Applies Inter and JetBrains Mono font CSS variables globally via next/font.
- * - The `dark` class on <html> activates the .dark colour tokens defined in
- *   globals.css. A theme-switcher component should toggle this at runtime.
+ * - ThemeProvider (next-themes) manages the active theme in localStorage and
+ *   injects the `dark` class on <html>, activating the .dark colour tokens
+ *   defined in globals.css. `enableSystem` falls back to the OS preference
+ *   when no user choice has been stored yet.
  * - All pages inherit bg-bg-base and text-text-primary from the body rule in
  *   globals.css — no hardcoded colours in any component.
  */
@@ -50,9 +53,26 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      /**
+       * Font CSS variables are applied here so every descendant can reference
+       * var(--font-sans) and var(--font-mono) regardless of theme.
+       * `suppressHydrationWarning` is required because next-themes injects the
+       * theme class on the client after hydration, which would otherwise cause
+       * a React mismatch warning.
+       */
       className={`${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
