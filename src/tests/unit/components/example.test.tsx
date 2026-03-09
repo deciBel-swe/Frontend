@@ -1,6 +1,6 @@
 /**
  * Example Component Tests
- * 
+ *
  * Demonstrates testing React components with React Testing Library.
  * These are examples - adapt them to your actual components.
  */
@@ -23,27 +23,31 @@ const Button = ({ onClick, children, disabled = false }: any) => (
 describe('Button Component', () => {
   it('should render button text', () => {
     render(<Button>Click me</Button>);
-    
+
     expect(screen.getByText('Click me')).toBeInTheDocument();
   });
 
   it('should call onClick handler when clicked', () => {
     const handleClick = jest.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   it('should not call onClick when disabled', () => {
     const handleClick = jest.fn();
-    render(<Button onClick={handleClick} disabled>Click me</Button>);
-    
+    render(
+      <Button onClick={handleClick} disabled>
+        Click me
+      </Button>
+    );
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     expect(handleClick).not.toHaveBeenCalled();
   });
 });
@@ -66,10 +70,10 @@ const LoginForm = ({ onSubmit }: any) => {
     <form onSubmit={handleSubmit}>
       <label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" />
-      
+
       <label htmlFor="password">Password</label>
       <input id="password" name="password" type="password" />
-      
+
       <button type="submit">Login</button>
     </form>
   );
@@ -78,7 +82,7 @@ const LoginForm = ({ onSubmit }: any) => {
 describe('LoginForm Component', () => {
   it('should render form fields', () => {
     render(<LoginForm onSubmit={jest.fn()} />);
-    
+
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
@@ -87,16 +91,16 @@ describe('LoginForm Component', () => {
   it('should submit form with user input', async () => {
     const handleSubmit = jest.fn();
     const user = userEvent.setup();
-    
+
     render(<LoginForm onSubmit={handleSubmit} />);
-    
+
     // Fill in the form
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'password123');
-    
+
     // Submit the form
     await user.click(screen.getByRole('button', { name: /login/i }));
-    
+
     expect(handleSubmit).toHaveBeenCalledWith({
       email: 'test@example.com',
       password: 'password123',
@@ -127,45 +131,45 @@ import React from 'react';
 describe('Counter Component', () => {
   it('should display initial count', () => {
     render(<Counter initialCount={5} />);
-    
+
     expect(screen.getByText('Count: 5')).toBeInTheDocument();
   });
 
   it('should increment count', async () => {
     const user = userEvent.setup();
     render(<Counter />);
-    
+
     await user.click(screen.getByRole('button', { name: /increment/i }));
-    
+
     expect(screen.getByText('Count: 1')).toBeInTheDocument();
   });
 
   it('should decrement count', async () => {
     const user = userEvent.setup();
     render(<Counter initialCount={5} />);
-    
+
     await user.click(screen.getByRole('button', { name: /decrement/i }));
-    
+
     expect(screen.getByText('Count: 4')).toBeInTheDocument();
   });
 
   it('should reset count to zero', async () => {
     const user = userEvent.setup();
     render(<Counter initialCount={10} />);
-    
+
     await user.click(screen.getByRole('button', { name: /reset/i }));
-    
+
     expect(screen.getByText('Count: 0')).toBeInTheDocument();
   });
 
   it('should handle multiple interactions', async () => {
     const user = userEvent.setup();
     render(<Counter />);
-    
+
     await user.click(screen.getByRole('button', { name: /increment/i }));
     await user.click(screen.getByRole('button', { name: /increment/i }));
     await user.click(screen.getByRole('button', { name: /decrement/i }));
-    
+
     expect(screen.getByText('Count: 1')).toBeInTheDocument();
   });
 });
@@ -181,7 +185,7 @@ const AsyncDataComponent = () => {
   const fetchData = async () => {
     setLoading(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setData('Fetched Data');
     setLoading(false);
   };
@@ -199,29 +203,29 @@ describe('AsyncDataComponent', () => {
   it('should show loading state', async () => {
     const user = userEvent.setup();
     render(<AsyncDataComponent />);
-    
+
     await user.click(screen.getByRole('button', { name: /fetch data/i }));
-    
+
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
   it('should display data after loading', async () => {
     jest.useFakeTimers();
-    const user = userEvent.setup({ 
-      advanceTimers: jest.advanceTimersByTime 
+    const user = userEvent.setup({
+      advanceTimers: jest.advanceTimersByTime,
     });
     render(<AsyncDataComponent />);
-    
+
     await user.click(screen.getByRole('button', { name: /fetch data/i }));
-    
+
     // Fast-forward time wrapped in act
     await act(async () => {
       jest.advanceTimersByTime(1000);
       await Promise.resolve(); // Let promises flush
     });
-    
+
     expect(screen.getByText('Data: Fetched Data')).toBeInTheDocument();
-    
+
     jest.useRealTimers();
   });
 });
@@ -242,16 +246,18 @@ describe('Query Examples', () => {
 
   it('should use different query methods', () => {
     render(<ExampleComponent />);
-    
+
     // By role (preferred)
-    expect(screen.getByRole('heading', { name: /welcome/i })).toBeInTheDocument();
-    
+    expect(
+      screen.getByRole('heading', { name: /welcome/i })
+    ).toBeInTheDocument();
+
     // By test ID
     expect(screen.getByTestId('description')).toBeInTheDocument();
-    
+
     // By alt text (for images)
     expect(screen.getByAltText('Logo')).toBeInTheDocument();
-    
+
     // By placeholder
     expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
   });

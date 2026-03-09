@@ -1,6 +1,6 @@
 /**
  * Application Configuration
- * 
+ *
  * Centralized configuration for environment variables and app settings.
  * This file should be imported whenever you need to access environment variables.
  */
@@ -69,7 +69,7 @@ const getNumberEnv = (key: string, defaultValue: number): number => {
 
 export const config: AppConfig = {
   // Environment
-  env: (getEnv('NODE_ENV', 'development') as AppConfig['env']),
+  env: getEnv('NODE_ENV', 'development') as AppConfig['env'],
   isDevelopment: getEnv('NODE_ENV') !== 'production',
   isProduction: getEnv('NODE_ENV') === 'production',
 
@@ -86,7 +86,10 @@ export const config: AppConfig = {
   },
   // Development Tools
   devTools: {
-    reactQueryDevTools: getBoolEnv('NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS', true)
+    reactQueryDevTools: getBoolEnv(
+      'NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS',
+      true
+    ),
   },
 };
 
@@ -108,10 +111,12 @@ export const validateConfig = (): void => {
 
   if (errors.length > 0) {
     console.error('Configuration validation errors:');
-    errors.forEach(error => console.error(`  - ${error}`));
-    
+    errors.forEach((error) => console.error(`  - ${error}`));
+
     if (config.isProduction) {
-      throw new Error('Invalid configuration. Please check environment variables.');
+      throw new Error(
+        'Invalid configuration. Please check environment variables.'
+      );
     }
   }
 };

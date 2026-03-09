@@ -1,6 +1,6 @@
 /**
  * Services Barrel Export
- * 
+ *
  * This file exports all services from a single import point.
  * It implements the dependency injection pattern for switching between
  * real and mock APIs based on configuration.

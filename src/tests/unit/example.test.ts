@@ -1,6 +1,6 @@
 /**
  * Example Jest Test File
- * 
+ *
  * This file demonstrates various Jest testing patterns and best practices.
  * Use this as a reference for writing your own tests.
  */
@@ -140,8 +140,8 @@ describe('Async Operations', () => {
   // Test with promises
   it('should handle promises with .then', () => {
     const fetchData = () => Promise.resolve('data');
-    
-    return fetchData().then(data => {
+
+    return fetchData().then((data) => {
       expect(data).toBe('data');
     });
   });
@@ -149,7 +149,7 @@ describe('Async Operations', () => {
   // Test with async/await (preferred modern approach)
   it('should handle async/await', async () => {
     const fetchData = async () => 'data';
-    
+
     const data = await fetchData();
     expect(data).toBe('data');
   });
@@ -166,7 +166,7 @@ describe('Async Operations', () => {
   // Test with resolves matcher
   it('should use resolves matcher', async () => {
     const fetchData = async () => 'success';
-    
+
     await expect(fetchData()).resolves.toBe('success');
   });
 });
@@ -178,7 +178,7 @@ describe('Async Operations', () => {
 describe('Mocking Functions', () => {
   it('should create a mock function', () => {
     const mockFn = jest.fn();
-    
+
     mockFn('hello');
     mockFn('world');
 
@@ -189,7 +189,8 @@ describe('Mocking Functions', () => {
   });
 
   it('should mock return values', () => {
-    const mockFn = jest.fn()
+    const mockFn = jest
+      .fn()
       .mockReturnValueOnce('first')
       .mockReturnValueOnce('second')
       .mockReturnValue('default');
@@ -288,13 +289,13 @@ describe('Test Control', () => {
 
 describe('Timeout Configuration', () => {
   it('should complete within default timeout', async () => {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(true).toBe(true);
   });
 
   // Custom timeout for slow tests
   it('should handle longer operations', async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     expect(true).toBe(true);
   }, 2000); // 2 second timeout
 });
