@@ -13,7 +13,7 @@
 7. [Import Organization](#import-organization)
 8. [Comments & Documentation](#comments--documentation)
 9. [Design Patterns](#design-patterns)
-10. [Git Commit Messages](#git-commit-messages)
+10. [Version Control Conventions](#version-control-conventions)
 
 ---
 
@@ -527,36 +527,75 @@ const [theme, setTheme] = useLocalStorage('theme', 'light');
 
 ---
 
-## Git Commit Messages
+## Version Control Conventions
 
-### Format
+### GitHub Links
+
+- GitHub Organization: <https://github.com/orgs/deciBel-swe>
+- Backend Repository: <https://github.com/deciBel-swe/Backend>
+- Frontend Repository: <https://github.com/deciBel-swe/Frontend>
+- Cross-platform Repository: <https://github.com/deciBel-swe/Cross-platform>
+- DevOps Repository: <https://github.com/deciBel-swe/Infrastructure>
+- Testing Repository: <https://github.com/deciBel-swe/Testing>
+
+### Commit Naming
+
+#### Format
 
 ```
 <type>(<scope>): <subject>
-
-<body (optional)>
-
-<footer (optional)>
 ```
 
-### Types
+#### Types
 
-- `feat`: New feature
+- `feat`: New feature or user-visible capability
 - `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
+- `docs`: Documentation-only change
+- `style`: Formatting/lint-only change (no behavior change)
+- `refactor`: Restructuring without changing behavior
+- `test`: Add or update tests
+- `chore`: Maintenance (deps, tooling, CI, build, cleanup)
 
-### Examples
+#### Scope
+
+- Use the official module scope codes listed below for module-related changes.
+- If scope is unclear, omit it instead of adding an inaccurate one.
+
+#### Module Scope Codes
+
+Use these exact scope identifiers in commit and branch names:
+
+| Module | Scope Code |
+|--------|------------|
+| Module 1 | `auth` |
+| Module 2 | `prof` |
+| Module 3 | `soc` |
+| Module 4 | `track` |
+| Module 5 | `play` |
+| Module 6 | `eng` |
+| Module 7 | `pl` |
+| Module 8 | `disc` |
+| Module 9 | `msg` |
+| Module 10 | `notif` |
+| Module 11 | `admin` |
+| Module 12 | `sub` |
+
+#### Subject Rules
+
+- Use imperative mood: `add`, `update`, `remove`, `fix`
+- Keep subject lowercase
+- No trailing period
+- Keep subject under about 50 characters
+
+#### Examples
 
 ```bash
 # ✅ CORRECT
-feat(auth): implement Google OAuth login
-fix(player): resolve seek bar jumping issue
-docs(readme): update installation instructions
-test(tracks): add unit tests for upload service
+feat(auth): add token refresh flow
+fix(api): handle empty response safely
+refactor(core): simplify config loading
+docs: clarify local setup steps
+chore(ci): speed up pipeline caching
 
 # ❌ INCORRECT
 Update files
@@ -564,12 +603,30 @@ Fixed bug
 WIP
 ```
 
-### Rules
+### Branch Naming
 
-- Use imperative mood ("add feature" not "added feature")
-- Lowercase subject line
-- No period at the end
-- Keep subject under 50 characters
+#### Recommended Format
+
+```
+<type>/<scope>-<short-description>
+```
+
+- `type`: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`
+- `scope`: use module scope codes above for module-related work
+- `short-description`: concise, lowercase, hyphen-separated
+
+#### Reserved Branches
+
+- `main`: production-ready branch
+- `dev`: pre-production integration branch
+
+#### Examples
+
+- `feat/auth-refresh-token`
+- `fix/track-null-guard`
+- `docs/contribution-guide`
+- `refactor/prof-settings-form`
+- `test/msg-edge-cases`
 ---
 
 ## Checklist Before Pushing

@@ -92,8 +92,12 @@ npm run pre-commit
 # Check current status
 git status
 
-# Create a new feature branch
-git checkout -b feature/your-feature-name
+# Sync integration branch
+git checkout dev
+git pull origin dev
+
+# Create a working branch
+git checkout -b feat/auth-refresh-token
 
 # Stage changes
 git add .
@@ -101,22 +105,24 @@ git add .
 git add src/features/auth/LoginForm.tsx
 
 # Commit changes
-git commit -m "feat(auth): add login form validation"
+git commit -m "feat(auth): add token refresh flow"
 
 # Push to remote
-git push origin feature/your-feature-name
+git push -u origin feat/auth-refresh-token
 
-# Update your branch with latest develop
-git checkout develop
-git pull
-git checkout feature/your-feature-name
-git merge develop
+# Rebase branch on latest dev
+git fetch origin
+git rebase origin/dev
 
-# Delete local branch (after merging PR)
-git branch -d feature/your-feature-name
+# Open PR target: dev (never push directly to dev/main)
+
+# Delete local branch (after PR merge)
+git checkout dev
+git pull origin dev
+git branch -d feat/auth-refresh-token
 
 # Delete remote branch
-git push origin --delete feature/your-feature-name
+git push origin --delete feat/auth-refresh-token
 ```
 
 ---
@@ -128,23 +134,54 @@ git push origin --delete feature/your-feature-name
 git commit -m "<type>(<scope>): <subject>"
 
 # Examples
-git commit -m "feat(auth): add Google OAuth login button"
-git commit -m "fix(player): resolve seek bar jumping issue"
-git commit -m "test(tracks): add unit tests for upload service"
-git commit -m "docs(readme): update installation instructions"
-git commit -m "refactor(api): improve error handling in track service"
-git commit -m "style(button): adjust padding and margins"
-git commit -m "chore(deps): update dependencies"
+git commit -m "feat(auth): add token refresh flow"
+git commit -m "fix(track): handle empty response safely"
+git commit -m "refactor(prof): simplify settings state flow"
+git commit -m "docs: clarify local setup steps"
+git commit -m "chore(ci): speed up pipeline caching"
 ```
 
 **Types:**
-- `feat` - New feature
+- `feat` - New feature or user-visible capability
 - `fix` - Bug fix
-- `docs` - Documentation
-- `style` - Code style (no logic change)
-- `refactor` - Code refactoring
-- `test` - Tests
-- `chore` - Maintenance
+- `docs` - Documentation-only change
+- `style` - Formatting/lint-only change (no behavior change)
+- `refactor` - Restructuring without behavior change
+- `test` - Add or update tests
+- `chore` - Maintenance (deps, tooling, CI, build, cleanup)
+
+**Subject rules:**
+- Use imperative mood (`add`, `update`, `remove`, `fix`)
+- Use lowercase subject
+- No trailing period
+- Keep subject under about 50 characters
+
+## 🌱 Branch Name Format
+
+```text
+<type>/<scope>-<short-description>
+```
+
+Examples:
+- `feat/auth-refresh-token`
+- `fix/track-null-guard`
+- `docs/contribution-guide`
+- `refactor/prof-settings-form`
+- `test/msg-edge-cases`
+
+Module scope codes:
+- `auth` (Module 1)
+- `prof` (Module 2)
+- `soc` (Module 3)
+- `track` (Module 4)
+- `play` (Module 5)
+- `eng` (Module 6)
+- `pl` (Module 7)
+- `disc` (Module 8)
+- `msg` (Module 9)
+- `notif` (Module 10)
+- `admin` (Module 11)
+- `sub` (Module 12)
 
 ---
 

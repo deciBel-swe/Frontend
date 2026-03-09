@@ -25,9 +25,9 @@ name: CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [dev, main]
   pull_request:
-    branches: [develop, main]
+    branches: [dev, main]
 
 jobs:
   quality-checks:
@@ -77,9 +77,9 @@ Ensure these scripts are in `package.json`:
 
 ## 🌍 Deployment Environments
 
-### 1. Development (`develop` branch)
+### 1. Development (`dev` branch)
 - **Purpose:** Integration and testing
-- **Auto-deploy:** On every merge to `develop`
+- **Auto-deploy:** On every merge to `dev`
 - **URL:** `https://dev.soundwave.app` (example)
 
 ### 2. Staging (optional)
@@ -96,7 +96,7 @@ Ensure these scripts are in `package.json`:
 
 ## ✅ Pre-Deployment Checklist
 
-Before merging to `develop` or `main`:
+Before merging to `dev` or `main`:
 
 ### Code Quality
 - [ ] All ESLint errors resolved (`npm run lint`)
@@ -130,35 +130,35 @@ Before merging to `develop` or `main`:
 ### Deploying to Development
 
 ```bash
-# 1. Ensure you're on develop branch
-git checkout develop
-git pull origin develop
+# 1. Rebase your working branch on latest dev
+git fetch origin
+git rebase origin/dev
 
-# 2. Merge feature branch
-git merge feature/your-feature-name
-
-# 3. Run pre-deployment checks
+# 2. Run pre-deployment checks
 npm run lint
 npm run type-check
 npm test
 npm run build
 
-# 4. Push to trigger CI/CD
-git push origin develop
+# 3. Push branch updates
+git push --force-with-lease
+
+# 4. Open PR to dev and wait for CI + required approvals
+# (No direct pushes to dev/main)
 
 # CI/CD will automatically:
 # - Run all checks
 # - Build application
-# - Deploy to dev environment
+# - Deploy to dev environment after PR merge to dev
 ```
 
 ### Deploying to Production
 
 ```bash
-# 1. Create release branch from develop
-git checkout develop
-git pull origin develop
-git checkout -b release/v1.2.0
+# 1. Create release branch from dev
+git checkout dev
+git pull origin dev
+git checkout -b chore/release-v1.2.0
 
 # 2. Update version (if using semantic versioning)
 npm version patch  # or minor/major
@@ -169,20 +169,18 @@ npm run type-check
 npm test:ci
 npm run build
 
-# 4. Merge to main
-git checkout main
-git merge release/v1.2.0
+# 4. Open PR from release branch to main
+# Required approvals: Sub-Team Leader (+ Team Leader for cross-team/architectural changes)
 
-# 5. Tag release
+# 5. After PR merge, tag release
+git checkout main
+git pull origin main
 git tag -a v1.2.0 -m "Release version 1.2.0"
 
 # 6. Push to trigger production deployment
 git push origin main --tags
 
-# 7. Merge back to develop
-git checkout develop
-git merge main
-git push origin develop
+# 7. Open sync PR from main back to dev if required
 ```
 
 ---
@@ -198,7 +196,7 @@ NODE_ENV=development
 
 ### Production
 ```env
-NEXT_PUBLIC_API_URL=https://api.soundwave.app
+NEXT_PUBLIC_API_URL=https://api.decibel.app
 NEXT_PUBLIC_USE_MOCK=false
 NODE_ENV=production
 ```
@@ -229,13 +227,13 @@ NODE_ENV=production
 If deployment fails or causes issues:
 
 ```bash
-# Option 1: Revert commit
+# Option 1: Revert the problematic commit on a new branch
+git checkout -b fix/revert-bad-release
 git revert <commit-hash>
-git push origin main
+git push -u origin fix/revert-bad-release
 
-# Option 2: Rollback to previous tag
-git checkout v1.1.0
-git push origin main --force  # Use with caution!
+# Option 2: Open emergency PR to main, then sync to dev
+# (Do not force-push protected branches)
 ```
 
 ---
@@ -249,7 +247,12 @@ git push origin main --force  # Use with caution!
    - Manual testing completed
    - Code reviewed and approved
 
-2. **Version Control**
+2. **Protected Branches**
+  - No direct pushes to `dev` or `main`
+  - Use pull requests for all changes
+  - Merge with required role approvals
+
+3. **Version Control**
    - Tag all production releases
    - Follow semantic versioning
    - Update CHANGELOG
@@ -296,4 +299,4 @@ npm run test:ci
 
 ---
 
-**Last Updated:** February 21, 2026  
+**Last Updated:** March 9, 2026  
