@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* =============================================================================
    DECIBEL DESIGN TOKENS
@@ -22,29 +22,29 @@
      Primary orange used for highlights, active states, and brand accents.
      --------------------------------------------------------------------------- */
 
-  --color-brand-primary:    #ff5500; /* Main orange — buttons, links, active player */
+  --color-brand-primary: #ff5500; /* Main orange — buttons, links, active player */
   --color-brand-primary-hover: #e64d00; /* Darker shade for :hover on brand-primary */
-  --color-brand-secondary:  #ff7700; /* Lighter warm orange — secondary actions     */
-  --color-brand-accent:     #f50;    /* Pure orange — waveform, progress  */
-  --color-brand-muted:      #ff8c42; /* Soft orange — tags, badges                  */
+  --color-brand-secondary: #ff7700; /* Lighter warm orange — secondary actions     */
+  --color-brand-accent: #f50; /* Pure orange — waveform, progress  */
+  --color-brand-muted: #ff8c42; /* Soft orange — tags, badges                  */
 
   /* ---------------------------------------------------------------------------
      NEUTRAL PALETTE
      Off-black/off-white scale; gives depth to the dark-first UI.
      --------------------------------------------------------------------------- */
 
-  --color-neutral-0:    #ffffff; /* Pure white                       */
-  --color-neutral-50:   #f9f9f9; /* Off-white surface (light mode)   */
-  --color-neutral-100:  #f0f0f0; /* Subtle dividers in light mode    */
-  --color-neutral-200:  #d4d4d4; /* Borders, placeholder text        */
-  --color-neutral-300:  #ababab; /* Muted / secondary text           */
-  --color-neutral-400:  #737373; /* Disabled controls                */
-  --color-neutral-500:  #525252; /* Body text in light mode          */
-  --color-neutral-600:  #404040; /* Elevated surface (dark mode)     */
-  --color-neutral-700:  #2a2a2a; /* Surface (dark mode)              */
-  --color-neutral-800:  #1a1a1a; /* Background (dark mode)           */
-  --color-neutral-900:  #111111; /* Deep background (dark mode)      */
-  --color-neutral-950:  #0a0a0a; /* Near-black, player bar bg        */
+  --color-neutral-0: #ffffff; /* Pure white                       */
+  --color-neutral-50: #f9f9f9; /* Off-white surface (light mode)   */
+  --color-neutral-100: #f0f0f0; /* Subtle dividers in light mode    */
+  --color-neutral-200: #d4d4d4; /* Borders, placeholder text        */
+  --color-neutral-300: #ababab; /* Muted / secondary text           */
+  --color-neutral-400: #737373; /* Disabled controls                */
+  --color-neutral-500: #525252; /* Body text in light mode          */
+  --color-neutral-600: #404040; /* Elevated surface (dark mode)     */
+  --color-neutral-700: #2a2a2a; /* Surface (dark mode)              */
+  --color-neutral-800: #1a1a1a; /* Background (dark mode)           */
+  --color-neutral-900: #111111; /* Deep background (dark mode)      */
+  --color-neutral-950: #0a0a0a; /* Near-black, player bar bg        */
   --color-neutral-1000: #000000; /* Pure black                       */
 
   /* ---------------------------------------------------------------------------
@@ -52,10 +52,10 @@
      Used for alerts, toasts, validation states.
      --------------------------------------------------------------------------- */
 
-  --color-status-success:  #22c55e; /* Green — upload complete, follows */
-  --color-status-warning:  #f59e0b; /* Amber — pending, in-progress     */
-  --color-status-error:    #ef4444; /* Red — errors, destructive actions */
-  --color-status-info:     #3b82f6; /* Blue — informational toasts       */
+  --color-status-success: #22c55e; /* Green — upload complete, follows */
+  --color-status-warning: #f59e0b; /* Amber — pending, in-progress     */
+  --color-status-error: #ef4444; /* Red — errors, destructive actions */
+  --color-status-info: #3b82f6; /* Blue — informational toasts       */
 
   /* ---------------------------------------------------------------------------
      SEMANTIC SURFACE TOKENS  (light-mode defaults, overridden by .dark)
@@ -64,35 +64,45 @@
      --------------------------------------------------------------------------- */
 
   /* Backgrounds */
-  --color-bg-base:      var(--bg-base);      /* Page / app background      */
-  --color-bg-subtle:    var(--bg-subtle);    /* Inset areas, sidebars      */
+  --color-bg-base: var(--bg-base); /* Page / app background      */
+  --color-bg-subtle: var(--bg-subtle); /* Inset areas, sidebars      */
 
   /* Surfaces (cards, modals, panels) */
-  --color-surface-default:  var(--surface-default);  /* Card background     */
-  --color-surface-raised:   var(--surface-raised);   /* Dropdown / tooltip  */
-  --color-surface-overlay:  var(--surface-overlay);  /* Modal backdrop      */
+  --color-surface-default: var(--surface-default); /* Card background     */
+  --color-surface-raised: var(--surface-raised); /* Dropdown / tooltip  */
+  --color-surface-overlay: var(--surface-overlay); /* Modal backdrop      */
 
   /* Text */
-  --color-text-primary:   var(--text-primary);   /* Headings, body copy    */
+  --color-text-primary: var(--text-primary); /* Headings, body copy    */
   --color-text-secondary: var(--text-secondary); /* Subheadings, metadata  */
-  --color-text-muted:     var(--text-muted);     /* Placeholders, captions */
-  --color-text-inverse:   var(--text-inverse);   /* Text on dark bg        */
-  --color-text-on-brand:  var(--text-on-brand);  /* Text on brand-primary  */
+  --color-text-muted: var(--text-muted); /* Placeholders, captions */
+  --color-text-inverse: var(--text-inverse); /* Text on dark bg        */
+  --color-text-on-brand: var(--text-on-brand); /* Text on brand-primary  */
 
   /* Borders */
   --color-border-default: var(--border-default); /* Standard dividers      */
-  --color-border-strong:  var(--border-strong);  /* Focused inputs, cards  */
-  --color-border-brand:   var(--border-brand);   /* Active / brand outline */
+  --color-border-strong: var(--border-strong); /* Focused inputs, cards  */
+  --color-border-brand: var(--border-brand); /* Active / brand outline */
 
   /* Interactive */
-  --color-interactive-default: var(--interactive-default); /* Default bg of controls */
-  --color-interactive-hover:   var(--interactive-hover);   /* Hover state            */
-  --color-interactive-active:  var(--interactive-active);  /* Pressed / active state */
+  --color-interactive-default: var(
+    --interactive-default
+  ); /* Default bg of controls */
+  --color-interactive-hover: var(
+    --interactive-hover
+  ); /* Hover state            */
+  --color-interactive-active: var(
+    --interactive-active
+  ); /* Pressed / active state */
 
   /* Player-specific */
-  --color-player-bg:        var(--player-bg);        /* Persistent player bar bg */
-  --color-player-waveform:  var(--player-waveform);  /* Waveform played region   */
-  --color-player-progress:  var(--player-progress);  /* Seek-bar fill            */
+  --color-player-bg: var(--player-bg); /* Persistent player bar bg */
+  --color-player-waveform: var(
+    --player-waveform
+  ); /* Waveform played region   */
+  --color-player-progress: var(
+    --player-progress
+  ); /* Seek-bar fill            */
 
   /* ---------------------------------------------------------------------------
      TYPOGRAPHY
@@ -101,37 +111,37 @@
      --------------------------------------------------------------------------- */
 
   /* Font families */
-  --font-sans:  'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono:  'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
 
   /* Font-size scale (maps to text-* utilities) */
-  --text-xs:   0.75rem;   /* 12px — captions, timestamps       */
-  --text-sm:   0.875rem;  /* 14px — secondary labels, metadata */
-  --text-base: 1rem;      /* 16px — body text                  */
-  --text-lg:   1.125rem;  /* 18px — card titles                */
-  --text-xl:   1.25rem;   /* 20px — section headings           */
-  --text-2xl:  1.5rem;    /* 24px — page sub-headings          */
-  --text-3xl:  1.875rem;  /* 30px — page titles                */
-  --text-4xl:  2.25rem;   /* 36px — hero headings              */
-  --text-5xl:  3rem;      /* 48px — display / marketing copy   */
+  --text-xs: 0.75rem; /* 12px — captions, timestamps       */
+  --text-sm: 0.875rem; /* 14px — secondary labels, metadata */
+  --text-base: 1rem; /* 16px — body text                  */
+  --text-lg: 1.125rem; /* 18px — card titles                */
+  --text-xl: 1.25rem; /* 20px — section headings           */
+  --text-2xl: 1.5rem; /* 24px — page sub-headings          */
+  --text-3xl: 1.875rem; /* 30px — page titles                */
+  --text-4xl: 2.25rem; /* 36px — hero headings              */
+  --text-5xl: 3rem; /* 48px — display / marketing copy   */
 
   /* Line-height companions */
-  --leading-tight:  1.25;
-  --leading-snug:   1.375;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
   --leading-normal: 1.5;
-  --leading-relaxed:1.625;
+  --leading-relaxed: 1.625;
 
   /* Letter-spacing */
-  --tracking-tight:  -0.025em;
-  --tracking-normal:  0em;
-  --tracking-wide:    0.025em;
-  --tracking-widest:  0.1em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-widest: 0.1em;
 
   /* Font weights */
-  --font-weight-normal:   400;
-  --font-weight-medium:   500;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold:     700;
+  --font-weight-bold: 700;
 
   /* ---------------------------------------------------------------------------
      SPACING SCALE
@@ -149,35 +159,35 @@
 
 :root {
   /* Backgrounds */
-  --bg-base:    var(--color-neutral-50);   /* #f9f9f9 */
-  --bg-subtle:  var(--color-neutral-100);  /* #f0f0f0 */
+  --bg-base: var(--color-neutral-50); /* #f9f9f9 */
+  --bg-subtle: var(--color-neutral-100); /* #f0f0f0 */
 
   /* Surfaces */
-  --surface-default: var(--color-neutral-0);   /* #ffffff — cards */
-  --surface-raised:  var(--color-neutral-50);  /* #f9f9f9 — dropdowns */
-  --surface-overlay: rgba(0, 0, 0, 0.4);       /* modal scrim          */
+  --surface-default: var(--color-neutral-0); /* #ffffff — cards */
+  --surface-raised: var(--color-neutral-50); /* #f9f9f9 — dropdowns */
+  --surface-overlay: rgba(0, 0, 0, 0.4); /* modal scrim          */
 
   /* Text */
-  --text-primary:   var(--color-neutral-900);  /* #111111 */
-  --text-secondary: var(--color-neutral-500);  /* #525252 */
-  --text-muted:     var(--color-neutral-300);  /* #ababab */
-  --text-inverse:   var(--color-neutral-0);    /* #ffffff */
-  --text-on-brand:  var(--color-neutral-0);    /* #ffffff — on orange buttons */
+  --text-primary: var(--color-neutral-900); /* #111111 */
+  --text-secondary: var(--color-neutral-500); /* #525252 */
+  --text-muted: var(--color-neutral-300); /* #ababab */
+  --text-inverse: var(--color-neutral-0); /* #ffffff */
+  --text-on-brand: var(--color-neutral-0); /* #ffffff — on orange buttons */
 
   /* Borders */
-  --border-default: var(--color-neutral-100);  /* #f0f0f0 */
-  --border-strong:  var(--color-neutral-200);  /* #d4d4d4 */
-  --border-brand:   var(--color-brand-primary);/* #ff5500 */
+  --border-default: var(--color-neutral-100); /* #f0f0f0 */
+  --border-strong: var(--color-neutral-200); /* #d4d4d4 */
+  --border-brand: var(--color-brand-primary); /* #ff5500 */
 
   /* Interactive controls */
-  --interactive-default: var(--color-neutral-100);  /* #f0f0f0 */
-  --interactive-hover:   var(--color-neutral-200);  /* #d4d4d4 */
-  --interactive-active:  var(--color-neutral-300);  /* #ababab */
+  --interactive-default: var(--color-neutral-100); /* #f0f0f0 */
+  --interactive-hover: var(--color-neutral-200); /* #d4d4d4 */
+  --interactive-active: var(--color-neutral-300); /* #ababab */
 
   /* Player */
-  --player-bg:       var(--color-neutral-0);       /* #ffffff */
-  --player-waveform: var(--color-brand-primary);   /* #ff5500 */
-  --player-progress: var(--color-brand-accent);    /* #ff5500 */
+  --player-bg: var(--color-neutral-0); /* #ffffff */
+  --player-waveform: var(--color-brand-primary); /* #ff5500 */
+  --player-progress: var(--color-brand-accent); /* #ff5500 */
 }
 
 /* =============================================================================
@@ -187,35 +197,35 @@
 
 .dark {
   /* Backgrounds */
-  --bg-base:    var(--color-neutral-900);  /* #111111 */
-  --bg-subtle:  var(--color-neutral-800);  /* #1a1a1a */
+  --bg-base: var(--color-neutral-900); /* #111111 */
+  --bg-subtle: var(--color-neutral-800); /* #1a1a1a */
 
   /* Surfaces */
-  --surface-default: var(--color-neutral-800);  /* #1a1a1a — cards   */
-  --surface-raised:  var(--color-neutral-700);  /* #2a2a2a — dropdowns */
-  --surface-overlay: rgba(0, 0, 0, 0.7);        /* darker modal scrim  */
+  --surface-default: var(--color-neutral-800); /* #1a1a1a — cards   */
+  --surface-raised: var(--color-neutral-700); /* #2a2a2a — dropdowns */
+  --surface-overlay: rgba(0, 0, 0, 0.7); /* darker modal scrim  */
 
   /* Text */
-  --text-primary:   var(--color-neutral-50);   /* #f9f9f9 */
-  --text-secondary: var(--color-neutral-300);  /* #ababab */
-  --text-muted:     var(--color-neutral-400);  /* #737373 */
-  --text-inverse:   var(--color-neutral-950);  /* #0a0a0a */
-  --text-on-brand:  var(--color-neutral-0);    /* #ffffff */
+  --text-primary: var(--color-neutral-50); /* #f9f9f9 */
+  --text-secondary: var(--color-neutral-300); /* #ababab */
+  --text-muted: var(--color-neutral-400); /* #737373 */
+  --text-inverse: var(--color-neutral-950); /* #0a0a0a */
+  --text-on-brand: var(--color-neutral-0); /* #ffffff */
 
   /* Borders */
-  --border-default: var(--color-neutral-700);  /* #2a2a2a */
-  --border-strong:  var(--color-neutral-600);  /* #404040 */
-  --border-brand:   var(--color-brand-primary);/* #ff5500 */
+  --border-default: var(--color-neutral-700); /* #2a2a2a */
+  --border-strong: var(--color-neutral-600); /* #404040 */
+  --border-brand: var(--color-brand-primary); /* #ff5500 */
 
   /* Interactive controls */
-  --interactive-default: var(--color-neutral-700);  /* #2a2a2a */
-  --interactive-hover:   var(--color-neutral-600);  /* #404040 */
-  --interactive-active:  var(--color-neutral-500);  /* #525252 */
+  --interactive-default: var(--color-neutral-700); /* #2a2a2a */
+  --interactive-hover: var(--color-neutral-600); /* #404040 */
+  --interactive-active: var(--color-neutral-500); /* #525252 */
 
   /* Player */
-  --player-bg:       var(--color-neutral-950);     /* #0a0a0a */
-  --player-waveform: var(--color-brand-primary);   /* #ff5500 */
-  --player-progress: var(--color-brand-accent);    /* #ff5500 */
+  --player-bg: var(--color-neutral-950); /* #0a0a0a */
+  --player-waveform: var(--color-brand-primary); /* #ff5500 */
+  --player-progress: var(--color-brand-accent); /* #ff5500 */
 }
 
 /* =============================================================================
@@ -232,7 +242,9 @@
 
 html {
   /* Smooth dark-mode transitions on theme switch */
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 body {
@@ -242,4 +254,3 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
