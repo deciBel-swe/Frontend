@@ -1,3 +1,3 @@
 export default function Page() {
-  return <></>;
+  return <>This is discover page</>;
 }
