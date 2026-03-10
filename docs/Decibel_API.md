@@ -36,102 +36,9 @@ Base URLs:
 
 # Authentication
 
-<a id="opIdregisterLocal"></a>
-
-## POST Register with email and password
-
-POST /auth/register/local
-
-> Body Parameters
-
-```json
-{
-  "email": "user@example.com",
-  "username": "string",
-  "password": "pa$$word",
-  "dateOfBirth": "2019-08-24",
-  "gender": "string",
-  "city": "string",
-  "country": "string",
-  "captchaToken": "string",
-  "deviceInfo": {
-    "deviceType": "DESKTOP",
-    "fingerPrint": "string",
-    "deviceName": "string"
-  }
-}
-```
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[RegisterLocalRequest](#schemaregisterlocalrequest)| yes |none|
-
-> Response Examples
-
-> 201 Response
-
-```json
-{
-  "message": "string"
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|User registered|[MessageResponse](#schemamessageresponse)|
-
-<a id="opIdregisterGoogle"></a>
-
-## POST Register with Google
-
-POST /auth/register/google
-
-> Body Parameters
-
-```json
-{
-  "idToken": "string",
-  "username": "string",
-  "city": "string",
-  "country": "string",
-  "captchaToken": "string",
-  "deviceInfo": {
-    "deviceType": "DESKTOP",
-    "fingerPrint": "string",
-    "deviceName": "string"
-  }
-}
-```
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[RegisterGoogleRequest](#schemaregistergooglerequest)| yes |none|
-
-> Response Examples
-
-> 201 Response
-
-```json
-{
-  "message": "string"
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|User registered|[MessageResponse](#schemamessageresponse)|
-
 <a id="opIdcheckUserAvailability"></a>
 
-## POST Check email or username availability
+## POST Check email or profile URL availability
 
 POST /auth/check-user
 
@@ -215,55 +122,9 @@ POST /auth/login/local
   "user": {
     "id": 0,
     "username": "string",
-    "tier": "FREE"
-  }
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Login successful|[LoginResponse](#schemaloginresponse)|
-
-<a id="opIdloginGoogle"></a>
-
-## POST Login with Google
-
-POST /auth/login/google
-
-> Body Parameters
-
-```json
-{
-  "accessToken": "string",
-  "idToken": "string",
-  "deviceInfo": {
-    "deviceType": "DESKTOP",
-    "fingerPrint": "string",
-    "deviceName": "string"
-  }
-}
-```
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|[LoginGoogleRequest](#schemalogingooglerequest)| yes |none|
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "accessToken": "string",
-  "refreshToken": "string",
-  "user": {
-    "id": 0,
-    "username": "string",
-    "tier": "FREE"
+    "tier": "FREE",
+    "profileUrl": "string",
+    "avatarUrl": "string"
   }
 }
 ```
@@ -301,7 +162,7 @@ POST /auth/refreshtoken
 ```json
 {
   "accessToken": "string",
-  "refreshToken": "string"
+  "expiresIn": 0
 }
 ```
 
@@ -309,7 +170,16 @@ POST /auth/refreshtoken
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Tokens refreshed|[RefreshTokenResponse](#schemarefreshtokenresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Tokens refreshed|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» accessToken|string|true|none||none|
+|» expiresIn|integer|true|none||none|
 
 <a id="opIdlogout"></a>
 
@@ -467,6 +337,52 @@ POST /auth/forgot-password
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Password recovery started|[MessageResponse](#schemamessageresponse)|
 
+<a id="opIdregisterLocal"></a>
+
+## POST Register with email and password
+
+POST /auth/register/local
+
+> Body Parameters
+
+```json
+{
+  "email": "user@example.com",
+  "username": "string",
+  "password": "pa$$word",
+  "dateOfBirth": "2019-08-24",
+  "gender": "string",
+  "city": "string",
+  "country": "string",
+  "captchaToken": "string",
+  "deviceInfo": {
+    "deviceType": "DESKTOP",
+    "fingerPrint": "string",
+    "deviceName": "string"
+  }
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[RegisterLocalRequest](#schemaregisterlocalrequest)| yes |none|
+
+> Response Examples
+
+> 201 Response
+
+```json
+"User Generated successfully"
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|User registered|string|
+
 <a id="opIdresetPassword"></a>
 
 ## POST Reset password using token
@@ -503,6 +419,117 @@ POST /auth/reset-password
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Password reset completed|[MessageResponse](#schemamessageresponse)|
+
+## GET Trigger Google login
+
+GET /oauth2/authorization/google
+
+NOTE You MUST trigger this endpoint by changing the brower window URL not by fetch 
+
+> Body Parameters
+
+```json
+{
+  "authUrl": "string"
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|object| yes |none|
+|» authUrl|body|string| yes |none|
+
+> Response Examples
+
+> 302 Response
+
+```json
+{}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|302|[Found](https://tools.ietf.org/html/rfc7231#section-6.4.3)|none|Inline|
+
+### Responses Data Schema
+
+### Response Header
+
+|Status|Header|Type|Format|Description|
+|---|---|---|---|---|
+|302|Location|string||none|
+
+## GET Google Callback (Internal)
+
+GET /login/oauth2/code/google
+
+Note for Frontend: You do not call this endpoint. Google calls this automatically after the user logs in.
+
+> Response Examples
+
+> 302 Response
+
+```json
+{}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|302|[Found](https://tools.ietf.org/html/rfc7231#section-6.4.3)|none|Inline|
+
+### Responses Data Schema
+
+### Response Header
+
+|Status|Header|Type|Format|Description|
+|---|---|---|---|---|
+|302|Location|string||none|
+
+## POST exchange oauth token with Decibel
+
+POST /auth/oauth/google
+
+> Body Parameters
+
+```json
+"string"
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[Google oauth token](#schemagoogle oauth token)| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "user": {
+    "id": 0,
+    "username": "string",
+    "tier": "FREE",
+    "profileUrl": "string",
+    "avatarUrl": "string"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[LoginResponse](#schemaloginresponse)|
 
 # Account Security
 
@@ -618,9 +645,9 @@ POST /users/me/update-email-primary
 
 <a id="opIdupdateSocialLinks"></a>
 
-## PUT Update social links
+## PATCH Update social links
 
-PUT /users/me/social-links
+PATCH /users/me/social-links
 
 > Body Parameters
 
@@ -658,6 +685,100 @@ PUT /users/me/social-links
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Social links updated|[PrivateSocialLinks](#schemaprivatesociallinks)|
 
+## PATCH update user Role
+
+PATCH /users/me/role
+
+> Body Parameters
+
+```json
+{
+  "newRole": "string"
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|object| yes |none|
+|» newRole|body|string| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "user": {
+    "id": 0,
+    "username": "string",
+    "tier": "FREE",
+    "profileUrl": "string",
+    "Role": "LISTENER",
+    "email": "string",
+    "isVerified": true
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[UserUpdateResponse](#schemauserupdateresponse)|
+
+<a id="opIdgetUserById"></a>
+
+## GET Get public profile by user ID
+
+GET /users/{userId}
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|userId|path|integer| yes |User ID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "id": 0,
+  "username": "string",
+  "tier": "ARTIST",
+  "profile": {
+    "username": "string",
+    "id": 0,
+    "bio": "string",
+    "location": "string",
+    "avatarUrl": "http://example.com",
+    "coverPhotoUrl": "http://example.com",
+    "favoriteGenres": [
+      "string"
+    ]
+  },
+  "socialLinks": {
+    "instagram": "http://example.com",
+    "twitter": "http://example.com",
+    "website": "http://example.com"
+  },
+  "stats": {
+    "followersCount": 0,
+    "followingCount": 0,
+    "trackCount": 0
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Public user profile|[PublicUserProfileResponse](#schemapublicuserprofileresponse)|
+
 <a id="opIdgetMe"></a>
 
 ## GET Get current user profile
@@ -670,8 +791,11 @@ GET /users/me
 
 ```json
 {
+  "id": 0,
+  "Role": "LISTENER",
   "email": "user@example.com",
   "username": "string",
+  "emailVerified": true,
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
@@ -708,19 +832,25 @@ GET /users/me
 
 <a id="opIdupdateMe"></a>
 
-## PUT Update current user profile
+## PATCH Update current user profile
 
-PUT /users/me
+PATCH /users/me
 
 > Body Parameters
 
 ```json
 {
   "bio": "string",
-  "location": "string",
+  "city": "string",
+  "country": "string",
   "favoriteGenres": [
     "string"
-  ]
+  ],
+  "socialLinks": {
+    "instagram": "http://example.com",
+    "twitter": "http://example.com",
+    "website": "http://example.com"
+  }
 }
 ```
 
@@ -736,8 +866,11 @@ PUT /users/me
 
 ```json
 {
+  "id": 0,
+  "Role": "LISTENER",
   "email": "user@example.com",
   "username": "string",
+  "emailVerified": true,
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
@@ -774,9 +907,9 @@ PUT /users/me
 
 <a id="opIdupdatePrivacy"></a>
 
-## PUT Update privacy settings
+## PATCH Update privacy settings
 
-PUT /users/me/privacy
+PATCH /users/me/privacy
 
 > Body Parameters
 
@@ -812,9 +945,9 @@ PUT /users/me/privacy
 
 <a id="opIdupdateTier"></a>
 
-## PUT Update account tier
+## PATCH Update account tier
 
-PUT /users/me/tier
+PATCH /users/me/tier
 
 > Body Parameters
 
@@ -836,7 +969,18 @@ PUT /users/me/tier
 
 ```json
 {
-  "tier": "string"
+  "tier": "string",
+  "login": {
+    "accessToken": "string",
+    "refreshToken": "string",
+    "user": {
+      "id": 0,
+      "username": "string",
+      "tier": "FREE",
+      "profileUrl": "string",
+      "avatarUrl": "string"
+    }
+  }
 }
 ```
 
@@ -852,13 +996,30 @@ HTTP Status Code **200**
 
 |Name|Type|Required|Restrictions|Title|description|
 |---|---|---|---|---|---|
-|» tier|string|false|none||none|
+|» tier|string|true|none||none|
+|» login|[LoginResponse](#schemaloginresponse)|true|none||none|
+|»» accessToken|string|true|none||none|
+|»» refreshToken|string|true|none||none|
+|»» user|object|true|none||none|
+|»»» id|integer|true|none||none|
+|»»» username|string|true|none||none|
+|»»» tier|[UserInfo](#schemauserinfo)|true|none||none|
+|»»» profileUrl|string|false|none||none|
+|»»» avatarUrl|string|false|none||none|
+
+#### Enum
+
+|Name|Value|
+|---|---|
+|tier|FREE|
+|tier|ARTIST|
+|tier|ARTIST_PRO|
 
 <a id="opIdupdateImages"></a>
 
-## PUT Update profile or cover images
+## PATCH Update profile or cover images
 
-PUT /users/me/images
+PATCH /users/me/images
 
 > Body Parameters
 
@@ -867,12 +1028,6 @@ PUT /users/me/images
   "profilePic": "http://example.com",
   "coverPic": "http://example.com"
 }
-```
-
-```yaml
-profilePic: http://example.com
-coverPic: http://example.com
-
 ```
 
 ### Params
@@ -1003,55 +1158,6 @@ HTTP Status Code **200**
 |*anonymous*|[[SearchUser](#schemasearchuser)]|false|none||none|
 |» id|integer|false|none||none|
 |» username|string|false|none||none|
-
-<a id="opIdgetUserById"></a>
-
-## GET Get public profile by user ID
-
-GET /users/{userId}
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|userId|path|integer| yes |User ID|
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "id": 0,
-  "username": "string",
-  "tier": "ARTIST",
-  "profile": {
-    "bio": "string",
-    "location": "string",
-    "avatarUrl": "http://example.com",
-    "coverPhotoUrl": "http://example.com",
-    "favoriteGenres": [
-      "string"
-    ]
-  },
-  "socialLinks": {
-    "instagram": "http://example.com",
-    "twitter": "http://example.com",
-    "website": "http://example.com"
-  },
-  "stats": {
-    "followersCount": 0,
-    "followingCount": 0,
-    "trackCount": 0
-  }
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Public user profile|[PublicUserProfileResponse](#schemapublicuserprofileresponse)|
 
 <a id="opIdgetUserTracks"></a>
 
@@ -1468,11 +1574,196 @@ GET /tracks/{trackId}
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track details|[TrackResponse](#schematrackresponse)|
 
+<a id="opIdgetGenres"></a>
+
+## GET Get genres
+
+GET /genres
+
+> Body Parameters
+
+```json
+{}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|object| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "string"
+  },
+  "example": [
+    "Pop",
+    "Rock",
+    "Jazz"
+  ]
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track details|Inline|
+|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|none|None|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+*Genres*
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+
+<a id="opIdgetStatusByID"></a>
+
+## GET Get track status
+
+GET /tracks/{trackId}/status
+
+> Body Parameters
+
+```json
+{}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+|body|body|object| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+"UPLOADING"
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track details|[Status](#schemastatus)|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|none|None|
+
+## GET TrackPeaksDTO
+
+GET /tracks/{trackId}/peaks
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "trackId": 0,
+  "duration": 0,
+  "peaks": [
+    0
+  ]
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[TrackPeaksDTO](#schematrackpeaksdto)|
+
+## POST publishTrack
+
+POST /tracks/{trackId}/publish
+
+> Body Parameters
+
+```json
+{}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+|body|body|object| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "id": 0,
+  "permalink": "string",
+  "publishedAt": "string"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[publishTrackResponse](#schemapublishtrackresponse)|
+
+## GET getSecretLink
+
+GET /tracks/{trackId}/secret-link
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "secretLink": "string"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» secretLink|string|true|none||none|
+
 <a id="opIduploadTrack"></a>
 
 ## POST Upload a new track
 
-POST /tracks
+POST /tracks/upload
 
 > Body Parameters
 
@@ -1483,6 +1774,8 @@ title: ""
 genre: ""
 description: ""
 isPrivate: ""
+waveForm:
+  - Floats
 
 ```
 
@@ -1497,6 +1790,7 @@ isPrivate: ""
 |» genre|body|string| yes |none|
 |» description|body|string| no |none|
 |» isPrivate|body|boolean| yes |none|
+|» waveForm|body|[string]| yes |none|
 
 > Response Examples
 
@@ -3400,7 +3694,261 @@ POST /subscriptions/webhook
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Webhook received successfully|None|
 
+# deprecated
+
+<a id="opIdloginGoogle"></a>
+
+## POST Login with Google
+
+POST /auth/login/google
+
+> Body Parameters
+
+```json
+{
+  "accessToken": "string",
+  "idToken": "string",
+  "deviceInfo": {
+    "deviceType": "DESKTOP",
+    "fingerPrint": "string",
+    "deviceName": "string"
+  }
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[LoginGoogleRequest](#schemalogingooglerequest)| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "user": {
+    "id": 0,
+    "username": "string",
+    "tier": "FREE",
+    "profileUrl": "string",
+    "avatarUrl": "string"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Login successful|[LoginResponse](#schemaloginresponse)|
+
+<a id="opIdregisterGoogle"></a>
+
+## POST Register with Google
+
+POST /auth/register/google
+
+> Body Parameters
+
+```json
+{
+  "idToken": "string",
+  "username": "string",
+  "city": "string",
+  "country": "string",
+  "captchaToken": "string",
+  "deviceInfo": {
+    "deviceType": "DESKTOP",
+    "fingerPrint": "string",
+    "deviceName": "string"
+  }
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|body|body|[RegisterGoogleRequest](#schemaregistergooglerequest)| yes |none|
+
+> Response Examples
+
+> 201 Response
+
+```json
+"User Generated successfully"
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|User registered|string|
+
 # Data Schema
+
+<h2 id="tocS_Status">Status</h2>
+
+<a id="schemastatus"></a>
+<a id="schema_Status"></a>
+<a id="tocSstatus"></a>
+<a id="tocsstatus"></a>
+
+```json
+"UPLOADING"
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|*anonymous*|string|false|none||none|
+
+#### Enum
+
+|Name|Value|
+|---|---|
+|*anonymous*|UPLOADING|
+|*anonymous*|PROCESSING|
+|*anonymous*|FINISHED|
+|*anonymous*|FAILED|
+
+<h2 id="tocS_Google oauth token">Google oauth token</h2>
+
+<a id="schemagoogle oauth token"></a>
+<a id="schema_Google oauth token"></a>
+<a id="tocSgoogle oauth token"></a>
+<a id="tocsgoogle oauth token"></a>
+
+```json
+"string"
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|*anonymous*|string|false|none||none|
+
+<h2 id="tocS_UserUpdateResponse">UserUpdateResponse</h2>
+
+<a id="schemauserupdateresponse"></a>
+<a id="schema_UserUpdateResponse"></a>
+<a id="tocSuserupdateresponse"></a>
+<a id="tocsuserupdateresponse"></a>
+
+```json
+{
+  "user": {
+    "id": 0,
+    "username": "string",
+    "tier": "FREE",
+    "profileUrl": "string",
+    "Role": "LISTENER",
+    "email": "string",
+    "isVerified": true
+  }
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|user|object|true|none||none|
+|» id|integer|true|none||none|
+|» username|string|true|none||none|
+|» tier|[UserInfo](#schemauserinfo)|true|none||none|
+|» profileUrl|string|false|none||none|
+|» Role|string|true|none||none|
+|» email|string|true|none||none|
+|» isVerified|boolean|true|none||none|
+
+#### Enum
+
+|Name|Value|
+|---|---|
+|Role|LISTENER|
+|Role|ARTIST|
+
+<h2 id="tocS_Untitled Schema">Untitled Schema</h2>
+
+<a id="schemauntitled schema"></a>
+<a id="schema_Untitled Schema"></a>
+<a id="tocSuntitled schema"></a>
+<a id="tocsuntitled schema"></a>
+
+```json
+{
+  "followerCount": 0,
+  "followingCount": 0
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|followerCount|integer|true|none||none|
+|followingCount|integer|true|none||none|
+
+<h2 id="tocS_TrackPeaksDTO">TrackPeaksDTO</h2>
+
+<a id="schematrackpeaksdto"></a>
+<a id="schema_TrackPeaksDTO"></a>
+<a id="tocStrackpeaksdto"></a>
+<a id="tocstrackpeaksdto"></a>
+
+```json
+{
+  "trackId": 0,
+  "duration": 0,
+  "peaks": [
+    0
+  ]
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|trackId|integer|true|none||none|
+|duration|integer|true|none||none|
+|peaks|[number]|true|none||none|
+
+<h2 id="tocS_publishTrackResponse">publishTrackResponse</h2>
+
+<a id="schemapublishtrackresponse"></a>
+<a id="schema_publishTrackResponse"></a>
+<a id="tocSpublishtrackresponse"></a>
+<a id="tocspublishtrackresponse"></a>
+
+```json
+{
+  "id": 0,
+  "permalink": "string",
+  "publishedAt": "string"
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|id|integer|true|none||none|
+|permalink|string|true|none||none|
+|publishedAt|string|true|none||none|
 
 <h2 id="tocS_ErrorResponse">ErrorResponse</h2>
 
@@ -3484,12 +4032,12 @@ POST /subscriptions/webhook
 |*anonymous*|MOBILE|
 |*anonymous*|TABLET|
 
-<h2 id="tocS_UserTier">UserTier</h2>
+<h2 id="tocS_UserInfo">UserInfo</h2>
 
-<a id="schemausertier"></a>
-<a id="schema_UserTier"></a>
-<a id="tocSusertier"></a>
-<a id="tocsusertier"></a>
+<a id="schemauserinfo"></a>
+<a id="schema_UserInfo"></a>
+<a id="tocSuserinfo"></a>
+<a id="tocsuserinfo"></a>
 
 ```json
 "FREE"
@@ -3843,7 +4391,7 @@ POST /subscriptions/webhook
 |---|---|---|---|---|---|
 |id|integer|true|none||none|
 |username|string|true|none||none|
-|tier|[UserTier](#schemausertier)|true|none||none|
+|tier|[UserInfo](#schemauserinfo)|true|none||none|
 
 <h2 id="tocS_LoginResponse">LoginResponse</h2>
 
@@ -3859,7 +4407,9 @@ POST /subscriptions/webhook
   "user": {
     "id": 0,
     "username": "string",
-    "tier": "FREE"
+    "tier": "FREE",
+    "profileUrl": "string",
+    "avatarUrl": "string"
   }
 }
 
@@ -3871,7 +4421,12 @@ POST /subscriptions/webhook
 |---|---|---|---|---|---|
 |accessToken|string|true|none||none|
 |refreshToken|string|true|none||none|
-|user|[AuthUser](#schemaauthuser)|true|none||none|
+|user|object|true|none||none|
+|» id|integer|true|none||none|
+|» username|string|true|none||none|
+|» tier|[UserInfo](#schemauserinfo)|true|none||none|
+|» profileUrl|string|false|none||none|
+|» avatarUrl|string|false|none||none|
 
 <h2 id="tocS_RefreshTokenRequest">RefreshTokenRequest</h2>
 
@@ -4148,8 +4703,11 @@ POST /subscriptions/webhook
 
 ```json
 {
+  "id": 0,
+  "Role": "LISTENER",
   "email": "user@example.com",
   "username": "string",
+  "emailVerified": true,
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
@@ -4183,13 +4741,23 @@ POST /subscriptions/webhook
 
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
+|id|integer|true|none||ID|
+|Role|string|true|none||none|
 |email|string(email)|false|none||none|
 |username|string|false|none||none|
+|emailVerified|boolean|true|none||none|
 |tier|[PublicTier](#schemapublictier)|false|none||none|
 |profile|[PrivateProfile](#schemaprivateprofile)|false|none||none|
 |socialLinks|[PrivateSocialLinks](#schemaprivatesociallinks)|false|none||none|
 |privacySettings|[PrivacySettings](#schemaprivacysettings)|false|none||none|
 |stats|[MyStats](#schemamystats)|false|none||none|
+
+#### Enum
+
+|Name|Value|
+|---|---|
+|Role|LISTENER|
+|Role|ARTIST|
 
 <h2 id="tocS_UpdateMeRequest">UpdateMeRequest</h2>
 
@@ -4201,10 +4769,16 @@ POST /subscriptions/webhook
 ```json
 {
   "bio": "string",
-  "location": "string",
+  "city": "string",
+  "country": "string",
   "favoriteGenres": [
     "string"
-  ]
+  ],
+  "socialLinks": {
+    "instagram": "http://example.com",
+    "twitter": "http://example.com",
+    "website": "http://example.com"
+  }
 }
 
 ```
@@ -4214,8 +4788,10 @@ POST /subscriptions/webhook
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
 |bio|string|false|none||none|
-|location|string|false|none||none|
+|city|string|false|none||none|
+|country|string|false|none||none|
 |favoriteGenres|[string]|false|none||none|
+|socialLinks|[PublicProfileSocialLinks](#schemapublicprofilesociallinks)|true|none||none|
 
 <h2 id="tocS_UpdatePrivacyRequest">UpdatePrivacyRequest</h2>
 
@@ -4316,6 +4892,8 @@ POST /subscriptions/webhook
 
 ```json
 {
+  "username": "string",
+  "id": 0,
   "bio": "string",
   "location": "string",
   "avatarUrl": "http://example.com",
@@ -4331,6 +4909,8 @@ POST /subscriptions/webhook
 
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
+|username|string|true|none||none|
+|id|integer|true|none||none|
 |bio|string|false|none||none|
 |location|string|false|none||none|
 |avatarUrl|string(uri)|false|none||none|
@@ -4398,6 +4978,8 @@ POST /subscriptions/webhook
   "username": "string",
   "tier": "ARTIST",
   "profile": {
+    "username": "string",
+    "id": 0,
     "bio": "string",
     "location": "string",
     "avatarUrl": "http://example.com",
