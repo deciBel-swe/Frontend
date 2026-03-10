@@ -5,13 +5,28 @@ import type { FC, ReactNode } from 'react';
 
 import { authService } from '@/services';
 
-import type { AuthContextValue, AuthState, AuthUserDTO, UserRole } from '@/types';
+import type {
+  AuthContextValue,
+  AuthState,
+  LoginUserDTO,
+  UserRole,
+} from '@/types';
+
+// ================================
+// Helpers
+// ================================
+
+/** Derive role from tier for conditional rendering. */
+const deriveRole = (user: LoginUserDTO): UserRole =>
+  user.tier === 'ARTIST' ? 'artist' : 'listener';
 
 // ================================
 // Context
 // ================================
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(
+  undefined
+);
 
 // ================================
 // Provider
@@ -25,7 +40,7 @@ const initialState: AuthState = {
 };
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUserDTO | null>(initialState.user);
+  const [user, setUser] = useState<LoginUserDTO | null>(initialState.user);
   const [role, setRole] = useState<UserRole | null>(initialState.role);
   const [isLoading, setIsLoading] = useState(initialState.isLoading);
 
@@ -38,7 +53,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const session = await authService.getSession();
         if (!cancelled && session) {
           setUser(session.user);
-          setRole(session.user.role);
+          setRole(deriveRole(session.user));
         }
       } catch {
         // No valid session — stay logged out
@@ -53,12 +68,12 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     };
   }, []);
 
-  const login = useCallback(async (loginRole: UserRole = 'artist') => {
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const session = await authService.login(loginRole);
+      const session = await authService.login(email, password);
       setUser(session.user);
-      setRole(session.user.role);
+      setRole(deriveRole(session.user));
     } finally {
       setIsLoading(false);
     }
