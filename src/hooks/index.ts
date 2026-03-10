@@ -31,8 +31,13 @@ export { useDebounce } from './useDebounce';
  */
 export { useTheme } from 'next-themes';
 
+/**
+ * useAuth — access authentication state from any component.
+ * Returns `{ user, isAuthenticated, isLoading, login, logout }`.
+ * Must be used inside `<AuthProvider>`.
+ */
+export { useAuth } from '@/features/auth';
+
 // Additional hooks will be exported here as they are created
-// Example:
-// export { useAuth } from './useAuth';
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';

@@ -10,8 +10,27 @@ export const ROUTES = {
   HOME: '/',
 
   // Auth routes
-  SIGNIN: '/auth/signin',
+  SIGNIN: '/signin',
+
+  // Protected routes
+  UPLOAD: '/upload',
+  DISCOVER: '/discover',
+  FEED: '/feed',
+  SETTINGS: '/settings',
+  YOU: '/you',
 } as const;
+
+/** Routes that require authentication */
+export const PROTECTED_ROUTES = [
+  ROUTES.UPLOAD,
+  ROUTES.FEED,
+  ROUTES.SETTINGS,
+  ROUTES.YOU,
+] as const;
+
+/** Routes restricted to the artist role */
+export const ARTIST_ONLY_ROUTES = [
+] as const;
 
 /**
  * API Endpoints
@@ -21,9 +40,15 @@ export const ROUTES = {
  */
 
 export const API_ENDPOINTS = {
-  // Authentication
   AUTH: {
-    SIGNIN: '/auth/signin',
+    REFRESH: '/auth/refreshtoken',
+    LOGOUT: '/auth/logout',
+    LOGOUT_ALL: '/auth/logout-all',
+    RESEND_VERIFICATION: '/auth/resend-verification',
+  },
+  USERS: {
+    ME: '/users/me',
+    ME_ROLE: '/users/me/role',
   },
 } as const;
 
