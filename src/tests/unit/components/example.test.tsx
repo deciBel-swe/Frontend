@@ -230,35 +230,35 @@ describe('AsyncDataComponent', () => {
   });
 });
 
-// ============================================================================
-// Testing with Queries
-// ============================================================================
+// // ============================================================================
+// // Testing with Queries
+// // ============================================================================
 
-describe('Query Examples', () => {
-  const ExampleComponent = () => (
-    <div>
-      <h1>Welcome</h1>
-      <p data-testid="description">This is a description</p>
-      <img src="logo.png" alt="Logo" />
-      <input placeholder="Enter text" />
-    </div>
-  );
+// describe('Query Examples', () => {
+//   const ExampleComponent = () => (
+//     <div>
+//       <h1>Welcome</h1>
+//       <p data-testid="description">This is a description</p>
+//       <img src="logo.png" alt="Logo" />
+//       <input placeholder="Enter text" />
+//     </div>
+//   );
 
-  it('should use different query methods', () => {
-    render(<ExampleComponent />);
+//   it('should use different query methods', () => {
+//     render(<ExampleComponent />);
 
-    // By role (preferred)
-    expect(
-      screen.getByRole('heading', { name: /welcome/i })
-    ).toBeInTheDocument();
+//     // By role (preferred)
+//     expect(
+//       screen.getByRole('heading', { name: /welcome/i })
+//     ).toBeInTheDocument();
 
-    // By test ID
-    expect(screen.getByTestId('description')).toBeInTheDocument();
+//     // By test ID
+//     expect(screen.getByTestId('description')).toBeInTheDocument();
 
-    // By alt text (for images)
-    expect(screen.getByAltText('Logo')).toBeInTheDocument();
+//     // By alt text (for images)
+//     expect(screen.getByAltText('Logo')).toBeInTheDocument();
 
-    // By placeholder
-    expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
-  });
-});
+//     // By placeholder
+//     expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
+//   });
+// });

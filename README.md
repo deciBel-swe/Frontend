@@ -43,27 +43,65 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ```
 frontend/
 ├── src/
-│   ├── app/                # Next.js App Router pages
-│   ├── components/         # Shared UI components
-│   ├── features/           # Feature-based modules
-│   │   ├── auth/          # Authentication
-│   │   ├── tracks/        # Track management
-│   │   ├── playlists/     # Playlists
-│   │   ├── profile/       # User profiles
-│   │   ├── feed/          # Activity feed
-│   │   ├── messaging/     # Direct messaging
-│   │   ├── discovery/     # Search & discovery
-│   │   └── notifications/ # Notifications
-│   ├── services/          # API & external services
-│   │   ├── api/          # Real API client
-│   │   └── mocks/        # Mock API for development
-│   ├── hooks/            # Custom React hooks
-│   ├── types/            # TypeScript type definitions
-│   ├── utils/            # Utility functions
-│   ├── constants/        # App-wide constants
-│   └── tests/            # Test files
-├── public/               # Static assets
-└── docs/                 # Additional documentation
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── (creator)/
+│   │   │   ├── checkout/
+│   │   │   ├── artists/distribution/
+│   │   │   ├── artists/vinyl/
+│   │   │   └── upload/
+│   │   ├── (feed)/
+│   │   │   ├── charts/
+│   │   │   ├── discover/
+│   │   │   └── feed/
+│   │   ├── (search)/search/
+│   │   │   ├── albums/
+│   │   │   ├── people/
+│   │   │   ├── sets/
+│   │   │   └── sounds/
+│   │   ├── (social)/
+│   │   │   ├── messages/[messageId]/
+│   │   │   └── notifications/
+│   │   ├── (you)/
+│   │   │   └── you/
+│   │   │       ├── albums/
+│   │   │       ├── following/
+│   │   │       ├── history/
+│   │   │       ├── insights/
+│   │   │       ├── library/
+│   │   │       ├── likes/
+│   │   │       ├── sets/
+│   │   │       └── stations/
+│   │   ├── [username]/
+│   │   │   ├── [trackSlug]/
+│   │   │   ├── albums/
+│   │   │   ├── popular-tracks/
+│   │   │   ├── reposts/
+│   │   │   ├── sets/
+│   │   │   └── tracks/
+│   │   ├── download/
+│   │   ├── people/
+│   │   ├── settings/
+│   │   │   ├── advertising/
+│   │   │   ├── content/
+│   │   │   ├── notifications/
+│   │   │   └── privacy/
+│   │   └── signin/
+│   ├── components/             # Shared UI components
+│   ├── features/               # Feature-based modules
+│   ├── services/               # API & external services
+│   │   ├── api/                # Real API client
+│   │   └── mocks/              # Mock API for development
+│   ├── hooks/                  # Custom React hooks
+│   ├── providers/              # App-wide React providers
+│   │   └── ThemeProvider.tsx
+│   ├── types/                  # TypeScript type definitions
+│   ├── utils/                  # Utility functions
+│   ├── constants/              # App-wide constants
+│   └── tests/                  # Unit/integration tests
+├── public/                     # Static assets
+└── docs/                       # Additional documentation
 ```
 
 ## 🔧 Available Scripts
@@ -90,6 +128,10 @@ npm run test:ci          # Run tests for CI
 # Pre-commit
 npm run pre-commit       # Run lint, type-check, and tests
 ```
+
+Testing notes:
+- Example scaffold tests in `src/tests/unit/**/example.test.*` are placeholders and should be skipped.
+- Jest skip logic is configured in `jest.config.ts` via `testPathIgnorePatterns`.
 
 ## 🏗️ Architecture
 
@@ -141,5 +183,5 @@ This project is developed for educational purposes as part of a Software Enginee
 
 ---
 
-**Last Updated:** February 20, 2026  
+**Last Updated:** March 10, 2026  
 **Version:** 0.1.0 (Initial Setup)
