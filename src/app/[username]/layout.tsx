@@ -5,5 +5,5 @@ type LayoutProps = {
 };
 
 export default function Layout({ children }: LayoutProps) {
-  return <>{children}</>;
+  return <>{children} this is the profile layout</>;
 }

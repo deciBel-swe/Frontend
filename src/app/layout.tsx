@@ -1,8 +1,11 @@
 import { Inter, JetBrains_Mono } from 'next/font/google';
+
+import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
-import './globals.css';
 
 import type { Metadata } from 'next';
+
+import './globals.css';
 
 /**
  * Inter — primary sans-serif typeface.
@@ -71,7 +74,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          {children}
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>

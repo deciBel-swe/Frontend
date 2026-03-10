@@ -31,8 +31,37 @@ export { useDebounce } from './useDebounce';
  */
 export { useTheme } from 'next-themes';
 
+/**
+ * useAuth — access authentication state from any component.
+ * Returns `{ user, isAuthenticated, isLoading, login, logout }`.
+ * Must be used inside `<AuthProvider>`.
+ */
+export { useAuth } from '@/features/auth';
+
+/**
+ * useRedirectAfterLogin — redirects the user after a successful login.
+ *
+ * Reads the `?redirect=` query parameter set by middleware when an
+ * unauthenticated user attempts to visit a protected route. On mount,
+ * and whenever `isAuthenticated` becomes `true`, the user is sent to
+ * that destination (or `/feed` if no redirect param is present).
+ *
+ * Place this hook at the top of the sign-in page. The page itself does
+ * not need to know anything about routing — just call `login()` and this
+ * hook handles navigation for every auth path (form submit, OAuth, or
+ * an already-authenticated user who lands on /signin directly).
+ *
+ * Must be used inside `<AuthProvider>`.
+ *
+ * @example
+ *   export default function SignInPage() {
+ *     useRedirectAfterLogin();
+ *     const { login } = useAuth();
+ *     // render form, call login() on submit
+ *   }
+ */
+export { useRedirectAfterLogin } from './useRedirectAfterLogin';
+
 // Additional hooks will be exported here as they are created
-// Example:
-// export { useAuth } from './useAuth';
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';
