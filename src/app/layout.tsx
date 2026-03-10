@@ -1,7 +1,7 @@
-import { Inter, JetBrains_Mono } from 'next/font/google'; 
-import { ThemeProvider } from '@/components/providers/ThemeProvider'; 
-import './globals.css';           
-                           
+import { Inter, JetBrains_Mono } from 'next/font/google';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import './globals.css';
+
 import type { Metadata } from 'next';
 
 /**

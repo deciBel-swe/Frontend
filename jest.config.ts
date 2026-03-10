@@ -52,6 +52,12 @@ const customJestConfig: Config = {
     '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
 
+  // Ignore placeholder scaffold tests
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '[\\\\/]src[\\\\/]tests[\\\\/]unit[\\\\/].*example\\.test\\.[jt]sx?$',
+  ],
+
   // Transform files
   transformIgnorePatterns: [
     '/node_modules/',

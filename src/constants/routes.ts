@@ -10,8 +10,7 @@ export const ROUTES = {
   HOME: '/',
 
   // Auth routes
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
+  SIGNIN: '/auth/signin',
 } as const;
 
 /**
@@ -24,8 +23,7 @@ export const ROUTES = {
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    SIGNIN: '/auth/signin',
   },
 } as const;
 
