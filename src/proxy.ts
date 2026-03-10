@@ -15,7 +15,7 @@ import { PROTECTED_ROUTES, ROUTES } from '@/constants/routes';
  * clears it on logout so this check works end-to-end during development.
  * The real auth service will keep the same cookie name.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = request.cookies.has('decibel_auth');
 

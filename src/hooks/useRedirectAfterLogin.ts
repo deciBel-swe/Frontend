@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { ROUTES } from '@/constants/routes';
-import { useAuth } from './index';
+import { useAuth } from '@/features/auth';
 
 /**
  * useRedirectAfterLogin — redirects the user after a successful login.

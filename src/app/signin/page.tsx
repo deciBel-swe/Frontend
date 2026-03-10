@@ -1,6 +1,7 @@
 'use client';
-import { useAuth } from '@/hooks';
+import { useAuth, useRedirectAfterLogin } from '@/hooks';
 export default function Page() {
+  useRedirectAfterLogin();
   const { login, logout, isAuthenticated, role } = useAuth();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
