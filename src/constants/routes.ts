@@ -5,17 +5,39 @@
  * Use these constants instead of hardcoding paths.
  */
 
+import type { NavLinkConfig } from '@/types';
+
 export const ROUTES = {
   // Public routes
   HOME: '/',
+  DISCOVER: '/discover',
+  REGISTER: '/register',
+  SEARCH: '/search',
 
   // Auth routes
   SIGNIN: '/signin',
 
-  // Protected routes
+  // Content routes
+  ARTISTS: '/artists',
   UPLOAD: '/upload',
   FEED: '/feed',
+
+  // User routes
+  LIBRARY: '/you/library',
+  LIKES: '/you/likes',
+  STATIONS: '/you/stations',
+  FOLLOWING: '/you/following',
+  PEOPLE: '/people',
+  CHECKOUT: '/checkout',
+  NOTIFICATIONS: '/notifications',
+  MESSAGES: '/messages',
+
+  // User account routes
   SETTINGS: '/settings',
+  DASHBOARD: '/dashboard',
+  HELP: '/help',
+  SHORTCUTS: '/shortcuts',
+  LOGOUT: '/logout',
 } as const;
 
 /** Routes that require authentication */
@@ -23,10 +45,49 @@ export const PROTECTED_ROUTES = [
   ROUTES.UPLOAD,
   ROUTES.FEED,
   ROUTES.SETTINGS,
+  ROUTES.LIBRARY,
+  ROUTES.NOTIFICATIONS,
+  ROUTES.MESSAGES,
+  ROUTES.DASHBOARD,
 ] as const;
 
 /** Routes restricted to the artist role */
 export const ARTIST_ONLY_ROUTES = [] as const;
+
+/** Primary navigation links rendered in the top nav bar. */
+export const NAV_LINKS: NavLinkConfig[] = [
+  { label: 'Home', href: ROUTES.DISCOVER, name: 'home' },
+  { label: 'Feed', href: ROUTES.FEED, name: 'feed' },
+  { label: 'Library', href: ROUTES.LIBRARY, name: 'library' },
+  { label: 'Upload', href: ROUTES.UPLOAD, name: 'upload' },
+];
+
+/**
+ * Items for the authenticated-user (avatar) dropdown.
+ * The Profile entry is prepended at the call site so its href can be
+ * built dynamically from the logged-in user's username.
+ */
+export const USER_DROPDOWN_ITEMS: Array<{
+  label: string;
+  href: string;
+} | null> = [
+  { label: 'Likes', href: ROUTES.LIKES },
+  { label: 'Stations', href: ROUTES.STATIONS },
+  { label: 'Following', href: ROUTES.FOLLOWING },
+  { label: 'Who to Follow', href: ROUTES.PEOPLE },
+  { label: 'Subscription', href: ROUTES.CHECKOUT },
+];
+
+/** Items for the "Settings and more" (···) dropdown. */
+export const MORE_DROPDOWN_ITEMS: Array<{
+  label: string;
+  href: string;
+} | null> = [
+  { label: 'Settings', href: ROUTES.SETTINGS },
+  { label: 'Subscription', href: ROUTES.CHECKOUT },
+  null,
+  { label: 'Sign out', href: ROUTES.LOGOUT },
+];
 
 /**
  * API Endpoints
