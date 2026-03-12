@@ -1,38 +1,7 @@
-'use client';
-import { useAuth } from '@/hooks';
-export default function Page() {
-  const { login, logout, isAuthenticated, role } = useAuth();
+export default function FeedPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
-      <>This is the feed page</>
-      {isAuthenticated && (
-        <div className="flex min-h-screen flex-col items-center justify-center">
-          <>Logged in as {role}</>
-          <button
-            className="bg-brand-primary hover:bg-amber-300"
-            onClick={logout}
-          >
-            Logout
-          </button>
-        </div>
-      )}
-      {!isAuthenticated && (
-        <div className="flex min-h-screen flex-col items-center justify-center">
-          <>Logged out </>
-          <button
-            className="bg-brand-primary hover:bg-amber-300"
-            onClick={() => login('artist@decibel.test', 'x')}
-          >
-            Login as Artist
-          </button>
-          <button
-            className="bg-brand-primary hover:bg-amber-300"
-            onClick={() => login('listener@decibel.test', 'x')}
-          >
-            Login as Listener
-          </button>
-        </div>
-      )}
+      <h1 className="text-xl font-bold">Feed</h1>
     </div>
   );
 }
