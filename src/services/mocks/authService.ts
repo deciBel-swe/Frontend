@@ -126,6 +126,34 @@ export class MockAuthService implements AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  /**
+   * Simulates the OAuth exchange.
+   * Takes the Google ID token, "sends" it to the backend, and returns a DeciBel session.
+   */
+  async loginWithGoogle(googleToken: string): Promise<LoginResponseDTO> {
+    await delay();
+
+    // For the mock, we will just log them in as a listener if the token exists.
+    // You could expand this to inspect the mock googleToken if you wanted specific mock behaviors.
+    if (!googleToken) throw new Error('Invalid Google token');
+
+    const user = mockUsers.listener;
+    const expiresIn = 3600;
+
+    const accessToken = createMockToken(user.id, expiresIn);
+    const refreshToken = createMockToken(user.id, 86400);
+
+    // Store tokens locally
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+    // Sync to cookie so proxy.ts (middleware) can read it on the server side
+    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
+
+    return { accessToken, refreshToken, user };
+  }
+
   private _clearStorage(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);

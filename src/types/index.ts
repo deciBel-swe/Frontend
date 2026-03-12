@@ -57,6 +57,8 @@ export interface AuthState {
 
 export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
+  // NEW: Add the Google login method for UI consumption
+  loginWithGoogle: (googleToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
