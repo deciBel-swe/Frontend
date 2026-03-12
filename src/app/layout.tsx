@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { TopNavBar } from '@/components/nav/TopNavBar';
+import { QueryProvider } from '@/providers/QueryProvider';
+
 import type { Metadata } from 'next';
 
 import './globals.css';
@@ -75,16 +77,18 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AuthProvider>
-            <Suspense fallback={<>Loading ...</>}>
-              <div className="flex flex-col xl:items-center items-start justify-center">
-                <div className="min-w-306">
-                  <TopNavBar />
-                  {children}
+           <QueryProvider>
+            <AuthProvider>
+              <Suspense fallback={<>Loading ...</>}>
+                <div className="flex flex-col xl:items-center items-start justify-center">
+                  <div className="min-w-306">
+                    <TopNavBar />
+                    {children}
+                  </div>
                 </div>
-              </div>
-            </Suspense>
-          </AuthProvider>
+               </Suspense>
+            </AuthProvider>
+           </QueryProvider>  
         </ThemeProvider>
       </body>
     </html>
