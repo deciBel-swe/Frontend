@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 
 import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
-
+import { TopNavBar } from '@/components/nav/TopNavBar';
 import type { Metadata } from 'next';
 
 import './globals.css';
@@ -77,7 +77,12 @@ export default function RootLayout({
         >
           <AuthProvider>
             <Suspense fallback={<>Loading ...</>}>
-              {children}
+              <div className="flex flex-col xl:items-center items-start justify-center">
+                <div className="min-w-306">
+                  <TopNavBar />
+                  {children}
+                </div>
+              </div>
             </Suspense>
           </AuthProvider>
         </ThemeProvider>
