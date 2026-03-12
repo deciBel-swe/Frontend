@@ -5,7 +5,7 @@ import './globals.css';
  * Metadata for the application
  */
 export const metadata: Metadata = {
-  title: 'SoundGround - Social Streaming Platform',
+  title: 'DeciBel - Social Streaming Platform',
   description: 'A modern music streaming platform inspired by SoundCloud',
   keywords: ['music', 'streaming', 'audio', 'social'],
 };
