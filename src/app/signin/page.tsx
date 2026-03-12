@@ -1,4 +1,5 @@
 'use client';
+import RegistrationForm from './components/RegistrationForm'
 import { useAuth, useRedirectAfterLogin } from '@/hooks';
 import { GoogleLoginButton } from '@/features/auth';
 export default function Page() {
@@ -7,7 +8,8 @@ export default function Page() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <>This is a sign in page</>
-        <div className="flex flex-center">
+        <div className="flex flex-center flex-col">
+          <RegistrationForm />
             <GoogleLoginButton
               onClick={handleGoogleLogin}
               isLoading={isLoading}
