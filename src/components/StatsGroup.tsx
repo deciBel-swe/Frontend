@@ -1,4 +1,7 @@
 import StateItem from '@/components/StatItem';
+
+import Link from 'next/link';
+
 interface StateItemProps {
   params: Promise<{
     countTracks: number;
@@ -19,18 +22,22 @@ const StatsGroup = async ({ params }: StateItemProps) => {
         flexWrap: 'wrap',
       }}
     >
-      <StateItem
-        params={Promise.resolve({
-          count: countFollowers,
-          text: 'Followers',
-        })}
-      />
-      <StateItem
-        params={Promise.resolve({
-          count: countFollowing,
-          text: 'Following',
-        })}
-      />
+      <Link href="/you/following">
+        <StateItem
+          params={Promise.resolve({
+            count: countFollowers,
+            text: 'Followers',
+          })}
+        />
+      </Link>
+      <Link href="/you/following">
+        <StateItem
+          params={Promise.resolve({
+            count: countFollowing,
+            text: 'Following',
+          })}
+        />
+      </Link>
       <StateItem
         params={Promise.resolve({
           count: countTracks,
