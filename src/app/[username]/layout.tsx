@@ -19,11 +19,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
         <h1>username</h1>
         <StatsGroup
           params={Promise.resolve({
-            countCustom: 1001,
+            countTracks: 1001,
             countFollowers: 99000,
             countFollowing: 3200,
-            text: 'Tracks',
-            color: 'grey',
           })}
         />
       </div>

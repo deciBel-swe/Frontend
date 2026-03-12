@@ -1,7 +1,7 @@
 import { formatNumber } from '@/utils/formatNumber';
 
 interface StateItemProps {
-  params: Promise<{ count: number; text: string; color?: string }>;
+  params: Promise<{ count: number; text: string }>;
 }
 // this component display counter with text above it it takes count and text and color for the background
 const StateItem = async ({ params }: StateItemProps) => {
