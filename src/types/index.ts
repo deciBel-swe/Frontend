@@ -59,3 +59,15 @@ export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
+
+// ================================
+// Navigation
+// ================================
+
+export type ActiveNav = 'home' | 'feed' | 'library' | 'upload';
+
+export interface NavLinkConfig {
+  label: string;
+  href: string;
+  name: ActiveNav;
+}
