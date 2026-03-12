@@ -1,4 +1,5 @@
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Suspense } from 'react';
 
 import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -74,7 +75,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <Suspense fallback={<>Loading ...</>}>
+              {children}
+            </Suspense>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
