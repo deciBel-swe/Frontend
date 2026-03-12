@@ -2,6 +2,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 
 import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
 
 import type { Metadata } from 'next';
 
@@ -74,7 +75,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AuthProvider>{children}</AuthProvider>
+          {/* QueryProvider is a client‑component wrapper that creates the
+              QueryClient on the client side.*/}
+          <QueryProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
