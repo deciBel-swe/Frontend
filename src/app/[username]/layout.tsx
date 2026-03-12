@@ -1,9 +1,35 @@
-import type { ReactNode } from 'react';
+import React from 'react';
+import StatsGroup from '@/components/StatsGroup';
 
-type LayoutProps = {
-  children: ReactNode;
+const layout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div>
+      <div
+        style={{
+          position: 'fixed',
+          right: 0,
+          top: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          padding: '20px',
+          zIndex: 1000,
+        }}
+      >
+        <h1>username</h1>
+        <StatsGroup
+          params={Promise.resolve({
+            countCustom: 1001,
+            countFollowers: 99000,
+            countFollowing: 3200,
+            text: 'Tracks',
+            color: 'grey',
+          })}
+        />
+      </div>
+      {children}
+    </div>
+  );
 };
 
-export default function Layout({ children }: LayoutProps) {
-  return <>{children} this is the profile layout</>;
-}
+export default layout;
