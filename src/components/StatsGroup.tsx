@@ -19,7 +19,7 @@ const StatsGroup = async ({ params }: StateItemProps) => {
       style={{
         display: 'flex',
         gap: '16px',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
       }}
     >
       <Link href="/you/following">
