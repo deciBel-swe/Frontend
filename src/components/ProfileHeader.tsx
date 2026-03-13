@@ -2,24 +2,29 @@ import ProfileAvatar from './ProfileAvatar';
 import ProfileBanner from './ProfileBanner';
 
 interface ProfileHeaderProps {
-  params: Promise<{ coverPhotoUrl?: string; avatarUrl?: string }>;
+  params: Promise<{
+    coverPhotoUrl?: string;
+    avatarUrl?: string;
+    username: string;
+  }>;
 }
 
 const ProfileHeader = async ({ params }: ProfileHeaderProps) => {
-  const { coverPhotoUrl, avatarUrl } = await params;
+  const { coverPhotoUrl, avatarUrl, username } = await params;
   return (
     <div className="relative">
       <ProfileBanner
         params={Promise.resolve({
-          coverPhotoUrl: 'https://i.ibb.co/604S7P6G/sl-063022-51250-12.jpg',
+          coverPhotoUrl: coverPhotoUrl,
         })}
       />
-      <div className="absolute top-1/2 left-10 -translate-y-1/2">
+      <div className="absolute top-1/2 left-10 -translate-y-1/2 flex items-center gap-4">
         <ProfileAvatar
           params={Promise.resolve({
-            avatarUrl: 'https://i.ibb.co/yB5VBGsN/fern.jpg',
+            avatarUrl: avatarUrl,
           })}
         />
+        <span className="text-xl font-semibold text-white">{username}</span>
       </div>
     </div>
   );

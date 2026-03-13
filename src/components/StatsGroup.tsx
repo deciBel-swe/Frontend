@@ -30,7 +30,7 @@ const StatsGroup = async ({ params }: StateItemProps) => {
           })}
         />
       </Link>
-      <Link href="/you/following">
+      <Link href="/you/followers">
         <StateItem
           params={Promise.resolve({
             count: countFollowing,

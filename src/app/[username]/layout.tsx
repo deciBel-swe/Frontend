@@ -9,6 +9,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
         params={Promise.resolve({
           coverPhotoUrl: 'https://i.ibb.co/604S7P6G/sl-063022-51250-12.jpg',
           avatarUrl: 'https://i.ibb.co/yB5VBGsN/fern.jpg',
+          username: 'Omar Ahmed',
         })}
       />
       <div className="flex w-full mt-6 px-8">

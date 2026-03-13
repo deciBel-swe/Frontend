@@ -12,7 +12,7 @@ const ProfileAvatar = async ({ params }: ProfileAvatarProps) => {
           <img src={avatarUrl} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-gray-400">
-            Image failed to fetch
+            Image failed to load
           </div>
         )}
       </div>

@@ -1,3 +1,5 @@
+import { useTheme } from 'next-themes';
+
 interface ProfileBannerProps {
   params: Promise<{ coverPhotoUrl?: string }>;
 }
@@ -13,8 +15,11 @@ const ProfileBanner = async ({ params }: ProfileBannerProps) => {
           className="h-full w-full object-cover"
         />
       ) : (
-        // High-end dark gradient fallback
-        <div className="h-full w-full bg-gradient-to-br from-[#1a1a1a] via-[#333] to-[#121212]" />
+        <div
+          className="h-full w-full bg-gradient-to-br 
+          from-white via-gray-200 to-gray-400 
+          dark:from-black dark:via-gray-800 dark:to-gray-900"
+        />
       )}
     </div>
   );
