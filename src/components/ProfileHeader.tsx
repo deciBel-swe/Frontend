@@ -24,7 +24,12 @@ const ProfileHeader = async ({ params }: ProfileHeaderProps) => {
             avatarUrl: avatarUrl,
           })}
         />
-        <span className="text-xl font-semibold text-white">{username}</span>
+        <span
+          className="text-xl font-bold text-white bg-black"
+          style={{ padding: '8px 8px' }}
+        >
+          {username}
+        </span>
       </div>
     </div>
   );
