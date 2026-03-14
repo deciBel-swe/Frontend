@@ -34,7 +34,7 @@ export const useRedirectAfterLogin = (): void => {
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) return;
-    const destination = searchParams.get('redirect') ?? ROUTES.FEED;
+    const destination = searchParams.get('redirect') ?? ROUTES.DISCOVER;
     router.replace(destination);
   }, [isAuthenticated, isLoading, router, searchParams]);
 };
