@@ -77,6 +77,14 @@ export class MockAuthService implements AuthService {
       return null;
     }
 
+    // Re-sync the auth cookie so middleware stays in agreement with the
+    // client session. The cookie may have expired (1 h max-age) while the
+    // token is still valid, which would otherwise trigger an infinite
+    // middleware redirect loop back to /signin.
+    const remainingMs = decoded.exp - Date.now();
+    const remainingSec = Math.floor(remainingMs / 1000);
+    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${remainingSec}; SameSite=Lax`;
+
     const user: LoginUserDTO = JSON.parse(raw);
     return { accessToken, refreshToken, user };
   }
