@@ -56,8 +56,8 @@ function Skeleton() {
 export default function PrivacyPage() {
   const { settings, isLoading, isError, isUpdating, updateSetting } = usePrivacySettings();
 
-  const [isPrivate, setIsPrivate]     = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(() => settings?.isPrivate ?? false);
+  const [showHistory, setShowHistory] = useState(() => settings?.showHistory ?? false);
   const [status, setStatus]           = useState<Status>('idle');
 
   // Mirror server data into local state when settings load
@@ -69,7 +69,6 @@ export default function PrivacyPage() {
   }, [settings]);
 
   // Auto-clear status after 3s — useEffect cleanup prevents
-
   useEffect(() => {
     if (status === 'idle') return;
     const timer = setTimeout(() => setStatus('idle'), 3000);
