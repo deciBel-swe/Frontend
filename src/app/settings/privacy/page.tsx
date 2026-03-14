@@ -1,48 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Toggle } from '@/components/buttons/Toggle';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
-// ─── Toggle pill ──────────────────────────────────────────────────────────────
 
-interface ToggleProps {
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (val: boolean) => void;
-  label: string;
-}
-
-function Toggle({ checked, disabled = false, onChange, label }: ToggleProps) {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={[
-        'relative shrink-0 w-[46px] h-[26px] rounded-full',
-        'transition-colors duration-200 ease-in-out',
-        'focus-visible:outline-none focus-visible:ring-2',
-        'focus-visible:ring-brand-primary focus-visible:ring-offset-2',
-        'focus-visible:ring-offset-bg-base',
-        'disabled:cursor-not-allowed cursor-pointer',
-        checked ? 'bg-brand-primary' : 'bg-interactive-default',
-      ].join(' ')}
-    >
-      <span
-        className={[
-          'absolute top-[3px] left-[3px]',
-          'w-5 h-5 rounded-full bg-neutral-0 shadow-sm',
-          'transition-transform duration-200 ease-in-out',
-          checked ? 'translate-x-5' : 'translate-x-0',
-        ].join(' ')}
-      />
-    </button>
-  );
-}
 
 // ─── Toggle row ───────────────────────────────────────────────────────────────
 
@@ -96,6 +60,7 @@ export default function PrivacyPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [status, setStatus]           = useState<Status>('idle');
 
+  // Mirror server data into local state when settings load
   useEffect(() => {
     if (settings) {
       setIsPrivate(settings.isPrivate);
@@ -103,9 +68,16 @@ export default function PrivacyPage() {
     }
   }, [settings]);
 
+  // Auto-clear status after 3s — useEffect cleanup prevents
+
+  useEffect(() => {
+    if (status === 'idle') return;
+    const timer = setTimeout(() => setStatus('idle'), 3000);
+    return () => clearTimeout(timer);
+  }, [status]);
+
   const flash = (result: 'saved' | 'error') => {
     setStatus(result);
-    setTimeout(() => setStatus('idle'), 3000);
   };
 
   const handlePrivacyToggle = async (next: boolean) => {
@@ -144,11 +116,11 @@ export default function PrivacyPage() {
   return (
     <div className="w-full max-w-3xl">
 
-      {/* Heading row — status text is right-aligned to sit above the toggles */}
+      {/* Heading row */}
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-md font-extrabold text-text-primary">Privacy settings</h2>
 
-        {/* Status — always right-aligned, aligned with toggle column */}
+        {/* Single shared status — right-aligned above toggles */}
         <div className="flex justify-end">
           {status !== 'idle' && (
             <span className="text-xs text-text-muted whitespace-nowrap">
