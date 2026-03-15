@@ -6,9 +6,10 @@ import PasswordInput from './PasswordInput';
 interface ExistingUserLoginProps {
   email: string;
   onClose: () => void;
+  onForgotPassword?: () => void;
 }
 
-const ExistingUserLogin: React.FC<ExistingUserLoginProps> = ({ email, onClose }) => {
+const ExistingUserLogin: React.FC<ExistingUserLoginProps> = ({ email, onClose, onForgotPassword }) => {
   
   const [password, setPassword] = useState('');
 
@@ -69,8 +70,14 @@ const ExistingUserLogin: React.FC<ExistingUserLoginProps> = ({ email, onClose })
           </div>
     
           <div className='pb-2'>
-            <a href="#Forgot_password?" className='pt-4 text-[#699fff] hover:text-[#38d] transition-colors text-sm'>Forgot your password?</a>
-            </div>
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className='pt-4 text-[#699fff] hover:text-[#38d] transition-colors text-sm'
+            >
+              Forgot your password?
+            </button>
+          </div>
     
           </form>
           

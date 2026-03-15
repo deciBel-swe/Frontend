@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import ContinueButton from './ContinueButton';
+import EmailSentConfirmation from './EmailSentConfirmation';
 
 interface NewRegistrationFormProps {
   email: string;
@@ -16,6 +17,7 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
   const [year, setYear] = useState('');
   const [gender, setGender] = useState('');
   const [ageError, setAgeError] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Function to calculate age (by years only)
   const calculateAge = (birthYear: string) => {

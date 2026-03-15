@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import SmallEmailForm from './SmallEmailForm';
 import ExistingUserLogin from './ExistingUserLogin';
 import NewUserRegister from './NewUserRegister';
+import ResetPasswordForm from './ResetPasswordForm';
 import NewRegistrationForm from './NewRegistrationForm';
 
 const EmailStepWrapper: React.FC<{ onClose: () => void; onEmailContinue?: (email: string) => void }> = ({ onClose, onEmailContinue }) => {
   const [email, setEmail] = useState('');
   const [emailExists, setEmailExists] = useState<boolean | null>(null); // null = not checked yet
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [showRegistrationDetails, setShowRegistrationDetails] = useState(false); // show additional profile form
 
   // Called by SmallEmailForm
@@ -40,6 +42,18 @@ const EmailStepWrapper: React.FC<{ onClose: () => void; onEmailContinue?: (email
     return <SmallEmailForm onClose={onClose} onContinue={handleEmailContinue} />;
   }
 
+  // Show reset password if requested
+  if (showResetPassword) {
+    return (
+      <ResetPasswordForm
+        email={email}
+        onClose={onClose}
+        onBack={() => setShowResetPassword(false)}
+        onSend={(sentEmail) => console.log('Reset password link sent to', sentEmail)}
+      />
+    );
+  }
+
   // After registration step, show extra profile flow
   if (showRegistrationDetails) {
     return <NewRegistrationForm email={email} onClose={onClose} />;
@@ -47,7 +61,11 @@ const EmailStepWrapper: React.FC<{ onClose: () => void; onEmailContinue?: (email
 
   // Show login for existing users
   return emailExists ? (
-    <ExistingUserLogin email={email} onClose={onClose} />
+    <ExistingUserLogin
+      email={email}
+      onClose={onClose}
+      onForgotPassword={() => setShowResetPassword(true)}
+    />
   ) : (
     <NewUserRegister
       email={email}
