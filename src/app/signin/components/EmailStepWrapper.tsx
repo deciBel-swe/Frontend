@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import SmallEmailForm from './SmallEmailForm';
 import ExistingUserLogin from './ExistingUserLogin';
 import NewUserRegister from './NewUserRegister';
+import NewRegistrationForm from './NewRegistrationForm';
 
 const EmailStepWrapper: React.FC<{ onClose: () => void; onEmailContinue?: (email: string) => void }> = ({ onClose, onEmailContinue }) => {
   const [email, setEmail] = useState('');
   const [emailExists, setEmailExists] = useState<boolean | null>(null); // null = not checked yet
+  const [showRegistrationDetails, setShowRegistrationDetails] = useState(false); // show additional profile form
 
   // Called by SmallEmailForm
   const handleEmailContinue = (enteredEmail: string) => {
@@ -38,11 +40,20 @@ const EmailStepWrapper: React.FC<{ onClose: () => void; onEmailContinue?: (email
     return <SmallEmailForm onClose={onClose} onContinue={handleEmailContinue} />;
   }
 
+  // After registration step, show extra profile flow
+  if (showRegistrationDetails) {
+    return <NewRegistrationForm email={email} onClose={onClose} />;
+  }
+
   // Show login for existing users
   return emailExists ? (
     <ExistingUserLogin email={email} onClose={onClose} />
   ) : (
-    <NewUserRegister email={email} onClose={onClose} />
+    <NewUserRegister
+      email={email}
+      onClose={onClose}
+      onContinue={() => setShowRegistrationDetails(true)}
+    />
   );
 };
 

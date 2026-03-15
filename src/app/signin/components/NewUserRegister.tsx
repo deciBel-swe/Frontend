@@ -7,9 +7,10 @@ import PasswordInput from './PasswordInput';
 interface NewUserRegisterProps {
   email: string;
   onClose: () => void;
+  onContinue?: () => void;
 }
 
-const NewUserRegister: React.FC<NewUserRegisterProps> = ({ email, onClose }) => {
+const NewUserRegister: React.FC<NewUserRegisterProps> = ({ email, onClose, onContinue }) => {
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -45,9 +46,12 @@ const NewUserRegister: React.FC<NewUserRegisterProps> = ({ email, onClose }) => 
          setErrorMessage(''); 
          
       console.log('Register with:', {
-         email, password: passwordTrimmed, 
-        });
-       };
+        email,
+        password: passwordTrimmed,
+      });
+
+      onContinue?.();
+    };
 
   return (
     <div className="fixed inset-0 z-50 min-h-screen flex items-center justify-center bg-[#121212]">

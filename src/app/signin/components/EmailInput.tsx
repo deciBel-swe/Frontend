@@ -27,7 +27,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
         autoComplete={autoComplete}
-        className="peer w-full h-[3.2rem] rounded bg-[#303030] text-white text-[14px] pl-4 pt-4 pb-2 border border-gray-500/30 focus:border-gray-400 focus:outline-none"
+        className="peer w-full h-[3.2rem] rounded bg-[#303030] text-white text-sm pl-4 pt-4 pb-2 border border-gray-500/30 focus:border-gray-400 focus:outline-none"
       />
 
       <span
