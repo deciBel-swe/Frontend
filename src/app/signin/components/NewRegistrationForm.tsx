@@ -55,6 +55,7 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
     gender &&
     !ageError; // Ensure no age error
 
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormComplete) return;
@@ -86,7 +87,8 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
     // .then(res => res.json())
     // .then(data => console.log('Registration successful:', data))
     // .catch(err => console.error('Registration failed:', err));
-
+// Show confirmation screen
+    setShowConfirmation(true);
     alert('Registration successful! Check console for data.');
   };
 
@@ -258,6 +260,13 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
           </form>
         </div>
       </div>
+      {showConfirmation && (
+        <EmailSentConfirmation
+          email={email}
+          onBackToLogin={() => setShowConfirmation(false)}
+          // onResend={(sentEmail) => console.log('Resend link to', sentEmail)}
+        />
+      )}
     </div>
   );
 };
