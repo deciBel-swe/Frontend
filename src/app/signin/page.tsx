@@ -5,9 +5,7 @@ import { GoogleLoginButton } from '@/features/auth';
 export default function Page() {
   useRedirectAfterLogin();
   const {isLoading, handleGoogleLogin } = useAuth();
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <>This is a sign in page</>
+  return (    <div className="flex min-h-screen flex-col items-center justify-center">
         <div className="flex flex-center flex-col">
           <RegistrationForm />
             <GoogleLoginButton

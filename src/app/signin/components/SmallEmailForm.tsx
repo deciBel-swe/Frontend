@@ -1,29 +1,34 @@
 'use client';
+
 import React, { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
+import EmailInput from './EmailInput';
+import ContinueButton from './ContinueButton';
+
 interface SmallFormProps {
   onClose: () => void; // callback to close this form when hit cancel button (or submit?)
+  onContinue: (email: string) => void; // called when email is submitted
 }
 
-const SmallEmailForm: React.FC<SmallFormProps> = ({ onClose }) => {
+const SmallEmailForm: React.FC<SmallFormProps> = ({ onClose, onContinue }) => {
   const [email, setEmail] = useState('');
 
   const userTypedSomething = email.trim().length > 0;
 
-const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  // Check email format on submit
-  const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    // Check email format on submit
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  if (!isValid) {
-    console.log("Invalid email");
-    return; // do not close form
-  }
+    if (!isValid) {
+      console.log("Invalid email");
+      return; // do not continue
+    }
 
-  console.log("Submitted email:", email);
-  onClose();
-};
+    // Send email to parent
+    onContinue(email);
+  };
 
   return (
     <div className="fixed inset-0 z-50 min-h-screen flex items-center justify-center bg-[#121212]">
@@ -34,7 +39,7 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
     
-            <div className="flex items-center gap-15">
+            <div className="flex items-center gap-13">
                 <button
                  type="button"
                 onClick={onClose}
@@ -49,70 +54,13 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     
             <div className='flex flex-col gap-4'>
 
-<label className="relative block w-full">
-  <input
-    type="email"
-    placeholder=" "
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    className="
-      peer
-      w-full
-      h-[3.2rem]
-      rounded
-      bg-[#303030]
-      text-white
-      text-[14px]
-      !pl-4
-      !pt-[14px]        /* input text pushed DOWN */
-      pb-2
-      border
-      border-gray-500/30
-      focus:border-gray-400
-      focus:outline-none
-    "
-  />
-
-  <span
-    className="
-      absolute
-      left-4
-      top-[17px]        /* label starts here */
-      text-gray-400
-      text-xs
-      pointer-events-none
-      transition-all
-      duration-200
-      ease-in-out
-
-      peer-focus:top-[4px]           /* float UP */
-      peer-focus:text-[11px]
-
-      peer-not-placeholder-shown:top-[4px]
-      peer-not-placeholder-shown:text-[11px]
-    "
-  >
-    Your email address or profile URL
-  </span>
-</label>
-  
-
-            <button
-              type="submit"
-              disabled={!userTypedSomething}
-              className={`
-                w-full h-[2.6rem] rounded font-semibold text-sm transition
-                ${userTypedSomething
-                ? "bg-white text-black cursor-pointer hover:bg-gray-200"
-                : "bg-[#999] text-black cursor-not-allowed opacity-60"}
-                `}           
-            >
-              Continue
-            </button>
+<EmailInput value={email} onChange={setEmail} />
+            
+            <ContinueButton type="submit" disabled={!userTypedSomething}>Continue</ContinueButton>
            
           </div>
     
-          <div className='p-4'>
+          <div className='pb-2'>
             <a href="#needhelp" className='pt-4 text-[#699fff] hover:text-[#38d] transition-colors text-sm'>Need help?</a>
             </div>
     

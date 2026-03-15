@@ -4,12 +4,17 @@ import React, { useState } from 'react';
 import GoogleIcon from '../../../../public/images/google-icon.svg';
 import FacebookIcon from '../../../../public/images/facebook-icon.svg';
 import AppleIcon from '../../../../public/images/apple-icon.svg';
-import SmallEmailForm from './SmallEmailForm';
+import EmailStepWrapper from './EmailStepWrapper';
 import Image from 'next/image';
+import EmailInput from './EmailInput';
+import ContinueButton from './ContinueButton';
 
 const RegistrationForm = () => {
   
-  const [showSmallForm, setShowSmallForm] = useState(false);
+  const [showEmailFlow, setShowEmailFlow] = useState(false);
+  const [email, setEmail] = useState('');
+  
+  const userTypedSomething = email.trim().length > 0;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#121212]">
@@ -64,22 +69,14 @@ const RegistrationForm = () => {
           or with email
         </p>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Your email address or profile URL"
-          onFocus={() => setShowSmallForm(true)}
-          readOnly // optional to prevent typing
-          className="w-full rounded border-0 bg-[#303030] text-white h-[3.2rem] placeholder:text-xs placeholder:tracking-wide placeholder:pl-4 border p-4"
-        /> 
-
-        <button
-          type="submit"
-          className="w-full placeholder:text-2xl py-3 bg-[#999] rounded text-black font-semibold h-[2.6rem] text-sm"
-        >
-          Continue
-        </button>
-       
+        <EmailInput
+    value={email}
+    onChange={setEmail}
+    label="Your email address or profile URL"
+    onFocus={() => setShowEmailFlow(true)}
+    autoComplete='off'
+  />
+        <ContinueButton type="submit" disabled={!userTypedSomething} onClick={() => setShowEmailFlow(true)}>Continue</ContinueButton>      
       </div>
 
       <div className='p-4'>
@@ -90,7 +87,13 @@ const RegistrationForm = () => {
       
     </div>
   </div>
-   {showSmallForm && <SmallEmailForm onClose={() => setShowSmallForm(false)} />}
+    {/* EMAIL FLOW CONTROLLER */}
+      {showEmailFlow && (
+        <EmailStepWrapper
+          onClose={() => setShowEmailFlow(false)}
+          onEmailContinue={setEmail}
+        />
+      )}
 </div>
 
   );
