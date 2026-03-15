@@ -71,3 +71,15 @@ export interface NavLinkConfig {
   href: string;
   name: ActiveNav;
 }
+
+// ─── Track Visibility  ────────────────────────────────────
+ 
+export type TrackPrivacyValue = 'public' | 'private' | 'scheduled';
+ 
+export interface TrackVisibility {
+  isPrivate: boolean;
+}
+ 
+export interface UpdateTrackVisibilityDto {
+  isPrivate: boolean;
+}

@@ -9,6 +9,11 @@ import { config } from '@/config';
 
 import type { AuthService } from './api/authService';
 import { MockAuthService } from './mocks/authService';
+// ─── Track visibility service  ───────────────────────────────────────
+import { RealTrackVisibilityService } from '@/services/api/trackVisibilityService';
+import { MockTrackVisibilityService } from '@/services/mocks/trackVisibilityService';
+import type { TrackVisibilityService } from '@/services/api/trackVisibilityService';
+ 
 
 // --- Auth Service ---
 // When the real API client is implemented, import RealAuthService here
@@ -22,3 +27,7 @@ const resolveAuthService = (): AuthService => {
 };
 
 export const authService = resolveAuthService();
+
+export const trackVisibilityService: TrackVisibilityService = config.api.useMock
+  ? new MockTrackVisibilityService()
+  : new RealTrackVisibilityService();
