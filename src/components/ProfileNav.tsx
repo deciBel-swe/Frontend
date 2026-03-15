@@ -3,24 +3,27 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const navItems = [
-  { name: 'All', href: '/profile' },
-  { name: 'Popular tracks', href: '/profile/popular' },
-  { name: 'Tracks', href: '/profile/tracks' },
-  { name: 'Albums', href: '/profile/albums' },
-  { name: 'Playlists', href: '/profile/sets' },
-  { name: 'Reposts', href: '/profile/reposts' },
+interface ProfileNavProps {
+  username: string;
+}
+
+const getNavItems = (username: string) => [
+  { name: 'All', href: `/${username}` },
+  { name: 'Popular tracks', href: `/${username}/popular-tracks` },
+  { name: 'Tracks', href: `/${username}/tracks` },
+  { name: 'Albums', href: `/${username}/albums` },
+  { name: 'Playlists', href: `/${username}/sets` },
+  { name: 'Reposts', href: `/${username}/reposts` },
 ];
 
-export default function ProfileNav() {
+export default function ProfileNav({ username }: ProfileNavProps) {
   const pathname = usePathname();
 
   return (
     <nav className="bg-[#121212] w-full">
       <div className="flex items-center gap-8 px-6">
-        {navItems.map((item) => {
+        {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
-
           return (
             <Link
               key={item.name}
