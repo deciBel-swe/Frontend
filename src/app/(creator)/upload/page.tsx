@@ -26,6 +26,17 @@ export default function Page() {
         <p className="mt-6 text-xs text-text-muted">
           Current value: <strong>{privacy}</strong>
         </p>
+
+        {/* secret link test: */}
+        <hr className="my-8 border-border-default" />
+
+        <h1 className="text-lg font-bold mb-6">Edit mode (with trackId)</h1>
+        <TrackPrivacy
+          value={privacy}
+          onChange={setPrivacy}
+          trackId="1"
+        />
+
       </div>
     </QueryClientProvider>
   );

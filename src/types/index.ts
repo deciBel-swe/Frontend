@@ -72,7 +72,9 @@ export interface NavLinkConfig {
   name: ActiveNav;
 }
 
-// ─── Track Visibility  ────────────────────────────────────
+// ================================
+// Track Visibility 
+// ================================
  
 export type TrackPrivacyValue = 'public' | 'private' | 'scheduled';
  
@@ -83,3 +85,17 @@ export interface TrackVisibility {
 export interface UpdateTrackVisibilityDto {
   isPrivate: boolean;
 }
+
+// ================================
+// Secret Link 
+// ================================
+ 
+export interface SecretLink {
+  secretLink: string; // token returned from API
+}
+ 
+/** Formats the full shareable URL from a token */
+export function formatSecretUrl(trackId: string, token: string): string {
+  return `decibel.com/tracks/${trackId}?s=${token}`;
+}
+ 

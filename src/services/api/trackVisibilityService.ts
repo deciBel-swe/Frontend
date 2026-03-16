@@ -1,4 +1,4 @@
-import type { TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
+import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
 import { API_ENDPOINTS, getApiUrl } from '@/constants/routes';
 
 export interface TrackVisibilityService {
@@ -7,6 +7,12 @@ export interface TrackVisibilityService {
 
   /** PUT /tracks/:trackId — update isPrivate field */
   updateTrackVisibility(trackId: number, data: UpdateTrackVisibilityDto): Promise<TrackVisibility>;
+
+  /** GET /tracks/:trackId/secret-link — fetch current secret link token */
+  getSecretLink(trackId: string): Promise<SecretLink>;
+ 
+  /** GET /tracks/:trackId/regenerate-link — invalidate old token, generate new one */
+  regenerateSecretLink(trackId: string): Promise<SecretLink>;
 }
 
 export class RealTrackVisibilityService implements TrackVisibilityService {
@@ -31,4 +37,21 @@ export class RealTrackVisibilityService implements TrackVisibilityService {
     if (!res.ok) throw new Error('Failed to update track visibility');
     return res.json();
   }
+
+  async getSecretLink(trackId: string): Promise<SecretLink> {
+    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.SECRET_LINK(trackId)), {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to fetch secret link');
+    return res.json();
+  }
+ 
+  async regenerateSecretLink(trackId: string): Promise<SecretLink> {
+    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.REGENERATE_LINK(trackId)), {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to regenerate secret link');
+    return res.json();
+  }
+
 }

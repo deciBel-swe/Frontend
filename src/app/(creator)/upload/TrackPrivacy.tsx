@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import type { TrackPrivacyValue } from '@/types';
+import { SecretLinkPanel } from './SecretLinkPanel';
 
 interface TrackPrivacyProps {
   /** Controlled value — parent owns this */
@@ -13,7 +14,7 @@ interface TrackPrivacyProps {
    * - undefined → upload mode: radio buttons only, no API calls
    * - string    → edit mode: saves to API immediately on change
    */
-  trackId?: number;
+  trackId?: string;
 }
 
 interface RadioOptionProps {
@@ -100,7 +101,8 @@ function RadioOption({
 // ─── TrackPrivacy ─────────────────────────────────────────────────────────────
 
 export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
-  const { visibility, updateVisibility, isUpdating } = useTrackVisibility(trackId);
+  const numericTrackId = trackId ? Number(trackId) : undefined;
+  const { visibility, updateVisibility, isUpdating } = useTrackVisibility(numericTrackId);
 
   // Sync API state into parent when editing an existing track
   useEffect(() => {
@@ -112,7 +114,7 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
   const handleChange = (next: TrackPrivacyValue) => {
     onChange(next);
     // Only call API when trackId exists (edit mode)
-    if (trackId) {
+    if (numericTrackId) {
       updateVisibility({ isPrivate: next === 'private' });
     }
   };
@@ -152,6 +154,11 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
           Only you and people you share the secret link with can listen to this track.
           {!trackId && ' The secret link will be available after saving.'}
         </p>
+      )}
+
+      {/* Edit mode — show secret link panel */}
+      {trackId && value === 'private' && (
+        <SecretLinkPanel trackId={trackId} />
       )}
     </div>
   );

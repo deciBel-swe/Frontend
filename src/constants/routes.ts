@@ -140,6 +140,7 @@ export const API_ENDPOINTS = {
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,
     PUBLISH: (trackId: number | string) => `/tracks/${trackId}/publish`,
     SECRET_LINK: (trackId: number | string) => `/tracks/${trackId}/secret-link`,
+    REGENERATE_LINK: (trackId: number | string) => `/tracks/${trackId}/regenerate-link`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
