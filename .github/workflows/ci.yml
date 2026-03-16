@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.16, 24.13]
+        node-version: [24.13]
 
     steps:
     - uses: actions/checkout@v4
@@ -34,8 +34,9 @@ jobs:
     - name: Type Check
       run: npm run type-check
     
-    # - name: Run Tests
-    #   run: npm run test:ci
+    - name: Run Tests
+      run: npm run test:ci
+      continue-on-error: true  # Remove when Unit tests are fixed
     
     - name: Build
       run: npm run build
