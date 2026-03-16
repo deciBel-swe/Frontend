@@ -1,6 +1,4 @@
-'use client';
-
-import type { FC } from 'react';
+import { FC } from 'react';
 
 interface GoogleLoginButtonProps {
   onClick: () => void;
@@ -13,21 +11,16 @@ export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
 }) => {
   return (
     <button
-      type="button"
       onClick={onClick}
       disabled={isLoading}
-      className={`
-        flex items-center justify-center w-full px-4 py-2 border border-gray-300 
-        rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 
-        hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
-        focus:ring-blue-500 transition-colors duration-200
-        ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
+      className={`w-fit min-w-70 flex items-center justify-center gap-1.5 px-8 py-3 rounded-sm shadow-sm bg-interactive-default text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-default ${
+        isLoading ? 'cursor-not-allowed' : 'cursor-pointer'
+      }`}
     >
       {isLoading ? (
-        // A simple Tailwind loading spinner
+        // Simple loading spinner
         <svg
-          className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700"
+          className="animate-spin h-5 w-5 text-text-primary"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -48,7 +41,12 @@ export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
         </svg>
       ) : (
         // Google G Logo SVG
-        <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -67,7 +65,7 @@ export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
           />
         </svg>
       )}
-      {isLoading ? 'Signing in...' : 'Continue with Google'}
+      <span>{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
     </button>
   );
 };

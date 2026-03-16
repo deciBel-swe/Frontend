@@ -8,8 +8,8 @@ export interface AuthService {
   /** Log in with email and password (POST /auth/login/local) */
   login(email: string, password: string): Promise<LoginResponseDTO>;
 
-  // NEW: Log in with Google OAuth token (POST /auth/oauth/google)
-  loginWithGoogle(googleToken: string): Promise<LoginResponseDTO>;
+  // NEW: Handle the Google OAuth code exchange
+  loginWithGoogle(code: string): Promise<LoginResponseDTO>;
 
   /** Resume an existing session from stored credentials (no network call) */
   getSession(): Promise<LoginResponseDTO | null>;
