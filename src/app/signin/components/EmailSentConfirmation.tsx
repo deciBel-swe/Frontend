@@ -1,18 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { MockAuthService } from '../../../services/mocks/authService';
 
 interface EmailSentConfirmationProps {
   email: string;
   onBackToLogin?: () => void;
-  onResend?: () => void;
 }
+
+const authService = new MockAuthService();
 
 const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
   email,
   onBackToLogin,
-  onResend,
 }) => {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleResend = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      await authService.requestEmailVerification(email);
+      setMessage('Verification email sent!');
+    } catch (err) {
+      console.error(err);
+      setMessage('Failed to send verification email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    if (onBackToLogin) onBackToLogin();
+    else window.location.href = '/login'; // fallback
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#121212] px-4">
       <div className="w-full max-w-md rounded-lg border border-white bg-[#0f0f0f] p-8 text-center">
@@ -26,12 +49,18 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
           No email in your inbox or spam folder?{' '}
           <button
             type="button"
-            onClick={onResend}
-            className="font-medium text-[#699fff] hover:text-[#38d]"
+            onClick={handleResend}
+            className={`font-medium text-[#699fff] hover:text-[#38d] ${
+              loading ? 'opacity-50 pointer-events-none' : ''
+            }`}
           >
-            Send again
+            {loading ? 'Sending...' : 'Send again'}
           </button>
         </p>
+
+        {message && (
+          <p className="mt-2 text-sm text-green-400 font-medium">{message}</p>
+        )}
 
         <div className="mx-auto mt-9 h-40 w-40">
           <svg
@@ -60,7 +89,7 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
           Wrong address?{' '}
           <button
             type="button"
-            onClick={onBackToLogin}
+            onClick={handleBackToLogin}
             className="font-medium text-[#699fff] hover:text-[#38d]"
           >
             Back to login
@@ -69,10 +98,7 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
 
         <div className="mt-2 text-sm text-gray-500">
           If you still need help, visit our{' '}
-          <a
-            href="#"
-            className="font-medium text-[#699fff] hover:text-[#38d]"
-          >
+          <a href="#" className="font-medium text-[#699fff] hover:text-[#38d]">
             Help Center
           </a>
           .
