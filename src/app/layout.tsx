@@ -82,7 +82,7 @@ export default function RootLayout({
                 <div className="min-w-306">
                     <TopNavBar />
                     <ReCaptchaProvider>
-                    {children}
+                      {children}
                     </ReCaptchaProvider>
                   </div>
                 </div>
