@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import PasswordInput from './PasswordInput';
+import api from '../../../../lib/api'; // your Axios instance with interceptors
+import { MockAuthService } from "../../../services/mocks/authService"; // Mock auth service for testing
+import { runTest } from '../../../../lib/testApi';
 
 interface ExistingUserLoginProps {
   email: string;
@@ -9,14 +12,25 @@ interface ExistingUserLoginProps {
   onForgotPassword?: () => void;
 }
 
+// Initialize mock auth service
+const authService = new MockAuthService();
+
 const ExistingUserLogin: React.FC<ExistingUserLoginProps> = ({ email, onClose, onForgotPassword }) => {
   
   const [password, setPassword] = useState('');
 
     const userTypedSomething = password.trim().length > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!userTypedSomething) return;
+
+    // Generate tokens using mock auth service
+    console.log("🔹 Running testApi for:", email);
+  await runTest(email, password);
+
+
     console.log('Register with:', { email, password, confirm });
     // Call registration API here
   };
