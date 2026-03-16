@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import PasswordInput from './PasswordInput';
 //import { EyeIcon, EyeOffIcon } from 'lucide-react';
 interface NewUserRegisterProps {
@@ -50,6 +50,9 @@ const NewUserRegister: React.FC<NewUserRegisterProps> = ({ email, onClose, onCon
         password: passwordTrimmed,
       });
 
+
+      //ReCaptcha verification should be done here before proceeding with registration
+      
       onContinue?.();
     };
 

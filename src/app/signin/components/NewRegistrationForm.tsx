@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import ContinueButton from './ContinueButton';
 import EmailSentConfirmation from './EmailSentConfirmation';
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface NewRegistrationFormProps {
   email: string;
@@ -11,6 +12,7 @@ interface NewRegistrationFormProps {
 }
 
 const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClose }) => {
+  const {executeRecaptcha} = useGoogleReCaptcha();
   const [displayName, setDisplayName] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
@@ -56,7 +58,7 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
     !ageError; // Ensure no age error
 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormComplete) return;
 
@@ -76,18 +78,56 @@ const NewRegistrationForm: React.FC<NewRegistrationFormProps> = ({ email, onClos
     };
 
     // Mock backend call - in real app, send to API
-    console.log('📝 New User Registration Data:', userData);
+    console.log('Email verification requested for:', userData);
+    console.log('Please click on this link to verify your email (mock): http://localhost:3000/verify-email?token=mock-token');
 
-    // Simulate API call
-    // fetch('/api/register', {
+    // TODO: Implement email verification endpoint
+    // fetch('/auth/verify-email', {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(userData)
+    //   body: JSON.stringify({
+    //     email: userData.email,
+    //     profile: userData.profile
+    //   })
     // })
     // .then(res => res.json())
-    // .then(data => console.log('Registration successful:', data))
-    // .catch(err => console.error('Registration failed:', err));
-// Show confirmation screen
+    // .then(data => {
+    //   console.log('Email verification sent:', data);
+    //   // Show confirmation screen
+    //   setShowConfirmation(true);
+    // })
+    // .catch(err => {
+    //   console.error('Email verification failed:', err);
+    //   alert('Failed to send verification email. Please try again.');
+    // });
+
+    //ReCaptcha verification should be done here before proceeding with registration
+    if(!executeRecaptcha) {
+            return;
+        }
+
+        const token = await executeRecaptcha("submit_form");
+        console.log("ReCaptcha token:", token);
+
+        const response = await fetch("/api/verify-recaptcha", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token }),
+        });
+
+        const data = await response.json();
+
+        if(data.success) {
+            console.log("ReCaptcha verification successful, score:", data.score);
+            // Proceed with form submission or other actions
+        } else {
+            console.log("ReCaptcha verification failed, score:", data.score, "errors:", data.errors);
+            // Handle verification failure (e.g., show error message)
+        }
+
+    // Show confirmation screen
     setShowConfirmation(true);
     alert('Registration successful! Check console for data.');
   };

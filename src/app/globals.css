@@ -285,3 +285,12 @@ input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none !important;
 }
+
+/* hides the reCAPTCHA v3 badge (violates Google terms of service) */
+/* .grecaptcha-badge {
+  visibility: hidden !important;
+} */
+/* .grecaptcha-badge {
+  right: 10px !important;
+  bottom: 10px !important;
+} */

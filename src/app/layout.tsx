@@ -7,6 +7,7 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import type { Metadata } from 'next';
 
 import './globals.css';
+import ReCaptchaProvider from './signin/components/ReCaptchaProvider';
 
 /**
  * Inter — primary sans-serif typeface.
@@ -79,10 +80,12 @@ export default function RootLayout({
             <Suspense fallback={<>Loading ...</>}>
               <div className="flex flex-col xl:items-center items-start justify-center">
                 <div className="min-w-306">
-                  <TopNavBar />
-                  {children}
+                    <TopNavBar />
+                    <ReCaptchaProvider>
+                    {children}
+                    </ReCaptchaProvider>
+                  </div>
                 </div>
-              </div>
             </Suspense>
           </AuthProvider>
         </ThemeProvider>
