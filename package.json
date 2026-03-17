@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "axios": "^1.13.6",
+    "@tanstack/react-query": "^5.90.21",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "nodemailer": "^8.0.2",
