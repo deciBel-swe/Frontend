@@ -79,6 +79,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (googleToken: string) => {
+    setIsLoading(true);
+    try {
+      const session = await authService.loginWithGoogle(googleToken);
+      setUser(session.user);
+      setRole(deriveRole(session.user));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
@@ -91,6 +102,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     isAuthenticated: !!user,
     isLoading,
     login,
+    loginWithGoogle,
     logout,
   };
 
