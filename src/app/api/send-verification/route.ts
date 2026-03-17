@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // ReCaptcha
 // This endpoint receives the reCAPTCHA token from the client, verifies it with Google's API, and returns the verification result.
