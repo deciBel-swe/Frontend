@@ -16,7 +16,11 @@ import type {
 // Helpers
 // ================================
 
-/** Derive role from tier for conditional rendering. */
+/**
+ * Derives a user role from their tier/plan
+ * @param {LoginUserDTO} user - The authenticated user object
+ * @returns {UserRole} The user role ('artist' or 'listener')
+ */
 const deriveRole = (user: LoginUserDTO): UserRole =>
   user.tier === 'ARTIST' ? 'artist' : 'listener';
 
@@ -24,6 +28,23 @@ const deriveRole = (user: LoginUserDTO): UserRole =>
 // Context
 // ================================
 
+/**
+ * AuthContext provides application-wide authentication state and actions.
+ * 
+ * Contains:
+ * - Current authenticated user and their role
+ * - Authentication status (loading, authenticated)
+ * - Login and logout functions
+ * 
+ * Must be used via the `useAuth` hook rather than directly.
+ * 
+ * @type {React.Context<AuthContextValue|undefined>}
+ * 
+ * @example
+ * const context = useContext(AuthContext);
+ * // Should use useAuth() hook instead:
+ * const { user, isAuthenticated, login } = useAuth();
+ */
 export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined
 );
@@ -32,6 +53,10 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 // Provider
 // ================================
 
+/**
+ * Initial authentication state
+ * @constant {AuthState}
+ */
 const initialState: AuthState = {
   user: null,
   role: null,
@@ -39,6 +64,33 @@ const initialState: AuthState = {
   isLoading: true,
 };
 
+/**
+ * AuthProvider Component
+ * 
+ * Root provider that manages authentication state for the entire application.
+ * Must wrap the entire app or at least all components that need auth access.
+ * 
+ * Responsibilities:
+ * - Bootstraps authentication state from stored session token on mount
+ * - Manages login/logout operations
+ * - Provides auth state to all child components via context
+ * - Handles role derivation based on user tier
+ * 
+ * The provider automatically:
+ * 1. Checks for existing session on mount (without network call if token cached)
+ * 2. Maintains loading state during async auth operations
+ * 3. Updates user and role state when auth changes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {ReactNode} props.children - Child components with access to auth context
+ * @returns {JSX.Element} Provider component
+ * 
+ * @example
+ * <AuthProvider>
+ *   <App />
+ * </AuthProvider>
+ */
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<LoginUserDTO | null>(initialState.user);
   const [role, setRole] = useState<UserRole | null>(initialState.role);
