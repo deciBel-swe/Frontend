@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 const TABS = [
-  { label: 'Account',       href: '/settings/account' },
+  { label: 'Account',       href: '/settings/' },
   { label: 'Content',       href: '/settings/content' },
   { label: 'Notifications', href: '/settings/notifications' },
   { label: 'Privacy',       href: '/settings/privacy' },
