@@ -155,8 +155,8 @@ const removeArtwork = () => {
 
           </div>
         <div className="flex justify-center px-6 md:px-12 lg:px-20">
-          <div className="w-full max-w-5xl py-1">
-            <div className="grid md:grid-cols-[350px_1fr] gap-8">
+          <div className="w-full max-w-3xl py-1">
+            <div className="grid md:grid-cols-[300px_1fr] gap-8">
               {/* Artwork */}
               <div className="flex flex-col items-center gap-2">
 
@@ -232,22 +232,12 @@ const removeArtwork = () => {
 
               {/* Track form */}
               <div className="p-4 max-w-xl">
-
-                <div className="mb-6">
-                  <p className="text-sm text-neutral-300">
-                    <span className="font-semibold">File:</span> {audioFile.name}
-                  </p>
-                  <p className="text-sm text-neutral-400">
-                    {(audioFile.size / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                </div>
-
                 <form className="space-y-4 text-sm">
 
                   {/* Title */}
                   <div>
                     <label className="block text-xs text-neutral-400 mb-1">
-                      Title
+                      Track Title
                     </label>
 
                     <input
