@@ -11,11 +11,12 @@ export const ROUTES = {
   // Public routes
   HOME: '/',
   DISCOVER: '/discover',
-  REGISTER: '/register',
   SEARCH: '/search',
 
   // Auth routes
   SIGNIN: '/signin',
+  REGISTER: '/register',
+  RESETPASSWORD: '/reset-password',
 
   // Content routes
   ARTISTS: '/artists',
