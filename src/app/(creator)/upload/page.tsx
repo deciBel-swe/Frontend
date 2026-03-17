@@ -1,8 +1,9 @@
-// frontend/src/app/upload/page.tsx
 'use client'
 
 import { useState } from 'react'
 import { useEffect } from 'react'
+import { uploadTrackService } from "@/services/index"
+import { generateWaveform } from "@/features/generateWaveform"
 
 export default function UploadPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -25,21 +26,49 @@ export default function UploadPage() {
     setTitle(nameWithoutExt)
   }
   }, [audioFile])
-  const startUpload = () => {
-    setIsUploading(true)
-    setUploadProgress(0)
+  const startUpload = async () => {
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setIsUploading(false)
-          setShowForm(true)
-          return 100
-        }
-        return prev + 4
+    if (!audioFile) return
+
+    const formData = new FormData()
+
+    formData.append("audioFile", audioFile)
+
+    if (artworkFile) {
+      formData.append("coverImage", artworkFile)
+    }
+
+    formData.append("title", title)
+    formData.append("genre", "Electronic")
+    formData.append("description", "")
+    formData.append("isPrivate", String(privacy === "private"))
+    formData.append("releaseDate", "2025-01-01")
+
+    setIsUploading(true)
+
+    try {
+
+      const waveform = await generateWaveform(audioFile)
+
+      waveform.forEach((value: string) => {
+        formData.append("waveformData", value)
       })
-    }, 120)
+
+      await uploadTrackService(
+        formData,
+        "mock-token",
+        setUploadProgress
+      )
+
+      setIsUploading(false)
+
+    } catch (err) {
+
+      setError("Upload failed")
+      setIsUploading(false)
+      console.error("Track upload error:", err)
+
+    }
   }
   const resetUpload = () => {
     setAudioFile(null)
@@ -166,6 +195,7 @@ const removeArtwork = () => {
                 >
 
                   {artworkPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={artworkPreview}
                       alt="Artwork preview"
@@ -366,12 +396,13 @@ const removeArtwork = () => {
 
           <div className="max-w-6xl mx-auto flex justify-end px-6 py-2">
 
-            <button
-              type="submit"
-              className="bg-green-500 text-white px-12 py-1 rounded-full font-semibold hover:bg-green-600 transition"
-            >
-              Upload
-            </button>
+        <button
+          type="button"
+          onClick={startUpload}
+          className="bg-green-500 text-white px-12 py-1 rounded-full font-semibold hover:bg-green-600 transition"
+        >
+          Upload
+        </button>
 
           </div>
 
@@ -400,7 +431,7 @@ const removeArtwork = () => {
 
           {/* File upload area */}
           <div
-            className={`relative flex min-h-[280px] cursor-pointer flex-col items-center justify-center gap-6 rounded-2xl border border-dashed px-8 py-16 text-center transition ${
+            className={`relative flex min-h-70 cursor-pointer flex-col items-center justify-center gap-6 rounded-2xl border border-dashed px-8 py-16 text-center transition ${
               error ? 'border-red-500' : 'border-neutral-700 hover:border-neutral-400'
             }`}
             onDragOver={handleDragOver}
@@ -431,7 +462,7 @@ const removeArtwork = () => {
             </div>
 
             <div className="flex flex-col items-center gap-3">
-              <span className="rounded-full bg-neutral-50 !px-8 !py-3 text-sm font-semibold text-neutral-950 transition hover:bg-neutral-200">
+              <span className="rounded-full bg-neutral-50 px-8! py-3! text-sm font-semibold text-neutral-950 transition hover:bg-neutral-200">
                 Choose files
               </span>
               <span className="text-xs text-neutral-500">
