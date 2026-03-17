@@ -83,6 +83,7 @@
   --color-border-default: var(--border-default); /* Standard dividers      */
   --color-border-strong: var(--border-strong); /* Focused inputs, cards  */
   --color-border-brand: var(--border-brand); /* Active / brand outline */
+  --color-border-contrast: var(--border-contrast); /* High-contrast borders */
 
   /* Interactive */
   --color-interactive-default: var(
@@ -195,6 +196,8 @@
   --border-default: var(--color-neutral-100);
   --border-strong: var(--color-neutral-200);
   --border-brand: var(--color-brand-primary);
+  --border-contrast: var(--color-neutral-1000);
+
 
   /* Interactive controls */
   --interactive-default: var(--color-neutral-100);
@@ -216,7 +219,6 @@
   /* Backgrounds */
   --bg-base: var(--color-neutral-900);
   --bg-subtle: var(--color-neutral-800);
-
   /* Surfaces */
   --surface-default: var(--color-neutral-800);
   --surface-raised: var(--color-neutral-700);
@@ -230,9 +232,10 @@
   --text-on-brand: var(--color-neutral-0);
 
   /* Borders */
-  --border-default: var(--color-neutral-700);
+  --border-default: var(--color-neutral-800);
   --border-strong: var(--color-neutral-600);
   --border-brand: var(--color-brand-primary);
+  --border-contrast: var(--color-neutral-0);
 
   /* Interactive controls */
   --interactive-default: var(--color-neutral-600);
