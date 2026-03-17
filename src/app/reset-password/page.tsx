@@ -1,35 +1,34 @@
 'use client';
 
-import SignInForm from '@/features/auth/components/Forms/SignInForm'
 import {useRedirectAfterLogin } from '@/hooks';
 import { ReCaptchaProvider } from '@/providers/ReCaptchaProvider';
+import ResetPasswordForm from '@/features/auth/components/Forms/ResetPasswordForm';
 import { useEffect, useState } from 'react';
 
 /**
- * Sign In Page (Route: /signin)
+ * Password Reset Page (Route: /reset-password)
  * 
- * Displays the sign-in form for existing users to authenticate with email/password
- * or Google OAuth.
+ * Displays the password reset form for users who forgot their password.
  * 
  * Features:
- * - Email and password authentication
- * - Google OAuth sign-in option
- * - Forgot password link
- * - Link to create new account
+ * - Email input to identify the account
+ * - Password reset link sent via email
+ * - Email verification/confirmation screen
  * - Protected by reCAPTCHA v3 verification
+ * - Option to resend reset email
  * 
  * Implementation notes:
  * - Wrapped with ReCaptchaProvider to enable reCAPTCHA verification
  * - Uses isMounted state to handle hydration (client-side only rendering)
  * - Automatically redirects logged-in users to home page via useRedirectAfterLogin()
+ * - Form displays confirmation message after submission
  * 
  * @component
- * @returns {JSX.Element} The sign-in page
+ * @returns {JSX.Element} The password reset page
  */
 export default function Page() {
   useRedirectAfterLogin();
-  const [isMounted, setIsMounted] = useState(false);
-
+    const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -37,9 +36,8 @@ export default function Page() {
   <div className="flex min-h-screen flex-col items-center justify-center">
         <div className="flex flex-center flex-col items-center h-fit justify-center bg-bg-base border border-text-on-brand px-1.5 py-5">
           <ReCaptchaProvider>
-            {isMounted && <SignInForm />}
+            {isMounted && <ResetPasswordForm />}
           </ReCaptchaProvider>
-
         </div>
     </div>
   );

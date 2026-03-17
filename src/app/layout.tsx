@@ -79,10 +79,10 @@ export default function RootLayout({
             <Suspense fallback={<>Loading ...</>}>
               <div className="flex flex-col xl:items-center items-start justify-center">
                 <div className="min-w-306">
-                  <TopNavBar />
-                  {children}
+                    <TopNavBar />
+                      {children}
+                  </div>
                 </div>
-              </div>
             </Suspense>
           </AuthProvider>
         </ThemeProvider>

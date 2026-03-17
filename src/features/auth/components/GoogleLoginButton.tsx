@@ -1,21 +1,43 @@
 import { FC } from 'react';
 
+/**
+ * Props for the GoogleLoginButton component
+ * @interface GoogleLoginButtonProps
+ * @property {() => void} onClick - Callback function when button is clicked
+ * @property {boolean} [isLoading] - Whether the authentication is in progress; disables button and shows spinner
+ */
 interface GoogleLoginButtonProps {
   onClick: () => void;
   isLoading?: boolean;
 }
 
+/**
+ * GoogleLoginButton Component
+ * 
+ * OAuth button that initiates Google sign-in/registration flow.
+ * Displays Google's logo and branded colors.
+ * Shows a loading spinner when authentication is in progress.
+ * 
+ * @component
+ * @param {GoogleLoginButtonProps} props - Component props
+ * @returns {JSX.Element} The Google login button
+ * 
+ * @example
+ * <GoogleLoginButton 
+ *   onClick={() => initiateGoogleAuth()}
+ *   isLoading={isAuthLoading}
+ * />
+ */
 export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
   onClick,
   isLoading = false,
 }) => {
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={isLoading}
-      className={`w-fit min-w-70 flex items-center justify-center gap-1.5 px-8 py-3 rounded-sm shadow-sm bg-interactive-default text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-default ${
-        isLoading ? 'cursor-not-allowed' : 'cursor-pointer'
-      }`}
+      className='`w-full min-w-70 flex items-center justify-center gap-1.5 px-8 py-3 rounded-sm shadow-sm bg-interactive-default text-sm font-bold text-text-primary focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-brand-default cursor-pointer disabled:cursor-not-allowed'
     >
       {isLoading ? (
         // Simple loading spinner
@@ -65,7 +87,7 @@ export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
           />
         </svg>
       )}
-      <span>{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
+      <span>{'Continue with Google'}</span>
     </button>
   );
 };
