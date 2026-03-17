@@ -17,6 +17,8 @@ export default function UploadPage() {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public')
   const [artworkFile, setArtworkFile] = useState<File | null>(null)
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null)
+  const [uploadComplete, setUploadComplete] = useState(false)
+  const [uploadedTrackUrl, setUploadedTrackUrl] = useState<string | null>(null)
   const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB in bytes
   const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/x-flac', 'audio/aac', 'audio/x-aac', 'audio/mp4']
   const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac']
@@ -43,7 +45,6 @@ export default function UploadPage() {
     formData.append("description", "")
     formData.append("isPrivate", String(privacy === "private"))
     formData.append("releaseDate", "2025-01-01")
-
     setIsUploading(true)
 
     try {
@@ -54,14 +55,10 @@ export default function UploadPage() {
         formData.append("waveformData", value)
       })
 
-      await uploadTrackService(
-        formData,
-        "mock-token",
-        setUploadProgress
-      )
-
+      const response = await uploadTrackService(formData, "mock-token", setUploadProgress)
+      setUploadComplete(true)
       setIsUploading(false)
-
+      setUploadedTrackUrl(response.trackUrl) // save the returned track URL
     } catch (err) {
 
       setError("Upload failed")
@@ -74,6 +71,7 @@ export default function UploadPage() {
     setAudioFile(null)
     setShowForm(false)
     setUploadProgress(0)
+    setUploadComplete(false)
     setIsUploading(false)
     setError('')
   }
@@ -118,7 +116,6 @@ const removeArtwork = () => {
       setAudioFile(file)
       setShowForm(true) // Show the form when file is uploaded
       console.log('Valid file:', file.name, (file.size / (1024 * 1024)).toFixed(2), 'MB')
-      startUpload()
     }
   }
 
@@ -133,7 +130,37 @@ const removeArtwork = () => {
     const file = e.dataTransfer.files?.[0]
     if (file) handleAudio(file)
   }
-
+  // Show completed upload message
+  if (uploadComplete && uploadedTrackUrl) {
+    return (
+      <section className="min-h-screen w-full flex flex-col items-center justify-center gap-6 px-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-white">Saved to DeciBel.</h2>
+          <p className="text-neutral-200 mt-2">
+            Congratulations!, Your tracks are now on DeciBel.
+          </p>
+        </div>
+        <div className="mt-4">
+          <a
+            href={uploadedTrackUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-white text-white px-6 py-2 rounded-full font-semibold hover:bg-neutral-600 transition"
+          >
+            View Track
+          </a>
+        </div>
+        <div className="mt-6">
+          <button
+            onClick={resetUpload}
+            className="text-sm text-neutral-400 hover:text-neutral-200 transition"
+          >
+            Upload Another Track
+          </button>
+        </div>
+      </section>
+    )
+  }
   // If form should be shown, render the form
   if (showForm && audioFile) {
     return (
@@ -396,13 +423,13 @@ const removeArtwork = () => {
 
           <div className="max-w-6xl mx-auto flex justify-end px-6 py-2">
 
-        <button
-          type="button"
-          onClick={startUpload}
-          className="bg-green-500 text-white px-12 py-1 rounded-full font-semibold hover:bg-green-600 transition"
-        >
-          Upload
-        </button>
+            <button
+              type="button"
+              onClick={startUpload}
+              className="bg-green-500 text-white px-12 py-1 rounded-full font-semibold hover:bg-green-600 transition"
+            >
+              Upload
+            </button>
 
           </div>
 

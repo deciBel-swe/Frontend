@@ -12,7 +12,7 @@ import { MockAuthService } from './mocks/authService';
 import { uploadTrack } from "@/services/api/uploadService"
 import { uploadTrackMock } from "@/services/mocks/uploadService"
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"
+//const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"
 
 export const uploadTrackService = (
   formData: FormData,
@@ -20,11 +20,8 @@ export const uploadTrackService = (
   onProgress: (progress: number) => void
 ) => {
 
-  if (USE_MOCK) {
-    return uploadTrackMock(onProgress)
-  }
-
-  return uploadTrack(formData, token, onProgress)
+  return uploadTrackMock(onProgress)
+  //return uploadTrack(formData, token, onProgress)
 }
 // --- Auth Service ---
 // When the real API client is implemented, import RealAuthService here

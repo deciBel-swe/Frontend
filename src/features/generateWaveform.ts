@@ -1,29 +1,30 @@
-import decodeAudio from "audio-decode";
+export async function generateWaveform(file: File): Promise<string[]> {
 
-interface AudioFile {
-    arrayBuffer(): Promise<ArrayBuffer>;
-}
+  const arrayBuffer = await file.arrayBuffer()
 
-export const generateWaveform = async (file: AudioFile): Promise<string[]> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const audioBuffer = await decodeAudio(arrayBuffer);
+  const audioContext = new AudioContext()
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
 
-    const raw = audioBuffer.channelData[0];
+  const rawData = audioBuffer.getChannelData(0)
 
-    const samples: number = 100;
-    const blockSize: number = Math.floor(raw.length / samples);
+  const samples = 100
+  const blockSize = Math.floor(rawData.length / samples)
 
-    const waveform: string[] = [];
+  const waveform: string[] = []
 
-    for (let i: number = 0; i < samples; i++) {
-        let sum: number = 0;
+  for (let i = 0; i < samples; i++) {
 
-        for (let j: number = 0; j < blockSize; j++) {
-            sum += Math.abs(raw[i * blockSize + j]);
-        }
+    let sum = 0
 
-        waveform.push((sum / blockSize).toFixed(2));
+    for (let j = 0; j < blockSize; j++) {
+      sum += Math.abs(rawData[i * blockSize + j])
     }
 
-    return waveform;
-};
+    const amplitude = sum / blockSize
+
+    waveform.push(amplitude.toFixed(2))
+
+  }
+
+  return waveform
+}
