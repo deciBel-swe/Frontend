@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:ci": "jest --ci --maxWorkers=2",
     "pre-commit": "npm run lint && npm run type-check && npm run test"
   },
   "dependencies": {
