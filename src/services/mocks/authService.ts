@@ -139,6 +139,7 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
+  
   async login(email: string, _password: string): Promise<LoginResponseDTO> {
     await delay();
     const user = resolveUserByEmail(email);
@@ -153,6 +154,52 @@ export class MockAuthService implements AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  // ================================
+  // Email verification methods
+  // ================================
+
+    async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+    await delay();
+
+    const token = crypto.randomUUID();
+
+    mockEmailVerification[token] = {
+      email,
+      token,
+      verified: false,
+    };
+
+    // Call API route to send real email
+    await fetch("/api/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, token }),
+    });
+
+    return { success: true };
+  }
+
+  async verifyEmail(token: string): Promise<{ success: boolean }> {
+    await delay();
+
+    if (!mockEmailVerification[token]) {
+      return { success: false };
+    }
+
+    mockEmailVerification[token].verified = true;
+    return { success: true };
+  }
+
+  async checkEmailVerified(email: string): Promise<boolean> {
+    await delay();
+
+    return Object.values(mockEmailVerification).some(
+      (entry) => entry.email === email && entry.verified === true
+    );
+  }
+
+  // ================================
+
   private _clearStorage(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -161,3 +208,9 @@ export class MockAuthService implements AuthService {
     document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   }
 }
+
+// ================================
+// Mock email verification storage
+// ================================
+
+export const mockEmailVerification: Record<string, { email: string; token: string; verified: boolean }> = {};
