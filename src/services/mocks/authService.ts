@@ -31,6 +31,15 @@ const mockUsers: Record<UserRole, LoginUserDTO> = {
   },
 };
 
+// For testing purposes, only allow 5 specific users to log in with email (any password allowed)
+const allowedUsers: Record<string, LoginUserDTO> = {
+  'user1@test.com': { id: 1, username: 'user1', tier: 'FREE' },
+  'user2@test.com': { id: 2, username: 'user2', tier: 'FREE' },
+  'user3@test.com': { id: 3, username: 'user3', tier: 'FREE' },
+  'user4@test.com': { id: 4, username: 'user4', tier: 'FREE' },
+  'user5@test.com': { id: 5, username: 'user5', tier: 'FREE' },
+};
+
 /** Simulates a network round-trip */
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((r) => setTimeout(r, ms));
@@ -142,7 +151,14 @@ export class MockAuthService implements AuthService {
   
   async login(email: string, _password: string): Promise<LoginResponseDTO> {
     await delay();
-    const user = resolveUserByEmail(email);
+    //const user = resolveUserByEmail(email);
+
+     // Check if email exists in allowed users
+  const user = allowedUsers[email];
+  if (!user) {
+    throw new Error('User not allowed. Only 5 users can login in this mock.');
+  }
+
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
