@@ -5,8 +5,12 @@ services:
       args:
         NEXT_PUBLIC_USE_MOCK: "true"
         NEXT_PUBLIC_API_URL: "http://localhost:3000"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "767709617177-cp96qfudp01g6hrpu6pfpdmsrtob9vti.apps.googleusercontent.com"
+        NEXT_PUBLIC_OAUTH_REDIRECT_URI: "http://localhost:3000/oauth/callback"
+        NEXT_PUBLIC_RECATCHA_SITE_KEY: "6LfAo4ssAAAAAMluc2nFcGFqzvoSeGZ9ExvYcivZ"
     environment:
       NEXT_PUBLIC_USE_MOCK: "true"
       NEXT_PUBLIC_API_URL: "http://localhost:3000"
+      RECAPTCHA_SECRET_KEY: "So secret please dont commit"
     ports:
       - 3000:3000
