@@ -22,5 +22,4 @@ export interface AuthService {
 
   /** Log out of all sessions (POST /auth/logout-all) */
   logoutAll(): Promise<void>;
-
 }

@@ -25,7 +25,9 @@ api.interceptors.request.use(async (config) => {
 // ------------------------
 let isRefreshing = false;
 let requestQueue: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolve: (value?: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reject: (reason?: any) => void;
   config: AxiosRequestConfig;
 }[] = [];

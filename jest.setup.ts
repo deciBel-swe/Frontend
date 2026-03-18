@@ -7,6 +7,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import '@testing-library/jest-dom';
 
+// React 19 requires this flag in custom test environments so async state
+// updates from user interactions are recognized as act-compatible.
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({

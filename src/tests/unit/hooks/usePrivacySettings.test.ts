@@ -52,7 +52,7 @@ describe('usePrivacySettings', () => {
   it('allows updating a single field', async () => {
     (privacyService.getPrivacySettings as jest.Mock)
       .mockResolvedValueOnce({ isPrivate: false, showHistory: true }) // initial fetch
-      .mockResolvedValueOnce({ isPrivate: true,  showHistory: true }); // after invalidation refetch
+      .mockResolvedValueOnce({ isPrivate: true, showHistory: true }); // after invalidation refetch
 
     (privacyService.updatePrivacySettings as jest.Mock).mockResolvedValue({
       isPrivate: true,

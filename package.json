@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --maxWorkers=2",
+    "test:ci": "jest --ci --coverage --maxWorkers=1",
     "pre-commit": "npm run lint && npm run type-check && npm run test"
   },
   "dependencies": {
@@ -30,10 +30,7 @@
     "zod": "^4.3.6"
   },
   "overrides": {
-    "glob": "^13.0.0",
-    "minimatch": "^10.2.1",
-    "rimraf": "^6.0.1",
-    "jsdom": "^25.0.1"
+
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

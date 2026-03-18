@@ -1,5 +1,8 @@
 import type { PrivacyService } from '@/services/api/privacyService';
-import type { PrivacySettings, UpdatePrivacySettingsDto } from '@/types/privacy';
+import type {
+  PrivacySettings,
+  UpdatePrivacySettingsDto,
+} from '@/types/privacy';
 
 // reuse the same delay helper from auth mock or recreate here
 const MOCK_DELAY_MS = 200;
