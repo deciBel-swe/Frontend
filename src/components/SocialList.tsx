@@ -51,8 +51,8 @@ export const SocialList: FC<SocialListProps> = ({ items }) => (
               color: 'inherit',
             }}
           >
-            <Icon style={{ marginRight: 8 }} />
-            <span>{label}</span>
+            <Icon className="mr-2" />
+            <span className="ml-2"> {label}</span>
           </a>
         </li>
       );
