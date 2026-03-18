@@ -1,0 +1,180 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+import { Avatar } from '@/components/nav/Avatar';
+import { Badge } from '@/components/nav/Badge';
+import { DropdownMenu } from '@/components/nav/DropdownMenu';
+import { NavLink } from '@/components/nav/NavLink';
+import { SearchBar } from '@/components/nav/SearchBar';
+import { TopNavBar } from '@/components/nav/TopNavBar';
+import { useTopNavBar } from '@/components/nav/useTopNavBar';
+
+jest.mock('next/link', () => {
+  return function MockLink({ href, onClick, children, ...rest }: any) {
+    return (
+      <a
+        href={typeof href === 'string' ? href : ''}
+        {...rest}
+        onClick={(event) => {
+          event.preventDefault();
+          onClick?.(event);
+        }}
+      >
+        {children}
+      </a>
+    );
+  };
+});
+
+jest.mock('@/components/nav/useTopNavBar', () => ({
+  useTopNavBar: jest.fn(),
+}));
+
+const mockUseTopNavBar = useTopNavBar as jest.Mock;
+
+const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
+  user: null,
+  isAuthenticated: false,
+  isMounted: true,
+  login: jest.fn(),
+  userMenuOpen: false,
+  toggleUserMenu: jest.fn(),
+  closeUserMenu: jest.fn(),
+  userMenuRef: { current: null },
+  moreMenuOpen: false,
+  toggleMoreMenu: jest.fn(),
+  closeMoreMenu: jest.fn(),
+  moreMenuRef: { current: null },
+  initials: '',
+  activeNav: 'home',
+  ...overrides,
+});
+
+describe('nav primitives', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTopNavBar.mockReturnValue(createTopNavState());
+  });
+
+  it('renders Avatar initials when no image source is provided', () => {
+    render(<Avatar alt="Alice" initials="AL" />);
+
+    expect(screen.getByText('AL')).toBeInTheDocument();
+  });
+
+  it('hides Badge at zero and caps high counts to 9+', () => {
+    const { container, rerender } = render(<Badge count={0} />);
+
+    expect(container.firstChild).toBeNull();
+
+    rerender(<Badge count={17} />);
+
+    expect(screen.getByLabelText('17 unread')).toHaveTextContent('9+');
+  });
+
+  it('renders DropdownMenu items and invokes onClose when an item is clicked', async () => {
+    const user = userEvent.setup();
+    const onClose = jest.fn();
+
+    render(
+      <DropdownMenu
+        items={[
+          { label: 'Profile', href: '/me' },
+          null,
+          { label: 'Sign out', href: '/logout' },
+        ]}
+        onClose={onClose}
+      />
+    );
+
+    expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+
+    await user.click(screen.getByRole('menuitem', { name: 'Profile' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks NavLink as current when active', () => {
+    render(<NavLink href="/feed" label="Feed" isActive />);
+
+    expect(screen.getByRole('link', { name: 'Feed' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('submits SearchBar query through onSearch', async () => {
+    const user = userEvent.setup();
+    const onSearch = jest.fn();
+
+    render(<SearchBar onSearch={onSearch} />);
+
+    const input = screen.getByRole('searchbox', { name: 'Search' });
+    await user.type(input, 'lofi');
+    await user.keyboard('{Enter}');
+
+    expect(onSearch).toHaveBeenCalledWith('lofi');
+  });
+});
+
+describe('TopNavBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders guest actions and triggers login from Sign in button', async () => {
+    const user = userEvent.setup();
+    const login = jest.fn();
+
+    mockUseTopNavBar.mockReturnValue(
+      createTopNavState({
+        isAuthenticated: false,
+        user: null,
+        login,
+      })
+    );
+
+    render(<TopNavBar />);
+
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Create account' })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(login).toHaveBeenCalledWith('artist@decibel.test', 'x');
+  });
+
+  it('renders authenticated actions when user is present', async () => {
+    const closeUserMenu = jest.fn();
+
+    mockUseTopNavBar.mockReturnValue(
+      createTopNavState({
+        isAuthenticated: true,
+        user: {
+          username: 'alex',
+          profileUrl: '',
+        },
+        initials: 'AL',
+        userMenuOpen: true,
+        closeUserMenu,
+      })
+    );
+
+    render(<TopNavBar />);
+
+    expect(
+      screen.getByRole('button', { name: 'Upgrade now' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Notifications' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Profile' })).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('menuitem', { name: 'Profile' }));
+
+    await waitFor(() => expect(closeUserMenu).toHaveBeenCalledTimes(1));
+  });
+});
