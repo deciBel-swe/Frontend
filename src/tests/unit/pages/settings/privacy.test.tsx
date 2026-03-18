@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import Page from '@/app/settings/privacy/page';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
@@ -11,6 +12,7 @@ describe('Settings privacy page', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUpdate.mockResolvedValue(undefined);
     (usePrivacySettings as jest.Mock).mockReturnValue({
       settings: { isPrivate: false, showHistory: true },
       isLoading: false,
@@ -30,25 +32,27 @@ describe('Settings privacy page', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls updateSetting when a toggle is clicked', () => {
+  it('calls updateSetting when a toggle is clicked', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
     render(<Page />);
 
     const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
-    fireEvent.click(firstToggle);
-    expect(mockUpdate).toHaveBeenCalled();
+    await user.click(firstToggle);
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalled());
 
     const secondToggle = screen.getByRole('switch', { name: /Show my activities in social discovery playlists and modules/i });
-    fireEvent.click(secondToggle);
-    expect(mockUpdate).toHaveBeenCalledTimes(2);
+    await user.click(secondToggle);
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(2));
   });
 
-  it('shows a confirmation dialog when disabling messages-from-anyone', () => {
+  it('shows a confirmation dialog when disabling messages-from-anyone', async () => {
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const user = userEvent.setup();
     render(<Page />);
 
     const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
-    fireEvent.click(firstToggle);
+    await user.click(firstToggle);
 
     expect(confirmSpy).toHaveBeenCalledWith(
       expect.stringContaining('Disabling messages from anyone')
@@ -56,12 +60,15 @@ describe('Settings privacy page', () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it('proceeds with update when confirmation is accepted', () => {
+  it('proceeds with update when confirmation is accepted', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
     render(<Page />);
 
     const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
-    fireEvent.click(firstToggle);
-    expect(mockUpdate).toHaveBeenCalledWith({ isPrivate: true });
+    await user.click(firstToggle);
+    await waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith({ isPrivate: true })
+    );
   });
 });
