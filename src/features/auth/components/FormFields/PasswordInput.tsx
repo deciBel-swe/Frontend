@@ -18,18 +18,18 @@ interface PasswordInputProps {
 
 /**
  * PasswordInput Component
- * 
+ *
  * A secure password input field with show/hide toggle functionality.
  * Features:
  * - Floating label animation (similar to FloatingInputField)
  * - Show/hide password toggle button
  * - Eye icon that changes based on visibility state
  * - Hides text content when in password mode
- * 
+ *
  * @component
  * @param {PasswordInputProps} props - Component props
  * @returns {JSX.Element} The password input field with floating label and visibility toggle
- * 
+ *
  * @example
  * <PasswordInput
  *   label="Password"
@@ -47,7 +47,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   return (
     <label className="relative block w-full">
       <input
-        type={show ? "text" : "password"}
+        type={show ? 'text' : 'password'}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder=" "

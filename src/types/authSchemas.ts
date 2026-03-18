@@ -15,7 +15,7 @@ const MINIMUM_AGE_MESSAGE =
 
 /**
  * Zod schema for user registration validation
- * 
+ *
  * Validates:
  * - Email: Must be a valid email format
  * - Password: Minimum 6 characters, at least one uppercase letter and one number
@@ -23,7 +23,7 @@ const MINIMUM_AGE_MESSAGE =
  * - Display Name: Required, non-empty string
  * - Date of Birth: Must be valid date components (month, day, year) with user being 13+
  * - Gender: Required field
- * 
+ *
  * @type {z.ZodObject}
  * @example
  * const result = registrationSchema.safeParse(formData);
@@ -84,11 +84,11 @@ export const registrationSchema = z
 
 /**
  * Zod schema for user sign-in validation
- * 
+ *
  * Validates:
  * - Email: Must be a valid email format
  * - Password: Must be non-empty
- * 
+ *
  * @type {z.ZodObject}
  * @example
  * const result = signInSchema.safeParse({ email, password });
@@ -106,10 +106,10 @@ export type SignInFormValues = z.infer<typeof signInSchema>;
 
 /**
  * Generic type for field-level validation errors
- * 
+ *
  * Maps field names to their corresponding error messages.
  * Used to display validation errors on individual form fields.
- * 
+ *
  * @typedef {Object.<string, string>} FieldErrors
  * @example
  * const errors: FieldErrors<SignInFormValues> = {
@@ -123,14 +123,14 @@ export type FieldErrors<T extends Record<string, unknown>> = Partial<
 
 /**
  * Utility function to convert Zod validation errors to field-level errors
- * 
+ *
  * Transforms a ZodError object into a flat object mapping field names to error messages.
  * Only keeps the first error for each field if multiple validation rules fail.
- * 
+ *
  * @template T - The type of the object being validated
  * @param {z.ZodError<T>} error - Zod validation error object
  * @returns {FieldErrors<T>} Object mapping field names to error messages
- * 
+ *
  * @example
  * const result = registrationSchema.safeParse(formData);
  * if (!result.success) {

@@ -50,7 +50,7 @@ const genderOptions = [
 
 /**
  * RegistrationForm Component
- * 
+ *
  * A comprehensive user registration form for creating a new DeciBel account.
  * Features:
  * - Email and password validation with confirmation
@@ -61,16 +61,16 @@ const genderOptions = [
  * - reCAPTCHA v3 verification on submission
  * - Email verification confirmation modal after successful submission
  * - Loading state during form submission
- * 
+ *
  * The form uses:
  * - `useRegistrationSubmit` hook for form submission logic
  * - `registrationSchema` for comprehensive validation
  * - Built-in age verification (must be 13+)
  * - Password strength validation (min 6 chars, 1 uppercase, 1 number)
- * 
+ *
  * @component
  * @returns {JSX.Element} The registration form
- * 
+ *
  * @example
  * <ReCaptchaProvider>
  *   <RegistrationForm />
@@ -87,8 +87,9 @@ const RegistrationForm: React.FC = () => {
     year: '',
     gender: '',
   });
-  const [fieldErrors, setFieldErrors] =
-    useState<FieldErrors<RegistrationFormValues>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    FieldErrors<RegistrationFormValues>
+  >({});
   const [displayNameEdited, setDisplayNameEdited] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -161,7 +162,9 @@ const RegistrationForm: React.FC = () => {
                 onChange={(value) => updateField('password', value)}
               />
               {fieldErrors.password ? (
-                <div className="text-red-400 text-xs">{fieldErrors.password}</div>
+                <div className="text-red-400 text-xs">
+                  {fieldErrors.password}
+                </div>
               ) : null}
             </div>
 
@@ -172,7 +175,9 @@ const RegistrationForm: React.FC = () => {
                 onChange={(value) => updateField('confirmPassword', value)}
               />
               {fieldErrors.confirmPassword ? (
-                <div className="text-red-400 text-xs">{fieldErrors.confirmPassword}</div>
+                <div className="text-red-400 text-xs">
+                  {fieldErrors.confirmPassword}
+                </div>
               ) : null}
             </div>
 
@@ -190,13 +195,15 @@ const RegistrationForm: React.FC = () => {
                 error={fieldErrors.displayName}
               />
               <div className="text-gray-400 text-xs">
-                Your display name can be anything you like. Your name or artist name are good
-                choices.
+                Your display name can be anything you like. Your name or artist
+                name are good choices.
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="text-xs font-bold select-none">Date of birth (required)</div>
+              <div className="text-xs font-bold select-none">
+                Date of birth (required)
+              </div>
               <div className="flex gap-2">
                 <div className="w-1/2">
                   <FloatingSelectField
@@ -230,7 +237,8 @@ const RegistrationForm: React.FC = () => {
                 </div>
               </div>
               <div className="text-gray-400 text-xs">
-                Your date of birth is used to verify your age and is not shared publicly.
+                Your date of birth is used to verify your age and is not shared
+                publicly.
               </div>
               {dateOfBirthError ? (
                 <div className="text-red-400 text-xs">{dateOfBirthError}</div>
@@ -249,9 +257,14 @@ const RegistrationForm: React.FC = () => {
               />
             </div>
 
-            {submitError ? <div className="text-red-400 text-xs">{submitError}</div> : null}
+            {submitError ? (
+              <div className="text-red-400 text-xs">{submitError}</div>
+            ) : null}
 
-            <ContinueButton type="submit" disabled={!isFormComplete || isSubmitting}>
+            <ContinueButton
+              type="submit"
+              disabled={!isFormComplete || isSubmitting}
+            >
               {isSubmitting ? 'Submitting...' : 'Continue'}
             </ContinueButton>
           </form>

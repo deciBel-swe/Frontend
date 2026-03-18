@@ -148,16 +148,15 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
-  
   async login(email: string, _password: string): Promise<LoginResponseDTO> {
     await delay();
     //const user = resolveUserByEmail(email);
 
-     // Check if email exists in allowed users
-  const user = allowedUsers[email];
-  if (!user) {
-    throw new Error('User not allowed. Only 5 users can login in this mock.');
-  }
+    // Check if email exists in allowed users
+    const user = allowedUsers[email];
+    if (!user) {
+      throw new Error('User not allowed. Only 5 users can login in this mock.');
+    }
 
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
@@ -174,7 +173,7 @@ export class MockAuthService implements AuthService {
   // Email verification methods
   // ================================
 
-    async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
     await delay();
 
     const token = crypto.randomUUID();
@@ -186,9 +185,9 @@ export class MockAuthService implements AuthService {
     };
 
     // Call API route to send real email
-    await fetch("/api/send-verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    await fetch('/api/send-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, token }),
     });
 
@@ -229,4 +228,7 @@ export class MockAuthService implements AuthService {
 // Mock email verification storage
 // ================================
 
-export const mockEmailVerification: Record<string, { email: string; token: string; verified: boolean }> = {};
+export const mockEmailVerification: Record<
+  string,
+  { email: string; token: string; verified: boolean }
+> = {};

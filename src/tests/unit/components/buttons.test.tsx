@@ -59,11 +59,7 @@ describe('button components', () => {
     const onChange = jest.fn();
 
     render(
-      <Toggle
-        label="Receive messages"
-        checked={true}
-        onChange={onChange}
-      />
+      <Toggle label="Receive messages" checked={true} onChange={onChange} />
     );
 
     await user.click(screen.getByRole('switch', { name: 'Receive messages' }));

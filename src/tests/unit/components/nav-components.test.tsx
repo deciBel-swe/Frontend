@@ -170,7 +170,9 @@ describe('TopNavBar', () => {
     expect(
       screen.getByRole('link', { name: 'Notifications' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Profile' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Profile' })
+    ).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('menuitem', { name: 'Profile' }));

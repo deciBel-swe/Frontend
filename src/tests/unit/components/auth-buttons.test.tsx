@@ -54,7 +54,9 @@ describe('auth buttons', () => {
 
     render(<GoogleLoginButton onClick={onClick} isLoading />);
 
-    const button = screen.getByRole('button', { name: /continue with google/i });
+    const button = screen.getByRole('button', {
+      name: /continue with google/i,
+    });
 
     expect(button).toBeDisabled();
 

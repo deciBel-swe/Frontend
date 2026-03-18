@@ -15,19 +15,19 @@ export interface ReCaptchaResult {
 
 /**
  * Hook for reCAPTCHA v3 verification
- * 
+ *
  * Provides a function to execute reCAPTCHA token verification for form submissions.
  * Must be used within a ReCaptchaProvider.
- * 
+ *
  * The verification process:
  * 1. Executes reCAPTCHA on the client to get a token
  * 2. Sends the token to `/api/verify-recaptcha` for server-side verification
  * 3. Returns the verification result and score
- * 
+ *
  * @hook
  * @returns {Object} Hook return object
  * @returns {(action?: string) => Promise<ReCaptchaResult>} verifyReCaptcha - Function to verify reCAPTCHA token
- * 
+ *
  * @example
  * const { verifyReCaptcha } = useReCaptcha();
  * const result = await verifyReCaptcha('signin');
@@ -42,11 +42,13 @@ export const useReCaptcha = () => {
 
   /**
    * Verifies a reCAPTCHA token with the backend
-   * 
+   *
    * @param {string} [action='submit_form'] - Action identifier for reCAPTCHA (e.g., 'signin', 'reset_password', 'submit_form')
    * @returns {Promise<ReCaptchaResult>} Verification result containing success status and optional score/error
    */
-  const verifyReCaptcha = async (action: string = 'submit_form'): Promise<ReCaptchaResult> => {
+  const verifyReCaptcha = async (
+    action: string = 'submit_form'
+  ): Promise<ReCaptchaResult> => {
     if (!executeRecaptcha) {
       return { success: false, error: 'ReCaptcha not loaded' };
     }
@@ -75,12 +77,24 @@ export const useReCaptcha = () => {
         console.log('ReCaptcha verification successful, score:', data.score);
         return { success: true, score: data.score };
       } else {
-        console.log('ReCaptcha verification failed, score:', data.score, 'errors:', data.errors);
-        return { success: false, score: data.score, error: 'Verification failed' };
+        console.log(
+          'ReCaptcha verification failed, score:',
+          data.score,
+          'errors:',
+          data.errors
+        );
+        return {
+          success: false,
+          score: data.score,
+          error: 'Verification failed',
+        };
       }
     } catch (error) {
       console.error('ReCaptcha verification error:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   };
 

@@ -73,9 +73,9 @@ export interface UseApiQueryConfig<
   TResponse,
   TSelected = TResponse,
 > extends Omit<
-    UseQueryOptions<TResponse, ApiErrorDTO, TSelected, QueryKey>,
-    'queryKey' | 'queryFn'
-  > {
+  UseQueryOptions<TResponse, ApiErrorDTO, TSelected, QueryKey>,
+  'queryKey' | 'queryFn'
+> {
   queryKey: QueryKey;
   endpoint: ApiEndpointContract<TRequest, TResponse>;
   payload?: TRequest;
@@ -94,9 +94,9 @@ export interface UseApiMutationConfig<
   TResponse,
   TContext = unknown,
 > extends Omit<
-    UseMutationOptions<TResponse, ApiErrorDTO, TRequest, TContext>,
-    'mutationFn'
-  > {
+  UseMutationOptions<TResponse, ApiErrorDTO, TRequest, TContext>,
+  'mutationFn'
+> {
   endpoint: ApiEndpointContract<TRequest, TResponse>;
 }
 
@@ -282,11 +282,7 @@ export const useApiQuery = <TRequest, TResponse, TSelected = TResponse>(
  * });
  * mutation.mutate({ isPrivate: true });
  */
-export const useApiMutation = <
-  TRequest,
-  TResponse,
-  TContext = unknown,
->(
+export const useApiMutation = <TRequest, TResponse, TContext = unknown>(
   mutationConfig: UseApiMutationConfig<TRequest, TResponse, TContext>
 ): UseMutationResult<TResponse, ApiErrorDTO, TRequest, TContext> => {
   const { endpoint, ...mutationOptions } = mutationConfig;

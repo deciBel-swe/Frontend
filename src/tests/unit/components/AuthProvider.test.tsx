@@ -251,7 +251,9 @@ describe('logout', () => {
 
     await clickHarnessButton('Logout');
 
-    await waitFor(() => expect(mockAuthService.logout).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(mockAuthService.logout).toHaveBeenCalledTimes(1)
+    );
     await waitFor(() =>
       expect(screen.getByText('logged out')).toBeInTheDocument()
     );

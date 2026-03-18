@@ -26,8 +26,10 @@ export interface FloatingSelectOption {
  * @property {string} [placeholder] - Placeholder option text (displayed when no value is selected)
  * @property {string} [error] - Optional error message displayed below the select field
  */
-interface FloatingSelectFieldProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange'> {
+interface FloatingSelectFieldProps extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  'value' | 'onChange'
+> {
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -38,22 +40,22 @@ interface FloatingSelectFieldProps
 
 /**
  * FloatingSelectField Component
- * 
+ *
  * A reusable select dropdown field with an animated floating label.
  * The label smoothly animates to the top when the field is focused or has a selected value.
  * Displays validation error messages below the select.
- * 
+ *
  * Features:
  * - Floating label animation
  * - Optional placeholder option
  * - Support for disabled options
  * - Error state display
  * - Customizable appearance with Tailwind classes
- * 
+ *
  * @component
  * @param {FloatingSelectFieldProps} props - Component props
  * @returns {JSX.Element} The select field with floating label
- * 
+ *
  * @example
  * <FloatingSelectField
  *   label="Month"
@@ -106,7 +108,7 @@ const FloatingSelectField: FC<FloatingSelectFieldProps> = ({
             peer-focus:top-0.5 peer-focus:text-[9px]
           `}
         >
-          {value ? label: ''}
+          {value ? label : ''}
         </span>
 
         <svg

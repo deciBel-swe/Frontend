@@ -13,7 +13,12 @@ describe('auth form fields', () => {
     const onChange = jest.fn();
 
     render(
-      <EmailInput value="" onChange={onChange} onFocus={onFocus} label="Email" />
+      <EmailInput
+        value=""
+        onChange={onChange}
+        onFocus={onFocus}
+        label="Email"
+      />
     );
 
     const input = screen.getByRole('textbox');
