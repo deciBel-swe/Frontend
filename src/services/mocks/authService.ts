@@ -94,8 +94,9 @@ export class MockAuthService implements AuthService {
     const remainingSec = Math.floor(remainingMs / 1000);
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${remainingSec}; SameSite=Lax`;
 
+    const expiresIn = remainingSec;
     const user: LoginUserDTO = JSON.parse(raw);
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -122,7 +123,7 @@ export class MockAuthService implements AuthService {
 
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
@@ -167,7 +168,7 @@ export class MockAuthService implements AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   // ================================
