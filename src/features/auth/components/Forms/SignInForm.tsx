@@ -13,7 +13,6 @@ import ContinueButton from '../ContinueButton';
 import PasswordInput from '../FormFields/PasswordInput';
 import FloatingInputField from '../FormFields/FloatingInputField';
 import {
-  signInSchema,
   type FieldErrors,
   type SignInFormValues,
 } from '@/types/authSchemas';
@@ -62,8 +61,6 @@ const SignInForm: FC = () => {
     login,
     verifyReCaptcha,
   });
-
-  const isFormComplete = signInSchema.safeParse(formValues).success;
 
   const updateField = (field: keyof SignInFormValues, value: string) => {
     setFormValues((previous) => ({ ...previous, [field]: value }));
@@ -118,7 +115,7 @@ const SignInForm: FC = () => {
 
             <ContinueButton
               type="submit"
-              disabled={!isFormComplete || isLoading}
+              disabled={isLoading}
             >
               Continue
             </ContinueButton>

@@ -9,7 +9,6 @@ import FloatingSelectField from '../FormFields/FloatingSelectField';
 import FloatingInputField from '../FormFields/FloatingInputField';
 
 import {
-  registrationSchema,
   type FieldErrors,
   type RegistrationFormValues,
 } from '@/types/authSchemas';
@@ -101,7 +100,6 @@ const RegistrationForm: React.FC = () => {
     setIsSubmitting,
     onSuccess: () => setShowConfirmation(true),
   });
-  const isFormComplete = registrationSchema.safeParse(formValues).success;
 
   useEffect(() => {
     if (
@@ -263,7 +261,7 @@ const RegistrationForm: React.FC = () => {
 
             <ContinueButton
               type="submit"
-              disabled={!isFormComplete || isSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Submitting...' : 'Continue'}
             </ContinueButton>
