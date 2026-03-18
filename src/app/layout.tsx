@@ -83,11 +83,9 @@ export default function RootLayout({
                     <TopNavBar />
                       {/* QueryProvider is a client‑component wrapper that creates the
                        QueryClient on the client side.*/}
-                    <QueryProvider>
-                      {children}
-                    </QueryProvider>
-                  </div>
+                  <QueryProvider>{children}</QueryProvider>
                 </div>
+              </div>
             </Suspense>
           </AuthProvider>
         </ThemeProvider>

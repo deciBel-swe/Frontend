@@ -74,6 +74,25 @@ export { useSignInSubmit } from '../features/auth/useSignInSubmit';
  */
 export { useRegistrationSubmit } from '../features/auth/useRegistrationSubmit';
 
+/**
+ * useAPI — imperative access to the centralized axios + Zod request pipeline.
+ *
+ * Returns `{ request, client }` for one-off controlled calls.
+ */
+export { useAPI } from './useAPI';
+
+/**
+ * useApiQuery — generic query template that validates DTOs and fetches via
+ * the shared axios client.
+ */
+export { useApiQuery } from './useAPI';
+
+/**
+ * useApiMutation — generic mutation template that validates DTOs and sends
+ * writes through the shared axios client.
+ */
+export { useApiMutation } from './useAPI';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';

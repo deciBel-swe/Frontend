@@ -6,7 +6,7 @@
  * as the interaction model for every scenario tested here.
  */
 
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FC } from 'react';
 
@@ -99,6 +99,12 @@ const renderHarness = () =>
 const waitForReady = () =>
   waitFor(() => expect(screen.queryByText('loading')).toBeNull());
 
+/** Click a harness button by accessible name. */
+const clickHarnessButton = async (name: string) => {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name }));
+};
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -114,11 +120,22 @@ beforeEach(() => {
 // --------------------------------
 
 describe('bootstrap', () => {
-  it('shows loading state while session is being resolved', () => {
-    // getSession never resolves during this test.
-    mockAuthService.getSession.mockReturnValue(new Promise(() => {}));
-    renderHarness();
+  it('shows loading state while session is being resolved', async () => {
+    // Keep getSession pending long enough to assert loading, then resolve to
+    // avoid leaving dangling async work after the test ends.
+    let resolveSession: (value: LoginResponseDTO | null) => void = () => {};
+    const pendingSession = new Promise<LoginResponseDTO | null>((resolve) => {
+      resolveSession = resolve;
+    });
+
+    mockAuthService.getSession.mockReturnValue(pendingSession);
+    const { unmount } = renderHarness();
+
     expect(screen.getByText('loading')).toBeInTheDocument();
+
+    unmount();
+    resolveSession(null);
+    await pendingSession;
   });
 
   it('starts logged out when there is no stored session', async () => {
@@ -161,15 +178,17 @@ describe('login', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Artist'));
-    });
+    await clickHarnessButton('Login as Artist');
 
-    expect(mockAuthService.login).toHaveBeenCalledWith(
-      'artist@decibel.test',
-      'x'
+    await waitFor(() =>
+      expect(mockAuthService.login).toHaveBeenCalledWith(
+        'artist@decibel.test',
+        'x'
+      )
     );
-    expect(screen.getByText('logged in as artist')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('logged in as artist')).toBeInTheDocument()
+    );
   });
 
   it('logs in as listener and derives role from FREE tier', async () => {
@@ -177,15 +196,17 @@ describe('login', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Listener'));
-    });
+    await clickHarnessButton('Login as Listener');
 
-    expect(mockAuthService.login).toHaveBeenCalledWith(
-      'listener@decibel.test',
-      'x'
+    await waitFor(() =>
+      expect(mockAuthService.login).toHaveBeenCalledWith(
+        'listener@decibel.test',
+        'x'
+      )
     );
-    expect(screen.getByText('logged in as listener')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('logged in as listener')).toBeInTheDocument()
+    );
   });
 
   it('exposes isAuthenticated as true after login', async () => {
@@ -193,12 +214,12 @@ describe('login', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Artist'));
-    });
+    await clickHarnessButton('Login as Artist');
 
-    expect(screen.queryByText('logged out')).toBeNull();
-    expect(screen.getByText('logged in as artist')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('logged out')).toBeNull());
+    await waitFor(() =>
+      expect(screen.getByText('logged in as artist')).toBeInTheDocument()
+    );
   });
 
   it('exposes the user object after login', async () => {
@@ -206,11 +227,11 @@ describe('login', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Artist'));
-    });
+    await clickHarnessButton('Login as Artist');
 
-    expect(screen.getByText('username: mockartist')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('username: mockartist')).toBeInTheDocument()
+    );
   });
 });
 
@@ -228,13 +249,17 @@ describe('logout', () => {
     // Precondition: logged in.
     expect(screen.getByText('logged in as artist')).toBeInTheDocument();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Logout'));
-    });
+    await clickHarnessButton('Logout');
 
-    expect(mockAuthService.logout).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('logged out')).toBeInTheDocument();
-    expect(screen.queryByText('logged in as artist')).toBeNull();
+    await waitFor(() =>
+      expect(mockAuthService.logout).toHaveBeenCalledTimes(1)
+    );
+    await waitFor(() =>
+      expect(screen.getByText('logged out')).toBeInTheDocument()
+    );
+    await waitFor(() =>
+      expect(screen.queryByText('logged in as artist')).toBeNull()
+    );
   });
 
   it('sets isAuthenticated to false after logout', async () => {
@@ -243,11 +268,11 @@ describe('logout', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Logout'));
-    });
+    await clickHarnessButton('Logout');
 
-    expect(screen.queryByText('logged in as listener')).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText('logged in as listener')).toBeNull()
+    );
   });
 });
 
@@ -261,11 +286,11 @@ describe('role derivation', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Artist'));
-    });
+    await clickHarnessButton('Login as Artist');
 
-    expect(screen.getByText('logged in as artist')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('logged in as artist')).toBeInTheDocument()
+    );
   });
 
   it('maps FREE tier → listener role', async () => {
@@ -273,11 +298,11 @@ describe('role derivation', () => {
     renderHarness();
     await waitForReady();
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Login as Listener'));
-    });
+    await clickHarnessButton('Login as Listener');
 
-    expect(screen.getByText('logged in as listener')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('logged in as listener')).toBeInTheDocument()
+    );
   });
 
   it('role is null when logged out', async () => {
