@@ -2,12 +2,18 @@
 
 import { useState } from 'react'
 import { useEffect } from 'react'
+import { z } from 'zod'
 import { uploadTrackService } from "@/services/index"
 import { generateWaveform } from "@/features/generateWaveform"
+
+const titleSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required'),
+})
 
 export default function UploadPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [error, setError] = useState<string>('')
+  const [titleError, setTitleError] = useState<string>('')
   const [showForm, setShowForm] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
@@ -31,6 +37,12 @@ export default function UploadPage() {
   const startUpload = async () => {
 
     if (!audioFile) return
+    const validation = titleSchema.safeParse({ title })
+    if (!validation.success) {
+      setTitleError(validation.error.issues[0]?.message ?? 'Title is required')
+      return
+    }
+    setTitleError('')
 
     const formData = new FormData()
 
@@ -300,9 +312,18 @@ const removeArtwork = () => {
                     <input
                       type="text"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={(e) => {
+                        const nextTitle = e.target.value
+                        setTitle(nextTitle)
+                        if (titleError && nextTitle.trim().length > 0) {
+                          setTitleError('')
+                        }
+                      }}
                       className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
                     />
+                    {titleError && (
+                      <p className="mt-1 text-xs text-red-400">{titleError}</p>
+                    )}
                   </div>
                   
                   {/* Track Link */}
