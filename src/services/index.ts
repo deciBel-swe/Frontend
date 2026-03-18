@@ -13,6 +13,7 @@ import { MockAuthService } from './mocks/authService';
 import type { PrivacyService } from './api/privacyService';
 import { MockPrivacyService } from './mocks/privacyService';
 import { RealPrivacyService } from './api/privacyService';
+import { RealAuthService } from '@/services/api/authService';
 
 // --- Auth Service ---
 // When the real API client is implemented, import RealAuthService here
@@ -22,7 +23,7 @@ const resolveAuthService = (): AuthService => {
     return new MockAuthService();
   }
   // TODO: replace with RealAuthService once implemented
-  return new MockAuthService();
+  return new RealAuthService();
 };
 
 export const authService = resolveAuthService();
