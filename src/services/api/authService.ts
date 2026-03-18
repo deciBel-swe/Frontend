@@ -40,23 +40,8 @@ export class RealAuthService implements AuthService {
   /** ================================
    * Resume session from cookies
    * ================================ */
-  async getSession(): Promise<LoginResponseDTO | null> {
-    try {
-      // Backend reads cookies automatically — no body needed
-      const res = await axios.get(`${API_BASE}/auth/session`, {
-        withCredentials: true,
-      });
+  private accessToken: string | null = null;
 
-      return res.data as LoginResponseDTO;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /** ================================
-   * Email + password login
-   * POST /auth/login/local
-   * ================================ */
   async login(email: string, password: string): Promise<LoginResponseDTO> {
     const res = await axios.post(
       `${API_BASE}/auth/login/local`,
@@ -64,13 +49,14 @@ export class RealAuthService implements AuthService {
       { withCredentials: true }
     );
 
-    return res.data as LoginResponseDTO;
+    const { accessToken, expiresIn, user } = res.data;
+
+    this.accessToken = accessToken;
+    localStorage.setItem("user", JSON.stringify(user));
+
+    return { accessToken, user, expiresIn, refreshToken: "" };
   }
 
-  /** ================================
-   * Google OAuth login
-   * POST /auth/oauth/google
-   * ================================ */
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
     const res = await axios.post(
       `${API_BASE}/auth/oauth/google`,
@@ -78,13 +64,26 @@ export class RealAuthService implements AuthService {
       { withCredentials: true }
     );
 
-    return res.data as LoginResponseDTO;
+    const { accessToken, expiresIn, user } = res.data;
+
+    this.accessToken = accessToken;
+    localStorage.setItem("user", JSON.stringify(user));
+
+    return { accessToken, user, expiresIn, refreshToken: "" };
   }
 
-  /** ================================
-   * Refresh access token
-   * POST /auth/refreshtoken
-   * ================================ */
+  async getSession(): Promise<LoginResponseDTO | null> {
+    const stored = localStorage.getItem("user");
+    if (!stored) return null;
+
+    return {
+      accessToken: this.accessToken ?? "",
+      refreshToken: "",
+      user: JSON.parse(stored),
+      expiresIn: 3600,
+    };
+  }
+
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
     const res = await axios.post(
       `${API_BASE}/auth/refreshtoken`,
@@ -92,30 +91,32 @@ export class RealAuthService implements AuthService {
       { withCredentials: true }
     );
 
-    return res.data as RefreshTokenResponseDTO;
+    const { accessToken, expiresIn } = res.data;
+
+    this.accessToken = accessToken;
+
+    return { accessToken, expiresIn };
   }
 
-  /** ================================
-   * Logout current device
-   * POST /auth/logout
-   * ================================ */
   async logout(): Promise<void> {
     await axios.post(
       `${API_BASE}/auth/logout`,
       {},
       { withCredentials: true }
     );
+
+    this.accessToken = null;
+    localStorage.removeItem("user");
   }
 
-  /** ================================
-   * Logout all devices
-   * POST /auth/logout-all
-   * ================================ */
   async logoutAll(): Promise<void> {
     await axios.post(
       `${API_BASE}/auth/logout-all`,
       {},
       { withCredentials: true }
     );
+
+    this.accessToken = null;
+    localStorage.removeItem("user");
   }
 }
