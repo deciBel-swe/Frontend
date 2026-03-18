@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useSecretLink } from '@/hooks/useSecretLink';
+import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { CopyIcon } from '@/components/nav/TrackActionBar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,9 +47,14 @@ function TrackPreview({ track }: { track: TrackPreview }) {
   return (
     <div className="flex gap-3 mb-5">
       {/* Cover */}
-      <div className="w-20 h-20 shrink-0 bg-surface-raised rounded overflow-hidden">
+      <div className="relative w-20 h-20 shrink-0 bg-surface-raised rounded overflow-hidden">
         {track.coverUrl ? (
-          <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
+          <Image
+            src={track.coverUrl}
+            alt={track.title}
+            fill
+            className="object-cover"
+          />
         ) : (
           <div className="w-full h-full bg-surface-raised flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -73,7 +80,8 @@ function TrackPreview({ track }: { track: TrackPreview }) {
 
 // ─── Share tab content ────────────────────────────────────────────────────────
 
-function ShareTabContent({ trackId }: { trackId: string }) {
+// ─── Share tab — private ──────────────────────────────────────────────────────
+function PrivateShareContent({ trackId }: { trackId: string }) {
   const { secretUrl, isLoading, isError, regenerate, isRegenerating } = useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
@@ -156,6 +164,59 @@ function ShareTabContent({ trackId }: { trackId: string }) {
   );
 }
 
+
+// ─── Share tab — public ───────────────────────────────────────────────────────
+ 
+
+function PublicShareContent({ trackId }: { trackId: string }) {
+  const { metadata, isLoading } = useTrackMetadata(Number(trackId));
+  const [copied, setCopied] = useState(false);
+ 
+  const handleCopy = async () => {
+    if (!trackUrl) return;
+    await navigator.clipboard.writeText(trackUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+ 
+  if (isLoading) return <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />;
+ 
+  const trackUrl = metadata?.trackUrl ?? '';
+ 
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2 border border-border-default rounded px-3 py-2 bg-surface-default">
+        <input
+          type="text"
+          readOnly
+          value={trackUrl}
+          aria-label="Track link"
+          className="flex-1 text-xs text-text-primary font-mono bg-transparent outline-none truncate"
+        />
+        <button
+          onClick={handleCopy}
+          aria-label="Copy link"
+          className={[
+            'shrink-0 transition-colors duration-150',
+            copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
+          ].join(' ')}
+        >
+          {copied ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : <CopyIcon />}
+        </button>
+      </div>
+ 
+      <label className="flex items-center gap-2 select-none cursor-not-allowed opacity-40">
+        <input type="checkbox" disabled className="w-3.5 h-3.5" />
+        <span className="text-xs text-text-secondary">Shorten link</span>
+      </label>
+    </div>
+  );
+}
+ 
 // ─── ShareModal ───────────────────────────────────────────────────────────────
 
 const PLACEHOLDER_TRACK: TrackPreview = {
@@ -222,23 +283,15 @@ export function ShareModal({
           {/* Content */}
           <div className="p-5">
             <TrackPreview track={track} />
-
+ 
             {activeTab === 'share' && (
-              <>
-                {isPrivate ? (
-                  <ShareTabContent trackId={trackId} />
-                ) : (
-                  <p className="text-xs text-text-muted">
-                    This track is public and can be shared freely.
-                  </p>
-                )}
-              </>
+              isPrivate
+                ? <PrivateShareContent trackId={trackId} />
+                : <PublicShareContent trackId={trackId} />
             )}
-
             {activeTab === 'embed' && (
               <p className="text-xs text-text-muted">Embed functionality coming soon.</p>
             )}
-
             {activeTab === 'message' && (
               <p className="text-xs text-text-muted">Message functionality coming soon.</p>
             )}

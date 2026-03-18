@@ -125,6 +125,7 @@ export const API_ENDPOINTS = {
     ME_IMAGES: '/users/me/images',
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
+    ME_TRACK: (trackId: number) => `/users/me/tracks/${trackId}`,
     SUGGESTED: '/users/suggested',
     BY_ID: (userId: number) => `/users/${userId}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,

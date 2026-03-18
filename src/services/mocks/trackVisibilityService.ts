@@ -1,5 +1,5 @@
 import type { TrackVisibilityService } from '@/services/api/trackVisibilityService';
-import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
+import type { SecretLink, TrackMetaData, TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
 
 const delay = (ms = 400) => new Promise(r => setTimeout(r, ms));
 const storageKey = (trackId: number) => `decibel_mock_track_visibility_${trackId}`;
@@ -10,6 +10,20 @@ function generateToken(): string {
 }
 
 export class MockTrackVisibilityService implements TrackVisibilityService {
+  async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
+    await delay();
+    return {
+      id: trackId,
+      title: `Mock Track ${trackId}`,
+      artist: { id: 1, username: 'mockartist' },
+      trackUrl: `http://localhost:3000/tracks/${trackId}`,
+      coverUrl: '',
+      waveformUrl: '',
+      genre: 'Electronic',
+      tags: [],
+    };
+  }
+
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {
     await delay();
     const stored = localStorage.getItem(storageKey(trackId));

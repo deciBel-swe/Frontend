@@ -142,3 +142,24 @@ export function formatSecretUrl(trackId: string, token: string): string {
   return `decibel.com/tracks/${trackId}?s=${token}`;
 }
  
+// ================================
+// Track Metadata
+// ================================
+ 
+/** Artist info embedded in track response */
+export interface TrackArtist {
+  id: number;
+  username: string;
+}
+ 
+/** Full track metadata returned from GET /users/me/tracks/:trackId */
+export interface TrackMetaData {
+  id: number;
+  title: string;
+  artist: TrackArtist;
+  trackUrl: string;
+  coverUrl: string;
+  waveformUrl: string;
+  genre: string;
+  tags: string[];
+}

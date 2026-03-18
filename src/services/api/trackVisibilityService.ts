@@ -1,7 +1,10 @@
-import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
+import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto,TrackMetaData } from '@/types';
 import { API_ENDPOINTS, getApiUrl } from '@/constants/routes';
 
 export interface TrackVisibilityService {
+   /** GET /users/me/tracks/:trackId — full track metadata including trackUrl */
+  getTrackMetadata(trackId: number): Promise<TrackMetaData>;
+
   /** GET /tracks/:trackId — returns current privacy state */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
 
@@ -16,6 +19,14 @@ export interface TrackVisibilityService {
 }
 
 export class RealTrackVisibilityService implements TrackVisibilityService {
+   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
+    const res = await fetch(getApiUrl(API_ENDPOINTS.USERS.ME_TRACK(trackId)), {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to fetch track metadata');
+    return res.json();
+  }
+
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {
     const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.BY_ID(trackId)), {
       credentials: 'include',

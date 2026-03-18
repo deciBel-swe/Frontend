@@ -153,10 +153,10 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
       )}
 
       {/* Edit mode — share button triggers modal with secret link */}
-      {trackId && value === 'private' && (
+      {trackId && (
         <TrackActionBar
           trackId={trackId}
-          isPrivate={true}
+          isPrivate={value === 'private'}
         />
       )}
     </div>
