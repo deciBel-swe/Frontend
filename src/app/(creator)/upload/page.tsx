@@ -5,6 +5,8 @@ import { useEffect } from 'react'
 import { z } from 'zod'
 import { uploadTrackService } from "@/services/index"
 import { generateWaveform } from "@/features/generateWaveform"
+import FloatingInputField from '@/features/auth/components/FormFields/FloatingInputField'
+import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField'
 
 const titleSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -20,6 +22,8 @@ export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [artist, setArtist] = useState('')
   const [trackLink, setTrackLink] = useState('')
+  const [tags, setTags] = useState('')
+  const [genre, setGenre] = useState('')
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public')
   const [artworkFile, setArtworkFile] = useState<File | null>(null)
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null)
@@ -53,7 +57,7 @@ export default function UploadPage() {
     }
 
     formData.append("title", title)
-    formData.append("genre", "Electronic")
+    formData.append("genre", genre || "Electronic")
     formData.append("description", "")
     formData.append("isPrivate", String(privacy === "private"))
     formData.append("releaseDate", "2025-01-01")
@@ -147,8 +151,8 @@ const removeArtwork = () => {
     return (
       <section className="min-h-screen w-full flex flex-col items-center justify-center gap-6 px-6">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-white">Saved to DeciBel.</h2>
-          <p className="text-neutral-200 mt-2">
+          <h2 className="text-2xl font-semibold text-text-primary">Saved to DeciBel.</h2>
+          <p className="text-text-secondary mt-2">
             Congratulations!, Your tracks are now on DeciBel.
           </p>
         </div>
@@ -157,7 +161,7 @@ const removeArtwork = () => {
             href={uploadedTrackUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="border border-white text-white px-6 py-2 rounded-full font-semibold hover:bg-neutral-600 transition"
+            className="border border-border-contrast text-text-primary px-6 py-2 rounded-full font-semibold hover:bg-interactive-hover transition"
           >
             View Track
           </a>
@@ -165,7 +169,7 @@ const removeArtwork = () => {
         <div className="mt-6">
           <button
             onClick={resetUpload}
-            className="text-sm text-neutral-400 hover:text-neutral-200 transition"
+            className="text-sm text-text-muted hover:text-text-secondary transition"
           >
             Upload Another Track
           </button>
@@ -176,7 +180,7 @@ const removeArtwork = () => {
   // If form should be shown, render the form
   if (showForm && audioFile) {
     return (
-      <section className="min-h-screen w-full">
+      <section className="min-h-screen w-full pb-24">
         {/* Top Bar */}
           <div className="sticky top-0 w-full mb-8">
 
@@ -184,14 +188,14 @@ const removeArtwork = () => {
 
               {isUploading ? (
                 <div className="w-full">
-                  <div className="flex justify-between text-sm text-neutral-400 mb-2">
+                  <div className="flex justify-between text-sm text-text-muted mb-2">
                     <span>Uploading...</span>
                     <span>{uploadProgress}%</span>
                   </div>
 
-                  <div className="w-full h-2 bg-neutral-800 rounded">
+                  <div className="w-full h-2 bg-surface-raised rounded">
                     <div
-                      className="h-full bg-orange-500 transition-all"
+                      className="h-full bg-brand-accent transition-all"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -200,11 +204,11 @@ const removeArtwork = () => {
                 <>
                   <div className="flex items-center gap-3">
 
-                    <div className="w-8 h-8 rounded bg-neutral-800 flex items-center justify-center text-xs text-neutral-400">
+                    <div className="w-8 h-8 rounded bg-interactive-default flex items-center justify-center text-xs text-text-muted">
                       ♪
                     </div>
 
-                    <span className="text-sm text-neutral-200 font-medium">
+                    <span className="text-sm text-text-secondary font-medium">
                       {audioFile?.name}
                     </span>
 
@@ -212,7 +216,7 @@ const removeArtwork = () => {
 
                   <button
                     onClick={resetUpload}
-                    className="text-sm text-neutral-400 hover:text-neutral-200 transition"
+                    className="text-sm text-text-muted hover:text-text-secondary transition"
                   >
                     Replace
                   </button>
@@ -223,13 +227,13 @@ const removeArtwork = () => {
 
           </div>
         <div className="flex justify-center px-6 md:px-12 lg:px-20">
-          <div className="w-full max-w-3xl py-1">
+          <div className="w-full max-w-3xl py-2">
             <div className="grid md:grid-cols-[300px_1fr] gap-8">
               {/* Artwork */}
               <div className="flex flex-col items-center gap-2">
 
                 <div
-                  className="w-full aspect-square border border-dashed border-neutral-700 rounded-lg flex items-center justify-center hover:border-neutral-500 transition cursor-pointer overflow-hidden relative"
+                  className="w-full aspect-square border border-dashed border-border-default rounded-lg flex items-center justify-center hover:border-border-strong transition cursor-pointer overflow-hidden relative"
                   onClick={() => document.getElementById("artwork-input")?.click()}
                 >
 
@@ -241,7 +245,7 @@ const removeArtwork = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="flex flex-col items-center text-neutral-500 text-xs gap-2">
+                    <div className="flex flex-col items-center text-text-muted text-xs gap-2">
 
                       {/* SVG placeholder */}
                       <svg
@@ -270,7 +274,7 @@ const removeArtwork = () => {
                     <button
                       type="button"
                       onClick={() => document.getElementById("artwork-input")?.click()}
-                      className="text-neutral-400 hover:text-neutral-200"
+                      className="text-text-muted hover:text-text-secondary"
                     >
                       Replace
                     </button>
@@ -278,7 +282,7 @@ const removeArtwork = () => {
                     <button
                       type="button"
                       onClick={removeArtwork}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-status-error hover:text-status-error"
                     >
                       Remove
                     </button>
@@ -305,93 +309,74 @@ const removeArtwork = () => {
 
                   {/* Title */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
-                      Track Title
-                    </label>
-
-                    <input
+                    <FloatingInputField
                       type="text"
+                      label="Track Title*"
                       value={title}
-                      onChange={(e) => {
-                        const nextTitle = e.target.value
+                      onChange={(nextTitle) => {
                         setTitle(nextTitle)
                         if (titleError && nextTitle.trim().length > 0) {
                           setTitleError('')
                         }
                       }}
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
+                      error={titleError || undefined}
                     />
-                    {titleError && (
-                      <p className="mt-1 text-xs text-red-400">{titleError}</p>
-                    )}
                   </div>
                   
                   {/* Track Link */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
-                      Track Link
-                    </label>
-
-                    <input
+                    <FloatingInputField
                       type="text"
+                      label="Track Link"
                       value={trackLink}
-                      onChange={(e) => setTrackLink(e.target.value)}
-                      placeholder="your-site.com/track-name"
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
+                      onChange={setTrackLink}
                     />
                   </div>
                   {/* Main Artist */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
-                      Main Artist
-                    </label>
-
-                    <input
+                    <FloatingInputField
                       type="text"
+                      label="Main Artist"
                       value={artist}
-                      onChange={(e) => setArtist(e.target.value)}
-                      placeholder="Artist name"
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
+                      onChange={setArtist}
                     />
                   </div>
 
 
                   {/* Genre */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
-                      Genre
-                    </label>
-
-                    <select className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500">
-                      <option>Select genre</option>
-                      <option>Electronic</option>
-                      <option>Rock</option>
-                      <option>Hip-Hop</option>
-                      <option>Jazz</option>
-                      <option>Classical</option>
-                    </select>
+                    <FloatingSelectField
+                      label="Genre"
+                      value={genre}
+                      onChange={setGenre}
+                      placeholder="Select genre"
+                      options={[
+                        { value: 'Electronic', label: 'Electronic' },
+                        { value: 'Rock', label: 'Rock' },
+                        { value: 'Hip-Hop', label: 'Hip-Hop' },
+                        { value: 'Jazz', label: 'Jazz' },
+                        { value: 'Classical', label: 'Classical' },
+                      ]}
+                    />
                   </div>
 
                   {/* Tags */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
-                      Tags
-                    </label>
-
-                    <input
+                    <FloatingInputField
                       type="text"
-                      placeholder="space separated tags"
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
+                      label="Tags"
+                      value={tags}
+                      onChange={setTags}
                     />
                   </div>
 
                   {/* Privacy */}
                   <div>
-                    <label className="block text-xs text-neutral-400 mb-1">
+                    <label className="block text-xs text-text-muted mb-1">
                       Privacy
                     </label>
 
-                    <div className="flex gap-6 text-xs text-neutral-300">
+                    <div className="flex gap-6 text-xs text-text-secondary">
 
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -419,15 +404,15 @@ const removeArtwork = () => {
                   </div>
 
                   {/* Description */}
-                  <div>
-                    <label className="block text-sm text-neutral-400 mb-1">
+                  <div className="mb-8">
+                    <label className="block text-sm text-text-muted mb-1">
                       Description
                     </label>
 
                     <textarea
                       rows={4}
                       placeholder="Tell listeners about your track..."
-                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-neutral-100 focus:outline-none focus:border-neutral-500"
+                      className="w-full bg-interactive-default border border-border-default rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-border-strong"
                     />
                   </div>
 
@@ -436,18 +421,17 @@ const removeArtwork = () => {
               </div>
 
             </div>
-            <div className='mt-2'></div>
           </div>
         </div>
         {/* Bottom Submit Bar */}
-        <div className="fixed bottom-0 left-0 w-full border-t border-neutral-800 bg-neutral-950">
+        <div className="fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base">
 
           <div className="max-w-6xl mx-auto flex justify-end px-6 py-2">
 
             <button
               type="button"
               onClick={startUpload}
-              className="bg-green-500 text-white px-12 py-1 rounded-full font-semibold hover:bg-green-600 transition"
+              className="bg-brand-primary text-text-on-brand px-12 py-1 rounded-full font-semibold hover:bg-brand-primary-hover transition"
             >
               Upload
             </button>
@@ -465,10 +449,10 @@ const removeArtwork = () => {
       <div className="flex justify-center px-6 md:px-12 lg:px-20">
         <div className="w-full max-w-5xl py-12">
           <header className="mb-8">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-50">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               Upload your audio files.
             </h1>
-            <p className="max-w-2xl text-xs text-neutral-50">
+            <p className="max-w-2xl text-xs text-text-secondary">
               For best quality, use MP3, WAV, FLAC, or AAC. The maximum file
               size is 500MB uncompressed.{' '}
               <span className="font-semibold underline underline-offset-2">
@@ -480,15 +464,15 @@ const removeArtwork = () => {
           {/* File upload area */}
           <div
             className={`relative flex min-h-70 cursor-pointer flex-col items-center justify-center gap-6 rounded-2xl border border-dashed px-8 py-16 text-center transition ${
-              error ? 'border-red-500' : 'border-neutral-700 hover:border-neutral-400'
+              error ? 'border-status-error' : 'border-border-default hover:border-border-strong'
             }`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => document.getElementById('upload-file-input')?.click()}
           >
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-neutral-600 bg-neutral-900">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-border-default bg-surface-default">
               <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full">
-                <span className="text-xs text-neutral-300">+</span>
+                <span className="text-xs text-text-secondary">+</span>
               </div>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
@@ -497,23 +481,23 @@ const removeArtwork = () => {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-neutral-200"
+                  className="text-text-secondary"
                 />
               </svg>
             </div>
 
             <div className="space-y-2">
-              <p className="text-base font-semibold text-neutral-50">
+              <p className="text-base font-semibold text-text-primary">
                 Drag and drop audio files to get started.
               </p>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-status-error">{error}</p>}
             </div>
 
             <div className="flex flex-col items-center gap-3">
-              <span className="rounded-full bg-neutral-50 px-8! py-3! text-sm font-semibold text-neutral-950 transition hover:bg-neutral-200">
+              <span className="rounded-full bg-surface-default px-8! py-3! text-sm font-semibold text-text-primary transition hover:bg-interactive-hover">
                 Choose files
               </span>
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-text-muted">
                 or click anywhere in the drop zone
               </span>
             </div>
@@ -534,3 +518,4 @@ const removeArtwork = () => {
     </section>
   )
 }
+
