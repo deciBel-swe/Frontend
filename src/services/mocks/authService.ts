@@ -31,6 +31,15 @@ const mockUsers: Record<UserRole, LoginUserDTO> = {
   },
 };
 
+// For testing purposes, only allow 5 specific users to log in with email (any password allowed)
+const allowedUsers: Record<string, LoginUserDTO> = {
+  'user1@test.com': { id: 1, username: 'user1', tier: 'FREE' },
+  'user2@test.com': { id: 2, username: 'user2', tier: 'FREE' },
+  'user3@test.com': { id: 3, username: 'user3', tier: 'FREE' },
+  'user4@test.com': { id: 4, username: 'user4', tier: 'FREE' },
+  'user5@test.com': { id: 5, username: 'user5', tier: 'FREE' },
+};
+
 /** Simulates a network round-trip */
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((r) => setTimeout(r, ms));
@@ -89,6 +98,33 @@ export class MockAuthService implements AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
+    await delay(); // simulate network latency
+
+    if (!code) throw new Error('Authorization code is missing');
+
+    // When the backend is ready, the RealAuthService will look like this:
+    // return await apiClient.post('/auth/oauth/google', {
+    //   code,
+    //   deviceInfo: getDeviceInfo()
+    // });
+
+    // Mock successful exchange: default to listener role
+    const user = mockUsers.listener;
+    const expiresIn = 3600;
+
+    const accessToken = createMockToken(user.id, expiresIn);
+    const refreshToken = createMockToken(user.id, 86400);
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
+
+    return { accessToken, refreshToken, user };
+  }
+
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
     await delay();
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -112,9 +148,17 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
+  
   async login(email: string, _password: string): Promise<LoginResponseDTO> {
     await delay();
-    const user = resolveUserByEmail(email);
+    //const user = resolveUserByEmail(email);
+
+     // Check if email exists in allowed users
+  const user = allowedUsers[email];
+  if (!user) {
+    throw new Error('User not allowed. Only 5 users can login in this mock.');
+  }
+
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
@@ -126,6 +170,52 @@ export class MockAuthService implements AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  // ================================
+  // Email verification methods
+  // ================================
+
+    async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+    await delay();
+
+    const token = crypto.randomUUID();
+
+    mockEmailVerification[token] = {
+      email,
+      token,
+      verified: false,
+    };
+
+    // Call API route to send real email
+    await fetch("/api/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, token }),
+    });
+
+    return { success: true };
+  }
+
+  async verifyEmail(token: string): Promise<{ success: boolean }> {
+    await delay();
+
+    if (!mockEmailVerification[token]) {
+      return { success: false };
+    }
+
+    mockEmailVerification[token].verified = true;
+    return { success: true };
+  }
+
+  async checkEmailVerified(email: string): Promise<boolean> {
+    await delay();
+
+    return Object.values(mockEmailVerification).some(
+      (entry) => entry.email === email && entry.verified === true
+    );
+  }
+
+  // ================================
+
   private _clearStorage(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -134,3 +224,9 @@ export class MockAuthService implements AuthService {
     document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   }
 }
+
+// ================================
+// Mock email verification storage
+// ================================
+
+export const mockEmailVerification: Record<string, { email: string; token: string; verified: boolean }> = {};

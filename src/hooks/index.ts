@@ -62,6 +62,18 @@ export { useAuth } from '@/features/auth';
  */
 export { useRedirectAfterLogin } from './useRedirectAfterLogin';
 
+/**
+ * useSignInSubmit — encapsulates sign-in submit flow
+ * (schema validation, reCAPTCHA verification, and login call).
+ */
+export { useSignInSubmit } from '../features/auth/useSignInSubmit';
+
+/**
+ * useRegistrationSubmit — encapsulates registration submit flow
+ * (schema validation, reCAPTCHA verification, and registration handoff).
+ */
+export { useRegistrationSubmit } from '../features/auth/useRegistrationSubmit';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';
