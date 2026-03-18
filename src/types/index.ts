@@ -64,14 +64,18 @@ export type LoginResponseDTO = z.infer<typeof loginResponseDTOSchema>;
 export const refreshTokenRequestDTOSchema = z.object({
   refreshToken: z.string().trim().min(1),
 });
-export type RefreshTokenRequestDTO = z.infer<typeof refreshTokenRequestDTOSchema>;
+export type RefreshTokenRequestDTO = z.infer<
+  typeof refreshTokenRequestDTOSchema
+>;
 
 /** Response from POST /auth/refreshtoken */
 export const refreshTokenResponseDTOSchema = z.object({
   accessToken: z.string().trim().min(1),
   expiresIn: z.number().int().nonnegative(),
 });
-export type RefreshTokenResponseDTO = z.infer<typeof refreshTokenResponseDTOSchema>;
+export type RefreshTokenResponseDTO = z.infer<
+  typeof refreshTokenResponseDTOSchema
+>;
 
 /** Generic backend error payload DTO */
 export const apiErrorDTOSchema = z.object({

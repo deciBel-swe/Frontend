@@ -9,8 +9,6 @@ import '@testing-library/jest-dom';
 
 // React 19 requires this flag in custom test environments so async state
 // updates from user interactions are recognized as act-compatible.
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({

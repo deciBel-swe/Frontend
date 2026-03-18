@@ -76,7 +76,11 @@ describe('normalizeApiError', () => {
   });
 
   it('falls back to axios fields when backend payload is not ApiErrorDTO', () => {
-    const axiosError = makeAxiosError(401, { reason: 'unauthorized' }, 'Denied');
+    const axiosError = makeAxiosError(
+      401,
+      { reason: 'unauthorized' },
+      'Denied'
+    );
 
     expect(normalizeApiError(axiosError)).toEqual({
       statusCode: 401,
@@ -102,12 +106,10 @@ describe('normalizeApiError', () => {
 
 describe('apiRequest', () => {
   it('sends a validated request and returns validated response', async () => {
-    const requestSpy = jest
-      .spyOn(apiClient, 'request')
-      .mockResolvedValue({
-        status: 200,
-        data: { id: 7, name: 'mona' },
-      } as AxiosResponse);
+    const requestSpy = jest.spyOn(apiClient, 'request').mockResolvedValue({
+      status: 200,
+      data: { id: 7, name: 'mona' },
+    } as AxiosResponse);
 
     const response = await apiRequest(sampleEndpoint, {
       payload: { name: 'mona' },
@@ -239,7 +241,9 @@ describe('useApiMutation', () => {
   it('rejects with normalized error shape when mutation fails', async () => {
     jest
       .spyOn(apiClient, 'request')
-      .mockRejectedValue(makeAxiosError(500, { reason: 'down' }, 'Server down'));
+      .mockRejectedValue(
+        makeAxiosError(500, { reason: 'down' }, 'Server down')
+      );
 
     const { result } = renderHook(
       () =>

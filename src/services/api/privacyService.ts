@@ -1,6 +1,9 @@
 import { apiRequest } from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import type { PrivacySettings, UpdatePrivacySettingsDto } from '@/types/privacy';
+import type {
+  PrivacySettings,
+  UpdatePrivacySettingsDto,
+} from '@/types/privacy';
 
 /**
  * Privacy service contract. Real and mock implementations must satisfy this.
@@ -13,7 +16,9 @@ export interface PrivacyService {
    * Update privacy settings (PATCH /users/me/privacy). The server returns
    * the updated settings object on success.
    */
-  updatePrivacySettings(data: UpdatePrivacySettingsDto): Promise<PrivacySettings>;
+  updatePrivacySettings(
+    data: UpdatePrivacySettingsDto
+  ): Promise<PrivacySettings>;
 }
 
 /** Real implementation backed by the centralized axios + Zod API template. */

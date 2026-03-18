@@ -80,14 +80,12 @@ export default function RootLayout({
             <Suspense fallback={<>Loading ...</>}>
               <div className="flex flex-col xl:items-center items-start justify-center">
                 <div className="min-w-306">
-                    <TopNavBar />
-                      {/* QueryProvider is a client‑component wrapper that creates the
+                  <TopNavBar />
+                  {/* QueryProvider is a client‑component wrapper that creates the
                        QueryClient on the client side.*/}
-                    <QueryProvider>
-                      {children}
-                    </QueryProvider>
-                  </div>
+                  <QueryProvider>{children}</QueryProvider>
                 </div>
+              </div>
             </Suspense>
           </AuthProvider>
         </ThemeProvider>

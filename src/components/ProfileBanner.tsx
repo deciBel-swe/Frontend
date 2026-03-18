@@ -1,5 +1,3 @@
-import { useTheme } from 'next-themes';
-
 interface ProfileBannerProps {
   params: Promise<{ coverPhotoUrl?: string }>;
 }

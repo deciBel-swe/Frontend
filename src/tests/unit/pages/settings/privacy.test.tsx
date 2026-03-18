@@ -28,7 +28,9 @@ describe('Settings privacy page', () => {
       screen.getByRole('switch', { name: /Receive messages from anyone/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('switch', { name: /Show my activities in social discovery playlists and modules/i })
+      screen.getByRole('switch', {
+        name: /Show my activities in social discovery playlists and modules/i,
+      })
     ).toBeInTheDocument();
   });
 
@@ -37,11 +39,15 @@ describe('Settings privacy page', () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
+    const firstToggle = screen.getByRole('switch', {
+      name: /Receive messages from anyone/i,
+    });
     await user.click(firstToggle);
     await waitFor(() => expect(mockUpdate).toHaveBeenCalled());
 
-    const secondToggle = screen.getByRole('switch', { name: /Show my activities in social discovery playlists and modules/i });
+    const secondToggle = screen.getByRole('switch', {
+      name: /Show my activities in social discovery playlists and modules/i,
+    });
     await user.click(secondToggle);
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(2));
   });
@@ -51,7 +57,9 @@ describe('Settings privacy page', () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
+    const firstToggle = screen.getByRole('switch', {
+      name: /Receive messages from anyone/i,
+    });
     await user.click(firstToggle);
 
     expect(confirmSpy).toHaveBeenCalledWith(
@@ -65,7 +73,9 @@ describe('Settings privacy page', () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    const firstToggle = screen.getByRole('switch', { name: /Receive messages from anyone/i });
+    const firstToggle = screen.getByRole('switch', {
+      name: /Receive messages from anyone/i,
+    });
     await user.click(firstToggle);
     await waitFor(() =>
       expect(mockUpdate).toHaveBeenCalledWith({ isPrivate: true })
