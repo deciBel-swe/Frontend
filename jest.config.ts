@@ -76,8 +76,8 @@ const customJestConfig: Config = {
   // Restore mocks
   restoreMocks: true,
 
-  // Max workers for parallel testing
-  maxWorkers: '50%',
+  // Single worker avoids intermittent worker-shutdown warnings in this setup.
+  maxWorkers: 1,
 };
 
 // Export Jest config

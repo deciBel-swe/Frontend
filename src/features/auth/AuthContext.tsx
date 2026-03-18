@@ -22,7 +22,9 @@ import type {
  * @returns {UserRole} The user role ('artist' or 'listener')
  */
 const deriveRole = (user: LoginUserDTO): UserRole =>
-  user.tier === 'ARTIST' ? 'artist' : 'listener';
+  user.tier === 'ARTIST' || user.tier === 'ARTIST_PRO'
+    ? 'artist'
+    : 'listener';
 
 // ================================
 // Context
