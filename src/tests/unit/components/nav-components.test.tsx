@@ -10,6 +10,7 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import { useTopNavBar } from '@/components/nav/useTopNavBar';
 
 jest.mock('next/link', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function MockLink({ href, onClick, children, ...rest }: any) {
     return (
       <a

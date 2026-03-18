@@ -66,8 +66,8 @@ const decodeMockToken = (
 };
 
 /** Select mock user by email. artist@decibel.test → artist, everything else → listener */
-const resolveUserByEmail = (email: string): LoginUserDTO =>
-  email === 'artist@decibel.test' ? mockUsers.artist : mockUsers.listener;
+// const resolveUserByEmail = (email: string): LoginUserDTO =>
+//   email === 'artist@decibel.test' ? mockUsers.artist : mockUsers.listener;
 
 // ================================
 // Mock auth service
