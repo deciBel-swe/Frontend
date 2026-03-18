@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import type { TrackPrivacyValue } from '@/types';
-import { SecretLinkPanel } from './SecretLinkPanel';
+import { TrackActionBar } from '@/app/[username]/tracks/TrackActionBar';
+// import { ShareButton } from '@/components/buttons/ShareButton';
 
 interface TrackPrivacyProps {
   /** Controlled value — parent owns this */
@@ -12,7 +13,7 @@ interface TrackPrivacyProps {
   /**
    * Present after track has been saved.
    * - undefined → upload mode: radio buttons only, no API calls
-   * - string    → edit mode: saves to API immediately on change
+   * - string    → edit mode: saves to API immediately on change, shows share modal
    */
   trackId?: string;
 }
@@ -31,7 +32,6 @@ interface RadioOptionProps {
 function ProTooltip() {
   return (
     <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 z-50 w-64 bg-surface-default border border-border-default rounded-lg shadow-lg p-4">
-      {/* Arrow */}
       <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-surface-default border-l border-t border-border-default rotate-45" />
       <p className="text-sm font-bold text-text-primary mb-1">Schedule</p>
       <p className="text-xs text-text-secondary leading-snug mb-3">
@@ -39,7 +39,7 @@ function ProTooltip() {
       </p>
       <button
         type="button"
-        className="w-full bg-text-primary text-neutral-0 text-xs font-semibold py-2 px-4 rounded-full hover:opacity-90 transition-opacity"
+        className="w-full bg-text-primary text-neutral-0 text-xs font-semibold py-2 px-4 rounded-full cursor-default"
       >
         Unlock with Artist Pro
       </button>
@@ -71,7 +71,6 @@ function RadioOption({
           onChange={onChange}
           className="sr-only"
         />
-        {/* Custom radio circle */}
         <span
           className={[
             'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
@@ -81,11 +80,9 @@ function RadioOption({
         >
           {checked && <span className="w-2.5 h-2.5 rounded-full bg-text-primary" />}
         </span>
-
         <span className="text-sm font-medium text-text-primary">{label}</span>
       </label>
 
-      {/* Invisible bridge between label and tooltip to prevent gap from closing it */}
       {proOnly && (
         <>
           <div className="absolute top-full left-0 right-0 h-2" />
@@ -113,7 +110,6 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
 
   const handleChange = (next: TrackPrivacyValue) => {
     onChange(next);
-    // Only call API when trackId exists (edit mode)
     if (numericTrackId) {
       updateVisibility({ isPrivate: next === 'private' });
     }
@@ -148,17 +144,20 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
         />
       </div>
 
-      {/* Info message when private*/}
-      {value === 'private' && (
+      {/* Upload mode — info message only, no trackId yet */}
+      {!trackId && value === 'private' && (
         <p className="text-xs text-text-muted leading-snug">
           Only you and people you share the secret link with can listen to this track.
-          {!trackId && ' The secret link will be available after saving.'}
+          The secret link will be available after saving.
         </p>
       )}
 
-      {/* Edit mode — show secret link panel */}
+      {/* Edit mode — share button triggers modal with secret link */}
       {trackId && value === 'private' && (
-        <SecretLinkPanel trackId={trackId} />
+        <TrackActionBar
+          trackId={trackId}
+          isPrivate={true}
+        />
       )}
     </div>
   );
