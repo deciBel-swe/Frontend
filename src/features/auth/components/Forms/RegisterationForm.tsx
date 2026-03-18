@@ -259,10 +259,7 @@ const RegistrationForm: React.FC = () => {
               <div className="text-red-400 text-xs">{submitError}</div>
             ) : null}
 
-            <ContinueButton
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <ContinueButton type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Submitting...' : 'Continue'}
             </ContinueButton>
           </form>

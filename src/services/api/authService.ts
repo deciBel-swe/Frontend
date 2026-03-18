@@ -1,5 +1,5 @@
 import type { LoginResponseDTO, RefreshTokenResponseDTO } from '@/types';
-import axios from "axios";
+import axios from 'axios';
 /**
  * Auth service contract.
  * Both real and mock implementations must satisfy this interface.
@@ -51,9 +51,9 @@ export class RealAuthService implements AuthService {
     const { accessToken, expiresIn, user } = res.data;
 
     this.accessToken = accessToken;
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem('user', JSON.stringify(user));
 
-    return { accessToken, user, expiresIn, refreshToken: "" };
+    return { accessToken, user, expiresIn, refreshToken: '' };
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -66,18 +66,18 @@ export class RealAuthService implements AuthService {
     const { accessToken, expiresIn, user } = res.data;
 
     this.accessToken = accessToken;
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem('user', JSON.stringify(user));
 
-    return { accessToken, user, expiresIn, refreshToken: "" };
+    return { accessToken, user, expiresIn, refreshToken: '' };
   }
 
   async getSession(): Promise<LoginResponseDTO | null> {
-    const stored = localStorage.getItem("user");
+    const stored = localStorage.getItem('user');
     if (!stored) return null;
 
     return {
-      accessToken: this.accessToken ?? "",
-      refreshToken: "",
+      accessToken: this.accessToken ?? '',
+      refreshToken: '',
       user: JSON.parse(stored),
       expiresIn: 3600,
     };
@@ -98,14 +98,10 @@ export class RealAuthService implements AuthService {
   }
 
   async logout(): Promise<void> {
-    await axios.post(
-      `${API_BASE}/auth/logout`,
-      {},
-      { withCredentials: true }
-    );
+    await axios.post(`${API_BASE}/auth/logout`, {}, { withCredentials: true });
 
     this.accessToken = null;
-    localStorage.removeItem("user");
+    localStorage.removeItem('user');
   }
 
   async logoutAll(): Promise<void> {
@@ -116,6 +112,6 @@ export class RealAuthService implements AuthService {
     );
 
     this.accessToken = null;
-    localStorage.removeItem("user");
+    localStorage.removeItem('user');
   }
 }

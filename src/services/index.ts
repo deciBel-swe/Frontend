@@ -13,7 +13,7 @@ import { MockAuthService } from './mocks/authService';
 import type { PrivacyService } from './api/privacyService';
 import { MockPrivacyService } from './mocks/privacyService';
 import { RealPrivacyService } from './api/privacyService';
-import {RealAuthService} from "@/services/api/authService";
+import { RealAuthService } from '@/services/api/authService';
 
 // --- Auth Service ---
 // When the real API client is implemented, import RealAuthService here

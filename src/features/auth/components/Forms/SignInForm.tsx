@@ -12,10 +12,7 @@ import { useSignInSubmit } from '@/features/auth/useSignInSubmit';
 import ContinueButton from '../ContinueButton';
 import PasswordInput from '../FormFields/PasswordInput';
 import FloatingInputField from '../FormFields/FloatingInputField';
-import {
-  type FieldErrors,
-  type SignInFormValues,
-} from '@/types/authSchemas';
+import { type FieldErrors, type SignInFormValues } from '@/types/authSchemas';
 
 /**
  * SignInForm Component
@@ -113,10 +110,7 @@ const SignInForm: FC = () => {
               <div className="text-red-400 text-xs">{submitError}</div>
             ) : null}
 
-            <ContinueButton
-              type="submit"
-              disabled={isLoading}
-            >
+            <ContinueButton type="submit" disabled={isLoading}>
               Continue
             </ContinueButton>
             <div>
