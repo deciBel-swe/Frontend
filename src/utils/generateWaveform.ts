@@ -7,7 +7,7 @@ export async function generateWaveform(file: File): Promise<string[]> {
 
   const rawData = audioBuffer.getChannelData(0)
 
-  const samples = 100
+  const samples = 200
   const blockSize = Math.floor(rawData.length / samples)
 
   const waveform: string[] = []

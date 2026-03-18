@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 import { z } from 'zod'
 import { uploadTrackService } from "@/services/index"
-import { generateWaveform } from "@/features/generateWaveform"
+import { generateWaveform } from "@/utils/generateWaveform"
 import FloatingInputField from '@/features/auth/components/FormFields/FloatingInputField'
 import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField'
+import Waveform from '@/components/waveform/Waveform'
 
 const titleSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -29,6 +30,8 @@ export default function UploadPage() {
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null)
   const [uploadComplete, setUploadComplete] = useState(false)
   const [uploadedTrackUrl, setUploadedTrackUrl] = useState<string | null>(null)
+  const [generatedWaveform, setGeneratedWaveform] = useState<number[]>([])
+  const [waveformHeight, setWaveformHeight] = useState(200)
   const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB in bytes
   const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/x-flac', 'audio/aac', 'audio/x-aac', 'audio/mp4']
   const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac']
@@ -37,6 +40,48 @@ export default function UploadPage() {
     const nameWithoutExt = audioFile.name.replace(/\.[^/.]+$/, "")
     setTitle(nameWithoutExt)
   }
+  }, [audioFile])
+
+  useEffect(() => {
+    const updateWaveformHeight = () => {
+      const width = window.innerWidth
+      if (width < 640) {
+        setWaveformHeight(120)
+      } else if (width < 1024) {
+        setWaveformHeight(180)
+      } else {
+        setWaveformHeight(240)
+      }
+    }
+
+    updateWaveformHeight()
+    window.addEventListener('resize', updateWaveformHeight)
+    return () => window.removeEventListener('resize', updateWaveformHeight)
+  }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+    if (!audioFile) {
+      setGeneratedWaveform([])
+      return
+    }
+
+    generateWaveform(audioFile)
+      .then((values) => {
+        if (isCancelled) return
+        const normalized = values
+          .map((value) => Number(value))
+          .filter((value) => Number.isFinite(value))
+          .map((value) => Math.max(0, Math.min(1, value)))
+        setGeneratedWaveform(normalized)
+      })
+      .catch(() => {
+        if (!isCancelled) setGeneratedWaveform([])
+      })
+
+    return () => {
+      isCancelled = true
+    }
   }, [audioFile])
   const startUpload = async () => {
 
@@ -149,12 +194,17 @@ const removeArtwork = () => {
   // Show completed upload message
   if (uploadComplete && uploadedTrackUrl) {
     return (
-      <section className="min-h-screen w-full flex flex-col items-center justify-center gap-6 px-6">
+      <section className="min-h-screen w-full flex flex-col items-center justify-center gap-6 px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-text-primary">Saved to DeciBel.</h2>
-          <p className="text-text-secondary mt-2">
+          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary">Saved to DeciBel.</h2>
+          <p className="text-sm sm:text-base text-text-secondary mt-2">
             Congratulations!, Your tracks are now on DeciBel.
           </p>
+          {generatedWaveform.length > 0 && (
+            <div className="mt-6 w-full max-w-3xl">
+              <Waveform data={generatedWaveform} height={waveformHeight} />
+            </div>
+          )}
         </div>
         <div className="mt-4">
           <a
@@ -180,11 +230,11 @@ const removeArtwork = () => {
   // If form should be shown, render the form
   if (showForm && audioFile) {
     return (
-      <section className="min-h-screen w-full pb-24">
+      <section className="min-h-screen w-full pb-32">
         {/* Top Bar */}
           <div className="sticky top-0 w-full mb-8">
 
-            <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+            <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4">
 
               {isUploading ? (
                 <div className="w-full">
@@ -226,14 +276,14 @@ const removeArtwork = () => {
             </div>
 
           </div>
-        <div className="flex justify-center px-6 md:px-12 lg:px-20">
+        <div className="flex justify-center px-4 sm:px-6 md:px-8 lg:px-12">
           <div className="w-full max-w-3xl py-2">
-            <div className="grid md:grid-cols-[300px_1fr] gap-8">
+            <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 md:grid-cols-[220px_1fr] lg:grid-cols-[300px_1fr]">
               {/* Artwork */}
               <div className="flex flex-col items-center gap-2">
 
                 <div
-                  className="w-full aspect-square border border-dashed border-border-default rounded-lg flex items-center justify-center hover:border-border-strong transition cursor-pointer overflow-hidden relative"
+                  className="w-full max-w-[260px] sm:max-w-sm md:max-w-none aspect-square border border-dashed border-border-default rounded-lg flex items-center justify-center hover:border-border-strong transition cursor-pointer overflow-hidden relative"
                   onClick={() => document.getElementById("artwork-input")?.click()}
                 >
 
@@ -304,7 +354,7 @@ const removeArtwork = () => {
               </div>
 
               {/* Track form */}
-              <div className="p-4 max-w-xl">
+              <div className="p-0 sm:p-4 max-w-xl">
                 <form className="space-y-4 text-sm">
 
                   {/* Title */}
@@ -426,12 +476,12 @@ const removeArtwork = () => {
         {/* Bottom Submit Bar */}
         <div className="fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base">
 
-          <div className="max-w-6xl mx-auto flex justify-end px-6 py-2">
+          <div className="max-w-6xl mx-auto flex justify-center sm:justify-end px-4 sm:px-6 py-3">
 
             <button
               type="button"
               onClick={startUpload}
-              className="bg-brand-primary text-text-on-brand px-12 py-1 rounded-full font-semibold hover:bg-brand-primary-hover transition"
+              className="bg-brand-primary text-text-on-brand w-full sm:w-auto px-6 sm:px-10 py-2 rounded-full font-semibold hover:bg-brand-primary-hover transition"
             >
               Upload
             </button>
@@ -446,13 +496,13 @@ const removeArtwork = () => {
   // Otherwise show the upload area
   return (
     <section className="min-h-screen w-full">
-      <div className="flex justify-center px-6 md:px-12 lg:px-20">
-        <div className="w-full max-w-5xl py-12">
+      <div className="flex justify-center px-4 sm:px-6 md:px-10 lg:px-16">
+        <div className="w-full max-w-5xl py-10 sm:py-12">
           <header className="mb-8">
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
               Upload your audio files.
             </h1>
-            <p className="max-w-2xl text-xs text-text-secondary">
+            <p className="max-w-2xl text-sm sm:text-xs text-text-secondary">
               For best quality, use MP3, WAV, FLAC, or AAC. The maximum file
               size is 500MB uncompressed.{' '}
               <span className="font-semibold underline underline-offset-2">
@@ -463,7 +513,7 @@ const removeArtwork = () => {
 
           {/* File upload area */}
           <div
-            className={`relative flex min-h-70 cursor-pointer flex-col items-center justify-center gap-6 rounded-2xl border border-dashed px-8 py-16 text-center transition ${
+            className={`relative flex min-h-60 sm:min-h-70 cursor-pointer flex-col items-center justify-center gap-4 sm:gap-6 rounded-2xl border border-dashed px-6 sm:px-8 py-10 sm:py-12 lg:py-16 text-center transition ${
               error ? 'border-status-error' : 'border-border-default hover:border-border-strong'
             }`}
             onDragOver={handleDragOver}
