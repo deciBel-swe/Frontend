@@ -38,7 +38,6 @@ export default function Page() {
         <div className="flex flex-center flex-col items-center h-fit justify-center bg-bg-base border border-text-on-brand px-1.5 py-5">
           <ReCaptchaProvider>
             {isMounted && <SignInForm />}
-            <SignInForm />
           </ReCaptchaProvider>
 
         </div>
