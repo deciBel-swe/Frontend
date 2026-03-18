@@ -1,10 +1,12 @@
 // src/services/mocks/uploadTrackMock.ts
-import { TrackUploadResponse } from "@/types/trackUpload"
+import { UploadTrackResponse } from "@/types/index"
+import { UploadTrackService } from '@/types/index';
 
-export const uploadTrackMock = (
+export const uploadTrackMock: UploadTrackService = (
+  formData: FormData,
+  token: string,
   onProgress: (progress: number) => void
-): Promise<TrackUploadResponse> => {
-//empty promise to simulate async behavior
+): Promise<UploadTrackResponse> => {
   return new Promise((resolve) => {
     let progress = 0
     const interval = setInterval(() => {

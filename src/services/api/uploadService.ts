@@ -1,13 +1,14 @@
 // src/services/api/tracks/uploadTrack.ts
-import { TrackUploadResponse } from "@/types/trackUpload"
+import { UploadTrackResponse  } from "@/types/index"
 import { config } from "@/config"
 import { API_ENDPOINTS, getApiUrl } from "@/constants/routes"
+import { UploadTrackService } from '@/types/index';
 
-export const uploadTrack = (
+export const uploadTrack : UploadTrackService = (
   formData: FormData,
   token: string,
   onProgress: (progress: number) => void
-): Promise<TrackUploadResponse> => {
+): Promise<UploadTrackResponse> => {
   return new Promise((resolve, reject) => {
 
     const xhr = new XMLHttpRequest()
@@ -27,9 +28,9 @@ export const uploadTrack = (
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         const responseText = xhr.responseText?.trim()
-        const response: TrackUploadResponse = responseText
+        const response: UploadTrackResponse = responseText
           ? JSON.parse(responseText)
-          : ({} as TrackUploadResponse)
+          : ({} as UploadTrackResponse)
         resolve(response)
       } else {
         const details = xhr.responseText?.trim()
