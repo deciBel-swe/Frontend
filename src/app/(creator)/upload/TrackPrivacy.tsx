@@ -3,8 +3,6 @@
 import { useEffect } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import type { TrackPrivacyValue } from '@/types';
-import { TrackActionBar } from '@/app/[username]/tracks/TrackActionBar';
-// import { ShareButton } from '@/components/buttons/ShareButton';
 
 interface TrackPrivacyProps {
   /** Controlled value — parent owns this */
@@ -152,13 +150,8 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
         </p>
       )}
 
-      {/* Edit mode — share button triggers modal with secret link */}
-      {trackId && (
-        <TrackActionBar
-          trackId={trackId}
-          isPrivate={value === 'private'}
-        />
-      )}
+      
+      
     </div>
   );
 }
