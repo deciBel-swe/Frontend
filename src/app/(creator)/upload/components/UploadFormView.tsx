@@ -16,14 +16,15 @@ interface UploadFormViewProps {
   title: string
   titleError: string
   onTitleChange: (value: string) => void
-  trackLink: string
-  onTrackLinkChange: (value: string) => void
+  trackLinkPrefix: string
+  trackLinkSuffix: string
+  onTrackLinkSuffixChange: (value: string) => void
   artist: string
   onArtistChange: (value: string) => void
   genre: string
   onGenreChange: (value: string) => void
-  tags: string
-  onTagsChange: (value: string) => void
+  tags: string[]
+  onTagsChange: (value: string[]) => void
   privacy: 'public' | 'private'
   onPrivacyChange: (value: 'public' | 'private') => void
 }
@@ -40,8 +41,9 @@ export default function UploadFormView({
   title,
   titleError,
   onTitleChange,
-  trackLink,
-  onTrackLinkChange,
+  trackLinkPrefix,
+  trackLinkSuffix,
+  onTrackLinkSuffixChange,
   artist,
   onArtistChange,
   genre,
@@ -207,12 +209,21 @@ export default function UploadFormView({
                 </div>
 
                 <div>
-                  <FloatingInputField
-                    type="text"
-                    label="Track Link"
-                    value={trackLink}
-                    onChange={onTrackLinkChange}
-                  />
+                  <label className="block text-xs text-text-muted mb-1">
+                    Track Link
+                  </label>
+                  <div className="flex items-center gap-2 rounded-lg border border-border-default bg-interactive-default px-3 py-2 text-text-primary">
+                    <span className="text-xs text-text-secondary whitespace-nowrap">
+                      {trackLinkPrefix}/
+                    </span>
+                    <input
+                      type="text"
+                      value={trackLinkSuffix}
+                      onChange={(event) => onTrackLinkSuffixChange(event.target.value)}
+                      placeholder="your-track"
+                      className="w-full bg-transparent text-sm outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -241,12 +252,55 @@ export default function UploadFormView({
                 </div>
 
                 <div>
-                  <FloatingInputField
-                    type="text"
-                    label="Tags"
-                    value={tags}
-                    onChange={onTagsChange}
-                  />
+                  <label className="block text-xs text-text-muted mb-1">
+                    Tags
+                  </label>
+                  <div className="flex flex-wrap gap-2 rounded-lg border border-border-default bg-interactive-default px-3 py-2">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-2 rounded-full bg-surface-default px-3 py-1 text-xs text-text-primary"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => onTagsChange(tags.filter((item) => item !== tag))}
+                          className="text-text-muted hover:text-text-secondary"
+                          aria-label={`Remove ${tag}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      className="min-w-30 flex-1 bg-transparent text-sm text-text-primary outline-none"
+                      placeholder="Add tags"
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          const value = event.currentTarget.value.trim().replace(/^#/, '')
+                          if (value && !tags.includes(value)) {
+                            onTagsChange([...tags, value])
+                          }
+                          event.currentTarget.value = ''
+                        }
+                        if (event.key === 'Backspace' && !event.currentTarget.value && tags.length > 0) {
+                          onTagsChange(tags.slice(0, -1))
+                        }
+                      }}
+                      onBlur={(event) => {
+                        const value = event.currentTarget.value.trim().replace(/^#/, '')
+                        if (value && !tags.includes(value)) {
+                          onTagsChange([...tags, value])
+                        }
+                        event.currentTarget.value = ''
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    Press space or Enter to add a tag.
+                  </p>
                 </div>
                 <div className="mb-2">
                   <label className="block text-sm text-text-muted mb-1">
