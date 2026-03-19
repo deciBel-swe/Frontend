@@ -9,12 +9,29 @@ import { config } from '@/config';
 
 import type { AuthService } from './api/authService';
 import { MockAuthService } from './mocks/authService';
+import { RealAuthService } from '@/services/api/authService';
 
 import type { PrivacyService } from './api/privacyService';
 import { MockPrivacyService } from './mocks/privacyService';
 import { RealPrivacyService } from './api/privacyService';
-import { RealAuthService } from '@/services/api/authService';
 
+import { uploadTrack } from "@/services/api/uploadService"
+import { uploadTrackMock } from "@/services/mocks/uploadService"
+import { UploadTrackService } from '@/types/index';
+//const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"
+
+
+export const uploadTrackService = (
+  formData: FormData,
+  token: string,
+  onProgress: (progress: number) => void
+) => {
+
+  const uploadTrackService:UploadTrackService = config.api.useMock
+  ? uploadTrackMock
+  : uploadTrack;
+  return uploadTrackService(formData, token, onProgress);
+}
 // --- Auth Service ---
 // When the real API client is implemented, import RealAuthService here
 // and toggle via `config.api.useMock`.
