@@ -93,6 +93,11 @@ export { useApiQuery } from './useAPI';
  */
 export { useApiMutation } from './useAPI';
 
+/**
+ * useUserTracks — lightweight user-tracks query hook.
+ */
+export { useUserTracks } from './useUserTracks';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';

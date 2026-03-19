@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { uploadTrackService } from "@/services/index"
+import { trackService } from "@/services"
 
 export function useTrackUpload(token: string) {
 
@@ -17,7 +17,7 @@ export function useTrackUpload(token: string) {
       setProgress(0)
       setError(null)
 
-      const response = await uploadTrackService(
+      const response = await trackService.uploadTrack(
         formData,
         token,
         setProgress

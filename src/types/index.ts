@@ -114,20 +114,5 @@ export interface NavLinkConfig {
   href: string;
   name: ActiveNav;
 }
-// ================================
-// Track Upload
-// ================================
-export interface UploadTrackResponse {
-  id: number
-  title: string
-  trackUrl: string
-  coverUrl: string
-  durationSeconds: number
-}
-export interface UploadTrackService {
-  (
-    formData: FormData,
-    token: string,
-    onProgress: (progress: number) => void
-  ): Promise<UploadTrackResponse>
-}
+
+export type { UploadTrackResponse, UploadTrackService } from './tracks';

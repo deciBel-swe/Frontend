@@ -1,68 +1,52 @@
-import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto,TrackMetaData } from '@/types/tracks';
-import { API_ENDPOINTS, getApiUrl } from '@/constants/routes';
+import type { TrackService } from '@/services/api/trackService';
+import { RealTrackService } from '@/services/api/trackService';
+import type {
+  SecretLink,
+  TrackMetaData,
+  TrackVisibility,
+  UpdateTrackVisibilityDto,
+} from '@/types/tracks';
 
 export interface TrackVisibilityService {
-   /** GET /users/me/tracks/:trackId — full track metadata including trackUrl */
+  /** GET /tracks/:trackId — normalized track metadata */
   getTrackMetadata(trackId: number): Promise<TrackMetaData>;
 
   /** GET /tracks/:trackId — returns current privacy state */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
 
-  /** PUT /tracks/:trackId — update isPrivate field */
+  /** PATCH /tracks/:trackId — update isPrivate field */
   updateTrackVisibility(trackId: number, data: UpdateTrackVisibilityDto): Promise<TrackVisibility>;
 
-  /** GET /tracks/:trackId/secret-link — fetch current secret link token */
+  /** GET /tracks/:trackId/secret-token — fetch current secret link token */
   getSecretLink(trackId: string): Promise<SecretLink>;
  
-  /** GET /tracks/:trackId/regenerate-link — invalidate old token, generate new one */
+  /** POST /tracks/:trackId/generate-token — invalidate old token, generate new one */
   regenerateSecretLink(trackId: string): Promise<SecretLink>;
 }
 
 export class RealTrackVisibilityService implements TrackVisibilityService {
-   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
-    const res = await fetch(getApiUrl(API_ENDPOINTS.USERS.ME_TRACK(trackId)), {
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error('Failed to fetch track metadata');
-    return res.json();
+  constructor(private readonly trackService: TrackService = new RealTrackService()) {}
+
+  async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
+    return this.trackService.getTrackMetadata(trackId);
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {
-    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.BY_ID(trackId)), {
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error('Failed to fetch track visibility');
-    return res.json();
+    return this.trackService.getTrackVisibility(trackId);
   }
 
   async updateTrackVisibility(
     trackId: number,
     data: UpdateTrackVisibilityDto
   ): Promise<TrackVisibility> {
-    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.BY_ID(trackId)), {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('Failed to update track visibility');
-    return res.json();
+    return this.trackService.updateTrackVisibility(trackId, data);
   }
 
   async getSecretLink(trackId: string): Promise<SecretLink> {
-    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.SECRET_LINK(trackId)), {
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error('Failed to fetch secret link');
-    return res.json();
-  }
- 
-  async regenerateSecretLink(trackId: string): Promise<SecretLink> {
-    const res = await fetch(getApiUrl(API_ENDPOINTS.TRACKS.REGENERATE_LINK(trackId)), {
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error('Failed to regenerate secret link');
-    return res.json();
+    return this.trackService.getSecretLink(trackId);
   }
 
+  async regenerateSecretLink(trackId: string): Promise<SecretLink> {
+    return this.trackService.regenerateSecretLink(trackId);
+  }
 }

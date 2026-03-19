@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { trackVisibilityService } from '@/services';
+import { trackService } from '@/services';
 import { formatSecretUrl } from '@/utils/formatSecretUrl';
 
 const secretLinkKey = (trackId: string) => ['secretLink', trackId];
@@ -23,7 +23,7 @@ export function useSecretLink(trackId: string | undefined) {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: secretLinkKey(trackId!),
-    queryFn: () => trackVisibilityService.getSecretLink(trackId!),
+    queryFn: () => trackService.getSecretLink(trackId!),
     enabled: !!trackId,
   });
 
@@ -33,7 +33,7 @@ export function useSecretLink(trackId: string | undefined) {
     : null;
 
   const { mutate: regenerate, isPending: isRegenerating } = useMutation({
-    mutationFn: () => trackVisibilityService.regenerateSecretLink(trackId!),
+    mutationFn: () => trackService.regenerateSecretLink(trackId!),
     onSuccess: (newData) => {
       // Update cache directly with new token — no need to refetch
       queryClient.setQueryData(secretLinkKey(trackId!), newData);

@@ -25,6 +25,13 @@ import {
   privacySettingsSchema,
   updatePrivacySettingsDtoSchema,
 } from './privacy';
+import {
+  secretTokenResponseSchema,
+  trackDetailsResponseSchema,
+  trackUpdateResponseSchema,
+  updateTrackVisibilityDtoSchema,
+  uploadTrackResponseSchema,
+} from './tracks';
 import { userMeSchema } from './user';
 
 /** Supported HTTP verbs for endpoint contracts. */
@@ -75,10 +82,31 @@ export const API_CONTRACTS = {
     responseSchema: refreshTokenResponseDTOSchema,
   }),
 
+  AUTH_LOGOUT: defineContract<void, undefined>({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.LOGOUT,
+    responseSchema: z.undefined(),
+  }),
+
+  AUTH_LOGOUT_ALL: defineContract<void, undefined>({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.LOGOUT_ALL,
+    responseSchema: z.undefined(),
+  }),
+
   USERS_ME: defineContract({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME,
     responseSchema: userMeSchema,
+  }),
+
+  USERS_ME_TRACKS: defineContract<
+    void,
+    z.infer<typeof trackDetailsResponseSchema>[]
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_TRACKS,
+    responseSchema: z.array(trackDetailsResponseSchema),
   }),
 
   USERS_ME_PRIVACY: defineContract({
@@ -93,6 +121,41 @@ export const API_CONTRACTS = {
     requestSchema: updatePrivacySettingsDtoSchema,
     responseSchema: privacySettingsSchema,
   }),
+
+  TRACKS_UPLOAD: defineContract<FormData, z.infer<typeof uploadTrackResponseSchema>>({
+    method: 'POST',
+    url: API_ENDPOINTS.TRACKS.UPLOAD,
+    responseSchema: uploadTrackResponseSchema,
+  }),
+
+  TRACKS_BY_ID: (trackId: number) =>
+    defineContract<void, z.infer<typeof trackDetailsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      responseSchema: trackDetailsResponseSchema,
+    }),
+
+  TRACKS_UPDATE_VISIBILITY: (trackId: number) =>
+    defineContract({
+      method: 'PATCH',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      requestSchema: updateTrackVisibilityDtoSchema,
+      responseSchema: trackUpdateResponseSchema,
+    }),
+
+  TRACKS_SECRET_TOKEN: (trackId: number | string) =>
+    defineContract<void, z.infer<typeof secretTokenResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.SECRET_TOKEN(trackId),
+      responseSchema: secretTokenResponseSchema,
+    }),
+
+  TRACKS_GENERATE_TOKEN: (trackId: number | string) =>
+    defineContract<void, z.infer<typeof secretTokenResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
+      responseSchema: secretTokenResponseSchema,
+    }),
 } as const;
 
 /** Union of all contract keys for autocomplete and constrained lookups. */

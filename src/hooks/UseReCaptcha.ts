@@ -1,4 +1,5 @@
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { apiClient } from '@/hooks/useAPI';
 
 /**
  * Result object returned from reCAPTCHA verification
@@ -59,19 +60,14 @@ export const useReCaptcha = () => {
       console.log('ReCaptcha token:', token);
 
       // Verify the token with our API
-      const response = await fetch('/api/verify-recaptcha', {
+      const response = await apiClient.request({
+        baseURL: '',
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
+        url: '/api/verify-recaptcha',
+        data: { token },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         console.log('ReCaptcha verification successful, score:', data.score);
