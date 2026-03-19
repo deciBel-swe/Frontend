@@ -90,6 +90,18 @@ export default function RootLayout({
                 </div>
             </Suspense>
           </AuthProvider>
+           <QueryProvider>
+            <AuthProvider>
+              <Suspense fallback={<>Loading ...</>}>
+                <div className="flex flex-col xl:items-center items-start justify-center">
+                  <div className="min-w-306">
+                    <TopNavBar />
+                    {children}
+                  </div>
+                </div>
+               </Suspense>
+            </AuthProvider>
+           </QueryProvider>  
         </ThemeProvider>
       </body>
     </html>
