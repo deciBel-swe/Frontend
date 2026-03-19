@@ -9,7 +9,13 @@ import { config } from '@/config';
 
 import type { AuthService } from './api/authService';
 import { MockAuthService } from './mocks/authService';
+// ─── Track visibility service  ───────────────────────────────────────
+import { RealTrackVisibilityService } from '@/services/api/trackVisibilityService';
+import { MockTrackVisibilityService } from '@/services/mocks/trackVisibilityService';
+import type { TrackVisibilityService } from '@/services/api/trackVisibilityService';
+ 
 import { RealAuthService } from '@/services/api/authService';
+
 
 import type { PrivacyService } from './api/privacyService';
 import { MockPrivacyService } from './mocks/privacyService';
@@ -45,6 +51,10 @@ const resolveAuthService = (): AuthService => {
 
 export const authService = resolveAuthService();
 
+export const trackVisibilityService: TrackVisibilityService = config.api.useMock
+  ? new MockTrackVisibilityService()
+  : new RealTrackVisibilityService();
+
 // --- Privacy Service ---
 // Provided in the same pattern so consumers can always import from
 // `@/services` regardless of mock/real selection.
@@ -56,3 +66,4 @@ const resolvePrivacyService = (): PrivacyService => {
 };
 
 export const privacyService = resolvePrivacyService();
+
