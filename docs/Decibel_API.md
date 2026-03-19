@@ -109,6 +109,7 @@ POST /auth/login/local
 
 |Name|Location|Type|Required|Description|
 |---|---|---|---|---|
+|refreshToken|cookie|string| yes |HttpOnly refresh token cookie|
 |body|body|[LoginLocalRequest](#schemaloginlocalrequest)| yes |none|
 
 > Response Examples
@@ -118,7 +119,7 @@ POST /auth/login/local
 ```json
 {
   "accessToken": "string",
-  "refreshToken": "string",
+  "expiresIn": 0,
   "user": {
     "id": 0,
     "username": "string",
@@ -291,7 +292,8 @@ POST /auth/resend-verification
 
 ```json
 {
-  "message": "string"
+  "message": "string",
+  "coolDown": 0
 }
 ```
 
@@ -299,7 +301,16 @@ POST /auth/resend-verification
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Verification email resent|[MessageResponse](#schemamessageresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Verification email resent|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» message|string|true|none||none|
+|» coolDown|integer|true|none||none|
 
 <a id="opIdforgotPassword"></a>
 
@@ -498,14 +509,35 @@ POST /auth/oauth/google
 > Body Parameters
 
 ```json
-"string"
+{
+  "authTokenDto": "string",
+  "deviceInfo": {
+    "deviceType": "DESKTOP",
+    "fingerPrint": "string",
+    "deviceName": "string"
+  }
+}
 ```
 
 ### Params
 
 |Name|Location|Type|Required|Description|
 |---|---|---|---|---|
-|body|body|[Google oauth token](#schemagoogle oauth token)| yes |none|
+|refreshToken|cookie|string| yes |none|
+|body|body|object| yes |none|
+|» authTokenDto|body|string| yes |none|
+|» deviceInfo|body|[DeviceInfo](#schemadeviceinfo)| yes |none|
+|»» deviceType|body|[DeviceType](#schemadevicetype)| yes |none|
+|»» fingerPrint|body|string| yes |none|
+|»» deviceName|body|string| yes |none|
+
+#### Enum
+
+|Name|Value|
+|---|---|
+|»» deviceType|DESKTOP|
+|»» deviceType|MOBILE|
+|»» deviceType|TABLET|
 
 > Response Examples
 
@@ -514,7 +546,7 @@ POST /auth/oauth/google
 ```json
 {
   "accessToken": "string",
-  "refreshToken": "string",
+  "expiresIn": 0,
   "user": {
     "id": 0,
     "username": "string",
@@ -715,7 +747,6 @@ PATCH /users/me/role
     "username": "string",
     "tier": "FREE",
     "profileUrl": "string",
-    "Role": "LISTENER",
     "email": "string",
     "isVerified": true
   }
@@ -779,6 +810,84 @@ GET /users/{userId}
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Public user profile|[PublicUserProfileResponse](#schemapublicuserprofileresponse)|
 
+## PATCH start Email change
+
+PATCH /users/me/email
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|newEmail|query|string| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|none|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|none|None|
+|409|[Conflict](https://tools.ietf.org/html/rfc7231#section-6.5.8)|none|None|
+
+### Responses Data Schema
+
+## POST verify Email change
+
+POST /users/me/email/verify
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|token|query|string| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "email changed sucessfully ": "string"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+|400|[Bad Request](https://tools.ietf.org/html/rfc7231#section-6.5.1)|none|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|none|Inline|
+|409|[Conflict](https://tools.ietf.org/html/rfc7231#section-6.5.8)|none|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» email changed sucessfully|string|true|none||none|
+
+HTTP Status Code **401**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» unautherized|string|true|none||none|
+
+HTTP Status Code **409**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» alredy verified|string|true|none||none|
+
 <a id="opIdgetMe"></a>
 
 ## GET Get current user profile
@@ -799,7 +908,8 @@ GET /users/me
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
-    "location": "string",
+    "city": "string",
+    "country": "string",
     "profilePic": "http://example.com",
     "coverPic": "http://example.com",
     "favoriteGenres": [
@@ -874,7 +984,8 @@ PATCH /users/me
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
-    "location": "string",
+    "city": "string",
+    "country": "string",
     "profilePic": "http://example.com",
     "coverPic": "http://example.com",
     "favoriteGenres": [
@@ -972,7 +1083,7 @@ PATCH /users/me/tier
   "tier": "string",
   "login": {
     "accessToken": "string",
-    "refreshToken": "string",
+    "expiresIn": 0,
     "user": {
       "id": 0,
       "username": "string",
@@ -999,7 +1110,7 @@ HTTP Status Code **200**
 |» tier|string|true|none||none|
 |» login|[LoginResponse](#schemaloginresponse)|true|none||none|
 |»» accessToken|string|true|none||none|
-|»» refreshToken|string|true|none||none|
+|»» expiresIn|integer|true|none||none|
 |»» user|object|true|none||none|
 |»»» id|integer|true|none||none|
 |»»» username|string|true|none||none|
@@ -1096,12 +1207,12 @@ GET /users/me/history
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,
@@ -1158,63 +1269,6 @@ HTTP Status Code **200**
 |*anonymous*|[[SearchUser](#schemasearchuser)]|false|none||none|
 |» id|integer|false|none||none|
 |» username|string|false|none||none|
-
-<a id="opIdgetUserTracks"></a>
-
-## GET Get all tracks uploaded by a user
-
-GET /users/{userId}/tracks
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|userId|path|integer| yes |User ID|
-|page|query|integer| no |none|
-|size|query|integer| no |none|
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "content": [
-    {
-      "id": 0,
-      "title": "string",
-      "artist": {
-        "id": 0,
-        "username": "string"
-      },
-      "trackUrl": "http://example.com",
-      "coverUrl": "http://example.com",
-      "waveformUrl": "http://example.com",
-      "genre": "string",
-      "tags": [
-        "string"
-      ],
-      "state": "PROCESSING",
-      "releaseDate": "2019-08-24",
-      "playCount": 0,
-      "likeCount": 0,
-      "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
-    }
-  ],
-  "pageNumber": 0,
-  "pageSize": 0,
-  "totalElements": 0,
-  "totalPages": 0,
-  "isLast": true
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|User tracks retrieved|[PaginatedFeedResponse](#schemapaginatedfeedresponse)|
 
 <a id="opIdgetUserPlaylists"></a>
 
@@ -1521,6 +1575,62 @@ GET /users/me/blocked
 
 # Tracks
 
+<a id="opIdgetBlockedUsers"></a>
+
+## GET Get all tracks of current user
+
+GET /users/me/tracks
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|page|query|integer| no |none|
+|size|query|integer| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "content": [
+    {
+      "id": 0,
+      "title": "string",
+      "artist": {
+        "id": 0,
+        "username": "string"
+      },
+      "trackUrl": "http://example.com",
+      "coverUrl": "http://example.com",
+      "waveformUrl": "http://example.com",
+      "genre": "string",
+      "tags": [
+        "string"
+      ],
+      "releaseDate": "2019-08-24",
+      "playCount": 0,
+      "likeCount": 0,
+      "repostCount": 0,
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
+    }
+  ],
+  "pageNumber": 0,
+  "pageSize": 0,
+  "totalElements": 0,
+  "totalPages": 0,
+  "isLast": true
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Blocked users list retrieved|[PaginatedTracksResponse](#schemapaginatedtracksresponse)|
+
 <a id="opIdgetTrackById"></a>
 
 ## GET Get track metadata
@@ -1559,12 +1669,12 @@ GET /tracks/{trackId}
   "tags": [
     "string"
   ],
-  "state": "PROCESSING",
   "releaseDate": "2019-08-24",
   "playCount": 0,
   "likeCount": 0,
   "repostCount": 0,
-  "createdAt": "2019-08-24T14:15:22Z"
+  "uploadDate": "2019-08-24T14:15:22Z",
+  "description": "string"
 }
 ```
 
@@ -1660,9 +1770,9 @@ GET /tracks/{trackId}/status
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track details|[Status](#schemastatus)|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|none|None|
 
-## GET TrackPeaksDTO
+## GET Get Waveform URL
 
-GET /tracks/{trackId}/peaks
+GET /tracks/{trackId}/waveform-url
 
 ### Params
 
@@ -1677,10 +1787,8 @@ GET /tracks/{trackId}/peaks
 ```json
 {
   "trackId": 0,
-  "duration": 0,
-  "peaks": [
-    0
-  ]
+  "waveformUrl": "string",
+  "duration": 0
 }
 ```
 
@@ -1688,7 +1796,247 @@ GET /tracks/{trackId}/peaks
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[TrackPeaksDTO](#schematrackpeaksdto)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[TrackWaveformUrlDTO](#schematrackwaveformurldto)|
+
+## GET Get Secret Token
+
+GET /tracks/{trackId}/secret-token
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "secretToken": "string"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» secretToken|string|true|none||none|
+
+<a id="opIdupdateTrack"></a>
+
+## PATCH Update track metadata
+
+PATCH /tracks/{trackId}
+
+> Body Parameters
+
+```yaml
+title: ok
+genre: new genre
+coverImage: file://C:\Users\User\Downloads\logo2-removebg-preview.png
+tags:
+  - chill
+  - amazing song
+releaseDate: 2024-11-23
+description: ""
+isPrivate: ""
+
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|integer| yes |Track ID|
+|body|body|object| yes |none|
+|» title|body|string| no |none|
+|» genre|body|string| no |none|
+|» coverImage|body|string(binary)| no |none|
+|» tags|body|[string]| no |none|
+|» releaseDate|body|string| no |none|
+|» description|body|string| no |none|
+|» isPrivate|body|boolean| no |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "id": 1,
+  "coverUrl": "https://example.com/covers/track1.jpg",
+  "title": "My Track",
+  "genre": "Hip Hop",
+  "description": "A cool track",
+  "isPrivate": false,
+  "tags": [
+    "tag1",
+    "tag2"
+  ],
+  "releaseDate": "2025-10-25"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track updated|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» id|integer|true|none||none|
+|» coverUrl|string|true|none||none|
+|» title|string|true|none||none|
+|» genre|string|true|none||none|
+|» description|string|true|none||none|
+|» isPrivate|boolean|true|none||none|
+|» tags|[string]|true|none||none|
+|» releaseDate|string|true|none||none|
+
+<a id="opIddeleteTrack"></a>
+
+## DELETE Delete a track
+
+DELETE /tracks/{trackId}
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|integer| yes |Track ID|
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|Track deleted|None|
+
+<a id="opIddownloadTrack"></a>
+
+## GET Mock offline download for Pro users
+
+GET /tracks/{trackId}/download
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|integer| yes |Track ID|
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Returns mock audio file binary|None|
+
+## POST Generate New Secret Token
+
+POST /tracks/{trackId}/generate-token
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|trackId|path|string| yes |none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "secretToken": "string"
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» secretToken|string|true|none||none|
+
+<a id="opIduploadTrack"></a>
+
+## POST Upload a new track
+
+POST /tracks/upload
+
+> Body Parameters
+
+```yaml
+audioFile: file://C:\Users\User\Downloads\wind.mp3
+coverImage: file://C:\Users\User\Downloads\oAuth-large-figure.png
+title: windy
+genre: noise
+description: a very nice idk
+isPrivate: "true"
+waveformData:
+  - "1.1"
+  - "2.2"
+releaseDate: 2025-10-25
+tags:
+  - lofi,relaxing
+
+```
+
+### Params
+
+|Name|Location|Type|Required|Description|
+|---|---|---|---|---|
+|Authorization|header|string| no |none|
+|body|body|object| yes |none|
+|» audioFile|body|string(binary)| yes |Audio file in mp3 or wav format|
+|» coverImage|body|string(binary)| no |Optional cover image in jpg or png format|
+|» title|body|string| yes |none|
+|» genre|body|string| yes |none|
+|» description|body|string| no |none|
+|» isPrivate|body|boolean| yes |none|
+|» waveformData|body|[string]| yes |none|
+|» releaseDate|body|string| yes |yyyy-MM-dd format|
+|» tags|body|[string]| no |tag|
+
+> Response Examples
+
+> 201 Response
+
+```json
+{
+  "id": 0,
+  "title": "string",
+  "trackUrl": "http://example.com",
+  "coverUrl": "http://example.com",
+  "durationSeconds": 0
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|Track uploaded|[TrackUploadResponse](#schematrackuploadresponse)|
 
 ## POST publishTrack
 
@@ -1725,9 +2073,9 @@ POST /tracks/{trackId}/publish
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[publishTrackResponse](#schemapublishtrackresponse)|
 
-## GET getSecretLink
+## POST retry processing
 
-GET /tracks/{trackId}/secret-link
+POST /tracks/{trackId}/retry-processing
 
 ### Params
 
@@ -1741,7 +2089,9 @@ GET /tracks/{trackId}/secret-link
 
 ```json
 {
-  "secretLink": "string"
+  "status": "PROCESSING",
+  "trackId": 0,
+  "progressPercent": 0
 }
 ```
 
@@ -1749,148 +2099,7 @@ GET /tracks/{trackId}/secret-link
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|Inline|
-
-### Responses Data Schema
-
-HTTP Status Code **200**
-
-|Name|Type|Required|Restrictions|Title|description|
-|---|---|---|---|---|---|
-|» secretLink|string|true|none||none|
-
-<a id="opIduploadTrack"></a>
-
-## POST Upload a new track
-
-POST /tracks/upload
-
-> Body Parameters
-
-```yaml
-audioFile: ""
-coverImage: ""
-title: ""
-genre: ""
-description: ""
-isPrivate: ""
-waveForm:
-  - Floats
-
-```
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|body|body|object| yes |none|
-|» audioFile|body|string(binary)| yes |Audio file in mp3 or wav format|
-|» coverImage|body|string(binary)| no |Optional cover image in jpg or png format|
-|» title|body|string| yes |none|
-|» genre|body|string| yes |none|
-|» description|body|string| no |none|
-|» isPrivate|body|boolean| yes |none|
-|» waveForm|body|[string]| yes |none|
-
-> Response Examples
-
-> 201 Response
-
-```json
-{
-  "id": 0,
-  "title": "string",
-  "trackUrl": "http://example.com",
-  "coverUrl": "http://example.com",
-  "durationSeconds": 0
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|201|[Created](https://tools.ietf.org/html/rfc7231#section-6.3.2)|Track uploaded|[TrackUploadResponse](#schematrackuploadresponse)|
-
-<a id="opIdupdateTrack"></a>
-
-## PUT Update track metadata
-
-PUT /tracks/{trackId}
-
-> Body Parameters
-
-```json
-{
-  "title": "string",
-  "genre": "string",
-  "tags": [
-    "string"
-  ],
-  "releaseDate": "2019-08-24",
-  "description": "string",
-  "isPrivate": true
-}
-```
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|trackId|path|integer| yes |Track ID|
-|body|body|[UpdateTrackRequest](#schemaupdatetrackrequest)| yes |none|
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "id": 0,
-  "title": "string",
-  "artist": {
-    "id": 0,
-    "username": "string"
-  },
-  "trackUrl": "http://example.com",
-  "coverUrl": "http://example.com",
-  "waveformUrl": "http://example.com",
-  "genre": "string",
-  "tags": [
-    "string"
-  ],
-  "state": "PROCESSING",
-  "releaseDate": "2019-08-24",
-  "playCount": 0,
-  "likeCount": 0,
-  "repostCount": 0,
-  "createdAt": "2019-08-24T14:15:22Z"
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Track updated|[TrackResponse](#schematrackresponse)|
-
-<a id="opIddeleteTrack"></a>
-
-## DELETE Delete a track
-
-DELETE /tracks/{trackId}
-
-### Params
-
-|Name|Location|Type|Required|Description|
-|---|---|---|---|---|
-|trackId|path|integer| yes |Track ID|
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|Track deleted|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|none|[Status](#schemastatus)|
 
 <a id="opIdplayTrack"></a>
 
@@ -1962,23 +2171,23 @@ POST /tracks/{trackId}/complete
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Full listen recorded|[MessageResponse](#schemamessageresponse)|
 
-<a id="opIddownloadTrack"></a>
+## DELETE Delete Track's Cover
 
-## GET Mock offline download for Pro users
+DELETE /tracks/{trackId}/cover
 
-GET /tracks/{trackId}/download
+Deleting a track's cover
 
 ### Params
 
 |Name|Location|Type|Required|Description|
 |---|---|---|---|---|
-|trackId|path|integer| yes |Track ID|
+|trackId|path|string| yes |none|
 
 ### Responses
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Returns mock audio file binary|None|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|none|None|
 
 # Moderation
 
@@ -2909,12 +3118,12 @@ GET /feed
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,
@@ -2933,7 +3142,7 @@ GET /feed
 
 <a id="opIdgetTrendingTracks"></a>
 
-## GET Get trending tracks
+## GET Get popular tracks
 
 GET /explore/trending
 
@@ -3118,12 +3327,12 @@ GET /stations/genre
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,
@@ -3173,12 +3382,12 @@ GET /stations/artist
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,
@@ -3222,12 +3431,12 @@ GET /stations/likes
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,
@@ -3729,7 +3938,7 @@ POST /auth/login/google
 ```json
 {
   "accessToken": "string",
-  "refreshToken": "string",
+  "expiresIn": 0,
   "user": {
     "id": 0,
     "username": "string",
@@ -3799,7 +4008,11 @@ POST /auth/register/google
 <a id="tocsstatus"></a>
 
 ```json
-"UPLOADING"
+{
+  "status": "PROCESSING",
+  "trackId": 0,
+  "progressPercent": 0
+}
 
 ```
 
@@ -3807,16 +4020,17 @@ POST /auth/register/google
 
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
-|*anonymous*|string|false|none||none|
+|status|string|true|none||status|
+|trackId|integer|true|none||none|
+|progressPercent|number|false|none||none|
 
 #### Enum
 
 |Name|Value|
 |---|---|
-|*anonymous*|UPLOADING|
-|*anonymous*|PROCESSING|
-|*anonymous*|FINISHED|
-|*anonymous*|FAILED|
+|status|PROCESSING|
+|status|READY|
+|status|FAILED|
 
 <h2 id="tocS_Google oauth token">Google oauth token</h2>
 
@@ -3850,7 +4064,6 @@ POST /auth/register/google
     "username": "string",
     "tier": "FREE",
     "profileUrl": "string",
-    "Role": "LISTENER",
     "email": "string",
     "isVerified": true
   }
@@ -3867,16 +4080,8 @@ POST /auth/register/google
 |» username|string|true|none||none|
 |» tier|[UserInfo](#schemauserinfo)|true|none||none|
 |» profileUrl|string|false|none||none|
-|» Role|string|true|none||none|
 |» email|string|true|none||none|
 |» isVerified|boolean|true|none||none|
-
-#### Enum
-
-|Name|Value|
-|---|---|
-|Role|LISTENER|
-|Role|ARTIST|
 
 <h2 id="tocS_Untitled Schema">Untitled Schema</h2>
 
@@ -3900,20 +4105,18 @@ POST /auth/register/google
 |followerCount|integer|true|none||none|
 |followingCount|integer|true|none||none|
 
-<h2 id="tocS_TrackPeaksDTO">TrackPeaksDTO</h2>
+<h2 id="tocS_TrackWaveformUrlDTO">TrackWaveformUrlDTO</h2>
 
-<a id="schematrackpeaksdto"></a>
-<a id="schema_TrackPeaksDTO"></a>
-<a id="tocStrackpeaksdto"></a>
-<a id="tocstrackpeaksdto"></a>
+<a id="schematrackwaveformurldto"></a>
+<a id="schema_TrackWaveformUrlDTO"></a>
+<a id="tocStrackwaveformurldto"></a>
+<a id="tocstrackwaveformurldto"></a>
 
 ```json
 {
   "trackId": 0,
-  "duration": 0,
-  "peaks": [
-    0
-  ]
+  "waveformUrl": "string",
+  "duration": 0
 }
 
 ```
@@ -3923,8 +4126,8 @@ POST /auth/register/google
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
 |trackId|integer|true|none||none|
+|waveformUrl|string|true|none||none|
 |duration|integer|true|none||none|
-|peaks|[number]|true|none||none|
 
 <h2 id="tocS_publishTrackResponse">publishTrackResponse</h2>
 
@@ -3949,6 +4152,95 @@ POST /auth/register/google
 |id|integer|true|none||none|
 |permalink|string|true|none||none|
 |publishedAt|string|true|none||none|
+
+<h2 id="tocS_LoginResponse Copy">LoginResponse Copy</h2>
+
+<a id="schemaloginresponse copy"></a>
+<a id="schema_LoginResponse Copy"></a>
+<a id="tocSloginresponse copy"></a>
+<a id="tocsloginresponse copy"></a>
+
+```json
+{
+  "accessToken": "string",
+  "expiresIn": 0,
+  "isNewUser": true,
+  "user": {
+    "id": 0,
+    "username": "string",
+    "tier": "FREE",
+    "profileUrl": "string",
+    "avatarUrl": "string"
+  }
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|accessToken|string|true|none||none|
+|expiresIn|integer|true|none||none|
+|isNewUser|boolean|true|none||none|
+|user|object|true|none||none|
+|» id|integer|true|none||none|
+|» username|string|true|none||none|
+|» tier|[UserInfo](#schemauserinfo)|true|none||none|
+|» profileUrl|string|false|none||none|
+|» avatarUrl|string|false|none||none|
+
+<h2 id="tocS_PaginatedTracksResponse">PaginatedTracksResponse</h2>
+
+<a id="schemapaginatedtracksresponse"></a>
+<a id="schema_PaginatedTracksResponse"></a>
+<a id="tocSpaginatedtracksresponse"></a>
+<a id="tocspaginatedtracksresponse"></a>
+
+```json
+{
+  "content": [
+    {
+      "id": 0,
+      "title": "string",
+      "artist": {
+        "id": 0,
+        "username": "string"
+      },
+      "trackUrl": "http://example.com",
+      "coverUrl": "http://example.com",
+      "waveformUrl": "http://example.com",
+      "genre": "string",
+      "tags": [
+        "string"
+      ],
+      "releaseDate": "2019-08-24",
+      "playCount": 0,
+      "likeCount": 0,
+      "repostCount": 0,
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
+    }
+  ],
+  "pageNumber": 0,
+  "pageSize": 0,
+  "totalElements": 0,
+  "totalPages": 0,
+  "isLast": true
+}
+
+```
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|content|[[TrackResponse](#schematrackresponse)]|false|none||none|
+|pageNumber|integer|false|none||none|
+|pageSize|integer|false|none||none|
+|totalElements|integer|false|none||none|
+|totalPages|integer|false|none||none|
+|isLast|boolean|false|none||none|
 
 <h2 id="tocS_ErrorResponse">ErrorResponse</h2>
 
@@ -4403,7 +4695,7 @@ POST /auth/register/google
 ```json
 {
   "accessToken": "string",
-  "refreshToken": "string",
+  "expiresIn": 0,
   "user": {
     "id": 0,
     "username": "string",
@@ -4420,7 +4712,7 @@ POST /auth/register/google
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
 |accessToken|string|true|none||none|
-|refreshToken|string|true|none||none|
+|expiresIn|integer|true|none||none|
 |user|object|true|none||none|
 |» id|integer|true|none||none|
 |» username|string|true|none||none|
@@ -4602,7 +4894,8 @@ POST /auth/register/google
 ```json
 {
   "bio": "string",
-  "location": "string",
+  "city": "string",
+  "country": "string",
   "profilePic": "http://example.com",
   "coverPic": "http://example.com",
   "favoriteGenres": [
@@ -4617,7 +4910,8 @@ POST /auth/register/google
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
 |bio|string|false|none||none|
-|location|string|false|none||none|
+|city|string|false|none||none|
+|country|string|true|none||none|
 |profilePic|string(uri)|false|none||none|
 |coverPic|string(uri)|false|none||none|
 |favoriteGenres|[string]|false|none||none|
@@ -4711,7 +5005,8 @@ POST /auth/register/google
   "tier": "ARTIST",
   "profile": {
     "bio": "string",
-    "location": "string",
+    "city": "string",
+    "country": "string",
     "profilePic": "http://example.com",
     "coverPic": "http://example.com",
     "favoriteGenres": [
@@ -5169,12 +5464,12 @@ POST /auth/register/google
   "tags": [
     "string"
   ],
-  "state": "PROCESSING",
   "releaseDate": "2019-08-24",
   "playCount": 0,
   "likeCount": 0,
   "repostCount": 0,
-  "createdAt": "2019-08-24T14:15:22Z"
+  "uploadDate": "2019-08-24T14:15:22Z",
+  "description": "string"
 }
 
 ```
@@ -5183,27 +5478,20 @@ POST /auth/register/google
 
 |Name|Type|Required|Restrictions|Title|Description|
 |---|---|---|---|---|---|
-|id|integer|false|none||none|
-|title|string|false|none||none|
-|artist|[TrackArtist](#schematrackartist)|false|none||none|
-|trackUrl|string(uri)|false|none||none|
+|id|integer|true|none||none|
+|title|string|true|none||none|
+|artist|[TrackArtist](#schematrackartist)|true|none||none|
+|trackUrl|string(uri)|true|none||none|
 |coverUrl|string(uri)|false|none||none|
-|waveformUrl|string(uri)|false|none||none|
-|genre|string|false|none||none|
+|waveformUrl|string(uri)|true|none||none|
+|genre|string|true|none||none|
 |tags|[string]|false|none||none|
-|state|string|false|none||none|
-|releaseDate|string(date)|false|none||none|
-|playCount|integer|false|none||none|
-|likeCount|integer|false|none||none|
-|repostCount|integer|false|none||none|
-|createdAt|string(date-time)|false|none||none|
-
-#### Enum
-
-|Name|Value|
-|---|---|
-|state|PROCESSING|
-|state|FINISHED|
+|releaseDate|string(date)|true|none||none|
+|playCount|integer|true|none||none|
+|likeCount|integer|true|none||none|
+|repostCount|integer|true|none||none|
+|uploadDate|string(date-time)|false|none||none|
+|description|string|false|none||none|
 
 <h2 id="tocS_TrackUploadResponse">TrackUploadResponse</h2>
 
@@ -5232,38 +5520,6 @@ POST /auth/register/google
 |trackUrl|string(uri)|false|none||none|
 |coverUrl|string(uri)|false|none||none|
 |durationSeconds|integer|false|none||none|
-
-<h2 id="tocS_UpdateTrackRequest">UpdateTrackRequest</h2>
-
-<a id="schemaupdatetrackrequest"></a>
-<a id="schema_UpdateTrackRequest"></a>
-<a id="tocSupdatetrackrequest"></a>
-<a id="tocsupdatetrackrequest"></a>
-
-```json
-{
-  "title": "string",
-  "genre": "string",
-  "tags": [
-    "string"
-  ],
-  "releaseDate": "2019-08-24",
-  "description": "string",
-  "isPrivate": true
-}
-
-```
-
-### Attribute
-
-|Name|Type|Required|Restrictions|Title|Description|
-|---|---|---|---|---|---|
-|title|string|false|none||none|
-|genre|string|false|none||none|
-|tags|[string]|false|none||none|
-|releaseDate|string(date)|false|none||none|
-|description|string|false|none||none|
-|isPrivate|boolean|false|none||none|
 
 <h2 id="tocS_CreatePlaylistRequest">CreatePlaylistRequest</h2>
 
@@ -5828,12 +6084,12 @@ POST /auth/register/google
   "tags": [
     "string"
   ],
-  "state": "PROCESSING",
   "releaseDate": "2019-08-24",
   "playCount": 0,
   "likeCount": 0,
   "repostCount": 0,
-  "createdAt": "2019-08-24T14:15:22Z"
+  "uploadDate": "2019-08-24T14:15:22Z",
+  "description": "string"
 }
 
 ```
@@ -5866,12 +6122,12 @@ POST /auth/register/google
       "tags": [
         "string"
       ],
-      "state": "PROCESSING",
       "releaseDate": "2019-08-24",
       "playCount": 0,
       "likeCount": 0,
       "repostCount": 0,
-      "createdAt": "2019-08-24T14:15:22Z"
+      "uploadDate": "2019-08-24T14:15:22Z",
+      "description": "string"
     }
   ],
   "pageNumber": 0,

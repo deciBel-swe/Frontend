@@ -21,20 +21,20 @@ interface EmailInputProps {
 
 /**
  * EmailInput Component
- * 
+ *
  * A specialized email input field with a floating label and focus handlers.
  * Designed for authentication forms where email is a required field.
- * 
+ *
  * Features:
  * - Email-specific input type validation
  * - Floating label that animates based on input state
  * - Optional focus callback for side effects
  * - Browser autoComplete support
- * 
+ *
  * @component
  * @param {EmailInputProps} props - Component props
  * @returns {JSX.Element} The email input field with floating label
- * 
+ *
  * @example
  * <EmailInput
  *   value={email}
@@ -47,10 +47,9 @@ const EmailInput: React.FC<EmailInputProps> = ({
   value,
   onChange,
   onFocus,
-  autoComplete = "email",
-  label = "Your email address",
+  autoComplete = 'email',
+  label = 'Your email address',
 }) => {
-
   return (
     <label className="relative block w-full">
       <input

@@ -35,39 +35,39 @@ export type UseAuthValue = AuthContextValue & {
 
 /**
  * useAuth Hook
- * 
+ *
  * Provides access to authentication state and actions from anywhere in the application.
  * Must be called from within an `<AuthProvider>` component tree.
- * 
+ *
  * Authentication operations:
  * - `login(email, password)` - Authenticate with credentials
  * - `logout()` - Clear authentication and sign out
  * - `handleGoogleLogin()` - Initiate Google OAuth 2.0 sign-in flow
- * 
+ *
  * State information:
  * - `user` - Current user object (email, tier, etc.) or null if logged out
  * - `role` - User's role derived from tier: 'artist' or 'listener'
  * - `isAuthenticated` - Boolean flag for quick auth checks
  * - `isLoading` - Whether auth state is still being loaded
- * 
+ *
  * @hook
  * @returns {UseAuthValue} Authentication state and action functions
  * @throws {Error} If called outside of AuthProvider context
- * 
+ *
  * @example
  * const { user, isAuthenticated, login, logout, handleGoogleLogin } = useAuth();
- * 
+ *
  * // Check if authenticated
  * if (isAuthenticated) {
  *   console.log('User email:', user?.email);
  * }
- * 
+ *
  * // Sign in with credentials
  * await login('user@example.com', 'password123');
- * 
+ *
  * // Sign in with Google
  * handleGoogleLogin();
- * 
+ *
  * // Sign out
  * await logout();
  */
@@ -79,16 +79,16 @@ export const useAuth = (): UseAuthValue => {
 
   /**
    * Initiates Google OAuth 2.0 authentication flow
-   * 
+   *
    * Redirects user to Google's authorization page where they can:
    * - Sign in with existing Google account
    * - Create new account using Google
-   * 
+   *
    * After user authorizes, redirects to `/oauth/callback` to complete sign-in.
-   * 
+   *
    * @function
    * @throws {Error} Logs error if GOOGLE_CLIENT_ID is missing from environment
-   * 
+   *
    * @example
    * <button onClick={handleGoogleLogin}>Sign in with Google</button>
    */

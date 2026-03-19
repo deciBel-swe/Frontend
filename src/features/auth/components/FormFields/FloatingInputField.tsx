@@ -11,8 +11,10 @@ import type { FC, InputHTMLAttributes } from 'react';
  * @property {(value: string) => void} onChange - Callback function invoked when input value changes
  * @property {string} [error] - Optional error message displayed below the input field
  */
-interface FloatingInputFieldProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+interface FloatingInputFieldProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange'
+> {
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -21,21 +23,21 @@ interface FloatingInputFieldProps
 
 /**
  * FloatingInputField Component
- * 
+ *
  * A reusable input field with an animated floating label.
  * The label smoothly animates to the top when the field is focused or has content.
  * Displays validation error messages below the input.
- * 
+ *
  * Features:
  * - Floating label animation
  * - Error state display
  * - Supports all standard HTML input attributes (type, placeholder, autoComplete, etc.)
  * - Focus styles with border animation
- * 
+ *
  * @component
  * @param {FloatingInputFieldProps} props - Component props
  * @returns {JSX.Element} The input field with floating label
- * 
+ *
  * @example
  * <FloatingInputField
  *   type="email"

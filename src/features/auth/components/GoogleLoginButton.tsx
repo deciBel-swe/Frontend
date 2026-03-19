@@ -13,17 +13,17 @@ interface GoogleLoginButtonProps {
 
 /**
  * GoogleLoginButton Component
- * 
+ *
  * OAuth button that initiates Google sign-in/registration flow.
  * Displays Google's logo and branded colors.
  * Shows a loading spinner when authentication is in progress.
- * 
+ *
  * @component
  * @param {GoogleLoginButtonProps} props - Component props
  * @returns {JSX.Element} The Google login button
- * 
+ *
  * @example
- * <GoogleLoginButton 
+ * <GoogleLoginButton
  *   onClick={() => initiateGoogleAuth()}
  *   isLoading={isAuthLoading}
  * />
@@ -37,7 +37,7 @@ export const GoogleLoginButton: FC<GoogleLoginButtonProps> = ({
       type="button"
       onClick={onClick}
       disabled={isLoading}
-      className='`w-full min-w-70 flex items-center justify-center gap-1.5 px-8 py-3 rounded-sm shadow-sm bg-interactive-default text-sm font-bold text-text-primary focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-brand-default cursor-pointer disabled:cursor-not-allowed'
+      className="`w-full min-w-70 flex items-center justify-center gap-1.5 px-8 py-3 rounded-sm shadow-sm bg-interactive-default text-sm font-bold text-text-primary focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-brand-default cursor-pointer disabled:cursor-not-allowed"
     >
       {isLoading ? (
         // Simple loading spinner

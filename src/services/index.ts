@@ -9,14 +9,17 @@ import { config } from '@/config';
 
 import type { AuthService } from './api/authService';
 import { MockAuthService } from './mocks/authService';
+import { RealAuthService } from '@/services/api/authService';
 
 import type { PrivacyService } from './api/privacyService';
 import { MockPrivacyService } from './mocks/privacyService';
 import { RealPrivacyService } from './api/privacyService';
+
 import { uploadTrack } from "@/services/api/uploadService"
 import { uploadTrackMock } from "@/services/mocks/uploadService"
 import { UploadTrackService } from '@/types/index';
 //const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"
+
 
 export const uploadTrackService = (
   formData: FormData,
@@ -37,7 +40,7 @@ const resolveAuthService = (): AuthService => {
     return new MockAuthService();
   }
   // TODO: replace with RealAuthService once implemented
-  return new MockAuthService();
+  return new RealAuthService();
 };
 
 export const authService = resolveAuthService();
