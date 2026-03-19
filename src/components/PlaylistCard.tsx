@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from "react";
-
+import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 interface PlaylistCardProps {
   title: string;
   coverUrl: string;
@@ -28,48 +28,15 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
         md:w-[8rem] md:h-[8rem] /* medium screen */
         lg:w-[10rem] lg:h-[10rem] /* full laptop screen */
         rounded-md
+        m-2
       "
     >
-      {/* Cover Image */}
-      <img
-        src={coverUrl}
+      {/* Image with hover play */}
+      <HoverPlayImage
+        image={coverUrl}
+        //size={160} // controls scaling (adjust if needed)
         alt={title}
-        className="w-full h-full object-cover rounded-md"
       />
-
-      {/* Hover Overlay (was bg-black/40 → now bg-surface-overlay) */}
-      <div
-        className="
-          absolute inset-0 
-          bg-surface-overlay 
-          opacity-0 
-          group-hover:opacity-100 
-          transition
-        "
-      ></div>
-
-      {/* Play button */}
-      <div
-        className="
-          absolute inset-0 
-          flex items-center justify-center 
-          opacity-0 group-hover:opacity-100 
-          transition
-        "
-      >
-        <div
-          className="
-            bg-surface-overlay 
-            text-neutral-100 
-            rounded-full 
-            p-2 
-            shadow-md 
-            text-xs
-          "
-        >
-          ▶
-        </div>
-      </div>
 
       {/* Title */}
       <p className="mt-1 text-xs font-medium text-text-primary truncate">
