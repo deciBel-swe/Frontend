@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { trackVisibilityService } from '@/services';
+import { trackService } from '@/services';
 
 const trackMetadataKey = (trackId: number) => ['trackMetadata', trackId];
 
@@ -16,7 +16,7 @@ const trackMetadataKey = (trackId: number) => ['trackMetadata', trackId];
 export function useTrackMetadata(trackId: number | undefined) {
   const { data: metadata, isLoading, isError } = useQuery({
     queryKey: trackMetadataKey(trackId!),
-    queryFn: () => trackVisibilityService.getTrackMetadata(trackId!),
+    queryFn: () => trackService.getTrackMetadata(trackId!),
     enabled: !!trackId,
   });
 

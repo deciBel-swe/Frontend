@@ -56,6 +56,8 @@ export interface ApiRequestOptions<TRequest> {
   signal?: AbortSignal;
   /** Optional per-request headers merged with client defaults. */
   headers?: AxiosRequestConfig['headers'];
+  /** Optional upload progress handler (for multipart/form-data requests). */
+  onUploadProgress?: AxiosRequestConfig['onUploadProgress'];
 }
 
 /**
@@ -220,6 +222,7 @@ export const apiRequest = async <TRequest, TResponse>(
     params: requestOptions.params,
     signal: requestOptions.signal,
     headers: requestOptions.headers,
+    onUploadProgress: requestOptions.onUploadProgress,
   });
 
   const responsePayload =

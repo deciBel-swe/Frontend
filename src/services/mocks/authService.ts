@@ -1,4 +1,5 @@
 import type { AuthService } from '@/services/api/authService';
+import { apiClient } from '@/hooks/useAPI';
 
 import type {
   LoginResponseDTO,
@@ -186,10 +187,11 @@ export class MockAuthService implements AuthService {
     };
 
     // Call API route to send real email
-    await fetch('/api/send-verification', {
+    await apiClient.request({
+      baseURL: '',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, token }),
+      url: '/api/send-verification',
+      data: { email, token },
     });
 
     return { success: true };

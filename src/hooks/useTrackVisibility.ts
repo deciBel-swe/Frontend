@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { trackVisibilityService } from '@/services';
+import { trackService } from '@/services';
 import type { UpdateTrackVisibilityDto, TrackVisibility } from '@/types/tracks';
 
 const visibilityKey = (trackId: number) => ['trackVisibility', trackId];
@@ -22,13 +22,13 @@ export function useTrackVisibility(trackId: number | undefined) {
 
   const { data: visibility, isLoading, isError } = useQuery({
     queryKey: visibilityKey(trackId!),
-    queryFn: () => trackVisibilityService.getTrackVisibility(trackId!),
+    queryFn: () => trackService.getTrackVisibility(trackId!),
     enabled: !!trackId,
   });
 
   const { mutate: updateVisibility, isPending: isUpdating } = useMutation({
     mutationFn: (data: UpdateTrackVisibilityDto) =>
-      trackVisibilityService.updateTrackVisibility(trackId!, data),
+      trackService.updateTrackVisibility(trackId!, data),
     onMutate: async (newData) => {
       await queryClient.cancelQueries({ queryKey: visibilityKey(trackId!) });
       const previous = queryClient.getQueryData(visibilityKey(trackId!));

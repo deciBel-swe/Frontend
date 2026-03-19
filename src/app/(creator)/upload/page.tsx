@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useEffect } from 'react'
 import { z } from 'zod'
-import { uploadTrackService } from "@/services/index"
+import { trackService } from '@/services'
 import { generateWaveform } from "@/utils/generateWaveform"
 import UploadDropzone from '@/app/(creator)/upload/components/UploadDropzone'
 import UploadFormView from '@/app/(creator)/upload/components/UploadFormView'
@@ -116,7 +116,7 @@ export default function UploadPage() {
         formData.append("waveformData", value)
       })
 
-      const response = await uploadTrackService(formData, "mock-token", setUploadProgress)
+      const response = await trackService.uploadTrack(formData, 'mock-token', setUploadProgress)
       setUploadComplete(true)
       setIsUploading(false)
       setUploadedTrackUrl(response.trackUrl) // save the returned track URL
