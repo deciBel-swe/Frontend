@@ -1,7 +1,7 @@
 'use client';
 
-import Image from "next/image";
-import React from "react";
+import React from 'react';
+import { useEffect, useState } from "react";
 
 interface PlaylistCardProps {
   title: string;
@@ -9,28 +9,71 @@ interface PlaylistCardProps {
 }
 
 const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
-  return (
-    <div className="w-28 sm:w-32">
-      {/* Image wrapper */}
-      <div className="group relative cursor-pointer h-28 sm:h-32">
-        <Image
-          src={coverUrl}
-          alt={title}
-          fill
-          className="rounded-md object-cover"
-        />
+    const [isMounted, setIsMounted] = useState(false);
 
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+  useEffect(() => {
+    setIsMounted(true); // mark component as mounted
+  }, []);
 
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-white text-black rounded-full p-2 shadow-lg">
-            ▶
-          </div>
+  if (!isMounted) return null; // render nothing on S
+
+    return (
+    <div
+      className="
+        group 
+        relative 
+        cursor-pointer 
+        w-28 h-28 
+        w-[6rem] h-[6rem]      /* default (half screen) */
+        lg:w-[7.5rem] lg:h-[7.5rem] /* full laptop screen */
+        rounded-md
+      "
+    >
+      {/* Cover Image */}
+      <img
+        src={coverUrl}
+        alt={title}
+        className="w-full h-full object-cover rounded-md"
+      />
+
+      {/* Hover Overlay (was bg-black/40 → now bg-surface-overlay) */}
+      <div
+        className="
+          absolute inset-0 
+          bg-surface-overlay 
+          opacity-0 
+          group-hover:opacity-100 
+          transition
+        "
+      ></div>
+
+      {/* Play button */}
+      <div
+        className="
+          absolute inset-0 
+          flex items-center justify-center 
+          opacity-0 group-hover:opacity-100 
+          transition
+        "
+      >
+        <div
+          className="
+            bg-neutral-0
+            text-text-primary 
+            rounded-full 
+            p-2 
+            shadow-md 
+            text-xs
+          "
+        >
+          ▶
         </div>
       </div>
 
-      {/* Title (now visible) */}
-      <p className="text-sm mt-2 truncate">{title}</p>
+      {/* Title */}
+      <p className="mt-1 text-xs font-medium text-text-primary truncate">
+        {title}
+      </p>
     </div>
   );
 };
