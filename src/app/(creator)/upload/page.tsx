@@ -5,9 +5,9 @@ import { useEffect } from 'react'
 import { z } from 'zod'
 import { uploadTrackService } from "@/services/index"
 import { generateWaveform } from "@/utils/generateWaveform"
-import FloatingInputField from '@/features/auth/components/FormFields/FloatingInputField'
-import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField'
-import Waveform from '@/components/waveform/Waveform'
+import UploadDropzone from '@/app/(creator)/upload/components/UploadDropzone'
+import UploadFormView from '@/app/(creator)/upload/components/UploadFormView'
+import UploadSuccess from '@/app/(creator)/upload/components/UploadSuccess'
 
 const titleSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -31,7 +31,7 @@ export default function UploadPage() {
   const [uploadComplete, setUploadComplete] = useState(false)
   const [uploadedTrackUrl, setUploadedTrackUrl] = useState<string | null>(null)
   const [generatedWaveform, setGeneratedWaveform] = useState<number[]>([])
-  const [waveformHeight, setWaveformHeight] = useState(200)
+  const [waveformHeight, setWaveformHeight] = useState(300)
   const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB in bytes
   const ALLOWED_TYPES = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/x-flac', 'audio/aac', 'audio/x-aac', 'audio/mp4']
   const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac']
@@ -154,8 +154,6 @@ export default function UploadPage() {
 const removeArtwork = () => {
   setArtworkFile(null)
   setArtworkPreview(null)
-  const input = document.getElementById("artwork-input") as HTMLInputElement
-  if (input) input.value = ""
 }
   const handleAudio = (file: File) => {
     // Check file type
@@ -194,378 +192,54 @@ const removeArtwork = () => {
   // Show completed upload message
   if (uploadComplete && uploadedTrackUrl) {
     return (
-      <section className="min-h-screen w-full flex flex-col items-center justify-center gap-6 px-4 sm:px-6">
-        <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary">Saved to DeciBel.</h2>
-          <p className="text-sm sm:text-base text-text-secondary mt-2">
-            Congratulations!, Your tracks are now on DeciBel.
-          </p>
-          {generatedWaveform.length > 0 && (
-            <div className="mt-6 w-full max-w-3xl">
-              <Waveform data={generatedWaveform} height={waveformHeight} />
-            </div>
-          )}
-        </div>
-        <div className="mt-4">
-          <a
-            href={uploadedTrackUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-border-contrast text-text-primary px-6 py-2 rounded-full font-semibold hover:bg-interactive-hover transition"
-          >
-            View Track
-          </a>
-        </div>
-        <div className="mt-6">
-          <button
-            onClick={resetUpload}
-            className="text-sm text-text-muted hover:text-text-secondary transition"
-          >
-            Upload Another Track
-          </button>
-        </div>
-      </section>
+      <UploadSuccess
+        uploadedTrackUrl={uploadedTrackUrl}
+        generatedWaveform={generatedWaveform}
+        waveformHeight={waveformHeight}
+        onReset={resetUpload}
+      />
     )
   }
-  // If form should be shown, render the form
+
   if (showForm && audioFile) {
     return (
-      <section className="min-h-screen w-full pb-32">
-        {/* Top Bar */}
-          <div className="sticky top-0 w-full mb-8">
-
-            <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4">
-
-              {isUploading ? (
-                <div className="w-full">
-                  <div className="flex justify-between text-sm text-text-muted mb-2">
-                    <span>Uploading...</span>
-                    <span>{uploadProgress}%</span>
-                  </div>
-
-                  <div className="w-full h-2 bg-surface-raised rounded">
-                    <div
-                      className="h-full bg-brand-accent transition-all"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3">
-
-                    <div className="w-8 h-8 rounded bg-interactive-default flex items-center justify-center text-xs text-text-muted">
-                      ♪
-                    </div>
-
-                    <span className="text-sm text-text-secondary font-medium">
-                      {audioFile?.name}
-                    </span>
-
-                  </div>
-
-                  <button
-                    onClick={resetUpload}
-                    className="text-sm text-text-muted hover:text-text-secondary transition"
-                  >
-                    Replace
-                  </button>
-                </>
-              )}
-
-            </div>
-
-          </div>
-        <div className="flex justify-center px-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="w-full max-w-3xl py-2">
-            <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 md:grid-cols-[220px_1fr] lg:grid-cols-[300px_1fr]">
-              {/* Artwork */}
-              <div className="flex flex-col items-center gap-2">
-
-                <div
-                  className="w-full max-w-[260px] sm:max-w-sm md:max-w-none aspect-square border border-dashed border-border-default rounded-lg flex items-center justify-center hover:border-border-strong transition cursor-pointer overflow-hidden relative"
-                  onClick={() => document.getElementById("artwork-input")?.click()}
-                >
-
-                  {artworkPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={artworkPreview}
-                      alt="Artwork preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center text-text-muted text-xs gap-2">
-
-                      {/* SVG placeholder */}
-                      <svg
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
-                        <path d="M4 16l4-4 4 4 6-6 2 2v6H4z" />
-                        <circle cx="9" cy="9" r="2" />
-                      </svg>
-
-                      <span>Add new artwork</span>
-
-                    </div>
-                  )}
-
-                </div>
-
-                {/* Replace / Remove buttons */}
-                {artworkPreview && (
-                  <div className="flex gap-3 text-xs">
-
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById("artwork-input")?.click()}
-                      className="text-text-muted hover:text-text-secondary"
-                    >
-                      Replace
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={removeArtwork}
-                      className="text-status-error hover:text-status-error"
-                    >
-                      Remove
-                    </button>
-
-                  </div>
-                )}
-
-                <input
-                  id="artwork-input"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleArtwork(file)
-                  }}
-                />
-
-              </div>
-
-              {/* Track form */}
-              <div className="p-0 sm:p-4 max-w-xl">
-                <form className="space-y-4 text-sm">
-
-                  {/* Title */}
-                  <div>
-                    <FloatingInputField
-                      type="text"
-                      label="Track Title*"
-                      value={title}
-                      onChange={(nextTitle) => {
-                        setTitle(nextTitle)
-                        if (titleError && nextTitle.trim().length > 0) {
-                          setTitleError('')
-                        }
-                      }}
-                      error={titleError || undefined}
-                    />
-                  </div>
-                  
-                  {/* Track Link */}
-                  <div>
-                    <FloatingInputField
-                      type="text"
-                      label="Track Link"
-                      value={trackLink}
-                      onChange={setTrackLink}
-                    />
-                  </div>
-                  {/* Main Artist */}
-                  <div>
-                    <FloatingInputField
-                      type="text"
-                      label="Main Artist"
-                      value={artist}
-                      onChange={setArtist}
-                    />
-                  </div>
-
-
-                  {/* Genre */}
-                  <div>
-                    <FloatingSelectField
-                      label="Genre"
-                      value={genre}
-                      onChange={setGenre}
-                      placeholder="Select genre"
-                      options={[
-                        { value: 'Electronic', label: 'Electronic' },
-                        { value: 'Rock', label: 'Rock' },
-                        { value: 'Hip-Hop', label: 'Hip-Hop' },
-                        { value: 'Jazz', label: 'Jazz' },
-                        { value: 'Classical', label: 'Classical' },
-                      ]}
-                    />
-                  </div>
-
-                  {/* Tags */}
-                  <div>
-                    <FloatingInputField
-                      type="text"
-                      label="Tags"
-                      value={tags}
-                      onChange={setTags}
-                    />
-                  </div>
-
-                  {/* Privacy */}
-                  <div>
-                    <label className="block text-xs text-text-muted mb-1">
-                      Privacy
-                    </label>
-
-                    <div className="flex gap-6 text-xs text-text-secondary">
-
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="privacy"
-                          value="public"
-                          checked={privacy === 'public'}
-                          onChange={() => setPrivacy('public')}
-                        />
-                        Public
-                      </label>
-
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="privacy"
-                          value="private"
-                          checked={privacy === 'private'}
-                          onChange={() => setPrivacy('private')}
-                        />
-                        Private
-                      </label>
-
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="mb-8">
-                    <label className="block text-sm text-text-muted mb-1">
-                      Description
-                    </label>
-
-                    <textarea
-                      rows={4}
-                      placeholder="Tell listeners about your track..."
-                      className="w-full bg-interactive-default border border-border-default rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-border-strong"
-                    />
-                  </div>
-
-                </form>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-        {/* Bottom Submit Bar */}
-        <div className="fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base">
-
-          <div className="max-w-6xl mx-auto flex justify-center sm:justify-end px-4 sm:px-6 py-3">
-
-            <button
-              type="button"
-              onClick={startUpload}
-              className="bg-brand-primary text-text-on-brand w-full sm:w-auto px-6 sm:px-10 py-2 rounded-full font-semibold hover:bg-brand-primary-hover transition"
-            >
-              Upload
-            </button>
-
-          </div>
-
-        </div>
-      </section>
+      <UploadFormView
+        audioFile={audioFile}
+        isUploading={isUploading}
+        uploadProgress={uploadProgress}
+        onReset={resetUpload}
+        onSubmit={startUpload}
+        artworkPreview={artworkPreview}
+        onArtworkSelect={handleArtwork}
+        onRemoveArtwork={removeArtwork}
+        title={title}
+        titleError={titleError}
+        onTitleChange={(nextTitle) => {
+          setTitle(nextTitle)
+          if (titleError && nextTitle.trim().length > 0) {
+            setTitleError('')
+          }
+        }}
+        trackLink={trackLink}
+        onTrackLinkChange={setTrackLink}
+        artist={artist}
+        onArtistChange={setArtist}
+        genre={genre}
+        onGenreChange={setGenre}
+        tags={tags}
+        onTagsChange={setTags}
+        privacy={privacy}
+        onPrivacyChange={setPrivacy}
+      />
     )
   }
 
-  // Otherwise show the upload area
   return (
-    <section className="min-h-screen w-full">
-      <div className="flex justify-center px-4 sm:px-6 md:px-10 lg:px-16">
-        <div className="w-full max-w-5xl py-10 sm:py-12">
-          <header className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
-              Upload your audio files.
-            </h1>
-            <p className="max-w-2xl text-sm sm:text-xs text-text-secondary">
-              For best quality, use MP3, WAV, FLAC, or AAC. The maximum file
-              size is 500MB uncompressed.{' '}
-              <span className="font-semibold underline underline-offset-2">
-                Learn more.
-              </span>
-            </p>
-          </header>
-
-          {/* File upload area */}
-          <div
-            className={`relative flex min-h-60 sm:min-h-70 cursor-pointer flex-col items-center justify-center gap-4 sm:gap-6 rounded-2xl border border-dashed px-6 sm:px-8 py-10 sm:py-12 lg:py-16 text-center transition ${
-              error ? 'border-status-error' : 'border-border-default hover:border-border-strong'
-            }`}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('upload-file-input')?.click()}
-          >
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-border-default bg-surface-default">
-              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full">
-                <span className="text-xs text-text-secondary">+</span>
-              </div>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M12 3v12m0 0l3-3m-3 3l-3-3M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-text-secondary"
-                />
-              </svg>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-base font-semibold text-text-primary">
-                Drag and drop audio files to get started.
-              </p>
-              {error && <p className="text-sm text-status-error">{error}</p>}
-            </div>
-
-            <div className="flex flex-col items-center gap-3">
-              <span className="rounded-full bg-surface-default px-8! py-3! text-sm font-semibold text-text-primary transition hover:bg-interactive-hover">
-                Choose files
-              </span>
-              <span className="text-xs text-text-muted">
-                or click anywhere in the drop zone
-              </span>
-            </div>
-
-            <input
-              id="upload-file-input"
-              type="file"
-              accept=".mp3,.wav,.flac,.aac,audio/mpeg,audio/wav,audio/x-wav,audio/flac,audio/x-flac,audio/aac,audio/x-aac,audio/mp4"
-              className="hidden"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0]
-                if (file) handleAudio(file)
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+    <UploadDropzone
+      error={error}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onFileSelected={handleAudio}
+    />
   )
 }
-
