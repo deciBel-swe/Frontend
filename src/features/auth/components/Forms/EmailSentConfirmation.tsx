@@ -18,21 +18,21 @@ const authService = new MockAuthService();
 
 /**
  * EmailSentConfirmation Component
- * 
+ *
  * A modal dialog that confirms an email verification or password reset email has been sent.
  * Displayed as an overlay modal on top of registration or password reset forms.
- * 
+ *
  * Features:
  * - Displays user's email address for confirmation
  * - Resend email verification/reset link button
  * - Loading state during resend operation
  * - Success/error feedback messages
  * - Back button to return to form
- * 
+ *
  * @component
  * @param {EmailSentConfirmationProps} props - Component props
  * @returns {JSX.Element} The confirmation modal
- * 
+ *
  * @example
  * <EmailSentConfirmation
  *   email="user@example.com"
@@ -68,7 +68,9 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-base px-4">
       <div className="w-full max-w-md rounded-lg border border-border-contrast bg-bg-base p-8 text-center">
-        <h1 className="text-3xl font-bold text-text-primary">Check your inbox!</h1>
+        <h1 className="text-3xl font-bold text-text-primary">
+          Check your inbox!
+        </h1>
         <p className="mt-3 text-sm text-text-muted">
           Click on the link we sent to{' '}
           <span className="font-semibold text-text-primary">{email}</span>
@@ -97,13 +99,7 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
             xmlns="http://www.w3.org/2000/svg"
             className="h-full w-full"
           >
-            <rect
-              x="0"
-              y="0"
-              width="200"
-              height="200"
-              fill="var(--bg-base)"
-            />
+            <rect x="0" y="0" width="200" height="200" fill="var(--bg-base)" />
             <path
               d="M40 130 L100 80 L160 130 L100 110 Z"
               fill="none"

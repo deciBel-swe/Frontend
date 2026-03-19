@@ -31,14 +31,14 @@ const resetPasswordSchema = signInSchema.pick({ email: true });
 
 /**
  * ResetPasswordForm Component
- * 
+ *
  * A modal form that allows users to initiate a password reset by submitting their email address.
  * Performs reCAPTCHA verification before submission to prevent abuse.
- * 
+ *
  * @component
  * @param {ResetPasswordFormProps} props - Component props
  * @returns {JSX.Element} The reset password form modal
- * 
+ *
  * @example
  * <ReCaptchaProvider>
  *   <ResetPasswordForm onSend={(email) => sendResetEmail(email)} />
@@ -51,8 +51,9 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
   const [formValues, setFormValues] = useState<ResetPasswordFormValues>({
     email: initialEmail,
   });
-  const [fieldErrors, setFieldErrors] =
-    useState<FieldErrors<ResetPasswordFormValues>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    FieldErrors<ResetPasswordFormValues>
+  >({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const isFormComplete = resetPasswordSchema.safeParse(formValues).success;
   const { verifyReCaptcha } = useReCaptcha();
@@ -73,12 +74,13 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
       return;
     }
     verifyReCaptcha('reset_password').then((recaptchaResult) => {
-        if (!recaptchaResult.success) {
-          setFieldErrors({
-            email : recaptchaResult.error || 'ReCaptcha verification failed. Please try again.'
-          }          
-        );
-        }
+      if (!recaptchaResult.success) {
+        setFieldErrors({
+          email:
+            recaptchaResult.error ||
+            'ReCaptcha verification failed. Please try again.',
+        });
+      }
       setFieldErrors({});
       onSend?.(parsedValues.data.email);
       setShowConfirmation(true);
