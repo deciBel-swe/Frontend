@@ -21,7 +21,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
   artistUrl = '#',
 }) => {
   return (
-    <div className="group flex items-center justify-between p-2 rounded-md hover:bg-surface-raised transition-colors w-full">
+    <div className="roup flex items-center justify-between px-2 py-4 rounded-xl hover:bg-surface-raised transition-colors w-full">
       
       {/* Artist info */}
       <div className="flex items-center gap-2">
