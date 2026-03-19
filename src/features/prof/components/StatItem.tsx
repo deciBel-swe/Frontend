@@ -13,11 +13,7 @@ const StateItem = async ({ params }: StateItemProps) => {
         <span className="text-[#999] text-sm font-bold mb-1 tracking-wide">
           {text}
         </span>
-        <span
-          className="text-black dark:text-white text-3xl font-bold tracking-tight mb-1 tracking-wide transition-colors 
-          group-hover:text-gray-300 
-        dark:group-hover:text-gray-600 "
-        >
+        <span className="text-white text-3xl font-bold tracking-tight mb-1 tracking-wide transition-colors group-hover:text-gray-500">
           {formatNumber(count)}
         </span>
       </div>
