@@ -100,6 +100,15 @@ export const API_CONTRACTS = {
     responseSchema: userMeSchema,
   }),
 
+  USERS_ME_TRACKS: defineContract<
+    void,
+    z.infer<typeof trackDetailsResponseSchema>[]
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_TRACKS,
+    responseSchema: z.array(trackDetailsResponseSchema),
+  }),
+
   USERS_ME_PRIVACY: defineContract({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_PRIVACY,

@@ -28,6 +28,9 @@ export interface TrackService {
   /** Read a track payload normalized for view/share UI (GET /tracks/:trackId) */
   getTrackMetadata(trackId: number): Promise<TrackMetaData>;
 
+  /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
+  getUserTracks(username?: string): Promise<TrackMetaData[]>;
+
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
 
@@ -92,6 +95,17 @@ export class RealTrackService implements TrackService {
   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
     const payload = await apiRequest(API_CONTRACTS.TRACKS_BY_ID(trackId));
     return normalizeTrackMetadata(trackId, payload);
+  }
+
+  async getUserTracks(username?: string): Promise<TrackMetaData[]> {
+    const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
+    const tracks = payload.map((track) => normalizeTrackMetadata(track.id, track));
+
+    if (!username || username.trim().length === 0) {
+      return tracks;
+    }
+
+    return tracks.filter((track) => track.artist.username === username);
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

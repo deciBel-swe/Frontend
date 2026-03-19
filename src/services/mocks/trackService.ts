@@ -334,6 +334,17 @@ export class MockTrackService implements TrackService {
     return toMetadata(track);
   }
 
+  async getUserTracks(username?: string): Promise<TrackMetaData[]> {
+    await delay();
+
+    const tracks = readTracks();
+    const filteredTracks = !username || username.trim().length === 0
+      ? tracks
+      : tracks.filter((track) => track.artist.username === username);
+
+    return filteredTracks.map(toMetadata);
+  }
+
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {
     await delay();
     const track = this.getTrackById(trackId);
