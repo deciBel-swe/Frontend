@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { ShareModal } from '@/app/[username]/tracks/ShareModal';
 import type { TrackPreview } from '@/app/[username]/tracks/ShareModal';
-import { CopyIcon,ShareIcon } from '@/components/nav/TrackActionBar';
+import { CheckIcon, CopyIcon,ShareIcon } from '@/components/nav/TrackActionBar';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 
@@ -49,7 +49,32 @@ function ActionButton({ label, icon, onClick, disabled = false }: TrackActionIte
 }
 
 // ─── TrackActionBar ───────────────────────────────────────────────────────────
-
+ 
+/**
+ * Extensible row of icon action buttons for a track.
+ *
+ * Default actions:
+ * - **Share**: opens `ShareModal`
+ * - **Copy**: copies the correct URL based on privacy
+ *   - Private → copies secret link
+ *   - Public  → copies `trackUrl` from API
+ *
+ * Pass `extraActions` to add more buttons without modifying this component.
+ *
+ * @example
+ * <TrackActionBar
+ *   trackId="42"
+ *   isPrivate={true}
+ *   track={{ title: 'My Track', artist: 'artist1' }}
+ * />
+ *
+ * // With extra actions
+ * <TrackActionBar
+ *   trackId="42"
+ *   isPrivate={false}
+ *   extraActions={[{ id: 'edit', label: 'Edit', icon: <EditIcon />, onClick: handleEdit }]}
+ * />
+ */
 export function TrackActionBar({
   trackId,
   isPrivate,
@@ -58,6 +83,7 @@ export function TrackActionBar({
 }: TrackActionBarProps) {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
   const { secretUrl } = useSecretLink(isPrivate ? trackId : undefined);
   const { metadata } = useTrackMetadata(!isPrivate ? Number(trackId) : undefined);
 
@@ -83,11 +109,7 @@ export function TrackActionBar({
     {
       id: 'copy',
       label: copied ? 'Copied!' : 'Copy link',
-      icon: copied ? (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : <CopyIcon />,
+      icon: copied ? <CheckIcon /> : <CopyIcon />,
       onClick: handleCopy,
     },
   ];

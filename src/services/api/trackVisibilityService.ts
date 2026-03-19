@@ -1,4 +1,4 @@
-import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto,TrackMetaData } from '@/types';
+import type { SecretLink, TrackVisibility, UpdateTrackVisibilityDto,TrackMetaData } from '@/types/tracks';
 import { API_ENDPOINTS, getApiUrl } from '@/constants/routes';
 
 export interface TrackVisibilityService {

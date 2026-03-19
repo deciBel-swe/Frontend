@@ -4,12 +4,12 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
-import { CopyIcon } from '@/components/nav/TrackActionBar';
+import { CheckIcon, CopyIcon } from '@/components/nav/TrackActionBar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
 type ShareTab = 'share' | 'embed' | 'message';
 
+/** Track metadata shown in the modal preview section */
 export interface TrackPreview {
   title: string;
   artist: string;
@@ -27,6 +27,10 @@ interface ShareModalProps {
 
 // ─── Waveform placeholder ─────────────────────────────────────────────────────
 
+/**
+ * Static waveform visualization placeholder.
+ * Replaced with real waveform data when player is integrated.
+ */
 function WaveformPlaceholder() {
   return (
     <div className="flex items-end gap-[2px] h-8">
@@ -41,7 +45,12 @@ function WaveformPlaceholder() {
   );
 }
 
-// ─── Track preview ────────────────────────────────────────────────────────────
+// ─── Track preview card ───────────────────────────────────────────────────────
+ 
+/**
+ * Stateless track preview shown at the top of the share modal.
+ * Shows cover art, artist name, title, and waveform placeholder.
+ */
 
 function TrackPreview({ track }: { track: TrackPreview }) {
   return (
@@ -78,9 +87,13 @@ function TrackPreview({ track }: { track: TrackPreview }) {
   );
 }
 
-// ─── Share tab content ────────────────────────────────────────────────────────
-
-// ─── Share tab — private ──────────────────────────────────────────────────────
+// ─── Private share content ────────────────────────────────────────────────────
+ 
+/**
+ * Share tab content for private tracks.
+ * Shows the secret link with copy button, shorten link (disabled),
+ * description, and reset secret link button.
+ */
 function PrivateShareContent({ trackId }: { trackId: string }) {
   const { secretUrl, isLoading, isError, regenerate, isRegenerating } = useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
@@ -129,11 +142,7 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
             copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
           ].join(' ')}
         >
-          {copied ? (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : (
+          {copied ? <CheckIcon />: (
             <CopyIcon />
           )}
         </button>
@@ -164,10 +173,12 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
   );
 }
 
-
-// ─── Share tab — public ───────────────────────────────────────────────────────
+// ─── Public share content ─────────────────────────────────────────────────────
  
-
+/**
+ * Share tab content for public tracks.
+ * Shows the track URL from API with copy button and shorten link (disabled).
+ */
 function PublicShareContent({ trackId }: { trackId: string }) {
   const { metadata, isLoading } = useTrackMetadata(Number(trackId));
   const [copied, setCopied] = useState(false);
@@ -201,11 +212,7 @@ function PublicShareContent({ trackId }: { trackId: string }) {
             copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
           ].join(' ')}
         >
-          {copied ? (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 8l4 4 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : <CopyIcon />}
+          {copied ? <CheckIcon />: <CopyIcon />}
         </button>
       </div>
  
@@ -217,13 +224,28 @@ function PublicShareContent({ trackId }: { trackId: string }) {
   );
 }
  
-// ─── ShareModal ───────────────────────────────────────────────────────────────
 
 const PLACEHOLDER_TRACK: TrackPreview = {
   title: 'Untitled Track',
   artist: 'Unknown Artist',
   duration: '0:00',
 };
+/**
+ * Share modal with tabs for Share, Embed, and Message.
+ *
+ * - Public tracks: shows `trackUrl` from API with copy button
+ * - Private tracks: shows secret link with copy + reset button
+ * - Embed and Message tabs are placeholder shells for future implementation
+ *
+ * @example
+ * <ShareModal
+ *   isOpen={open}
+ *   onClose={() => setOpen(false)}
+ *   trackId="42"
+ *   isPrivate={true}
+ *   track={{ title: 'My Track', artist: 'Zeina' }}
+ * />
+ */
 
 export function ShareModal({
   isOpen,
@@ -244,7 +266,7 @@ export function ShareModal({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — closes modal on click */}
       <div
         className="fixed inset-0 z-40 bg-surface-overlay"
         onClick={onClose}

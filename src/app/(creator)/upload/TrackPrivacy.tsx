@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
-import type { TrackPrivacyValue } from '@/types';
+import type { TrackPrivacyValue } from '@/types/tracks';
 
 interface TrackPrivacyProps {
   /** Controlled value — parent owns this */

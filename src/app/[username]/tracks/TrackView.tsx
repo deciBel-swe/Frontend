@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { TrackActionBar } from '@/app/[username]/tracks/TrackActionBar';
 import { TrackPrivacy } from '@/app/(creator)/upload/TrackPrivacy';
-import type { TrackPrivacyValue } from '@/types';
+import type { TrackPrivacyValue } from '@/types/tracks';
 
 interface TrackViewProps {
   trackId: string;

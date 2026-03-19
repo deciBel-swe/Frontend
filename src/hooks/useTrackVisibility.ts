@@ -1,9 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { trackVisibilityService } from '@/services';
-import type { UpdateTrackVisibilityDto, TrackVisibility } from '@/types';
+import type { UpdateTrackVisibilityDto, TrackVisibility } from '@/types/tracks';
 
 const visibilityKey = (trackId: number) => ['trackVisibility', trackId];
 
+/**
+ * Fetches and manages the privacy state of a track.
+ *
+ * Provides optimistic updates — the UI updates immediately on change
+ * and rolls back if the server returns an error.
+ *
+ * Only fetches when `trackId` is defined.
+ *
+ * @param trackId - Numeric track ID, or undefined to skip fetching
+ *
+ * @example
+ * const { visibility, updateVisibility, isUpdating } = useTrackVisibility(42);
+ */
 export function useTrackVisibility(trackId: number | undefined) {
   const queryClient = useQueryClient();
 
@@ -29,6 +42,7 @@ export function useTrackVisibility(trackId: number | undefined) {
       queryClient.setQueryData(visibilityKey(trackId!), context?.previous);
     },
     onSettled: () => {
+      // Always refetch after mutation to sync with server
       queryClient.invalidateQueries({ queryKey: visibilityKey(trackId!) });
     },
   });

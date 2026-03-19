@@ -1,5 +1,5 @@
 import type { TrackVisibilityService } from '@/services/api/trackVisibilityService';
-import type { SecretLink, TrackMetaData, TrackVisibility, UpdateTrackVisibilityDto } from '@/types';
+import type { SecretLink, TrackMetaData, TrackVisibility, UpdateTrackVisibilityDto } from '@/types/tracks';
 
 const delay = (ms = 400) => new Promise(r => setTimeout(r, ms));
 const storageKey = (trackId: number) => `decibel_mock_track_visibility_${trackId}`;

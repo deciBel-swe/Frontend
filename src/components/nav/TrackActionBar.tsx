@@ -31,3 +31,25 @@ export const ShareIcon: FC = () => (
         <path d="M2 10v3.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
 );
+
+/**
+ * Check icon — simple checkmark.
+ * Used to confirm copy/save actions.
+ */
+export const CheckIcon: FC = () => (
+  <svg
+    viewBox="0 0 16 16"
+    width="16"
+    height="16"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M2 8l4 4 8-8"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

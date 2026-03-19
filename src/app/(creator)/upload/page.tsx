@@ -1,17 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TrackPrivacy } from '@/app/(creator)/upload/TrackPrivacy';
-import type { TrackPrivacyValue } from '@/types';
+import type { TrackPrivacyValue } from '@/types/tracks';
+import { QueryProvider } from '@/providers/QueryProvider';
 
-const client = new QueryClient();
 
 export default function Page() {
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
 
   return (
-    <QueryClientProvider client={client}>
+    <QueryProvider>
       <div className="p-8 max-w-xl">
         <h1 className="text-lg font-bold mb-6">Upload Track (dev test)</h1>
 
@@ -28,6 +27,6 @@ export default function Page() {
         </p>
 
       </div>
-    </QueryClientProvider>
+    </QueryProvider>
   );
 }
