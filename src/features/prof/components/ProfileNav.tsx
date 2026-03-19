@@ -20,7 +20,7 @@ export default function ProfileNav({ username }: ProfileNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-[#121212] w-full">
+    <nav className="w-full">
       <div className="flex items-center gap-8 px-6">
         {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
@@ -33,14 +33,14 @@ export default function ProfileNav({ username }: ProfileNavProps) {
               {/* Text styling */}
               <span
                 className={`text-[15px] font-medium transition-colors duration-200 whitespace-nowrap
-            ${isActive ? 'text-white' : 'text-[#999] group-hover:text-white'}`}
+              ${isActive ? 'text-black dark:text-white' : 'text-[#999] group-hover:text-black dark:text-[#bbb] dark:group-hover:text-white'}`}
               >
                 {item.name}
               </span>
 
               {/* Active underline - shifted down by 2 pixels */}
               {isActive && (
-                <div className="absolute -bottom-[4px] left-0 right-0 h-[1px] bg-white" />
+                <div className="absolute -bottom-[4px] left-0 right-0 h-[1px] bg-black dark:bg-white" />
               )}
             </Link>
           );

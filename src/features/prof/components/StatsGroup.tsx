@@ -1,4 +1,4 @@
-import StateItem from '@/components/StatItem';
+import StateItem from '@/features/prof/components/StatItem';
 
 import Link from 'next/link';
 

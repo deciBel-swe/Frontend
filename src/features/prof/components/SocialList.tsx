@@ -15,7 +15,7 @@ import {
   FacebookIcon,
   YouTubeIcon,
   WebsiteIcon,
-} from './icons/SocialIcons';
+} from '../../../components/icons/SocialIcons';
 
 import type { SocialItem } from '@/types/socialItem';
 
