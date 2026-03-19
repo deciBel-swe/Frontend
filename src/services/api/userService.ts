@@ -1,12 +1,42 @@
 import { API_ENDPOINTS, getApiUrl } from '@/constants/routes';
-import { UserMe } from '@/types/user';
+import { UserPublic, UserMe } from '@/types/user';
+import axios from 'axios';
 
-export class UserService {
-  static async getUserByUsername(): Promise<UserMe> {
-    const response = await fetch(getApiUrl(API_ENDPOINTS.USERS.ME), {});
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data');
+export interface UserService {
+  getPublicUser(username: string): Promise<UserPublic>;
+
+  getUserMe(token: string): Promise<UserMe>;
+}
+
+export class RealUserService implements UserService {
+  async getPublicUser(username: string): Promise<UserPublic> {
+    try {
+      const response = await axios.get(
+        getApiUrl(API_ENDPOINTS.USERS.BY_ID(username)),
+        {
+          headers: {},
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error?.response?.data?.message || 'Failed to fetch user data'
+      );
     }
-    return response.json();
+  }
+
+  async getUserMe(token: string): Promise<UserMe> {
+    try {
+      const response = await axios.get(getApiUrl(API_ENDPOINTS.USERS.ME), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error?.response?.data?.message || 'Failed to fetch user data'
+      );
+    }
   }
 }

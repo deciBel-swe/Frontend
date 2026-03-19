@@ -1,5 +1,5 @@
 import StateItem from '@/features/prof/components/StatItem';
-
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 
 interface StateItemProps {
@@ -22,7 +22,8 @@ const StatsGroup = async ({ params }: StateItemProps) => {
         flexWrap: 'nowrap',
       }}
     >
-      <Link href="/you/following">
+      {/* there is no followers page implemented ????  */}
+      <Link href={ROUTES.FOLLOWING}>
         <StateItem
           params={Promise.resolve({
             count: countFollowers,
@@ -30,7 +31,7 @@ const StatsGroup = async ({ params }: StateItemProps) => {
           })}
         />
       </Link>
-      <Link href="/you/followers">
+      <Link href={ROUTES.FOLLOWING}>
         <StateItem
           params={Promise.resolve({
             count: countFollowing,

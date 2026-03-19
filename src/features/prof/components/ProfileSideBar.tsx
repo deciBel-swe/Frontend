@@ -1,34 +1,27 @@
+'use client';
 import React from 'react';
 import { SocialList } from './SocialList';
 import StatsGroup from './StatsGroup';
-import { SocialItem } from '@/types/socialItem';
+import { SocialItem } from '@/types/user';
+import { useProfileSideBar } from '../useProfileSideBar';
 
 interface ProfileSideBarProps {
-  countTracks: number;
-  countFollowers: number;
-  countFollowing: number;
-  bio: string;
-  socialItems: SocialItem[];
+  username: string;
 }
 
-const ProfileSideBar = ({
-  countTracks,
-  countFollowers,
-  countFollowing,
-  bio,
-  socialItems,
-}: ProfileSideBarProps) => {
+const ProfileSideBar = async ({ username }: ProfileSideBarProps) => {
+  const { data, isLoading, error } = await useProfileSideBar(username);
   return (
     <div className="flex flex-col gap-2 p-5">
       <StatsGroup
         params={Promise.resolve({
-          countTracks: 1001,
-          countFollowers: 99000,
-          countFollowing: 3200,
+          countTracks: data?.countTracks || 0,
+          countFollowers: data?.countFollowers || 0,
+          countFollowing: data?.countFollowing || 0,
         })}
       />
-      <p>bio</p>
-      <SocialList items={socialItems} />
+      <p>{data?.bio}</p>
+      <SocialList items={data?.socialItems} />
     </div>
   );
 };

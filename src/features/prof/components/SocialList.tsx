@@ -17,7 +17,7 @@ import {
   WebsiteIcon,
 } from '../../../components/icons/SocialIcons';
 
-import type { SocialItem } from '@/types/socialItem';
+import type { SocialItem } from '@/types/user';
 
 const iconMap: Record<string, React.ElementType> = {
   instagram: InstagramIcon,
@@ -27,12 +27,12 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export interface SocialListProps {
-  items: SocialItem[];
+  items?: SocialItem[];
 }
 
 export const SocialList: FC<SocialListProps> = ({ items }) => (
   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-    {items.map(({ label, url }, idx) => {
+    {items?.map(({ label, url }, idx) => {
       const key = label.toLowerCase();
       const Icon = iconMap[key] || WebsiteIcon;
       return (

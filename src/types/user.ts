@@ -54,3 +54,23 @@ export interface UserPublic {
     trackCount: number;
   };
 }
+
+export interface UserHeader {
+  username: string;
+  location: string;
+  coverPhotoUrl: string;
+  avatarUrl: string;
+}
+
+export interface SocialItem {
+  label: string;
+  url: string;
+}
+
+export interface SideBarData {
+  countTracks: number;
+  countFollowers: number;
+  countFollowing: number;
+  bio: string;
+  socialItems: SocialItem[];
+}

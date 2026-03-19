@@ -74,6 +74,15 @@ export { useSignInSubmit } from '../features/auth/useSignInSubmit';
  */
 export { useRegistrationSubmit } from '../features/auth/useRegistrationSubmit';
 
+/**
+ * useSideBar — fetches profile sidebar data (stats + social links).
+ */
+export { useProfileSideBar } from '../features/prof/useProfileSideBar';
+
+//    useUserHeader, which fetches profile header data (cover photo, avatar, location) for a given username.
+
+export { useUserHeader } from '../features/prof/useUserHeader';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';

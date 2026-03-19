@@ -16,14 +16,8 @@ const Layout = async ({
 
   return (
     <div>
-      <div style={{ marginBottom: '8px' }}>
-        <ProfileHeader
-          params={Promise.resolve({
-            coverPhotoUrl: 'https://i.ibb.co/r2ZssgJZ/sl-063022-51250-12.jpg',
-            avatarUrl: 'https://i.ibb.co/yFSZ1q4g/images.webp',
-            username: `${username}`,
-          })}
-        />
+      <div>
+        <ProfileHeader username={`${username}`} />
       </div>
       <div className="flex flex-row-reverse items-center gap-18 mb-5 mr-10">
         <IconButton aria-label="edit">
@@ -43,18 +37,7 @@ const Layout = async ({
       <div className="flex w-full mt-6 px-8">
         <div className="flex-1">{children}</div>
         <div className="w-[340px] ml-10">
-          <ProfileSideBar
-            countTracks={1001}
-            countFollowers={99000}
-            countFollowing={3200}
-            bio="This is my bio."
-            socialItems={[
-              { label: 'Instagram', url: 'https://www.instagram.com' },
-              { label: 'Twitter', url: 'https://www.twitter.com' },
-              { label: 'Facebook', url: 'https://www.facebook.com' },
-              { label: 'Decibel', url: 'https://www.decibel.foo' },
-            ]}
-          />
+          <ProfileSideBar username={`${username}`} />
         </div>
       </div>
     </div>
