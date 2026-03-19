@@ -1,10 +1,8 @@
 interface ProfileAvatarProps {
-  params: Promise<{ avatarUrl?: string }>;
+  avatarUrl?: string;
 }
 
-const ProfileAvatar = async ({ params }: ProfileAvatarProps) => {
-  const { avatarUrl } = await params;
-
+const ProfileAvatar = ({ avatarUrl }: ProfileAvatarProps) => {
   return (
     <div className="relative -mt-16 h-32 w-32 shrink-0 md:-mt-20 md:h-40 md:w-40">
       <div className="h-full w-full rounded-full border-[6px] border-[#0a0a0a] bg-[#1a1a1a] overflow-hidden shadow-2xl">

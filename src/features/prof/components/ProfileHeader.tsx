@@ -11,17 +11,9 @@ const ProfileHeader = ({ username }: ProfileHeaderProps) => {
   const { data, isLoading, error } = useUserHeader(username);
   return (
     <div className="relative">
-      <ProfileBanner
-        params={Promise.resolve({
-          coverPhotoUrl: data?.coverPhotoUrl,
-        })}
-      />
+      <ProfileBanner coverPhotoUrl={data?.coverPhotoUrl} />
       <div className="absolute top-1/2 left-10 -translate-y-1/2 flex items-center gap-4">
-        <ProfileAvatar
-          params={Promise.resolve({
-            avatarUrl: data?.avatarUrl,
-          })}
-        />
+        <ProfileAvatar avatarUrl={data?.avatarUrl} />
         <div className="flex flex-col gap-1 items-start">
           <span className="text-xl font-bold text-white bg-black p-2">
             {username}

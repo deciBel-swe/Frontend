@@ -1,11 +1,10 @@
 import { useTheme } from 'next-themes';
 
 interface ProfileBannerProps {
-  params: Promise<{ coverPhotoUrl?: string }>;
+  coverPhotoUrl?: string;
 }
 
-const ProfileBanner = async ({ params }: ProfileBannerProps) => {
-  const { coverPhotoUrl } = await params;
+const ProfileBanner = ({ coverPhotoUrl }: ProfileBannerProps) => {
   return (
     <div className="h-[200px] w-full overflow-hidden md:h-[300px]">
       {coverPhotoUrl ? (

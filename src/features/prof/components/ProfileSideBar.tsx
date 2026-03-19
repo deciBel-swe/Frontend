@@ -9,8 +9,8 @@ interface ProfileSideBarProps {
   username: string;
 }
 
-const ProfileSideBar = async ({ username }: ProfileSideBarProps) => {
-  const { data, isLoading, error } = await useProfileSideBar(username);
+const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
+  const { data, isLoading, error } = useProfileSideBar(username);
   return (
     <div className="flex flex-col gap-2 p-5">
       <StatsGroup
