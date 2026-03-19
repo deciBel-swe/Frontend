@@ -24,8 +24,9 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
         relative 
         cursor-pointer 
         w-28 h-28 
-        w-[6rem] h-[6rem]      /* default (half screen) */
-        lg:w-[7.5rem] lg:h-[7.5rem] /* full laptop screen */
+        w-[6.5rem] h-[6.5rem]      /* default (half screen) */
+        md:w-[8rem] md:h-[8rem] /* medium screen */
+        lg:w-[10rem] lg:h-[10rem] /* full laptop screen */
         rounded-md
       "
     >
@@ -58,8 +59,8 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
       >
         <div
           className="
-            bg-neutral-0
-            text-text-primary 
+            bg-surface-overlay 
+            text-neutral-100 
             rounded-full 
             p-2 
             shadow-md 
