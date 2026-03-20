@@ -143,6 +143,10 @@ describe('AuthService contract parity', () => {
     const parsedMockLogin = assertValidLoginResponse(mockLoginResponse);
     expect(parsedMockLogin.user.username).toBe('user1');
 
+    const restoredMockSession = await mockService.getSession();
+    expect(restoredMockSession).not.toBeNull();
+    expect(restoredMockSession?.user.username).toBe('user1');
+
     jest.useRealTimers();
   });
 

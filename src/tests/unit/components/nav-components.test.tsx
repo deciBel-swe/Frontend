@@ -11,7 +11,8 @@ import { useTopNavBar } from '@/components/nav/useTopNavBar';
 
 jest.mock('next/link', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function MockLink({ href, onClick, children, ...rest }: any) {
+  return function MockLink({ href, onClick, children, prefetch, ...rest }: any) {
+    void prefetch;
     return (
       <a
         href={typeof href === 'string' ? href : ''}
@@ -36,6 +37,7 @@ const mockUseTopNavBar = useTopNavBar as jest.Mock;
 const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
   user: null,
   isAuthenticated: false,
+  isAuthLoading: false,
   isMounted: true,
   login: jest.fn(),
   userMenuOpen: false,
@@ -179,5 +181,20 @@ describe('TopNavBar', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Profile' }));
 
     await waitFor(() => expect(closeUserMenu).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps guest actions visible while auth is loading', () => {
+    mockUseTopNavBar.mockReturnValue(
+      createTopNavState({
+        isAuthenticated: false,
+        user: null,
+        isAuthLoading: true,
+      })
+    );
+
+    render(<TopNavBar />);
+
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Create account' })).toBeDisabled();
   });
 });

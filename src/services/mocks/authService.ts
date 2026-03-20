@@ -196,7 +196,7 @@ export class MockAuthService implements AuthService {
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.

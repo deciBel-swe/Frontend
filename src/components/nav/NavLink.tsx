@@ -12,6 +12,7 @@ export interface NavLinkProps {
   href: string;
   label: string;
   isActive?: boolean;
+  prefetch?: boolean;
   /** Extra Tailwind classes — e.g. responsive visibility overrides. */
   className?: string;
 }
@@ -20,6 +21,7 @@ export const NavLink: FC<NavLinkProps> = ({
   href,
   label,
   isActive = false,
+  prefetch,
   className = '',
 }) => {
   const cls = [
@@ -37,6 +39,7 @@ export const NavLink: FC<NavLinkProps> = ({
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       aria-current={isActive ? 'page' : undefined}
       className="h-full no-underline"
     >
