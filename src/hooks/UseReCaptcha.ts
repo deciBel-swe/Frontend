@@ -1,5 +1,6 @@
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { apiClient } from '@/hooks/useAPI';
+import { authService } from '@/services';
+import type { ReCaptchaVerificationResult } from '@/services/api/authService';
 
 /**
  * Result object returned from reCAPTCHA verification
@@ -8,11 +9,7 @@ import { apiClient } from '@/hooks/useAPI';
  * @property {number} [score] - Confidence score from Google (0.0 - 1.0), where 1.0 is very likely a legitimate user
  * @property {string} [error] - Error message if verification failed
  */
-export interface ReCaptchaResult {
-  success: boolean;
-  score?: number;
-  error?: string;
-}
+export type ReCaptchaResult = ReCaptchaVerificationResult;
 
 /**
  * Hook for reCAPTCHA v3 verification
@@ -22,7 +19,7 @@ export interface ReCaptchaResult {
  *
  * The verification process:
  * 1. Executes reCAPTCHA on the client to get a token
- * 2. Sends the token to `/api/verify-recaptcha` for server-side verification
+ * 2. Delegates token verification to the configured auth service
  * 3. Returns the verification result and score
  *
  * @hook
@@ -59,30 +56,31 @@ export const useReCaptcha = () => {
       const token = await executeRecaptcha(action);
       console.log('ReCaptcha token:', token);
 
-      // Verify the token with our API
-      const response = await apiClient.request({
-        baseURL: '',
-        method: 'POST',
-        url: '/api/verify-recaptcha',
-        data: { token },
-      });
+      const verificationResult = await authService.verifyReCaptcha(
+        token,
+        action
+      );
 
-      const data = response.data;
-
-      if (data.success) {
-        console.log('ReCaptcha verification successful, score:', data.score);
-        return { success: true, score: data.score };
+      if (verificationResult.success) {
+        console.log(
+          'ReCaptcha verification successful, score:',
+          verificationResult.score
+        );
+        return {
+          success: true,
+          score: verificationResult.score,
+        };
       } else {
         console.log(
           'ReCaptcha verification failed, score:',
-          data.score,
-          'errors:',
-          data.errors
+          verificationResult.score,
+          'error:',
+          verificationResult.error
         );
         return {
           success: false,
-          score: data.score,
-          error: 'Verification failed',
+          score: verificationResult.score,
+          error: verificationResult.error || 'Verification failed',
         };
       }
     } catch (error) {

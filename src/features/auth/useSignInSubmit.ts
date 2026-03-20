@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 
-import type { ReCaptchaResult } from '../../hooks/UseReCaptcha';
+import type { ReCaptchaResult } from '@/hooks/UseReCaptcha';
 import {
   getSchemaFieldErrors,
   signInSchema,
