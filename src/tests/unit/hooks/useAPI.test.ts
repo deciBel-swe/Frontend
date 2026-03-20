@@ -6,6 +6,8 @@ import { z } from 'zod';
 
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  attachJwtInterceptor,
   apiClient,
   apiRequest,
   normalizeApiError,
@@ -101,6 +103,62 @@ describe('normalizeApiError', () => {
       statusCode: 500,
       message: 'Unexpected API error',
     });
+  });
+});
+
+describe('attachJwtInterceptor', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('adds bearer Authorization header when a token is available', () => {
+    window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, 'jwt-token-123');
+
+    const requestConfig = attachJwtInterceptor({
+      headers: {
+        'x-test': 'on',
+      },
+    } as never);
+
+    expect(requestConfig.headers).toEqual(
+      expect.objectContaining({
+        Authorization: 'Bearer jwt-token-123',
+        'x-test': 'on',
+      })
+    );
+  });
+
+  it('does not overwrite an existing Authorization header', () => {
+    window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, 'jwt-token-123');
+
+    const requestConfig = attachJwtInterceptor({
+      headers: {
+        Authorization: 'Bearer explicit-token',
+      },
+    } as never);
+
+    expect(requestConfig.headers).toEqual(
+      expect.objectContaining({
+        Authorization: 'Bearer explicit-token',
+      })
+    );
+  });
+
+  it('leaves headers unchanged when no token is stored', () => {
+    const requestConfig = attachJwtInterceptor({
+      headers: {
+        'x-test': 'on',
+      },
+    } as never);
+
+    expect(requestConfig.headers).toEqual(
+      expect.objectContaining({
+        'x-test': 'on',
+      })
+    );
+    expect(
+      (requestConfig.headers as Record<string, string>).Authorization
+    ).toBeUndefined();
   });
 });
 
