@@ -24,6 +24,8 @@ interface UploadFormViewProps {
   onGenreChange: (value: string) => void
   tags: string
   onTagsChange: (value: string) => void
+  description: string
+  onDescriptionChange: (value: string) => void
   privacy: 'public' | 'private'
   onPrivacyChange: (value: 'public' | 'private') => void
 }
@@ -48,6 +50,8 @@ export default function UploadFormView({
   onGenreChange,
   tags,
   onTagsChange,
+  description,
+  onDescriptionChange,
   privacy,
   onPrivacyChange,
 }: UploadFormViewProps) {
@@ -256,6 +260,8 @@ export default function UploadFormView({
                   <textarea
                     rows={4}
                     placeholder="Tell listeners about your track..."
+                    value={description}
+                    onChange={(event) => onDescriptionChange(event.target.value)}
                     className="w-full bg-interactive-default border border-border-default rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-border-strong"
                   />
                 </div>

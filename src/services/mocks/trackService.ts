@@ -245,8 +245,29 @@ const getBooleanField = (formData: FormData, key: string): boolean => {
 
 const getTagsField = (formData: FormData): string[] => {
   const unique = new Set<string>();
-  formData
-    .getAll('tags')
+  const entries = formData.getAll('tags');
+  const hasSingleJsonString =
+    entries.length === 1 &&
+    typeof entries[0] === 'string' &&
+    entries[0].trim().startsWith('[');
+
+  if (hasSingleJsonString) {
+    try {
+      const parsed = JSON.parse(entries[0] as string);
+      if (Array.isArray(parsed)) {
+        parsed
+          .filter((tag): tag is string => typeof tag === 'string')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0)
+          .forEach((tag) => unique.add(tag));
+        return [...unique];
+      }
+    } catch {
+      // Fall through to default parsing.
+    }
+  }
+
+  entries
     .flatMap((entry) => (typeof entry === 'string' ? entry.split(',') : []))
     .map((tag) => tag.trim())
     .filter((tag) => tag.length > 0)
@@ -285,7 +306,25 @@ export class MockTrackService implements TrackService {
             ? Math.max(...tracks.map((track) => track.id)) + 1
             : 1;
 
-        const waveformSampleCount = formData.getAll('waveformData').length;
+        const waveformEntries = formData.getAll('waveformData');
+        const waveformSampleCount = (() => {
+          if (
+            waveformEntries.length === 1 &&
+            typeof waveformEntries[0] === 'string' &&
+            waveformEntries[0].trim().startsWith('[')
+          ) {
+            try {
+              const parsed = JSON.parse(waveformEntries[0] as string);
+              if (Array.isArray(parsed)) {
+                return parsed.length;
+              }
+            } catch {
+              return 0;
+            }
+          }
+
+          return waveformEntries.length;
+        })();
         const durationSeconds =
           waveformSampleCount > 0
             ? Math.max(30, Math.min(1200, waveformSampleCount * 2))
