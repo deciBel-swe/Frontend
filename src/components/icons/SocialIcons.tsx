@@ -11,6 +11,8 @@
  * - FacebookIcon
  * - YouTubeIcon
  * - WebsiteIcon
+ * - FollowIcon
+ * - FollowingIcon
  */
 
 import type { FC } from 'react';
