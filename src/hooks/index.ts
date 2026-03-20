@@ -74,19 +74,15 @@ export { useSignInSubmit } from '../features/auth/useSignInSubmit';
  */
 export { useRegistrationSubmit } from '../features/auth/useRegistrationSubmit';
 
-/**
- * useSideBar — fetches profile sidebar data (stats + social links).
- */
-export { useProfileSideBar } from '../features/prof/useProfileSideBar';
+//    usePublicUser, which fetches public user data for profile header and other public-facing components.
 
-//    useUserHeader, which fetches profile header data (cover photo, avatar, location) for a given username.
-
-export { useUserHeader } from '../features/prof/useUserHeader';
+export { usePublicUser } from '../features/prof/hooks/usePublicUser';
 
 /**
- * useGetUsername — returns the current authenticated user's username.
+ * useUserMe — fetches the authenticated user's profile data, including private fields.
+ * to be used for setting and authenticated user only
  */
-export { useGetUsername } from '../features/prof/useGetUsername';
+export { useUserMe } from '../features/prof/hooks/useUserMe';
 /* useAPI — imperative access to the centralized axios + Zod request pipeline.
  *
  * Returns `{ request, client }` for one-off controlled calls.

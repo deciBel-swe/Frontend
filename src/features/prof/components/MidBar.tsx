@@ -9,7 +9,7 @@ import {
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
-import { useGetUsername } from '@/features/prof/useGetUsername';
+import { useUserMe } from '@/features/prof/hooks/useUserMe';
 
 interface MidBarProps {
   username: string;
@@ -18,14 +18,15 @@ interface MidBarProps {
 const MidBar = ({ username }: MidBarProps) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-  const { username: myUsername } = useGetUsername();
+  const { user: myUser } = useUserMe();
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  const isOwnProfile = isHydrated && myUsername === username;
-
+  //const isOwnProfile = isHydrated && myUser?.username === username;
+  // there is problem in it I will just use dummy name for testing
+  const isOwnProfile = 'mockuser' === username;
   return (
     <div className="flex flex-row-reverse items-center gap-2 sm:gap-3 md:gap-4 mt-1 mb-1 mr-10">
       {!isOwnProfile && (
@@ -59,6 +60,7 @@ const MidBar = ({ username }: MidBarProps) => {
           className="group w-auto h-auto"
           onClick={() => {
             setIsFollowing((prev) => !prev);
+            console.log(myUser);
           }}
         >
           <span

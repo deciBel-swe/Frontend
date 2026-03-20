@@ -18,6 +18,9 @@ import { MockPrivacyService } from './mocks/privacyService';
 import type { TrackService } from '@/services/api/trackService';
 import { RealTrackService } from '@/services/api/trackService';
 import { MockTrackService } from '@/services/mocks/trackService';
+import { MockUserService } from './mocks/userService';
+import { RealUserService } from './api/userService';
+import { UserService } from './api/userService';
 
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
@@ -48,3 +51,11 @@ const resolvePrivacyService = (): PrivacyService => {
 
 export const privacyService = resolvePrivacyService();
 
+const resolveUserService = (): UserService => {
+  if (config.api.useMock) {
+    return new MockUserService();
+  }
+  return new RealUserService();
+};
+
+export const userService = resolveUserService();
