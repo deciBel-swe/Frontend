@@ -3,19 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 import RegisterationForm from '@/features/auth/components/Forms/RegisterationForm';
 
-const mockExecuteRecaptcha = jest.fn();
-const mockApiRequest = jest.fn();
+const mockVerifyReCaptcha = jest.fn();
 
-jest.mock('react-google-recaptcha-v3', () => ({
-  useGoogleReCaptcha: () => ({
-    executeRecaptcha: mockExecuteRecaptcha,
+jest.mock('@/hooks/UseReCaptcha', () => ({
+  useReCaptcha: () => ({
+    verifyReCaptcha: mockVerifyReCaptcha,
   }),
-}));
-
-jest.mock('@/hooks/useAPI', () => ({
-  apiClient: {
-    request: (...args: unknown[]) => mockApiRequest(...args),
-  },
 }));
 
 const getRequiredInput = (container: HTMLElement, selector: string) => {
@@ -76,9 +69,9 @@ const fillValidRegistrationForm = async (
 
 describe('RegisterationForm', () => {
   beforeEach(() => {
-    mockExecuteRecaptcha.mockReset().mockResolvedValue('recaptcha-token');
-    mockApiRequest.mockReset().mockResolvedValue({
-      data: { success: true, score: 0.92 },
+    mockVerifyReCaptcha.mockReset().mockResolvedValue({
+      success: true,
+      score: 0.92,
     });
   });
 
@@ -96,16 +89,14 @@ describe('RegisterationForm', () => {
     expect(await screen.findByText('Confirm password is required.')).toBeInTheDocument();
     expect(await screen.findByText('Month is required.')).toBeInTheDocument();
     expect(await screen.findByText('Gender is required.')).toBeInTheDocument();
-    expect(mockExecuteRecaptcha).not.toHaveBeenCalled();
+    expect(mockVerifyReCaptcha).not.toHaveBeenCalled();
   });
 
   it('shows verification error when recaptcha verification fails', async () => {
-    mockApiRequest.mockResolvedValue({
-      data: {
-        success: false,
-        score: 0.12,
-        errors: ['timeout-or-duplicate'],
-      },
+    mockVerifyReCaptcha.mockResolvedValue({
+      success: false,
+      score: 0.12,
+      error: 'Verification failed',
     });
 
     const user = userEvent.setup();
@@ -115,14 +106,7 @@ describe('RegisterationForm', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     expect(await screen.findByText('Verification failed')).toBeInTheDocument();
-    expect(mockExecuteRecaptcha).toHaveBeenCalledWith('submit_form');
-    expect(mockApiRequest).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'POST',
-        url: '/api/verify-recaptcha',
-        data: { token: 'recaptcha-token' },
-      })
-    );
+    expect(mockVerifyReCaptcha).toHaveBeenCalledWith('submit_form');
   });
 
   it('shows email confirmation overlay after successful submit', async () => {

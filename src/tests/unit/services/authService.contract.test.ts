@@ -1,4 +1,4 @@
-import { apiRequest } from '@/hooks/useAPI';
+import { apiClient, apiRequest } from '@/hooks/useAPI';
 import { RealAuthService } from '@/services/api/authService';
 import { MockAuthService } from '@/services/mocks/authService';
 import {
@@ -17,6 +17,8 @@ jest.mock('@/hooks/useAPI', () => ({
 }));
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
+const mockedApiClientRequest =
+  apiClient.request as jest.MockedFunction<typeof apiClient.request>;
 
 const localStorageStore = new Map<string, string>();
 const sessionStorageStore = new Map<string, string>();
@@ -216,6 +218,44 @@ describe('AuthService contract parity', () => {
 
     const parsedMockRefresh = assertValidRefreshResponse(mockRefreshResponse);
     expect(parsedMockRefresh.expiresIn).toBeGreaterThan(0);
+
+    jest.useRealTimers();
+  });
+
+  it('returns consistently shaped recaptcha verification results for real and mock services', async () => {
+    mockedApiClientRequest.mockResolvedValueOnce({
+      data: {
+        success: true,
+        score: 0.93,
+      },
+    } as never);
+
+    const realService = new RealAuthService();
+    const realResult = await realService.verifyReCaptcha('token-abc', 'signin');
+
+    expect(realResult.success).toBe(true);
+    expect(realResult.score).toBe(0.93);
+
+    jest.useFakeTimers();
+
+    const mockService = new MockAuthService();
+    const mockResultPromise = mockService.verifyReCaptcha('token-abc', 'signin');
+    await advanceMockDelay(100);
+    const mockResult = await mockResultPromise;
+
+    expect(typeof mockResult.success).toBe('boolean');
+    expect(mockResult.success).toBe(true);
+    expect(typeof mockResult.score).toBe('number');
+
+    const mockFailPromise = mockService.verifyReCaptcha('fail-token', 'signin');
+    await advanceMockDelay(100);
+    const mockFail = await mockFailPromise;
+
+    expect(mockFail).toEqual({
+      success: false,
+      score: 0.1,
+      error: 'Verification failed',
+    });
 
     jest.useRealTimers();
   });

@@ -1,16 +1,22 @@
-import { apiRequest } from '@/hooks/useAPI';
+import { API_ENDPOINTS } from '@/constants/routes';
+import { apiClient, apiRequest } from '@/hooks/useAPI';
 import { RealAuthService } from '@/services/api/authService';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { LoginResponseDTO, LoginUserDTO } from '@/types';
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
+  apiClient: {
+    request: jest.fn(),
+  },
 }));
 
 const USER_STORAGE_KEY = 'user';
 const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
+const mockedApiClientRequest =
+  apiClient.request as jest.MockedFunction<typeof apiClient.request>;
 
 const user: LoginUserDTO = {
   id: 1,
@@ -167,5 +173,44 @@ describe('RealAuthService', () => {
     expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGOUT_ALL);
     expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
+  });
+
+  it('verifies recaptcha using API URL and returns success payload', async () => {
+    mockedApiClientRequest.mockResolvedValue({
+      data: {
+        success: true,
+        score: 0.91,
+      },
+    } as never);
+
+    const service = new RealAuthService();
+    const result = await service.verifyReCaptcha('token-123', 'signin');
+
+    expect(result).toEqual({ success: true, score: 0.91 });
+    expect(mockedApiClientRequest).toHaveBeenCalledWith({
+      baseURL: '',
+      method: 'POST',
+      url: API_ENDPOINTS.AUTH.VERIFY_RECAPTCHA,
+      data: { token: 'token-123', action: 'signin' },
+    });
+  });
+
+  it('normalizes recaptcha failure errors from API responses', async () => {
+    mockedApiClientRequest.mockResolvedValue({
+      data: {
+        success: false,
+        score: 0.2,
+        errors: ['timeout-or-duplicate'],
+      },
+    } as never);
+
+    const service = new RealAuthService();
+    const result = await service.verifyReCaptcha('token-123');
+
+    expect(result).toEqual({
+      success: false,
+      score: 0.2,
+      error: 'timeout-or-duplicate',
+    });
   });
 });

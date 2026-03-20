@@ -1,4 +1,5 @@
-import { apiRequest } from '@/hooks/useAPI';
+import { API_ENDPOINTS } from '@/constants/routes';
+import { apiClient, apiRequest } from '@/hooks/useAPI';
 import type {
   DeviceInfoDTO,
   LoginResponseDTO,
@@ -27,6 +28,18 @@ export interface AuthService {
 
   /** Log out of all sessions (POST /auth/logout-all) */
   logoutAll(): Promise<void>;
+
+  /** Verify a ReCaptcha token before auth-related submissions */
+  verifyReCaptcha(
+    token: string,
+    action?: string
+  ): Promise<ReCaptchaVerificationResult>;
+}
+
+export interface ReCaptchaVerificationResult {
+  success: boolean;
+  score?: number;
+  error?: string;
 }
 
 const USER_STORAGE_KEY = 'user';
@@ -123,6 +136,54 @@ export class RealAuthService implements AuthService {
   async logoutAll(): Promise<void> {
     await apiRequest(API_CONTRACTS.AUTH_LOGOUT_ALL);
     this.clearSession();
+  }
+
+  async verifyReCaptcha(
+    token: string,
+    action: string = 'submit_form'
+  ): Promise<ReCaptchaVerificationResult> {
+    if (!token || !token.trim()) {
+      return { success: false, error: 'Token is required' };
+    }
+
+    try {
+      const response = await apiClient.request<{
+        success: boolean;
+        score?: number;
+        error?: string;
+        errors?: string[];
+      }>({
+        baseURL: '',
+        method: 'POST',
+        url: API_ENDPOINTS.AUTH.VERIFY_RECAPTCHA,
+        data: { token, action },
+      });
+
+      const data = response.data;
+      if (data.success) {
+        return {
+          success: true,
+          score: data.score,
+        };
+      }
+
+      const normalizedError =
+        data.error ||
+        (Array.isArray(data.errors) && data.errors.length > 0
+          ? data.errors.join(', ')
+          : 'Verification failed');
+
+      return {
+        success: false,
+        score: data.score,
+        error: normalizedError,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
   private persistSession(response: LoginResponseDTO): void {

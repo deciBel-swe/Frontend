@@ -1,4 +1,8 @@
-import type { AuthService } from '@/services/api/authService';
+import type {
+  AuthService,
+  ReCaptchaVerificationResult,
+} from '@/services/api/authService';
+import { API_ENDPOINTS } from '@/constants/routes';
 import { apiClient } from '@/hooks/useAPI';
 
 import type {
@@ -75,6 +79,35 @@ const decodeMockToken = (
 // ================================
 
 export class MockAuthService implements AuthService {
+  async verifyReCaptcha(
+    token: string,
+    _action: string = 'submit_form'
+  ): Promise<ReCaptchaVerificationResult> {
+    await delay(50);
+
+    if (!token || !token.trim()) {
+      return {
+        success: false,
+        score: 0,
+        error: 'Verification failed',
+      };
+    }
+
+    // Frontend-only mock mode should never call the API endpoint.
+    if (token.startsWith('fail')) {
+      return {
+        success: false,
+        score: 0.1,
+        error: 'Verification failed',
+      };
+    }
+
+    return {
+      success: true,
+      score: 0.92,
+    };
+  }
+
   async getSession(): Promise<LoginResponseDTO | null> {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -190,7 +223,7 @@ export class MockAuthService implements AuthService {
     await apiClient.request({
       baseURL: '',
       method: 'POST',
-      url: '/api/send-verification',
+      url: API_ENDPOINTS.AUTH.SEND_VERIFICATION,
       data: { email, token },
     });
 
