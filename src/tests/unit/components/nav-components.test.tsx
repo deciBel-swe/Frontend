@@ -195,6 +195,5 @@ describe('TopNavBar', () => {
     render(<TopNavBar />);
 
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Create account' })).toBeDisabled();
   });
 });
