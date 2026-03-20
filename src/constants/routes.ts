@@ -115,6 +115,7 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     ME: '/users/me',
+    ME_TRACKS: '/users/me/tracks',
     ME_RESET_PASSWORD: '/users/me/reset-password',
     ME_ADD_EMAIL: '/users/me/add-new-email',
     ME_UPDATE_PRIMARY_EMAIL: '/users/me/update-email-primary',
@@ -140,7 +141,8 @@ export const API_ENDPOINTS = {
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,
     PUBLISH: (trackId: number | string) => `/tracks/${trackId}/publish`,
-    SECRET_LINK: (trackId: number | string) => `/tracks/${trackId}/secret-link`,
+    SECRET_TOKEN: (trackId: number | string) => `/tracks/${trackId}/secret-token`,
+    GENERATE_TOKEN: (trackId: number | string) => `/tracks/${trackId}/generate-token`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,

@@ -1,4 +1,5 @@
 import type { AuthService } from '@/services/api/authService';
+import { apiClient } from '@/hooks/useAPI';
 
 import type {
   LoginResponseDTO,
@@ -66,8 +67,8 @@ const decodeMockToken = (
 };
 
 /** Select mock user by email. artist@decibel.test → artist, everything else → listener */
-const resolveUserByEmail = (email: string): LoginUserDTO =>
-  email === 'artist@decibel.test' ? mockUsers.artist : mockUsers.listener;
+// const resolveUserByEmail = (email: string): LoginUserDTO =>
+//   email === 'artist@decibel.test' ? mockUsers.artist : mockUsers.listener;
 
 // ================================
 // Mock auth service
@@ -94,8 +95,9 @@ export class MockAuthService implements AuthService {
     const remainingSec = Math.floor(remainingMs / 1000);
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${remainingSec}; SameSite=Lax`;
 
+    const expiresIn = remainingSec;
     const user: LoginUserDTO = JSON.parse(raw);
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -122,7 +124,7 @@ export class MockAuthService implements AuthService {
 
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
@@ -148,33 +150,32 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
-  
   async login(email: string, _password: string): Promise<LoginResponseDTO> {
     await delay();
     //const user = resolveUserByEmail(email);
 
-     // Check if email exists in allowed users
-  const user = allowedUsers[email];
-  if (!user) {
-    throw new Error('User not allowed. Only 5 users can login in this mock.');
-  }
+    // Check if email exists in allowed users
+    const user = allowedUsers[email];
+    if (!user) {
+      throw new Error('User not allowed. Only 5 users can login in this mock.');
+    }
 
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
-    return { accessToken, refreshToken, user };
+    return { accessToken, expiresIn, refreshToken, user };
   }
 
   // ================================
   // Email verification methods
   // ================================
 
-    async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
     await delay();
 
     const token = crypto.randomUUID();
@@ -186,10 +187,11 @@ export class MockAuthService implements AuthService {
     };
 
     // Call API route to send real email
-    await fetch("/api/send-verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, token }),
+    await apiClient.request({
+      baseURL: '',
+      method: 'POST',
+      url: '/api/send-verification',
+      data: { email, token },
     });
 
     return { success: true };
@@ -229,4 +231,7 @@ export class MockAuthService implements AuthService {
 // Mock email verification storage
 // ================================
 
-export const mockEmailVerification: Record<string, { email: string; token: string; verified: boolean }> = {};
+export const mockEmailVerification: Record<
+  string,
+  { email: string; token: string; verified: boolean }
+> = {};

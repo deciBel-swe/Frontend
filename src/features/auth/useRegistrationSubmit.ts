@@ -39,15 +39,15 @@ export const useRegistrationSubmit = ({
 
   /**
    * Hook for handling registration form submission
-   * 
+   *
    * Validates form data, performs reCAPTCHA verification, and processes user registration.
    * Handles validation errors, reCAPTCHA failures, and submission errors gracefully.
-   * 
+   *
    * @hook
    * @param {UseRegistrationSubmitParams} params - Hook parameters
    * @returns {Object} Handler object
    * @returns {(event: FormEvent<HTMLFormElement>) => Promise<void>} handleSubmit - Form submission handler
-   * 
+   *
    * @example
    * const { handleSubmit } = useRegistrationSubmit({ formValues, setFieldErrors, ... });
    * <form onSubmit={handleSubmit}>
@@ -79,7 +79,8 @@ export const useRegistrationSubmit = ({
           return;
         }
 
-        const { email, displayName, month, day, year, gender } = parsedValues.data;
+        const { email, displayName, month, day, year, gender } =
+          parsedValues.data;
 
         const userData = {
           email,

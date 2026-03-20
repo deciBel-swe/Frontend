@@ -198,7 +198,6 @@
   --border-brand: var(--color-brand-primary);
   --border-contrast: var(--color-neutral-1000);
 
-
   /* Interactive controls */
   --interactive-default: var(--color-neutral-100);
   --interactive-hover: var(--color-neutral-300);
@@ -280,12 +279,12 @@ body {
 }
 
 /* Remove Chrome’s built-in password reveal (eye) */
-input[type="password"]::-webkit-textfield-decoration-container {
+input[type='password']::-webkit-textfield-decoration-container {
   display: none !important;
 }
 
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
   display: none !important;
 }
 

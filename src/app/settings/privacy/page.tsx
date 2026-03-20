@@ -6,8 +6,6 @@ import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
-
-
 // ─── Toggle row ───────────────────────────────────────────────────────────────
 
 interface ToggleRowProps {
@@ -18,15 +16,28 @@ interface ToggleRowProps {
   onChange: (val: boolean) => void;
 }
 
-function ToggleRow({ label, description, checked, disabled, onChange }: ToggleRowProps) {
+function ToggleRow({
+  label,
+  description,
+  checked,
+  disabled,
+  onChange,
+}: ToggleRowProps) {
   return (
     <div className="flex items-start justify-between gap-4 sm:gap-8 py-5">
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <span className="text-sm font-semibold text-text-primary">{label}</span>
-        <span className="text-sm text-text-secondary leading-snug">{description}</span>
+        <span className="text-sm text-text-secondary leading-snug">
+          {description}
+        </span>
       </div>
       <div className="shrink-0 pt-0.5">
-        <Toggle checked={checked} disabled={disabled} onChange={onChange} label={label} />
+        <Toggle
+          checked={checked}
+          disabled={disabled}
+          onChange={onChange}
+          label={label}
+        />
       </div>
     </div>
   );
@@ -39,7 +50,10 @@ function Skeleton() {
     <div>
       <div className="h-4 w-32 bg-surface-raised rounded mb-6 animate-pulse" />
       {[1, 2].map((i) => (
-        <div key={i} className="flex items-start justify-between gap-4 sm:gap-8 py-5 border-b border-border-default">
+        <div
+          key={i}
+          className="flex items-start justify-between gap-4 sm:gap-8 py-5 border-b border-border-default"
+        >
           <div className="flex flex-col gap-2 flex-1">
             <div className="h-3.5 w-48 bg-surface-raised rounded animate-pulse" />
             <div className="h-3 w-full max-w-lg bg-surface-default rounded animate-pulse" />
@@ -54,11 +68,16 @@ function Skeleton() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PrivacyPage() {
-  const { settings, isLoading, isError, isUpdating, updateSetting } = usePrivacySettings();
+  const { settings, isLoading, isError, isUpdating, updateSetting } =
+    usePrivacySettings();
 
-  const [isPrivate, setIsPrivate] = useState(() => settings?.isPrivate ?? false);
-  const [showHistory, setShowHistory] = useState(() => settings?.showHistory ?? false);
-  const [status, setStatus]           = useState<Status>('idle');
+  const [isPrivate, setIsPrivate] = useState(
+    () => settings?.isPrivate ?? false
+  );
+  const [showHistory, setShowHistory] = useState(
+    () => settings?.showHistory ?? false
+  );
+  const [status, setStatus] = useState<Status>('idle');
 
   // Mirror server data into local state when settings load
   useEffect(() => {
@@ -84,7 +103,10 @@ export default function PrivacyPage() {
       const ok = window.confirm(
         'Disabling messages from anyone will prevent users you do not follow from contacting you. Existing conversations are unaffected. Continue?'
       );
-      if (!ok) { setIsPrivate(settings?.isPrivate ?? false); return; }
+      if (!ok) {
+        setIsPrivate(settings?.isPrivate ?? false);
+        return;
+      }
     }
     setIsPrivate(next);
     setStatus('saving');
@@ -110,22 +132,28 @@ export default function PrivacyPage() {
   };
 
   if (isLoading) return <Skeleton />;
-  if (isError) return <p className="text-sm text-status-error">Unable to load your privacy settings.</p>;
+  if (isError)
+    return (
+      <p className="text-sm text-status-error">
+        Unable to load your privacy settings.
+      </p>
+    );
 
   return (
     <div className="w-full max-w-3xl">
-
       {/* Heading row */}
       <div className="flex items-center justify-between mb-1">
-        <h2 className="text-md font-extrabold text-text-primary">Privacy settings</h2>
+        <h2 className="text-md font-extrabold text-text-primary">
+          Privacy settings
+        </h2>
 
         {/* Single shared status — right-aligned above toggles */}
         <div className="flex justify-end">
           {status !== 'idle' && (
             <span className="text-xs text-text-muted whitespace-nowrap">
               {status === 'saving' && 'Saving changes…'}
-              {status === 'saved'  && '✓ Changes saved'}
-              {status === 'error'  && 'Failed to save'}
+              {status === 'saved' && '✓ Changes saved'}
+              {status === 'error' && 'Failed to save'}
             </span>
           )}
         </div>

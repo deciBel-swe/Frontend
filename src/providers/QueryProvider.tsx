@@ -8,7 +8,11 @@ interface QueryProviderProps {
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-    const clientRef = useRef(new QueryClient());
+  const clientRef = useRef(new QueryClient());
 
-    return <QueryClientProvider client={clientRef.current}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={clientRef.current}>
+      {children}
+    </QueryClientProvider>
+  );
 }

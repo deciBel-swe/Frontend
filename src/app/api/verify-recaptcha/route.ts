@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
         errors: verificationData['error-codes'] || [],
       });
     }
-
   } catch (error) {
     console.error('Error verifying ReCaptcha:', error);
     return NextResponse.json(

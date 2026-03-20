@@ -52,7 +52,7 @@ describe('useRedirectAfterLogin', () => {
     mockAuthState = { isAuthenticated: true, isLoading: false };
     mockSearchParams.get.mockReturnValue(null);
     renderHook(() => useRedirectAfterLogin());
-    expect(mockReplace).toHaveBeenCalledWith('/feed');
+    expect(mockReplace).toHaveBeenCalledWith('/discover');
   });
 
   it('redirects to the redirect param value when present', () => {
@@ -77,6 +77,6 @@ describe('useRedirectAfterLogin', () => {
     rerender();
 
     expect(mockReplace).toHaveBeenCalledTimes(1);
-    expect(mockReplace).toHaveBeenCalledWith('/feed');
+    expect(mockReplace).toHaveBeenCalledWith('/discover');
   });
 });

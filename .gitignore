@@ -72,3 +72,4 @@ yarn-error.log*
 .tmp
 temp/
 .github/*
+docs/Decibel_API.md
