@@ -93,7 +93,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   } = useTopNavBar();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
-      <div className="sticky top-0 z-200 h-12 bg-transparent border-b border-transparent">
+       <div className="fixed top-0 left-15 right-15 z-200 h-12 bg-bg-base border-b border-border-default">
         {!isMounted ? (
           <div aria-hidden />
         ) : (
