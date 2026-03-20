@@ -1,6 +1,5 @@
 import { config } from '@/config';
 import { apiRequest } from '@/hooks/useAPI';
-import { uploadTrack } from '@/services/api/uploadService';
 import type { UploadTrackResponse } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
@@ -89,7 +88,21 @@ export class RealTrackService implements TrackService {
     token: string,
     onProgress: (progress: number) => void
   ): Promise<UploadTrackResponse> {
-    return uploadTrack(formData, token, onProgress);
+    return apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
+      payload: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (event) => {
+        if (!event.total) {
+          return;
+        }
+
+        const progress = Math.round((event.loaded / event.total) * 100);
+        onProgress(progress);
+      },
+    });
   }
 
   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {

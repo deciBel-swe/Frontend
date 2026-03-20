@@ -115,4 +115,4 @@ export interface NavLinkConfig {
   name: ActiveNav;
 }
 
-export type { UploadTrackResponse, UploadTrackService } from './tracks';
+export type { UploadTrackResponse } from './tracks';

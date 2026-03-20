@@ -19,17 +19,6 @@ import type { TrackService } from '@/services/api/trackService';
 import { RealTrackService } from '@/services/api/trackService';
 import { MockTrackService } from '@/services/mocks/trackService';
 
-import type { UploadTrackService } from '@/types';
-
-type TrackVisibilityApi = Pick<
-  TrackService,
-  | 'getTrackMetadata'
-  | 'getTrackVisibility'
-  | 'updateTrackVisibility'
-  | 'getSecretLink'
-  | 'regenerateSecretLink'
->;
-
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -38,22 +27,6 @@ const resolveTrackService = (): TrackService => {
 };
 
 export const trackService = resolveTrackService();
-
-/**
- * Backward-compatible upload function.
- * Prefer consuming `trackService.uploadTrack` directly in new code.
- */
-export const uploadTrackService: UploadTrackService = (
-  formData,
-  token,
-  onProgress
-) => trackService.uploadTrack(formData, token, onProgress);
-
-/**
- * Backward-compatible visibility service shape.
- * Prefer consuming `trackService` directly in new code.
- */
-export const trackVisibilityService: TrackVisibilityApi = trackService;
 
 // --- Auth Service ---
 const resolveAuthService = (): AuthService => {
