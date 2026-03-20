@@ -86,7 +86,9 @@ describe('useAuth Google login', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Google Client ID is missing from environment variables.'
     );
-    expect(locationControl.getHref()).toBe('https://client.decibel.test/signin');
+    expect(locationControl.getHref()).toBe(
+      'https://client.decibel.test/signin'
+    );
   });
 
   it('builds the OAuth URL with the default callback path when redirect env is unset', () => {
@@ -106,12 +108,16 @@ describe('useAuth Google login', () => {
 
     expect(redirectTarget.origin).toBe('https://accounts.google.com');
     expect(redirectTarget.pathname).toBe('/o/oauth2/v2/auth');
-    expect(redirectTarget.searchParams.get('client_id')).toBe('google-client-id');
+    expect(redirectTarget.searchParams.get('client_id')).toBe(
+      'google-client-id'
+    );
     expect(redirectTarget.searchParams.get('redirect_uri')).toBe(
       'https://client.decibel.test/oauth/callback'
     );
     expect(redirectTarget.searchParams.get('response_type')).toBe('code');
-    expect(redirectTarget.searchParams.get('scope')).toBe('openid email profile');
+    expect(redirectTarget.searchParams.get('scope')).toBe(
+      'openid email profile'
+    );
     expect(redirectTarget.searchParams.get('prompt')).toBe('select_account');
   });
 

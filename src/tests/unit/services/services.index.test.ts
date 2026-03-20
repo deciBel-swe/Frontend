@@ -10,7 +10,11 @@ describe('services/index dependency resolution', () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true';
 
     jest.isolateModules(() => {
-      const { trackService, authService, privacyService } = require('@/services');
+      const {
+        trackService,
+        authService,
+        privacyService,
+      } = require('@/services');
       const { MockTrackService } = require('@/services/mocks/trackService');
       const { MockAuthService } = require('@/services/mocks/authService');
       const { MockPrivacyService } = require('@/services/mocks/privacyService');
@@ -25,7 +29,11 @@ describe('services/index dependency resolution', () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'false';
 
     jest.isolateModules(() => {
-      const { trackService, authService, privacyService } = require('@/services');
+      const {
+        trackService,
+        authService,
+        privacyService,
+      } = require('@/services');
       const { RealTrackService } = require('@/services/api/trackService');
       const { RealAuthService } = require('@/services/api/authService');
       const { RealPrivacyService } = require('@/services/api/privacyService');

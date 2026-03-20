@@ -38,7 +38,7 @@ export default [
       "build/**",
       "node_modules/**",
       "next-env.d.ts",
-      "app/tests/**"
+      "src/tests/**"
     ],
   },
 ];

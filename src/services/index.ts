@@ -47,4 +47,3 @@ const resolvePrivacyService = (): PrivacyService => {
 };
 
 export const privacyService = resolvePrivacyService();
-

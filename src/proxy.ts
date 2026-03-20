@@ -14,7 +14,11 @@ const resolveSafeRedirect = (
   request: NextRequest,
   redirectParam: string | null
 ): URL | null => {
-  if (!redirectParam || !redirectParam.startsWith('/') || redirectParam.startsWith('//')) {
+  if (
+    !redirectParam ||
+    !redirectParam.startsWith('/') ||
+    redirectParam.startsWith('//')
+  ) {
     return null;
   }
 
@@ -74,6 +78,9 @@ export function proxy(request: NextRequest) {
   const signinUrl = request.nextUrl.clone();
   signinUrl.pathname = ROUTES.SIGNIN;
   signinUrl.search = '';
-  signinUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
+  signinUrl.searchParams.set(
+    'redirect',
+    `${pathname}${request.nextUrl.search}`
+  );
   return NextResponse.redirect(signinUrl);
 }

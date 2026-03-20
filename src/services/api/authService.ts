@@ -111,7 +111,8 @@ export class RealAuthService implements AuthService {
 
     return {
       accessToken: this.accessToken ?? storedAccessToken ?? '',
-      refreshToken: localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
+      refreshToken:
+        localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
       user: JSON.parse(stored),
       expiresIn: 3600,
     };

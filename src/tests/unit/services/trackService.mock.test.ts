@@ -1,4 +1,5 @@
-type MockTrackServiceCtor = typeof import('@/services/mocks/trackService').MockTrackService;
+type MockTrackServiceCtor =
+  typeof import('@/services/mocks/trackService').MockTrackService;
 
 const TRACKS_KEY = 'decibel_mock_tracks_v2';
 
@@ -97,7 +98,9 @@ describe('MockTrackService', () => {
     const initial = await initialPromise;
     expect(initial).toEqual({ isPrivate: false });
 
-    const updatedPromise = service.updateTrackVisibility(101, { isPrivate: true });
+    const updatedPromise = service.updateTrackVisibility(101, {
+      isPrivate: true,
+    });
     await advance(400);
     const updated = await updatedPromise;
     expect(updated).toEqual({ isPrivate: true });

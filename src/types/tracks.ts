@@ -28,10 +28,16 @@ export type TrackVisibility = z.infer<typeof trackVisibilitySchema>;
 export const updateTrackVisibilityDtoSchema = z.object({
   isPrivate: z.boolean(),
 });
-export type UpdateTrackVisibilityDto = z.infer<typeof updateTrackVisibilityDtoSchema>;
+export type UpdateTrackVisibilityDto = z.infer<
+  typeof updateTrackVisibilityDtoSchema
+>;
 
 /** Privacy value used in radio button UI */
-export const trackPrivacyValueSchema = z.enum(['public', 'private', 'scheduled']);
+export const trackPrivacyValueSchema = z.enum([
+  'public',
+  'private',
+  'scheduled',
+]);
 export type TrackPrivacyValue = z.infer<typeof trackPrivacyValueSchema>;
 
 // ================================

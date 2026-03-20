@@ -40,8 +40,7 @@ const buildCoverUrl = (trackId: number): string =>
 const buildWaveformUrl = (trackId: number): string =>
   `${config.api.appUrl}/mock/waveforms/${trackId}.json`;
 
-const createSecretToken = (): string =>
-  Math.random().toString(36).slice(2, 10);
+const createSecretToken = (): string => Math.random().toString(36).slice(2, 10);
 
 const cloneTrack = (track: MockTrackRecord): MockTrackRecord => ({
   ...track,
@@ -204,7 +203,10 @@ const readTracks = (): MockTrackRecord[] => {
     return inMemoryTracks.map(cloneTrack);
   } catch {
     inMemoryTracks = createSeedTracks();
-    window.localStorage.setItem(TRACKS_STORAGE_KEY, JSON.stringify(inMemoryTracks));
+    window.localStorage.setItem(
+      TRACKS_STORAGE_KEY,
+      JSON.stringify(inMemoryTracks)
+    );
     return inMemoryTracks.map(cloneTrack);
   }
 };
@@ -213,7 +215,10 @@ const writeTracks = (tracks: MockTrackRecord[]): void => {
   inMemoryTracks = tracks.map(cloneTrack);
 
   if (hasStorage()) {
-    window.localStorage.setItem(TRACKS_STORAGE_KEY, JSON.stringify(inMemoryTracks));
+    window.localStorage.setItem(
+      TRACKS_STORAGE_KEY,
+      JSON.stringify(inMemoryTracks)
+    );
   }
 };
 
@@ -338,9 +343,10 @@ export class MockTrackService implements TrackService {
     await delay();
 
     const tracks = readTracks();
-    const filteredTracks = !username || username.trim().length === 0
-      ? tracks
-      : tracks.filter((track) => track.artist.username === username);
+    const filteredTracks =
+      !username || username.trim().length === 0
+        ? tracks
+        : tracks.filter((track) => track.artist.username === username);
 
     return filteredTracks.map(toMetadata);
   }
@@ -368,7 +374,7 @@ export class MockTrackService implements TrackService {
       ...current,
       isPrivate: data.isPrivate,
       secretLink: data.isPrivate
-        ? current.secretLink ?? createSecretToken()
+        ? (current.secretLink ?? createSecretToken())
         : current.secretLink,
     };
 

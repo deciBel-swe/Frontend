@@ -100,7 +100,10 @@ export const API_CONTRACTS = {
     responseSchema: userMeSchema,
   }),
 
-  USERS_ME_TRACKS: defineContract< void, z.infer<typeof trackDetailsResponseSchema>[]>({
+  USERS_ME_TRACKS: defineContract<
+    void,
+    z.infer<typeof trackDetailsResponseSchema>[]
+  >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_TRACKS,
     responseSchema: z.array(trackDetailsResponseSchema),
@@ -119,7 +122,10 @@ export const API_CONTRACTS = {
     responseSchema: privacySettingsSchema,
   }),
 
-  TRACKS_UPLOAD: defineContract<FormData, z.infer<typeof uploadTrackResponseSchema>>({
+  TRACKS_UPLOAD: defineContract<
+    FormData,
+    z.infer<typeof uploadTrackResponseSchema>
+  >({
     method: 'POST',
     url: API_ENDPOINTS.TRACKS.UPLOAD,
     responseSchema: uploadTrackResponseSchema,

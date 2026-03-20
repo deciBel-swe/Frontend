@@ -43,7 +43,9 @@ const createRequest = (
   } as unknown as NextRequest;
 };
 
-const getRedirectLocation = (response: ReturnType<typeof proxy>): string | null =>
+const getRedirectLocation = (
+  response: ReturnType<typeof proxy>
+): string | null =>
   (response as unknown as { location: string | null }).location;
 
 describe('proxy auth guard behavior', () => {
@@ -62,7 +64,9 @@ describe('proxy auth guard behavior', () => {
         })
       );
 
-      expect(getRedirectLocation(response)).toBe('https://decibel.test/discover');
+      expect(getRedirectLocation(response)).toBe(
+        'https://decibel.test/discover'
+      );
     });
   });
 

@@ -21,7 +21,7 @@ type TrackCardProps = {
   timeAgo?: string;
 
   track: {
-    artist: string,
+    artist: string;
     title: string;
     cover: string;
     duration: string;
@@ -42,7 +42,6 @@ export default function TrackCard({
 
   return (
     <div className="bg-surface-default text-text-primary p-4 rounded-lg">
-
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
         <Link href={`/system${userSlug}`}>
@@ -54,18 +53,14 @@ export default function TrackCard({
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/system${userSlug}`}>
-              {user.name}
-            </Link>
+            <Link href={`/system${userSlug}`}>{user.name}</Link>
           </span>{' '}
-          {postedText}{' '}
-          <span>{timeAgo}</span>
+          {postedText} <span>{timeAgo}</span>
         </div>
       </div>
 
       {/* MAIN ROW */}
       <div className="flex gap-4 items-start">
-
         {/* LEFT IMAGE */}
         <Link
           href={`/system${userSlug}/${trackSlug}`}
@@ -79,10 +74,8 @@ export default function TrackCard({
 
         {/* RIGHT COLUMN */}
         <div className="flex flex-col flex-1">
-
           {/* 1. NAME + PLAY */}
           <div className="flex items-center gap-3 h-12 px-2">
-
             <Button
               variant="ghost"
               className="relative w-14 h-14 rounded-full p-0 flex items-center justify-center group overflow-hidden"
@@ -127,35 +120,30 @@ export default function TrackCard({
 
           {/* 3. ACTIONS */}
           <div className="flex items-center gap-1 h-12 px-2">
-
-            <Button variant="ghost" aria-label="Like" title='Like'>
+            <Button variant="ghost" aria-label="Like" title="Like">
               <Heart size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Repost" title='Repost'>
+            <Button variant="ghost" aria-label="Repost" title="Repost">
               <Repeat2 size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Share" title='Share'>
+            <Button variant="ghost" aria-label="Share" title="Share">
               <Share2 size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Copy Link" title='Copy Link'>
+            <Button variant="ghost" aria-label="Copy Link" title="Copy Link">
               <Copy size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="More" title='More'>
+            <Button variant="ghost" aria-label="More" title="More">
               <MoreHorizontal size={16} />
             </Button>
           </div>
-
         </div>
 
         {/* DURATION */}
-        <div className="text-xs text-text-muted pt-1">
-          {track.duration}
-        </div>
-
+        <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
     </div>
   );

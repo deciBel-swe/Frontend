@@ -49,7 +49,10 @@ export interface TrackService {
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
 const DEFAULT_WAVEFORM_PATH = '/images/default-waveform.json';
 
-const toAbsoluteUrl = (value: string | undefined, fallbackPath: string): string => {
+const toAbsoluteUrl = (
+  value: string | undefined,
+  fallbackPath: string
+): string => {
   const base = config.api.appUrl;
   if (!value || value.trim().length === 0) {
     return `${base}${fallbackPath}`;
@@ -65,7 +68,8 @@ const normalizeTrackMetadata = (
   payload: TrackDetailsResponse
 ): TrackMetaData => {
   const artistId = payload.artist?.id ?? payload.userId ?? 0;
-  const artistUsername = payload.artist?.username ?? payload.username ?? 'unknown';
+  const artistUsername =
+    payload.artist?.username ?? payload.username ?? 'unknown';
 
   return {
     id: payload.id,
@@ -75,7 +79,10 @@ const normalizeTrackMetadata = (
       username: artistUsername,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
-    coverUrl: toAbsoluteUrl(payload.coverUrl ?? payload.coverImage, DEFAULT_COVER_PATH),
+    coverUrl: toAbsoluteUrl(
+      payload.coverUrl ?? payload.coverImage,
+      DEFAULT_COVER_PATH
+    ),
     waveformUrl: toAbsoluteUrl(payload.waveformUrl, DEFAULT_WAVEFORM_PATH),
     genre: payload.genre,
     tags: payload.tags,
@@ -112,7 +119,9 @@ export class RealTrackService implements TrackService {
 
   async getUserTracks(username?: string): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
-    const tracks = payload.map((track) => normalizeTrackMetadata(track.id, track));
+    const tracks = payload.map((track) =>
+      normalizeTrackMetadata(track.id, track)
+    );
 
     if (!username || username.trim().length === 0) {
       return tracks;
@@ -141,12 +150,16 @@ export class RealTrackService implements TrackService {
   }
 
   async getSecretLink(trackId: string): Promise<SecretLink> {
-    const payload = await apiRequest(API_CONTRACTS.TRACKS_SECRET_TOKEN(trackId));
+    const payload = await apiRequest(
+      API_CONTRACTS.TRACKS_SECRET_TOKEN(trackId)
+    );
     return { secretLink: payload.secretToken };
   }
 
   async regenerateSecretLink(trackId: string): Promise<SecretLink> {
-    const payload = await apiRequest(API_CONTRACTS.TRACKS_GENERATE_TOKEN(trackId));
+    const payload = await apiRequest(
+      API_CONTRACTS.TRACKS_GENERATE_TOKEN(trackId)
+    );
     return { secretLink: payload.secretToken };
   }
 }
