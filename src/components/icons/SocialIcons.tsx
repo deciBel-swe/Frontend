@@ -17,15 +17,15 @@
 
 import type { FC } from 'react';
 
+const socialIconClass = 'block h-5 w-5 text-[#888]';
+
 export const InstagramIcon: FC = () => (
   <svg
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    width="20"
-    height="20"
+    className={socialIconClass}
     fill="none"
-    style={{ display: 'block', color: '#888' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
@@ -40,10 +40,8 @@ export const TwitterIcon: FC = () => (
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    width="20"
-    height="20"
+    className={socialIconClass}
     fill="none"
-    style={{ display: 'block', color: '#888' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
@@ -56,10 +54,8 @@ export const FacebookIcon: FC = () => (
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    width="20"
-    height="20"
+    className={socialIconClass}
     fill="none"
-    style={{ display: 'block', color: '#888' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
@@ -73,10 +69,8 @@ export const YouTubeIcon: FC = () => (
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    width="20"
-    height="20"
+    className={socialIconClass}
     fill="none"
-    style={{ display: 'block', color: '#888' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
@@ -90,10 +84,8 @@ export const WebsiteIcon: FC = () => (
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    width="20"
-    height="20"
+    className={socialIconClass}
     fill="none"
-    style={{ display: 'block', color: '#888' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
