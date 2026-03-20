@@ -6,7 +6,7 @@ const mockAudioContext = (channelData: Float32Array) => {
   const getChannelData = jest.fn().mockReturnValue(channelData);
   const decodeAudioData = jest
     .fn()
-    .mockResolvedValue({ getChannelData } as AudioBuffer);
+    .mockResolvedValue({ getChannelData } as unknown as AudioBuffer);
 
   const AudioContextMock = jest.fn().mockImplementation(() => ({
     decodeAudioData,
