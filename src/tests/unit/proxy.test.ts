@@ -43,10 +43,8 @@ const createRequest = (
   } as unknown as NextRequest;
 };
 
-const getRedirectLocation = (response: {
-  kind: 'redirect' | 'next';
-  location: string | null;
-}): string | null => response.location;
+const getRedirectLocation = (response: ReturnType<typeof proxy>): string | null =>
+  (response as unknown as { location: string | null }).location;
 
 describe('proxy auth guard behavior', () => {
   it('redirects authenticated users away from public auth-entry pages', () => {
@@ -103,6 +101,30 @@ describe('proxy auth guard behavior', () => {
         `https://decibel.test/signin?redirect=${encodeURIComponent(route)}`
       );
     });
+  });
+
+  it('preserves pathname and query string in redirect parameter', () => {
+    const response = proxy(
+      createRequest(ROUTES.FEED, {
+        authenticated: false,
+        search: '?tab=recent',
+      })
+    );
+
+    expect(getRedirectLocation(response)).toBe(
+      'https://decibel.test/signin?redirect=%2Ffeed%3Ftab%3Drecent'
+    );
+  });
+
+  it('ignores unsafe external redirect targets for authenticated users', () => {
+    const response = proxy(
+      createRequest(ROUTES.SIGNIN, {
+        authenticated: true,
+        search: '?redirect=https%3A%2F%2Fevil.example%2Fpwn',
+      })
+    );
+
+    expect(getRedirectLocation(response)).toBe('https://decibel.test/discover');
   });
 
   it('allows authenticated users to continue on protected routes', () => {

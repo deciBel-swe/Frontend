@@ -18,6 +18,7 @@ export interface IconButtonProps {
   children: ReactNode;
   'aria-label': string;
   href?: string;
+  prefetch?: boolean;
   onClick?: () => void;
   className?: string;
 }
@@ -29,6 +30,7 @@ export const IconButton: FC<IconButtonProps> = ({
   children,
   'aria-label': ariaLabel,
   href,
+  prefetch,
   onClick,
   className = '',
 }) => {
@@ -38,6 +40,7 @@ export const IconButton: FC<IconButtonProps> = ({
     return (
       <Link
         href={href}
+        prefetch={prefetch}
         className="no-underline"
         aria-label={ariaLabel}
         onClick={onClick}

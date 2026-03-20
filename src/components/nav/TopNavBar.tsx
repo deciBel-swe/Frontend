@@ -46,6 +46,7 @@ import {
 } from '@/components/icons/DropdownIcons';
 import {
   NAV_LINKS,
+  PROTECTED_ROUTES,
   ROUTES,
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
@@ -56,12 +57,27 @@ export interface TopNavBarProps {
   onSearch?: (query: string) => void;
 }
 
+const isProtectedRoute = (href: string): boolean =>
+  (PROTECTED_ROUTES as readonly string[]).some(
+    (route) => href === route || href.startsWith(`${route}/`)
+  );
+
+const shouldPrefetch = (
+  href: string,
+  isAuthenticated: boolean,
+  isAuthLoading: boolean
+): boolean => {
+  if (!isProtectedRoute(href)) return true;
+  return isAuthenticated && !isAuthLoading;
+};
+
 // ─── TopNavBar ────────────────────────────────────────────────────────────────
 
 export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   const {
     user,
     isAuthenticated,
+    isAuthLoading,
     isMounted,
     login,
     userMenuOpen,
@@ -101,6 +117,11 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                         href={href}
                         label={label}
                         isActive={activeNav === name}
+                        prefetch={shouldPrefetch(
+                          href,
+                          isAuthenticated,
+                          isAuthLoading
+                        )}
                         className=""
                       />
                     </li>
@@ -191,13 +212,26 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   <IconButton
                     href={ROUTES.NOTIFICATIONS}
                     aria-label="Notifications"
+                    prefetch={shouldPrefetch(
+                      ROUTES.NOTIFICATIONS,
+                      isAuthenticated,
+                      isAuthLoading
+                    )}
                   >
                     <BellIcon />
                     <Badge count={0} />
                     <span className="sr-only">Notifications</span>
                   </IconButton>
 
-                  <IconButton href={ROUTES.MESSAGES} aria-label="Messages">
+                  <IconButton
+                    href={ROUTES.MESSAGES}
+                    aria-label="Messages"
+                    prefetch={shouldPrefetch(
+                      ROUTES.MESSAGES,
+                      isAuthenticated,
+                      isAuthLoading
+                    )}
+                  >
                     <MailIcon />
                     <Badge count={11} />
                     <span className="sr-only">Messages</span>
@@ -243,6 +277,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     type="button"
                     variant="primary"
                     size="sm"
+                    disabled={isAuthLoading}
                     onClick={() => {
                       login('artist@decibel.test', 'x');
                     }}
