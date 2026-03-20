@@ -14,12 +14,6 @@ export const uploadTrackResponseSchema = z.object({
 });
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;
 
-export type UploadTrackService = (
-  formData: FormData,
-  token: string,
-  onProgress: (progress: number) => void
-) => Promise<UploadTrackResponse>;
-
 // ================================
 // Track Visibility
 // ================================
