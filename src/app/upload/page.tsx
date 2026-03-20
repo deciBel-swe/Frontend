@@ -5,9 +5,9 @@ import { useEffect } from 'react'
 import { z } from 'zod'
 import { trackService } from '@/services'
 import { generateWaveform } from "@/utils/generateWaveform"
-import UploadDropzone from '@/app/(creator)/upload/components/UploadDropzone'
-import UploadFormView from '@/app/(creator)/upload/components/UploadFormView'
-import UploadSuccess from '@/app/(creator)/upload/components/UploadSuccess'
+import UploadDropzone from '@/features/tracks/TrackUploadForm/UploadDropzone'
+import UploadFormView from '@/features/tracks/TrackUploadForm/UploadFormView'
+import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess'
 
 const titleSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
