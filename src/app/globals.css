@@ -182,7 +182,7 @@
 
   /* Surfaces */
   --surface-default: var(--color-neutral-0);
-  --surface-raised: var(--color-neutral-50);
+  --surface-raised: var(--color-neutral-100);
   --surface-overlay: rgba(0, 0, 0, 0.4);
 
   /* Text */
