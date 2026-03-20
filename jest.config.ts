@@ -33,6 +33,7 @@ const customJestConfig: Config = {
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/**/__tests__/**',
     '!src/**/tests/**',
+    '!src/components/**', // Exclude pure UI components from coverage
     '!src/app/**', // Exclude Next.js pages from coverage (they're tested via E2E)
   ],
 
