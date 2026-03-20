@@ -93,11 +93,11 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   } = useTopNavBar();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
-       <div className="fixed top-0 left-0 right-40 xl:left-40 z-200 h-12 bg-bg-base border-b border-border-default">
+       <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
         {!isMounted ? (
           <div aria-hidden />
         ) : (
-          <div className="mx-2 flex flex-row w-full h-full">
+          <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8 flex flex-row h-full">
             {/* ── LEFT ──────────────────────────────────────────────── */}
             <div className="flex items-center w-fit h-full">
               <Link
