@@ -83,6 +83,11 @@ export { useProfileSideBar } from '../features/prof/useProfileSideBar';
 
 export { useUserHeader } from '../features/prof/useUserHeader';
 
+/**
+ * useGetUsername — returns the current authenticated user's username.
+ */
+export { useGetUsername } from '../features/prof/useGetUsername';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';
