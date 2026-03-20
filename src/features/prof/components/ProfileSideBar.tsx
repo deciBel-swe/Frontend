@@ -14,11 +14,9 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   return (
     <div className="flex flex-col gap-2 p-5">
       <StatsGroup
-        params={Promise.resolve({
-          countTracks: data?.countTracks || 0,
-          countFollowers: data?.countFollowers || 0,
-          countFollowing: data?.countFollowing || 0,
-        })}
+        countTracks={data?.countTracks || 0}
+        countFollowers={data?.countFollowers || 0}
+        countFollowing={data?.countFollowing || 0}
       />
       <p>{data?.bio}</p>
       <SocialList items={data?.socialItems} />
