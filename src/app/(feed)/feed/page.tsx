@@ -1,45 +1,63 @@
 'use client';
 
 import TrackCard from '@/components/TrackCard';
+import { useFeedTracks } from '@/hooks/useFeedTracks';
 
-export default function Page() {
-  
-  const generateWaveform = (length: number = 120): number[] => {
-    return Array.from({ length }, (_, i) => {
-      // simple deterministic wave pattern (sine-like)
-      return Math.round(50 + 30 * Math.sin(i * 0.25) + 10 * Math.sin(i * 0.05));
-    });
-  };
-  // 🔥 FEED (multiple TrackCards)
-  const tracks = Array.from({ length: 5 }, (_, i) => ({
-    id: i,
-    user: {
-      name: 'Akmal',
-      avatar: '/images/default_song_image.png',
-    },
-    postedText: 'posted a track',
-    timeAgo: `${i + 1} hours ago`,
-    track: {
-      artist: 'Mohamed Ramdan',
-      title: `Track ${i + 1} - XOXO`,
-      cover: '/images/default_song_image.png',
-      duration: '5:07',
-    },
-    waveform: generateWaveform(),
-  }));
+/**
+ * Feed Page
+ *
+ * Renders all tracks fetched from the track service via useFeedTracks.
+ * The two-column layout (feed + sidebar) is handled by FeedLayout.
+ *
+ * Following the layer convention:
+ *  - Page   → minimal scaffolding, delegates data fetching to hook
+ *  - Hook   → calls service, maps data to TrackCard shape
+ *  - Layout → owns sidebar + two-column shell
+ */
+export default function FeedPage() {
+  const { feedTracks, isLoading, isError } = useFeedTracks();
 
-  return(
+  if (isLoading) {
+    return (
+      <>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-surface-default rounded-lg h-40 animate-pulse"
+          />
+        ))}
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <p className="text-text-muted text-sm">
+        Failed to load tracks. Please try again later.
+      </p>
+    );
+  }
+
+  if (feedTracks.length === 0) {
+    return (
+      <p className="text-text-muted text-sm">
+        No tracks yet. Upload one to get started.
+      </p>
+    );
+  }
+
+  return (
     <>
-     {tracks.map((item) => (
-      <TrackCard
-              key={item.id}
-              user={item.user}
-              postedText={item.postedText}
-              timeAgo={item.timeAgo}
-              track={item.track}
-              waveform={item.waveform}
-            />
-          ))}  
+      {feedTracks.map((item) => (
+        <TrackCard
+          key={item.id}
+          user={item.user}
+          postedText={item.postedText}
+          timeAgo={item.timeAgo}
+          track={item.track}
+          waveform={item.waveform}
+        />
+      ))}
     </>
-  );             
+  );
 }
