@@ -23,10 +23,10 @@ export function proxy(request: NextRequest) {
     (pathname === ROUTES.SIGNIN || pathname === ROUTES.HOME) &&
     isAuthenticated
   ) {
-    const feedUrl = request.nextUrl.clone();
-    feedUrl.pathname = ROUTES.FEED;
-    feedUrl.search = '';
-    return NextResponse.redirect(feedUrl);
+    const discoverUrl = request.nextUrl.clone();
+    discoverUrl.pathname = ROUTES.DISCOVER;
+    discoverUrl.search = '';
+    return NextResponse.redirect(discoverUrl);
   }
 
   const isProtected = (PROTECTED_ROUTES as readonly string[]).some(
