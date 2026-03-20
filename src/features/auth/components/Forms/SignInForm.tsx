@@ -12,15 +12,11 @@ import { useSignInSubmit } from '@/features/auth/useSignInSubmit';
 import ContinueButton from '../ContinueButton';
 import PasswordInput from '../FormFields/PasswordInput';
 import FloatingInputField from '../FormFields/FloatingInputField';
-import {
-  signInSchema,
-  type FieldErrors,
-  type SignInFormValues,
-} from '@/types/authSchemas';
+import { type FieldErrors, type SignInFormValues } from '@/types/authSchemas';
 
 /**
  * SignInForm Component
- * 
+ *
  * A complete authentication form for existing users to sign in to their account.
  * Features:
  * - Email and password input fields with validation
@@ -30,15 +26,15 @@ import {
  * - Form-level and field-level error handling
  * - reCAPTCHA v3 verification on submission
  * - Disabled state during authentication loading
- * 
+ *
  * The form uses:
  * - `useSignInSubmit` hook for form submission logic
  * - `useAuth` hook for authentication operations
  * - `useReCaptcha` hook for reCAPTCHA verification
- * 
+ *
  * @component
  * @returns {JSX.Element} The sign-in form
- * 
+ *
  * @example
  * <ReCaptchaProvider>
  *   <SignInForm />
@@ -49,8 +45,9 @@ const SignInForm: FC = () => {
     email: '',
     password: '',
   });
-  const [fieldErrors, setFieldErrors] =
-    useState<FieldErrors<SignInFormValues>>({});
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors<SignInFormValues>>(
+    {}
+  );
   const [submitError, setSubmitError] = useState('');
   const { handleGoogleLogin, isLoading, login } = useAuth();
   const { verifyReCaptcha } = useReCaptcha();
@@ -61,8 +58,6 @@ const SignInForm: FC = () => {
     login,
     verifyReCaptcha,
   });
-
-  const isFormComplete = signInSchema.safeParse(formValues).success;
 
   const updateField = (field: keyof SignInFormValues, value: string) => {
     setFormValues((previous) => ({ ...previous, [field]: value }));
@@ -80,17 +75,23 @@ const SignInForm: FC = () => {
       <div className="w-100 h-fit bg-bg-base">
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="text-left">
-            <h1 className="text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-sans)" }}>
+            <h1
+              className="text-3xl font-bold mb-1"
+              style={{ fontFamily: 'var(--font-sans)' }}
+            >
               Sign in to your account
             </h1>
           </div>
           <div className="flex flex-col w-full gap-3">
-            <GoogleLoginButton onClick={handleGoogleLogin} isLoading={isLoading} />
+            <GoogleLoginButton
+              onClick={handleGoogleLogin}
+              isLoading={isLoading}
+            />
             <FloatingInputField
               type="email"
               name="email"
               autoComplete="email"
-              label="Your email address or profile URL"
+              label="Email Address"
               value={formValues.email}
               onChange={(value) => updateField('email', value)}
               error={fieldErrors.email}
@@ -105,15 +106,17 @@ const SignInForm: FC = () => {
               <div className="text-red-400 text-xs">{fieldErrors.password}</div>
             ) : null}
 
-            {submitError ? <div className="text-red-400 text-xs">{submitError}</div> : null}
+            {submitError ? (
+              <div className="text-red-400 text-xs">{submitError}</div>
+            ) : null}
 
-            <ContinueButton type="submit" disabled={!isFormComplete || isLoading}>
+            <ContinueButton type="submit" disabled={isLoading}>
               Continue
             </ContinueButton>
             <div>
               <Link
                 href={ROUTES.RESETPASSWORD}
-                className='text-[#699fff] hover:text-[#38d] transition-colors text-sm cursor-pointer'
+                className="text-[#699fff] hover:text-[#38d] transition-colors text-sm cursor-pointer"
               >
                 Forgot your password?
               </Link>
@@ -121,7 +124,7 @@ const SignInForm: FC = () => {
             <div>
               <Link
                 href={ROUTES.REGISTER}
-                className='text-[#699fff] hover:text-[#38d] transition-colors text-sm cursor-pointer'
+                className="text-[#699fff] hover:text-[#38d] transition-colors text-sm cursor-pointer"
               >
                 Create an account
               </Link>

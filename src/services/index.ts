@@ -8,28 +8,37 @@
 import { config } from '@/config';
 
 import type { AuthService } from './api/authService';
+import { RealAuthService } from '@/services/api/authService';
 import { MockAuthService } from './mocks/authService';
 
 import type { PrivacyService } from './api/privacyService';
-import { MockPrivacyService } from './mocks/privacyService';
 import { RealPrivacyService } from './api/privacyService';
+import { MockPrivacyService } from './mocks/privacyService';
+
+import type { TrackService } from '@/services/api/trackService';
+import { RealTrackService } from '@/services/api/trackService';
+import { MockTrackService } from '@/services/mocks/trackService';
+
+const resolveTrackService = (): TrackService => {
+  if (config.api.useMock) {
+    return new MockTrackService();
+  }
+  return new RealTrackService();
+};
+
+export const trackService = resolveTrackService();
 
 // --- Auth Service ---
-// When the real API client is implemented, import RealAuthService here
-// and toggle via `config.api.useMock`.
 const resolveAuthService = (): AuthService => {
   if (config.api.useMock) {
     return new MockAuthService();
   }
-  // TODO: replace with RealAuthService once implemented
-  return new MockAuthService();
+  return new RealAuthService();
 };
 
 export const authService = resolveAuthService();
 
 // --- Privacy Service ---
-// Provided in the same pattern so consumers can always import from
-// `@/services` regardless of mock/real selection.
 const resolvePrivacyService = (): PrivacyService => {
   if (config.api.useMock) {
     return new MockPrivacyService();
@@ -38,3 +47,4 @@ const resolvePrivacyService = (): PrivacyService => {
 };
 
 export const privacyService = resolvePrivacyService();
+

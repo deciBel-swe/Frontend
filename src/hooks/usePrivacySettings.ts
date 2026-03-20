@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { privacyService } from "@/services";
-import type { UpdatePrivacySettingsDto } from "@/types/privacy";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { privacyService } from '@/services';
+import type { UpdatePrivacySettingsDto } from '@/types/privacy';
 
-const PRIVACY_QUERY_KEY = ["privacySettings"];
+const PRIVACY_QUERY_KEY = ['privacySettings'];
 
 export function usePrivacySettings() {
   const queryClient = useQueryClient();

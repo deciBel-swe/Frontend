@@ -298,3 +298,4 @@ Before starting development:
 - [npm Documentation](https://docs.npmjs.com/)
 - [VS Code Documentation](https://code.visualstudio.com/docs)
 - [VS Code Keyboard Shortcuts](https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf)
+- [API Client Guide](./API_CLIENT_GUIDE.md)

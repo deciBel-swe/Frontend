@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
 /**
  * Props for the ContinueButton component
@@ -14,27 +14,30 @@ interface ContinueButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 
 /**
  * ContinueButton Component
- * 
+ *
  * A primary call-to-action button used throughout the authentication forms.
  * Features:
  * - Full width button with consistent sizing
  * - Disabled state styling (muted background and reduced opacity)
  * - Supports all standard HTML button attributes
- * 
+ *
  * @component
  * @param {ContinueButtonProps} props - Component props
  * @returns {JSX.Element} The button element
- * 
+ *
  * @example
- * <ContinueButton 
- *   type="submit" 
+ * <ContinueButton
+ *   type="submit"
  *   disabled={!isFormValid}
  *   onClick={handleSubmit}
  * >
  *   Sign In
  * </ContinueButton>
  */
-const ContinueButton: React.FC<ContinueButtonProps> = ({ children, ...props }: ContinueButtonProps) => {
+const ContinueButton: React.FC<ContinueButtonProps> = ({
+  children,
+  ...props
+}: ContinueButtonProps) => {
   return (
     <button
       {...props} // forward type, disabled, onClick, etc.
@@ -43,7 +46,7 @@ const ContinueButton: React.FC<ContinueButtonProps> = ({ children, ...props }: C
     >
       {children}
     </button>
-  )
-}
+  );
+};
 
-export default ContinueButton
+export default ContinueButton;

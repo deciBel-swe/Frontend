@@ -182,7 +182,7 @@
 
   /* Surfaces */
   --surface-default: var(--color-neutral-0);
-  --surface-raised: var(--color-neutral-50);
+  --surface-raised: var(--color-neutral-100);
   --surface-overlay: rgba(0, 0, 0, 0.4);
 
   /* Text */
@@ -197,7 +197,6 @@
   --border-strong: var(--color-neutral-200);
   --border-brand: var(--color-brand-primary);
   --border-contrast: var(--color-neutral-1000);
-
 
   /* Interactive controls */
   --interactive-default: var(--color-neutral-100);
@@ -280,12 +279,12 @@ body {
 }
 
 /* Remove Chrome’s built-in password reveal (eye) */
-input[type="password"]::-webkit-textfield-decoration-container {
+input[type='password']::-webkit-textfield-decoration-container {
   display: none !important;
 }
 
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
   display: none !important;
 }
 

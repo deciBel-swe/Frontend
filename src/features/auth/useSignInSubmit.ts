@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 
-import type { ReCaptchaResult } from '../../hooks/UseReCaptcha';
+import type { ReCaptchaResult } from '@/hooks/UseReCaptcha';
 import {
   getSchemaFieldErrors,
   signInSchema,
@@ -37,21 +37,21 @@ export const useSignInSubmit = ({
 }: UseSignInSubmitParams) => {
   /**
    * Hook for handling sign-in form submission
-   * 
+   *
    * Validates form data, performs reCAPTCHA verification, and attempts user authentication.
    * Handles validation errors, reCAPTCHA failures, and authentication failures gracefully.
-   * 
+   *
    * Flow:
    * 1. Validates email and password against schema
    * 2. Verifies reCAPTCHA token with backend
    * 3. If reCAPTCHA passes, calls login function with credentials
    * 4. Sets appropriate errors if any step fails
-   * 
+   *
    * @hook
    * @param {UseSignInSubmitParams} params - Hook parameters
    * @returns {Object} Handler object
    * @returns {(event: FormEvent<HTMLFormElement>) => Promise<void>} handleSubmit - Form submission handler
-   * 
+   *
    * @example
    * const { handleSubmit } = useSignInSubmit({ formValues, login, verifyReCaptcha, ... });
    * <form onSubmit={handleSubmit}>
@@ -74,7 +74,8 @@ export const useSignInSubmit = ({
       const recaptchaResult = await verifyReCaptcha('signin');
       if (!recaptchaResult.success) {
         setSubmitError(
-          recaptchaResult.error || 'ReCaptcha verification failed. Please try again.'
+          recaptchaResult.error ||
+            'ReCaptcha verification failed. Please try again.'
         );
         return;
       }
@@ -82,7 +83,9 @@ export const useSignInSubmit = ({
       try {
         await login(parsedValues.data.email, parsedValues.data.password);
       } catch {
-        setSubmitError('Sign in failed. Please check your credentials and try again.');
+        setSubmitError(
+          'Sign in failed. Please check your credentials and try again.'
+        );
       }
     },
     [formValues, login, setFieldErrors, setSubmitError, verifyReCaptcha]

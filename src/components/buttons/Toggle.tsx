@@ -5,7 +5,12 @@ interface ToggleProps {
   label: string;
 }
 
-export function Toggle({ checked, disabled = false, onChange, label }: ToggleProps) {
+export function Toggle({
+  checked,
+  disabled = false,
+  onChange,
+  label,
+}: ToggleProps) {
   return (
     <button
       role="switch"
