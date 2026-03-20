@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the secret key from environment variables
-    const secretKey = process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY;
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
     if (!secretKey) {
-      console.error('NEXT_PUBLIC_RECAPTCHA_SECRET_KEY is not set');
+      console.error('RECAPTCHA_SECRET_KEY is not set');
       return NextResponse.json(
         { success: false, error: 'Server configuration error' },
         { status: 500 }

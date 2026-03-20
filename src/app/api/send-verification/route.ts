@@ -7,7 +7,7 @@ export async function POST(request:Request) {
 
   const {token} = body;
 
-  const secretKey = process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY;
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   const verificationresponse = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`, {
     method: 'POST',
   });
