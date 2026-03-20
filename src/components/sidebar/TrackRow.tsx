@@ -45,19 +45,37 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
       {/* TEXT SECTION */}
       <div className="flex flex-col flex-1 overflow-hidden">
 
-        <div className="flex flex-col w-max">
-          <Link href={artistUrl} className="text-xs text-text-muted hover:text-text-primary">
-            {artist}
-          </Link>
+        <div className="flex items-center w-full mb-1">
+  
+  {/* LEFT: TEXT */}
+  <div className="flex flex-col min-w-0">
+    <Link href={artistUrl} className="text-xs text-text-muted hover:text-text-primary">
+      {artist}
+    </Link>
 
-          <Link
-            href={songUrl}
-            className="text-sm font-semibold truncate transition group-hover:text-text-primary"
-          >
-            {title}
-          </Link>
-        </div>
+    <Link
+      href={songUrl}
+      className="text-sm font-semibold truncate transition group-hover:text-text-primary"
+    >
+      {title}
+    </Link>
+  </div>
 
+  {/* SPACER (THIS PUSHES BUTTONS RIGHT) */}
+  <div className="flex-1" />
+
+  {/* RIGHT: ACTION BUTTONS */}
+  <div className="hidden group-hover:flex items-center gap-2">
+    <Button className="p-2 rounded-lg bg-surface hover:opacity-80 transition" variant="secondary">
+      <Heart size={18} />
+    </Button>
+
+    <Button className="p-2 rounded-lg bg-surface hover:opacity-80 transition" variant="secondary">
+      <MoreHorizontal size={18} />
+    </Button>
+  </div>
+
+</div>
         {/* STATS */}
         <div className="flex items-center gap-3 text-xs mt-1">
 
@@ -81,7 +99,7 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="hidden group-hover:flex items-center gap-2">
+      {/* <div className="hidden group-hover:flex items-center gap-2">
         <Button className="p-2 rounded-lg bg-surface hover:opacity-80 transition" variant="secondary">
           <Heart size={18} />
         </Button>
@@ -89,7 +107,7 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
         <Button className="p-2 rounded-lg bg-surface hover:opacity-80 transition" variant="secondary">
           <MoreHorizontal size={18} />
         </Button>
-      </div>
+      </div> */}
 
     </div>
   );
