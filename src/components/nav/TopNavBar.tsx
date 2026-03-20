@@ -17,6 +17,7 @@
 
 import { type FC } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
@@ -63,7 +64,6 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     user,
     isAuthenticated,
     isMounted,
-    login,
     userMenuOpen,
     toggleUserMenu,
     closeUserMenu,
@@ -75,6 +75,20 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     initials,
     activeNav,
   } = useTopNavBar();
+  const router = useRouter();
+  const handleSignInClick = () => {
+    if (typeof document !== 'undefined') {
+      document.cookie = 'decibel_auth=; path=/; max-age=0; SameSite=Lax';
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('decibel_refresh_token');
+      localStorage.removeItem('decibel_mock_user');
+    }
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('decibel_access_token');
+    }
+    router.push(ROUTES.SIGNIN);
+  };
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
       <div className="sticky top-0 z-200 h-12 bg-transparent border-b border-transparent">
@@ -244,7 +258,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     variant="primary"
                     size="sm"
                     onClick={() => {
-                      login('artist@decibel.test', 'x');
+                      handleSignInClick();
                     }}
                   >
                     Sign in
@@ -254,6 +268,9 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     variant="secondary"
                     size="sm"
                     className="ml-1"
+                    onClick={() => {
+                      router.push(ROUTES.REGISTER);
+                    }}
                   >
                     Create account
                   </Button>
