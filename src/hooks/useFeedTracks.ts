@@ -17,22 +17,80 @@ import { generateWaveform } from '@/utils/waveform';
 export function useFeedTracks() {
   const { tracks, isLoading, isError } = useUserTracks();
 
-  const feedTracks = tracks.map((track) => ({
+  const parseWaveform = (value: string | undefined, fallbackId: number) => {
+    if (!value || value.trim().length === 0) {
+      return generateWaveform(fallbackId);
+    }
+
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        const numeric = parsed
+          .map((entry) => Number(entry))
+          .filter((entry) => Number.isFinite(entry))
+          .map((entry) => Math.max(0, Math.min(1, entry)))
+          .map((entry) => Math.pow(entry, 0.5));
+
+        if (numeric.length === 0) {
+          return generateWaveform(fallbackId);
+        }
+
+        const targetCount = 200;
+        if (numeric.length === targetCount) {
+          return numeric;
+        }
+
+        if (numeric.length < targetCount) {
+          const lastIndex = numeric.length - 1;
+          return Array.from({ length: targetCount }, (_, index) => {
+            const t = (index / (targetCount - 1)) * lastIndex;
+            const left = Math.floor(t);
+            const right = Math.min(lastIndex, left + 1);
+            const weight = t - left;
+            return numeric[left] * (1 - weight) + numeric[right] * weight;
+          });
+        }
+
+        const step = numeric.length / targetCount;
+        return Array.from({ length: targetCount }, (_, index) => {
+          const start = Math.floor(index * step);
+          const end = Math.floor((index + 1) * step);
+          const slice = numeric.slice(start, Math.max(start + 1, end));
+          const avg =
+            slice.reduce((sum, value) => sum + value, 0) / slice.length;
+          return avg;
+        });
+      }
+    } catch {
+      // Fall back to deterministic placeholder waveform.
+    }
+
+    return generateWaveform(fallbackId);
+  };
+
+  const feedTracks = tracks.map((track) => {
+    const artistName =
+      typeof track.artist === 'string'
+        ? track.artist
+        : track.artist.username;
+
+    return ({
     id: track.id,
     user: {
-      name: track.artist.username,
+      name: artistName,
       avatar: track.coverUrl,
     },
     postedText: 'posted a track' as const,
     timeAgo: '',
     track: {
-      artist: track.artist.username,
+      artist: artistName,
       title: track.title,
       cover: track.coverUrl,
       duration: '',
     },
-    waveform: generateWaveform(track.id),
-  }));
+    waveform: parseWaveform(track.waveformData, track.id),
+  });
+  });
 
   return { feedTracks, isLoading, isError };
 }

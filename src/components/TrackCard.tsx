@@ -11,6 +11,7 @@ import {
   Play,
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
+import Waveform from '@/components/waveform/Waveform';
 
 type TrackCardProps = {
   user: {
@@ -108,14 +109,8 @@ export default function TrackCard({
           </div>
 
           {/* 2. WAVEFORM */}
-          <div className="h-14 px-2 flex items-end gap-[2px]">
-            {waveform.map((h, i) => (
-              <div
-                key={i}
-                className="w-[2px] bg-gray-500"
-                style={{ height: `${Math.max(6, h / 2)}px` }}
-              />
-            ))}
+          <div className="px-2">
+            <Waveform data={waveform} height={90} barClassName="bg-gray-500" />
           </div>
 
           {/* 3. ACTIONS */}
