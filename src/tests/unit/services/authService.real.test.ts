@@ -12,11 +12,13 @@ jest.mock('@/hooks/useAPI', () => ({
 }));
 
 const USER_STORAGE_KEY = 'user';
+const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
 const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockedApiClientRequest =
-  apiClient.request as jest.MockedFunction<typeof apiClient.request>;
+const mockedApiClientRequest = apiClient.request as jest.MockedFunction<
+  typeof apiClient.request
+>;
 
 const user: LoginUserDTO = {
   id: 1,
@@ -72,11 +74,15 @@ describe('RealAuthService', () => {
     const response = await service.login('service@test.dev', 'pass123');
 
     expect(response).toEqual(loginResponse);
-    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
-      payload: { email: 'service@test.dev', password: 'pass123' },
-    });
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.AUTH_LOGIN_LOCAL,
+      {
+        payload: { email: 'service@test.dev', password: 'pass123' },
+      }
+    );
 
     expect(storage.get(USER_STORAGE_KEY)).toBe(JSON.stringify(user));
+    expect(storage.get(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-1');
     expect(storage.get(REFRESH_TOKEN_STORAGE_KEY)).toBe('refresh-1');
   });
 
@@ -129,12 +135,16 @@ describe('RealAuthService', () => {
       expiresIn: 3600,
     });
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_REFRESH_TOKEN, {
-      payload: { refreshToken: 'refresh-xyz' },
-    });
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.AUTH_REFRESH_TOKEN,
+      {
+        payload: { refreshToken: 'refresh-xyz' },
+      }
+    );
 
     const session = await service.getSession();
     expect(session?.accessToken).toBe('access-refreshed');
+    expect(storage.get(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-refreshed');
     expect(session?.refreshToken).toBe('refresh-xyz');
     expect(session?.user).toEqual(user);
   });
@@ -157,6 +167,7 @@ describe('RealAuthService', () => {
     await service.logout();
 
     expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGOUT);
+    expect(storage.has(ACCESS_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
   });
@@ -170,7 +181,10 @@ describe('RealAuthService', () => {
     const service = new RealAuthService();
     await service.logoutAll();
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGOUT_ALL);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.AUTH_LOGOUT_ALL
+    );
+    expect(storage.has(ACCESS_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
   });

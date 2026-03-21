@@ -4,7 +4,6 @@ import { formatSecretUrl } from '@/utils/formatSecretUrl';
 
 const secretLinkKey = (trackId: string) => ['secretLink', trackId];
 
-
 /**
  * Fetches and manages the secret share link for a private track.
  *
@@ -27,10 +26,9 @@ export function useSecretLink(trackId: string | undefined) {
     enabled: !!trackId,
   });
 
-    /** Full formatted URL e.g. https://localhost:3000/tracks/1?s=nQ7ENRPl */
-  const secretUrl = data && trackId
-    ? formatSecretUrl(trackId, data.secretLink)
-    : null;
+  /** Full formatted URL e.g. https://localhost:3000/tracks/1?s=nQ7ENRPl */
+  const secretUrl =
+    data && trackId ? formatSecretUrl(trackId, data.secretLink) : null;
 
   const { mutate: regenerate, isPending: isRegenerating } = useMutation({
     mutationFn: () => trackService.regenerateSecretLink(trackId!),

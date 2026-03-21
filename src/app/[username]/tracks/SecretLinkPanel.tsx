@@ -8,7 +8,8 @@ interface SecretLinkPanelProps {
 }
 
 export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
-  const { secretUrl, isLoading, isError, regenerate, isRegenerating } = useSecretLink(trackId);
+  const { secretUrl, isLoading, isError, regenerate, isRegenerating } =
+    useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -27,7 +28,9 @@ export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
   };
 
   if (isLoading) {
-    return <div className="mt-3 h-10 w-full bg-surface-raised rounded animate-pulse" />;
+    return (
+      <div className="mt-3 h-10 w-full bg-surface-raised rounded animate-pulse" />
+    );
   }
 
   if (isError || !secretUrl) {

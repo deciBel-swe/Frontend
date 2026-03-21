@@ -8,13 +8,17 @@ const trackMetadataKey = (trackId: number) => ['trackMetadata', trackId];
  * Used to get trackUrl for public share links.
  *
  * @param trackId - numeric track ID,, or undefined to skip fetching
- * 
+ *
  * @example
  * const { metadata, isLoading } = useTrackMetadata(42);
  * const trackUrl = metadata?.trackUrl;
  */
 export function useTrackMetadata(trackId: number | undefined) {
-  const { data: metadata, isLoading, isError } = useQuery({
+  const {
+    data: metadata,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: trackMetadataKey(trackId!),
     queryFn: () => trackService.getTrackMetadata(trackId!),
     enabled: !!trackId,

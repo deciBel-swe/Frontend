@@ -3,7 +3,11 @@
 import { useState, type ReactNode } from 'react';
 import { ShareModal } from '@/app/[username]/tracks/ShareModal';
 import type { TrackPreview } from '@/app/[username]/tracks/ShareModal';
-import { CheckIcon, CopyIcon,ShareIcon } from '@/components/nav/TrackActionBar';
+import {
+  CheckIcon,
+  CopyIcon,
+  ShareIcon,
+} from '@/components/nav/TrackActionBar';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 
@@ -27,7 +31,12 @@ interface TrackActionBarProps {
 
 // ─── Action button ────────────────────────────────────────────────────────────
 
-function ActionButton({ label, icon, onClick, disabled = false }: TrackActionItem) {
+function ActionButton({
+  label,
+  icon,
+  onClick,
+  disabled = false,
+}: TrackActionItem) {
   return (
     <button
       onClick={onClick}
@@ -49,7 +58,7 @@ function ActionButton({ label, icon, onClick, disabled = false }: TrackActionIte
 }
 
 // ─── TrackActionBar ───────────────────────────────────────────────────────────
- 
+
 /**
  * Extensible row of icon action buttons for a track.
  *
@@ -85,19 +94,20 @@ export function TrackActionBar({
   const [copied, setCopied] = useState(false);
 
   const { secretUrl } = useSecretLink(isPrivate ? trackId : undefined);
-  const { metadata } = useTrackMetadata(!isPrivate ? Number(trackId) : undefined);
+  const { metadata } = useTrackMetadata(
+    !isPrivate ? Number(trackId) : undefined
+  );
 
   const handleCopy = async () => {
     const urlToCopy = isPrivate
       ? (secretUrl ?? '')
       : (metadata?.trackUrl ?? '');
- 
+
     if (!urlToCopy) return;
     await navigator.clipboard.writeText(urlToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  
 
   const defaultActions: TrackActionItem[] = [
     {
