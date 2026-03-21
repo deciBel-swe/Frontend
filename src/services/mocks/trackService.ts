@@ -28,7 +28,7 @@ type MockTrackRecord = {
 };
 
 const MOCK_DELAY_MS = 220;
-const TRACKS_STORAGE_KEY = 'decibel_mock_tracks_v3';
+const TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
 const AUTH_USER_KEY = 'decibel_mock_user';
 
 const delay = (ms = MOCK_DELAY_MS) =>
