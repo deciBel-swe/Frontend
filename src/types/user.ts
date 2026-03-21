@@ -74,3 +74,25 @@ export const userPublicSchema = z.object({
   stats: userPublicStatsSchema,
 });
 export type UserPublic = z.infer<typeof userPublicSchema>;
+
+/** * UpdateMeRequest */ const userEditedSocialLinksSchema = z.object({
+  instagram: z.string().optional(),
+  twitter: z.string().optional(),
+  website: z.string().optional(),
+});
+export const updateMeRequestSchema = z
+  .object({
+    bio: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    favoriteGenres: z.array(z.string()).optional(),
+    socialLinks: userEditedSocialLinksSchema,
+  })
+  .passthrough();
+export type UpdateMeRequest = z.infer<typeof updateMeRequestSchema>;
+export type ProfileLink = {
+  id: number;
+  url: string;
+  title: string;
+  kind: 'regular' | 'support';
+};

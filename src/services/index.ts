@@ -19,6 +19,14 @@ import type { TrackService } from '@/services/api/trackService';
 import { RealTrackService } from '@/services/api/trackService';
 import { MockTrackService } from '@/services/mocks/trackService';
 
+import type { editMeService } from './api/editMeService';
+import { RealEditMeService } from './api/editMeService';
+import { MockEditMeService } from './mocks/editMeService';
+
+import type { CountryService } from './api/countryService';
+import { RealCountryService } from './api/countryService';
+import { MockCountryService } from './mocks/countryService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -47,3 +55,19 @@ const resolvePrivacyService = (): PrivacyService => {
 };
 
 export const privacyService = resolvePrivacyService();
+
+const resolveEditMeService = (): editMeService => {
+  if (config.api.useMock) {
+    return new MockEditMeService();
+  }
+  return new RealEditMeService();
+};
+
+export const EditMeService = resolveEditMeService();
+
+const resolveCountryService = (): CountryService => {
+  if (config.api.useMock) {
+    return new MockCountryService();
+  }
+  return new RealCountryService();
+};

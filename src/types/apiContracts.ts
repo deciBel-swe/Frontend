@@ -32,7 +32,7 @@ import {
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
 } from './tracks';
-import { userMeSchema } from './user';
+import { updateMeRequestSchema, userMeSchema } from './user';
 
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -99,7 +99,12 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.USERS.ME,
     responseSchema: userMeSchema,
   }),
-
+  USERS_ME_EDIT: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME,
+    requestSchema: updateMeRequestSchema,
+    responseSchema: userMeSchema,
+  }),
   USERS_ME_TRACKS: defineContract<
     void,
     z.infer<typeof trackDetailsResponseSchema>[]
