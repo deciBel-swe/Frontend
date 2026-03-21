@@ -1,7 +1,7 @@
 type MockTrackServiceCtor =
   typeof import('@/services/mocks/trackService').MockTrackService;
 
-const TRACKS_KEY = 'decibel_mock_tracks_v2';
+const TRACKS_KEY = 'decibel_mock_tracks';
 
 const advance = async (ms = 2500) => {
   await jest.advanceTimersByTimeAsync(ms);

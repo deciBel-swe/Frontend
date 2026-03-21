@@ -131,29 +131,22 @@ describe('TopNavBar', () => {
     jest.clearAllMocks();
   });
 
-  it('renders guest actions and triggers login from Sign in button', async () => {
+  it('renders guest actions and navigates to sign-in and register pages', async () => {
     const user = userEvent.setup();
-    const login = jest.fn();
-
+    
     mockUseTopNavBar.mockReturnValue(
       createTopNavState({
         isAuthenticated: false,
         user: null,
-        login,
       })
     );
 
     render(<TopNavBar />);
 
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Create account' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Sign in" })).toHaveAttribute('href', '/signin');
+    expect(screen.getByRole('link', { name: "Create account" })).toHaveAttribute('href', '/register');
 
-    await user.click(screen.getByRole('button', { name: 'Sign in' }));
-
-    expect(login).toHaveBeenCalledWith('artist@decibel.test', 'x');
-  });
+    });
 
   it('renders authenticated actions when user is present', async () => {
     const closeUserMenu = jest.fn();

@@ -11,6 +11,7 @@ import {
   Play,
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
+import Waveform from '@/components/waveform/Waveform';
 
 type TrackCardProps = {
   user: {
@@ -60,11 +61,11 @@ export default function TrackCard({
       </div>
 
       {/* MAIN ROW */}
-      <div className="flex gap-4 items-start">
+      <div className="flex gap-2 sm:gap-4 items-start min-w-0">
         {/* LEFT IMAGE */}
         <Link
           href={`/system${userSlug}/${trackSlug}`}
-          className="w-36 aspect-square flex-shrink-0 -mt-1"
+          className="w-28 sm:w-36 aspect-square flex-shrink-0 -mt-1"
         >
           <img
             src={track.cover}
@@ -78,7 +79,7 @@ export default function TrackCard({
           <div className="flex items-center gap-3 h-12 px-2">
             <Button
               variant="ghost"
-              className="relative w-14 h-14 rounded-full p-0 flex items-center justify-center group overflow-hidden"
+              className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full p-0 flex items-center justify-center group overflow-hidden"
             >
               {/* overlay */}
               <div className="absolute inset-0 bg-neutral-0 opacity-100 transition" />
@@ -108,14 +109,8 @@ export default function TrackCard({
           </div>
 
           {/* 2. WAVEFORM */}
-          <div className="h-14 px-2 flex items-end gap-[2px]">
-            {waveform.map((h, i) => (
-              <div
-                key={i}
-                className="w-[2px] bg-gray-500"
-                style={{ height: `${Math.max(6, h / 2)}px` }}
-              />
-            ))}
+          <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0">
+            <Waveform data={waveform} height={90} barClassName="bg-gray-500" />
           </div>
 
           {/* 3. ACTIONS */}
