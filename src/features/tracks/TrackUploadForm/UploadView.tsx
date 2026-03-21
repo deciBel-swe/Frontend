@@ -1,16 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { z } from 'zod'
+import { useAuth } from '@/hooks'
+import { config } from '@/config'
 import { trackService } from '@/services'
 import { generateWaveform } from '@/utils/generateWaveform'
-import UploadDropzone from '@/features/tracks/TrackUploadForm/UploadDropzone'
-import UploadFormView from '@/features/tracks/TrackUploadForm/UploadFormView'
+import UploadDropzone from '@/features/tracks/TrackUploadForm/FormFields/UploadDropzone'
+import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm'
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess'
-
-const uploadSchema = z.object({
-  title: z.string().trim().min(1, 'Title is required'),
-})
+import { toTrackSlug, uploadSchema } from '@/types/uploadSchema'
+import type { TrackPrivacyValue } from '@/types/tracks'
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB in bytes
 const ALLOWED_TYPES = [
@@ -25,21 +24,35 @@ const ALLOWED_TYPES = [
 ]
 const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac']
 
+const getWaveformParseErrorMessage = (err: unknown): string => {
+  if (err instanceof Error && err.message.trim().length > 0) {
+    return `Unable to parse audio for waveform: ${err.message}`
+  }
+
+  return 'Unable to parse audio for waveform. Please try another file.'
+}
+
 export default function UploadView() {
+  const { user } = useAuth()
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [error, setError] = useState<string>('')
   const [titleError, setTitleError] = useState<string>('')
+  const [trackLinkError, setTrackLinkError] = useState<string>('')
+  const [genreError, setGenreError] = useState<string>('')
   const [showForm, setShowForm] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [title, setTitle] = useState('')
   const [artist, setArtist] = useState('')
-  const trackLinkPrefix = 'www.decibel.com/user1'
+  const [artistEdited, setArtistEdited] = useState(false)
+  const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '')
+  const trackLinkPrefix = `${normalizedDomainName}/${user?.username ?? 'user1'}`
   const [trackLinkSuffix, setTrackLinkSuffix] = useState('')
+  const [trackLinkEdited, setTrackLinkEdited] = useState(false)
   const [tags, setTags] = useState<string[]>([])
   const [genre, setGenre] = useState('')
   const [description, setDescription] = useState('')
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('public')
+  const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public')
   const [artworkFile, setArtworkFile] = useState<File | null>(null)
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null)
   const [uploadComplete, setUploadComplete] = useState(false)
@@ -53,6 +66,24 @@ export default function UploadView() {
       setTitle(nameWithoutExt)
     }
   }, [audioFile])
+
+  useEffect(() => {
+    if (trackLinkEdited) {
+      return
+    }
+
+    setTrackLinkSuffix(toTrackSlug(title))
+  }, [title, trackLinkEdited])
+
+  useEffect(() => {
+    if (artistEdited || artist.trim().length > 0) {
+      return
+    }
+
+    if (user?.username) {
+      setArtist(user.username)
+    }
+  }, [artist, artistEdited, user?.username])
 
   useEffect(() => {
     const updateWaveformHeight = () => {
@@ -86,9 +117,13 @@ export default function UploadView() {
           .filter((value) => Number.isFinite(value))
           .map((value) => Math.max(0, Math.min(1, value)))
         setGeneratedWaveform(normalized)
+        setError('')
       })
-      .catch(() => {
-        if (!isCancelled) setGeneratedWaveform([])
+      .catch((err) => {
+        if (!isCancelled) {
+          setGeneratedWaveform([])
+          setError(getWaveformParseErrorMessage(err))
+        }
       })
 
     return () => {
@@ -98,12 +133,27 @@ export default function UploadView() {
 
   const startUpload = async () => {
     if (!audioFile) return
-    const validation = uploadSchema.safeParse({ title })
+    const validation = uploadSchema.safeParse({
+      title,
+      trackLinkSuffix,
+      artist,
+      genre,
+      tags,
+      description,
+      privacy,
+    })
+
     if (!validation.success) {
-      setTitleError(validation.error.issues[0]?.message ?? 'Title is required')
+      const fieldErrors = validation.error.flatten().fieldErrors
+      setTitleError(fieldErrors.title?.[0] ?? '')
+      setTrackLinkError(fieldErrors.trackLinkSuffix?.[0] ?? '')
+      setGenreError(fieldErrors.genre?.[0] ?? '')
       return
     }
+
     setTitleError('')
+    setTrackLinkError('')
+    setGenreError('')
 
     const formData = new FormData()
 
@@ -114,7 +164,8 @@ export default function UploadView() {
     }
 
     formData.append('title', title)
-    formData.append('genre', genre || 'Electronic')
+    formData.append('trackLinkSuffix', trackLinkSuffix)
+    formData.append('genre', genre || '')
     formData.append('isPrivate', String(privacy === 'private'))
     formData.append('releaseDate', new Date().toISOString().slice(0, 10))
     if (description.trim().length > 0) {
@@ -144,11 +195,12 @@ export default function UploadView() {
         'mock-token',
         setUploadProgress,
       )
+      const submittedTrackUrl = `${trackLinkPrefix}/${trackLinkSuffix}`
       setUploadComplete(true)
       setIsUploading(false)
-      setUploadedTrackUrl(response.trackUrl)
+      setUploadedTrackUrl(submittedTrackUrl || response.trackUrl)
     } catch (err) {
-      setError('Upload failed')
+      setError(getWaveformParseErrorMessage(err))
       setIsUploading(false)
       console.error('Track upload error:', err)
     }
@@ -161,6 +213,21 @@ export default function UploadView() {
     setUploadComplete(false)
     setIsUploading(false)
     setError('')
+    setTitle('')
+    setTitleError('')
+    setTrackLinkError('')
+    setGenreError('')
+    setTrackLinkSuffix('')
+    setTrackLinkEdited(false)
+    setArtist('')
+    setArtistEdited(false)
+    setGenre('')
+    setTags([])
+    setDescription('')
+    setPrivacy('public')
+    setArtworkFile(null)
+    setArtworkPreview(null)
+    setGeneratedWaveform([])
   }
 
   const handleArtwork = (file: File) => {
@@ -245,10 +312,11 @@ export default function UploadView() {
 
   if (showForm && audioFile) {
     return (
-      <UploadFormView
+      <UploadForm
         audioFile={audioFile}
         isUploading={isUploading}
         uploadProgress={uploadProgress}
+        error={error}
         onReset={resetUpload}
         onSubmit={startUpload}
         artworkPreview={artworkPreview}
@@ -264,11 +332,27 @@ export default function UploadView() {
         }}
         trackLinkPrefix={trackLinkPrefix}
         trackLinkSuffix={trackLinkSuffix}
-        onTrackLinkSuffixChange={setTrackLinkSuffix}
+        trackLinkError={trackLinkError}
+        onTrackLinkSuffixChange={(nextSuffix) => {
+          setTrackLinkEdited(true)
+          setTrackLinkSuffix(toTrackSlug(nextSuffix))
+          if (trackLinkError) {
+            setTrackLinkError('')
+          }
+        }}
         artist={artist}
-        onArtistChange={setArtist}
+        onArtistChange={(nextArtist) => {
+          setArtistEdited(true)
+          setArtist(nextArtist)
+        }}
         genre={genre}
-        onGenreChange={setGenre}
+        genreError={genreError}
+        onGenreChange={(nextGenre) => {
+          setGenre(nextGenre)
+          if (genreError) {
+            setGenreError('')
+          }
+        }}
         tags={tags}
         onTagsChange={setTags}
         description={description}
