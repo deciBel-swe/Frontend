@@ -70,26 +70,24 @@ export function useFeedTracks() {
 
   const feedTracks = tracks.map((track) => {
     const artistName =
-      typeof track.artist === 'string'
-        ? track.artist
-        : track.artist.username;
+      typeof track.artist === 'string' ? track.artist : track.artist.username;
 
-    return ({
-    id: track.id,
-    user: {
-      name: artistName,
-      avatar: track.coverUrl,
-    },
-    postedText: 'posted a track' as const,
-    timeAgo: '',
-    track: {
-      artist: artistName,
-      title: track.title,
-      cover: track.coverUrl,
-      duration: '',
-    },
-    waveform: parseWaveform(track.waveformData, track.id),
-  });
+    return {
+      id: track.id,
+      user: {
+        name: artistName,
+        avatar: track.coverUrl,
+      },
+      postedText: 'posted a track' as const,
+      timeAgo: '',
+      track: {
+        artist: artistName,
+        title: track.title,
+        cover: track.coverUrl,
+        duration: '',
+      },
+      waveform: parseWaveform(track.waveformData, track.id),
+    };
   });
 
   return { feedTracks, isLoading, isError };

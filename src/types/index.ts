@@ -116,3 +116,5 @@ export interface NavLinkConfig {
 }
 
 export type { UploadTrackResponse } from './tracks';
+export { uploadSchema, toTrackSlug } from './uploadSchema';
+export type { UploadFormValues } from './uploadSchema';
