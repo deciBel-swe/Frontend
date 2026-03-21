@@ -26,6 +26,7 @@ interface UseSignInSubmitParams {
   setSubmitError: Dispatch<SetStateAction<string>>;
   login: (email: string, password: string) => Promise<void>;
   verifyReCaptcha: (action?: string) => Promise<ReCaptchaResult>;
+  onSuccess?: () => void;
 }
 
 export const useSignInSubmit = ({
@@ -34,6 +35,7 @@ export const useSignInSubmit = ({
   setSubmitError,
   login,
   verifyReCaptcha,
+  onSuccess,
 }: UseSignInSubmitParams) => {
   /**
    * Hook for handling sign-in form submission
@@ -82,6 +84,7 @@ export const useSignInSubmit = ({
 
       try {
         await login(parsedValues.data.email, parsedValues.data.password);
+        onSuccess?.();
       } catch {
         setSubmitError(
           'Sign in failed. Please check your credentials and try again.'

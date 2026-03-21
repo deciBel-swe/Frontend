@@ -17,7 +17,9 @@
 
 import { type FC } from 'react';
 import Link from 'next/link';
-
+import { useState } from 'react';
+import SignInModal from '@/features/auth/components/Forms/SignInModal';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
 import { Avatar } from '@/components/nav/Avatar';
@@ -90,6 +92,8 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     initials,
     activeNav,
   } = useTopNavBar();
+   const [open, setOpen] = useState(false);
+   const pathname = usePathname();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
        <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
@@ -272,16 +276,20 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
-                <Link href={ROUTES.SIGNIN}>
+                {/* <Link href={ROUTES.SIGNIN}> */}
                   <Button
                     type="button"
                     variant="primary"
                     size="sm"
                     disabled={isAuthLoading}
+                    onClick={() => {
+                      if (pathname === ROUTES.SIGNIN) return;
+                      setOpen(true);
+                    }}
                   >
                     Sign in
                   </Button>
-                </Link>
+                {/* </Link> */}
                 <Link href={ROUTES.REGISTER}>
                   <Button
                     type="button"
@@ -297,6 +305,10 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
             </div>
           </div>
         )}
+        <SignInModal
+        open={open}
+        onClose={() => setOpen(false)}
+      />
       </div>
     </header>
   );
