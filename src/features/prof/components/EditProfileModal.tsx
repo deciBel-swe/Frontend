@@ -7,7 +7,7 @@ import { IconButton } from '@/components/buttons/IconButton';
 import { Link2, Trash2, X } from 'lucide-react';
 import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import { z } from 'zod';
-import FloatingSelectField from '@/features/prof/FormFields/FloatingSelectField';
+import FloatingSelectField from '@/features/prof/formFeilds/FloatingSelectField'';
 import { useGetCountry } from '@/hooks';
 import { useEditMe } from '@/features/prof/hooks/useEditMe';
 import { ProfileLink, UpdateMeRequest } from '@/types/user';

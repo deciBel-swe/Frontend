@@ -23,7 +23,7 @@ export const useEditMe = () => {
         throw new Error('Missing access token');
       }
 
-      return editMeService.editMe(session.accessToken, data);
+      return EditMeService.editMe(session.accessToken, data);
     },
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(currentUsernameKey, updatedUser);
