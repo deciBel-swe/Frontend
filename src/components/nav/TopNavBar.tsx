@@ -17,7 +17,6 @@
 
 import { type FC } from 'react';
 import Link from 'next/link';
-
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
 import { Avatar } from '@/components/nav/Avatar';
