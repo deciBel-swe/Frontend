@@ -79,7 +79,6 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     isAuthenticated,
     isAuthLoading,
     isMounted,
-    login,
     userMenuOpen,
     toggleUserMenu,
     closeUserMenu,
@@ -273,17 +272,17 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
+                <Link href={ROUTES.SIGNIN}>
                   <Button
                     type="button"
                     variant="primary"
                     size="sm"
                     disabled={isAuthLoading}
-                    onClick={() => {
-                      login('artist@decibel.test', 'x');
-                    }}
                   >
                     Sign in
                   </Button>
+                </Link>
+                <Link href={ROUTES.REGISTER}>
                   <Button
                     type="button"
                     variant="secondary"
@@ -292,6 +291,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   >
                     Create account
                   </Button>
+                </Link>  
                 </>
               )}
             </div>
