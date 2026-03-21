@@ -22,8 +22,9 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
-  const [trackLink, setTrackLink] = useState('');
-  const [tags, setTags] = useState('');
+  const trackLinkPrefix = 'www.decibel.com/user1'
+  const [trackLinkSuffix, setTrackLinkSuffix] = useState('')
+  const [tags, setTags] = useState<string[]>([])
   const [genre, setGenre] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
@@ -241,8 +242,9 @@ export default function UploadPage() {
             setTitleError('');
           }
         }}
-        trackLink={trackLink}
-        onTrackLinkChange={setTrackLink}
+        trackLinkPrefix={trackLinkPrefix}
+        trackLinkSuffix={trackLinkSuffix}
+        onTrackLinkSuffixChange={setTrackLinkSuffix}
         artist={artist}
         onArtistChange={setArtist}
         genre={genre}
