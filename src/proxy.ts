@@ -3,34 +3,6 @@ import type { NextRequest } from 'next/server';
 
 import { PROTECTED_ROUTES, ROUTES } from '@/constants/routes';
 
-const AUTH_ENTRY_ROUTES = new Set<string>([
-  ROUTES.HOME,
-  ROUTES.SIGNIN,
-  ROUTES.REGISTER,
-  ROUTES.RESETPASSWORD,
-]);
-
-const resolveSafeRedirect = (
-  request: NextRequest,
-  redirectParam: string | null
-): URL | null => {
-  if (
-    !redirectParam ||
-    !redirectParam.startsWith('/') ||
-    redirectParam.startsWith('//')
-  ) {
-    return null;
-  }
-
-  const baseUrl = request.nextUrl.clone();
-  const destination = new URL(redirectParam, baseUrl.toString());
-  if (AUTH_ENTRY_ROUTES.has(destination.pathname)) {
-    return null;
-  }
-
-  return destination;
-};
-
 /**
  * Auth middleware.
  *
@@ -47,16 +19,10 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = request.cookies.has('decibel_auth');
 
-  if (AUTH_ENTRY_ROUTES.has(pathname) && isAuthenticated) {
-    const destination = resolveSafeRedirect(
-      request,
-      request.nextUrl.searchParams.get('redirect')
-    );
-
-    if (destination) {
-      return NextResponse.redirect(destination);
-    }
-
+  if (
+    (pathname === ROUTES.SIGNIN || pathname === ROUTES.HOME) &&
+    isAuthenticated
+  ) {
     const discoverUrl = request.nextUrl.clone();
     discoverUrl.pathname = ROUTES.DISCOVER;
     discoverUrl.search = '';
@@ -78,9 +44,6 @@ export function proxy(request: NextRequest) {
   const signinUrl = request.nextUrl.clone();
   signinUrl.pathname = ROUTES.SIGNIN;
   signinUrl.search = '';
-  signinUrl.searchParams.set(
-    'redirect',
-    `${pathname}${request.nextUrl.search}`
-  );
+  signinUrl.searchParams.set('redirect', pathname);
   return NextResponse.redirect(signinUrl);
 }

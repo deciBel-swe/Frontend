@@ -17,9 +17,7 @@ type MockTrackRecord = {
   };
   trackUrl: string;
   coverUrl: string;
-  coverImageDataUrl?: string;
   waveformUrl: string;
-  waveformData: string;
   genre: string;
   tags: string[];
   isPrivate: boolean;
@@ -28,8 +26,7 @@ type MockTrackRecord = {
 };
 
 const MOCK_DELAY_MS = 220;
-const TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
-const AUTH_USER_KEY = 'decibel_mock_user';
+const TRACKS_STORAGE_KEY = 'decibel_mock_tracks_v2';
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -43,7 +40,8 @@ const buildCoverUrl = (trackId: number): string =>
 const buildWaveformUrl = (trackId: number): string =>
   `${config.api.appUrl}/mock/waveforms/${trackId}.json`;
 
-const createSecretToken = (): string => Math.random().toString(36).slice(2, 10);
+const createSecretToken = (): string =>
+  Math.random().toString(36).slice(2, 10);
 
 const cloneTrack = (track: MockTrackRecord): MockTrackRecord => ({
   ...track,
@@ -56,9 +54,8 @@ const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   title: track.title,
   artist: { ...track.artist },
   trackUrl: track.trackUrl,
-  coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+  coverUrl: track.coverUrl,
   waveformUrl: track.waveformUrl,
-  waveformData: track.waveformData,
   genre: track.genre,
   tags: [...track.tags],
 });
@@ -71,8 +68,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(101),
     coverUrl: buildCoverUrl(101),
     waveformUrl: buildWaveformUrl(101),
-    waveformData:
-      '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'Electronic',
     tags: ['synthwave', 'night-drive'],
     isPrivate: false,
@@ -85,7 +80,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(102),
     coverUrl: buildCoverUrl(102),
     waveformUrl: buildWaveformUrl(102),
-    waveformData: '[]',
     genre: 'Lo-Fi',
     tags: ['chill', 'study'],
     isPrivate: true,
@@ -99,7 +93,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(103),
     coverUrl: buildCoverUrl(103),
     waveformUrl: buildWaveformUrl(103),
-    waveformData: '[]',
     genre: 'House',
     tags: ['club', 'warmup'],
     isPrivate: false,
@@ -112,7 +105,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(104),
     coverUrl: buildCoverUrl(104),
     waveformUrl: buildWaveformUrl(104),
-    waveformData: '[]',
     genre: 'Ambient',
     tags: ['meditation', 'sleep'],
     isPrivate: true,
@@ -126,7 +118,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(105),
     coverUrl: buildCoverUrl(105),
     waveformUrl: buildWaveformUrl(105),
-    waveformData: '[]',
     genre: 'Breakbeat',
     tags: ['drums', 'vinyl'],
     isPrivate: false,
@@ -139,7 +130,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     trackUrl: buildTrackUrl(106),
     coverUrl: buildCoverUrl(106),
     waveformUrl: buildWaveformUrl(106),
-    waveformData: '[]',
     genre: 'Downtempo',
     tags: ['sunrise', 'focus'],
     isPrivate: false,
@@ -171,13 +161,7 @@ const normalizeTrackRecord = (value: unknown): MockTrackRecord | null => {
     },
     trackUrl: raw.trackUrl ?? buildTrackUrl(raw.id),
     coverUrl: raw.coverUrl ?? buildCoverUrl(raw.id),
-    coverImageDataUrl:
-      typeof raw.coverImageDataUrl === 'string'
-        ? raw.coverImageDataUrl
-        : undefined,
     waveformUrl: raw.waveformUrl ?? buildWaveformUrl(raw.id),
-    waveformData:
-      typeof raw.waveformData === 'string' ? raw.waveformData : '[]',
     genre: raw.genre ?? 'Unknown',
     tags: Array.isArray(raw.tags)
       ? raw.tags.filter((tag): tag is string => typeof tag === 'string')
@@ -220,10 +204,7 @@ const readTracks = (): MockTrackRecord[] => {
     return inMemoryTracks.map(cloneTrack);
   } catch {
     inMemoryTracks = createSeedTracks();
-    window.localStorage.setItem(
-      TRACKS_STORAGE_KEY,
-      JSON.stringify(inMemoryTracks)
-    );
+    window.localStorage.setItem(TRACKS_STORAGE_KEY, JSON.stringify(inMemoryTracks));
     return inMemoryTracks.map(cloneTrack);
   }
 };
@@ -232,10 +213,7 @@ const writeTracks = (tracks: MockTrackRecord[]): void => {
   inMemoryTracks = tracks.map(cloneTrack);
 
   if (hasStorage()) {
-    window.localStorage.setItem(
-      TRACKS_STORAGE_KEY,
-      JSON.stringify(inMemoryTracks)
-    );
+    window.localStorage.setItem(TRACKS_STORAGE_KEY, JSON.stringify(inMemoryTracks));
   }
 };
 
@@ -267,63 +245,14 @@ const getBooleanField = (formData: FormData, key: string): boolean => {
 
 const getTagsField = (formData: FormData): string[] => {
   const unique = new Set<string>();
-  const entries = formData.getAll('tags');
-  const hasSingleJsonString =
-    entries.length === 1 &&
-    typeof entries[0] === 'string' &&
-    entries[0].trim().startsWith('[');
-
-  if (hasSingleJsonString) {
-    try {
-      const parsed = JSON.parse(entries[0] as string);
-      if (Array.isArray(parsed)) {
-        parsed
-          .filter((tag): tag is string => typeof tag === 'string')
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0)
-          .forEach((tag) => unique.add(tag));
-        return [...unique];
-      }
-    } catch {
-      // Fall through to default parsing.
-    }
-  }
-
-  entries
+  formData
+    .getAll('tags')
     .flatMap((entry) => (typeof entry === 'string' ? entry.split(',') : []))
     .map((tag) => tag.trim())
     .filter((tag) => tag.length > 0)
     .forEach((tag) => unique.add(tag));
 
   return [...unique];
-};
-
-const readFileAsDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-
-const getSessionUsername = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const raw = window.localStorage.getItem(AUTH_USER_KEY);
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as { username?: string };
-    return typeof parsed.username === 'string' && parsed.username.trim().length > 0
-      ? parsed.username
-      : null;
-  } catch {
-    return null;
-  }
 };
 
 export class MockTrackService implements TrackService {
@@ -356,34 +285,7 @@ export class MockTrackService implements TrackService {
             ? Math.max(...tracks.map((track) => track.id)) + 1
             : 1;
 
-        const waveformEntries = formData.getAll('waveformData');
-        const waveformJson =
-          waveformEntries.length === 1 && typeof waveformEntries[0] === 'string'
-            ? (waveformEntries[0] as string)
-            : JSON.stringify(
-                waveformEntries
-                  .filter((entry): entry is string => typeof entry === 'string')
-                  .map((entry) => Number(entry))
-                  .filter((value) => Number.isFinite(value))
-              );
-        const waveformSampleCount = (() => {
-          if (
-            waveformEntries.length === 1 &&
-            typeof waveformEntries[0] === 'string' &&
-            waveformEntries[0].trim().startsWith('[')
-          ) {
-            try {
-              const parsed = JSON.parse(waveformEntries[0] as string);
-              if (Array.isArray(parsed)) {
-                return parsed.length;
-              }
-            } catch {
-              return 0;
-            }
-          }
-
-          return waveformEntries.length;
-        })();
+        const waveformSampleCount = formData.getAll('waveformData').length;
         const durationSeconds =
           waveformSampleCount > 0
             ? Math.max(30, Math.min(1200, waveformSampleCount * 2))
@@ -393,51 +295,35 @@ export class MockTrackService implements TrackService {
         const genre = getStringField(formData, 'genre', 'Electronic');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
-        const artistName = getStringField(
-          formData,
-          'artist',
-          getSessionUsername() ?? 'mockartist',
-        );
+        const artistName = getStringField(formData, 'artist', 'mockartist');
 
-        const finalizeUpload = async () => {
-          const coverImageEntry = formData.get('coverImage');
-          const coverImageDataUrl =
-            coverImageEntry instanceof File
-              ? await readFileAsDataUrl(coverImageEntry)
-              : undefined;
-
-          const uploaded: MockTrackRecord = {
-            id: nextId,
-            title,
-            artist: {
-              id: 7,
-              username: artistName,
-            },
-            trackUrl: buildTrackUrl(nextId),
-            coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
-            coverImageDataUrl,
-            waveformUrl: buildWaveformUrl(nextId),
-            waveformData: waveformJson,
-            genre,
-            tags,
-            isPrivate,
-            durationSeconds,
-            secretLink: isPrivate ? createSecretToken() : undefined,
-          };
-
-          const updated = [uploaded, ...tracks];
-          writeTracks(updated);
-
-          resolve({
-            id: uploaded.id,
-            title: uploaded.title,
-            trackUrl: uploaded.trackUrl,
-            coverUrl: uploaded.coverUrl,
-            durationSeconds: uploaded.durationSeconds,
-          });
+        const uploaded: MockTrackRecord = {
+          id: nextId,
+          title,
+          artist: {
+            id: 7,
+            username: artistName,
+          },
+          trackUrl: buildTrackUrl(nextId),
+          coverUrl: buildCoverUrl(nextId),
+          waveformUrl: buildWaveformUrl(nextId),
+          genre,
+          tags,
+          isPrivate,
+          durationSeconds,
+          secretLink: isPrivate ? createSecretToken() : undefined,
         };
 
-        void finalizeUpload();
+        const updated = [uploaded, ...tracks];
+        writeTracks(updated);
+
+        resolve({
+          id: uploaded.id,
+          title: uploaded.title,
+          trackUrl: uploaded.trackUrl,
+          coverUrl: uploaded.coverUrl,
+          durationSeconds: uploaded.durationSeconds,
+        });
       }, 120);
     });
   }
@@ -452,10 +338,9 @@ export class MockTrackService implements TrackService {
     await delay();
 
     const tracks = readTracks();
-    const filteredTracks =
-      !username || username.trim().length === 0
-        ? tracks
-        : tracks.filter((track) => track.artist.username === username);
+    const filteredTracks = !username || username.trim().length === 0
+      ? tracks
+      : tracks.filter((track) => track.artist.username === username);
 
     return filteredTracks.map(toMetadata);
   }
@@ -483,7 +368,7 @@ export class MockTrackService implements TrackService {
       ...current,
       isPrivate: data.isPrivate,
       secretLink: data.isPrivate
-        ? (current.secretLink ?? createSecretToken())
+        ? current.secretLink ?? createSecretToken()
         : current.secretLink,
     };
 

@@ -16,7 +16,7 @@ export interface AppConfig {
   api: {
     baseURL: string;
     wsURL: string;
-    appUrl: string;
+    appUrl:string;
     useMock: boolean;
   };
   pagination: {

@@ -38,11 +38,7 @@ describe('RealTrackService', () => {
     formData.append('title', 'Uploaded Track');
 
     const onProgress = jest.fn();
-    const result = await service.uploadTrack(
-      formData,
-      'bearer-token',
-      onProgress
-    );
+    const result = await service.uploadTrack(formData, 'bearer-token', onProgress);
 
     expect(result).toEqual(response);
 
@@ -52,7 +48,7 @@ describe('RealTrackService', () => {
         payload?: FormData;
         headers?: Record<string, string>;
         onUploadProgress?: (event: UploadProgressEvent) => void;
-      },
+      }
     ];
 
     expect(contract).toBe(API_CONTRACTS.TRACKS_UPLOAD);
@@ -127,9 +123,7 @@ describe('RealTrackService', () => {
     const allTracks = await service.getUserTracks();
     const onlyAlice = await service.getUserTracks('alice');
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_ME_TRACKS
-    );
+    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.USERS_ME_TRACKS);
     expect(allTracks).toHaveLength(2);
     expect(onlyAlice).toHaveLength(1);
     expect(onlyAlice[0].artist.username).toBe('alice');
@@ -141,9 +135,7 @@ describe('RealTrackService', () => {
       .mockResolvedValueOnce({ isPrivate: true });
 
     const visibility = await service.getTrackVisibility(88);
-    const updated = await service.updateTrackVisibility(88, {
-      isPrivate: true,
-    });
+    const updated = await service.updateTrackVisibility(88, { isPrivate: true });
 
     expect(visibility).toEqual({ isPrivate: false });
     expect(updated).toEqual({ isPrivate: true });
@@ -178,10 +170,7 @@ describe('RealTrackService', () => {
 
     expect(mockedApiRequest).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({
-        method: 'POST',
-        url: '/tracks/12/generate-token',
-      })
+      expect.objectContaining({ method: 'POST', url: '/tracks/12/generate-token' })
     );
   });
 });

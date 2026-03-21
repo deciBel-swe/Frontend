@@ -16,11 +16,12 @@ interface WaveformProps {
 
 const normalizeWaveform = (values: WaveformValue[] | undefined): number[] => {
   if (!values || values.length === 0) return [];
-  return values.map((value) => {
-    const parsed = typeof value === 'string' ? Number(value) : value;
-    if (!Number.isFinite(parsed)) return 0;
-    return Math.max(0, Math.min(1, parsed));
-  });
+  return values
+    .map((value) => {
+      const parsed = typeof value === 'string' ? Number(value) : value;
+      if (!Number.isFinite(parsed)) return 0;
+      return Math.max(0, Math.min(1, parsed));
+    });
 };
 
 export default function Waveform({
@@ -31,8 +32,8 @@ export default function Waveform({
   barClassName,
   onGenerated,
 }: WaveformProps) {
-  const [waveform, setWaveform] = useState<number[]>(() =>
-    normalizeWaveform(data)
+  const [waveform, setWaveform] = useState<number[]>(
+    () => normalizeWaveform(data)
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,9 +58,7 @@ export default function Waveform({
       })
       .catch((err) => {
         if (isCancelled) return;
-        setError(
-          err instanceof Error ? err.message : 'Failed to generate waveform'
-        );
+        setError(err instanceof Error ? err.message : 'Failed to generate waveform');
       })
       .finally(() => {
         if (!isCancelled) setLoading(false);
@@ -87,7 +86,10 @@ export default function Waveform({
       ) : bars.length === 0 ? (
         <div className="text-xs text-text-muted">No waveform data yet.</div>
       ) : (
-        <div className="flex items-center gap-[1px]" style={{ height }}>
+        <div
+          className="flex items-center gap-[1px]"
+          style={{ height }}
+        >
           {bars.map((bar) => (
             <div
               key={bar.key}

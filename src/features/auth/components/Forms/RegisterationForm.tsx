@@ -102,17 +102,17 @@ const RegistrationForm: React.FC = () => {
   });
 
   useEffect(() => {
-    if (displayNameEdited || !formValues.email.includes('@')) {
+    if (
+      displayNameEdited ||
+      formValues.displayName ||
+      !formValues.email.includes('@')
+    ) {
       return;
     }
 
     const suggestedName = formValues.email.split('@')[0] || '';
-    setFormValues((previous) =>
-      previous.displayName === suggestedName
-        ? previous
-        : { ...previous, displayName: suggestedName }
-    );
-  }, [displayNameEdited, formValues.email]);
+    setFormValues((previous) => ({ ...previous, displayName: suggestedName }));
+  }, [displayNameEdited, formValues.displayName, formValues.email]);
 
   const updateField = (field: keyof RegistrationFormValues, value: string) => {
     setFormValues((previous) => ({ ...previous, [field]: value }));

@@ -26,11 +26,7 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import axios, {
-  type AxiosError,
-  type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
-} from 'axios';
+import axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 import { useMemo } from 'react';
 import { z } from 'zod';
 
@@ -129,76 +125,6 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-
-const getStoredAccessToken = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  try {
-    return window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
-
-export const attachJwtInterceptor = (
-  requestConfig: InternalAxiosRequestConfig
-): InternalAxiosRequestConfig => {
-  const token = getStoredAccessToken();
-  if (!token) {
-    return requestConfig;
-  }
-
-  if (
-    typeof (requestConfig.headers as { get?: unknown }).get === 'function' &&
-    typeof (requestConfig.headers as { set?: unknown }).set === 'function'
-  ) {
-    const existingAuthorization = (
-      requestConfig.headers as {
-        get: (name: string) => string | undefined;
-        set: (name: string, value: string) => void;
-      }
-    ).get('Authorization');
-
-    if (
-      typeof existingAuthorization === 'string' &&
-      existingAuthorization.trim().length > 0
-    ) {
-      return requestConfig;
-    }
-
-    (
-      requestConfig.headers as {
-        set: (name: string, value: string) => void;
-      }
-    ).set('Authorization', `Bearer ${token}`);
-    return requestConfig;
-  }
-
-  const plainHeaders = requestConfig.headers as unknown as Record<
-    string,
-    string | undefined
-  >;
-
-  const existingAuthorization =
-    plainHeaders.Authorization ?? plainHeaders.authorization;
-
-  if (
-    typeof existingAuthorization === 'string' &&
-    existingAuthorization.trim().length > 0
-  ) {
-    return requestConfig;
-  }
-
-  plainHeaders.Authorization = `Bearer ${token}`;
-
-  return requestConfig;
-};
-
-apiClient.interceptors.request.use(attachJwtInterceptor);
 
 const formatZodIssues = (error: z.ZodError): string => {
   return error.issues

@@ -11,7 +11,7 @@ import { useAuth } from '@/features/auth';
  * has no user-related props.
  */
 export function useTopNavBar() {
-  const { user, isAuthenticated, isLoading, login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -47,7 +47,6 @@ export function useTopNavBar() {
   return {
     user,
     isAuthenticated,
-    isAuthLoading: isLoading,
     isMounted,
     login,
     userMenuOpen,

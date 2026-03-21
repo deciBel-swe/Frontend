@@ -1,8 +1,8 @@
-'use client';
+'use client'
 
-import { useId, useRef } from 'react';
-import FloatingInputField from '@/features/auth/components/FormFields/FloatingInputField';
-import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField';
+import { useId, useRef } from 'react'
+import FloatingInputField from '@/features/auth/components/FormFields/FloatingInputField'
+import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField'
 
 interface UploadFormViewProps {
   audioFile: File
@@ -24,8 +24,6 @@ interface UploadFormViewProps {
   onGenreChange: (value: string) => void
   tags: string
   onTagsChange: (value: string) => void
-  description: string
-  onDescriptionChange: (value: string) => void
   privacy: 'public' | 'private'
   onPrivacyChange: (value: 'public' | 'private') => void
 }
@@ -50,19 +48,17 @@ export default function UploadFormView({
   onGenreChange,
   tags,
   onTagsChange,
-  description,
-  onDescriptionChange,
   privacy,
   onPrivacyChange,
 }: UploadFormViewProps) {
-  const inputId = useId();
-  const artworkInputRef = useRef<HTMLInputElement | null>(null);
+  const inputId = useId()
+  const artworkInputRef = useRef<HTMLInputElement | null>(null)
   const handleRemoveArtwork = () => {
-    onRemoveArtwork();
+    onRemoveArtwork()
     if (artworkInputRef.current) {
-      artworkInputRef.current.value = '';
+      artworkInputRef.current.value = ''
     }
-  };
+  }
 
   return (
     <section className="min-h-screen w-full pb-32">
@@ -138,7 +134,12 @@ export default function UploadFormView({
                       />
 
                       {/* Sun */}
-                      <circle cx="26" cy="18" r="3" fill="white" />
+                      <circle
+                        cx="26"
+                        cy="18"
+                        r="3"
+                        fill="white"
+                      />
 
                       {/* Mountains */}
                       <path
@@ -186,8 +187,8 @@ export default function UploadFormView({
                 accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="hidden"
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onArtworkSelect(file);
+                  const file = e.target.files?.[0]
+                  if (file) onArtworkSelect(file)
                 }}
               />
             </div>
@@ -255,12 +256,10 @@ export default function UploadFormView({
                   <textarea
                     rows={4}
                     placeholder="Tell listeners about your track..."
-                    value={description}
-                    onChange={(event) => onDescriptionChange(event.target.value)}
                     className="w-full bg-interactive-default border border-border-default rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-border-strong"
                   />
                 </div>
-                <div>
+                 <div>
                   <label className="block text-xs text-text-muted mb-1">
                     Track Privacy
                   </label>
@@ -297,7 +296,7 @@ export default function UploadFormView({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base">
+     <div className="fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base">
         <div className="w-full max-w-7xl mx-auto flex justify-end px-4 sm:px-6 py-3">
           <button
             type="button"
@@ -309,5 +308,5 @@ export default function UploadFormView({
         </div>
       </div>
     </section>
-  );
+  )
 }

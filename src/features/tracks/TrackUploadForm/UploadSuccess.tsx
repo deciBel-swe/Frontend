@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import Waveform from '@/components/waveform/Waveform';
+import Waveform from '@/components/waveform/Waveform'
 
 interface UploadSuccessProps {
-  uploadedTrackUrl: string;
-  generatedWaveform: number[];
-  waveformHeight: number;
-  onReset: () => void;
+  uploadedTrackUrl: string
+  generatedWaveform: number[]
+  waveformHeight: number
+  onReset: () => void
 }
 
 export default function UploadSuccess({
@@ -19,9 +19,7 @@ export default function UploadSuccess({
     <section className="min-h-screen w-full flex items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-6 text-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary">
-            Saved to DeciBel.
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-text-primary">Saved to DeciBel.</h2>
           <p className="text-sm sm:text-base text-text-secondary mt-2">
             Congratulations!, Your tracks are now on DeciBel.
           </p>
@@ -51,5 +49,5 @@ export default function UploadSuccess({
         </div>
       </div>
     </section>
-  );
+  )
 }

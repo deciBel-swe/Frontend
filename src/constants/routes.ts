@@ -143,10 +143,8 @@ export const API_ENDPOINTS = {
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,
     PUBLISH: (trackId: number | string) => `/tracks/${trackId}/publish`,
-    SECRET_TOKEN: (trackId: number | string) =>
-      `/tracks/${trackId}/secret-token`,
-    GENERATE_TOKEN: (trackId: number | string) =>
-      `/tracks/${trackId}/generate-token`,
+    SECRET_TOKEN: (trackId: number | string) => `/tracks/${trackId}/secret-token`,
+    GENERATE_TOKEN: (trackId: number | string) => `/tracks/${trackId}/generate-token`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,

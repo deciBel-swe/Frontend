@@ -11,7 +11,7 @@ interface TrackViewProps {
 }
 
 export function TrackView({ trackId }: TrackViewProps) {
-  const numericId = Number(trackId);
+   const numericId = Number(trackId);
   const { visibility, updateVisibility } = useTrackVisibility(numericId);
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
 
@@ -27,15 +27,18 @@ export function TrackView({ trackId }: TrackViewProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* TODO: remove TrackPrivacy after testing */}
-      <TrackPrivacy
+   <div className="flex flex-col gap-3">
+        {/* TODO: remove TrackPrivacy after testing */}
+        <TrackPrivacy
         value={privacy}
         onChange={handlePrivacyChange}
         trackId={trackId}
       />
 
-      <TrackActionBar trackId={trackId} isPrivate={privacy === 'private'} />
+      <TrackActionBar
+        trackId={trackId}
+        isPrivate={privacy === 'private'}
+      />
     </div>
   );
 }

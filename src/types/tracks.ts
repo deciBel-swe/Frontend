@@ -28,16 +28,10 @@ export type TrackVisibility = z.infer<typeof trackVisibilitySchema>;
 export const updateTrackVisibilityDtoSchema = z.object({
   isPrivate: z.boolean(),
 });
-export type UpdateTrackVisibilityDto = z.infer<
-  typeof updateTrackVisibilityDtoSchema
->;
+export type UpdateTrackVisibilityDto = z.infer<typeof updateTrackVisibilityDtoSchema>;
 
 /** Privacy value used in radio button UI */
-export const trackPrivacyValueSchema = z.enum([
-  'public',
-  'private',
-  'scheduled',
-]);
+export const trackPrivacyValueSchema = z.enum(['public', 'private', 'scheduled']);
 export type TrackPrivacyValue = z.infer<typeof trackPrivacyValueSchema>;
 
 // ================================
@@ -106,7 +100,6 @@ export const trackMetadataSchema = z.object({
   trackUrl: z.string().url(),
   coverUrl: z.string().url(),
   waveformUrl: z.string().url(),
-  waveformData: z.string().optional(),//this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
   genre: z.string(),
   tags: z.array(z.string()),
 });

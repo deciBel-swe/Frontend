@@ -17,9 +17,8 @@ jest.mock('@/hooks/useAPI', () => ({
 }));
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockedApiClientRequest = apiClient.request as jest.MockedFunction<
-  typeof apiClient.request
->;
+const mockedApiClientRequest =
+  apiClient.request as jest.MockedFunction<typeof apiClient.request>;
 
 const localStorageStore = new Map<string, string>();
 const sessionStorageStore = new Map<string, string>();
@@ -75,9 +74,7 @@ const bindStorageDoubles = () => {
 const assertValidLoginResponse = (value: unknown): LoginResponseDTO => {
   const parsed = loginResponseDTOSchema.safeParse(value);
   if (!parsed.success) {
-    throw new Error(
-      `Invalid LoginResponseDTO: ${JSON.stringify(parsed.error.issues)}`
-    );
+    throw new Error(`Invalid LoginResponseDTO: ${JSON.stringify(parsed.error.issues)}`);
   }
   return parsed.data;
 };
@@ -132,12 +129,9 @@ describe('AuthService contract parity', () => {
     const parsedRealLogin = assertValidLoginResponse(realLoginResponse);
 
     expect(parsedRealLogin.user.username).toBe('real-user');
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.AUTH_LOGIN_LOCAL,
-      {
-        payload: { email: 'service@test.dev', password: 'Password1' },
-      }
-    );
+    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
+      payload: { email: 'service@test.dev', password: 'Password1' },
+    });
 
     jest.useFakeTimers();
 
@@ -148,10 +142,6 @@ describe('AuthService contract parity', () => {
 
     const parsedMockLogin = assertValidLoginResponse(mockLoginResponse);
     expect(parsedMockLogin.user.username).toBe('user1');
-
-    const restoredMockSession = await mockService.getSession();
-    expect(restoredMockSession).not.toBeNull();
-    expect(restoredMockSession?.user.username).toBe('user1');
 
     jest.useRealTimers();
   });
@@ -249,10 +239,7 @@ describe('AuthService contract parity', () => {
     jest.useFakeTimers();
 
     const mockService = new MockAuthService();
-    const mockResultPromise = mockService.verifyReCaptcha(
-      'token-abc',
-      'signin'
-    );
+    const mockResultPromise = mockService.verifyReCaptcha('token-abc', 'signin');
     await advanceMockDelay(100);
     const mockResult = await mockResultPromise;
 

@@ -3,7 +3,6 @@
 import React from 'react';
 import TrackRow from '@/components/sidebar/TrackRow';
 import SidebarArtistCard from '@/components/sidebar/SidebarArtistCard';
-import { Link } from 'lucide-react';
 
 type SidebarProps = {
   artists: {
@@ -30,6 +29,7 @@ type SidebarProps = {
 export default function Sidebar({ artists, history }: SidebarProps) {
   return (
     <aside className="w-[340px] flex flex-col gap-6 sticky top-20 h-fit">
+
       {/* ================= ARTISTS ================= */}
       <section>
         <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
@@ -56,12 +56,12 @@ export default function Sidebar({ artists, history }: SidebarProps) {
             Listening history
           </h4>
 
-          <Link
+          <a
             href="/you/history"
             className="text-xs text-gray-400 hover:text-white transition"
           >
             View all
-          </Link>
+          </a>
         </div>
 
         <div className="flex flex-col gap-3 mt-4 max-h-[420px] overflow-y-auto pr-1">
@@ -70,6 +70,7 @@ export default function Sidebar({ artists, history }: SidebarProps) {
           ))}
         </div>
       </section>
+
     </aside>
   );
 }

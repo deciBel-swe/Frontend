@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { FC } from 'react';
 import { Play } from 'lucide-react';
 
@@ -12,6 +13,14 @@ export const HoverPlayImage: FC<HoverPlayImageProps> = ({
   alt = 'cover',
   onClick,
 }) => {
+  const normalizeSrc = (src: string) => {
+    if (src.startsWith('@/')) return src.replace('@/', '/');
+    if (src.startsWith('./')) return src.replace('./', '/');
+    return src;
+  };
+
+  const src = normalizeSrc(image);
+
   return (
     <div
       className="group relative w-full h-full overflow-hidden rounded-md shrink-0 cursor-pointer"
@@ -20,7 +29,11 @@ export const HoverPlayImage: FC<HoverPlayImageProps> = ({
       {/* Image */}
       {/* <Image src={src} alt={alt} fill className="object-cover" /> */}
       {/* IMAGE */}
-      <img src={image} alt={alt} className="w-full h-full object-cover" />
+      <img
+        src={image}
+        alt={alt}
+        className="w-full h-full object-cover"
+      />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-surface-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

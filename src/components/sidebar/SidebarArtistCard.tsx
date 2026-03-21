@@ -20,6 +20,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
   imageUrl,
   artistUrl,
 }) => {
+
   // URL logic
   const artistSlug = encodeURIComponent(name);
   const baseUrl = artistUrl ?? `/artist/${artistSlug}`;
@@ -31,8 +32,10 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
 
   return (
     <div className="group flex items-center justify-between px-2 py-4 rounded-xl hover:bg-surface-raised transition-colors w-full cursor-pointer">
+
       {/* LEFT SIDE */}
       <div className="flex items-center gap-2">
+
         {/* IMAGE */}
         {imageUrl ? (
           <img
@@ -46,6 +49,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
 
         {/* TEXT */}
         <div className="flex flex-col">
+
           {/* NAME */}
           <Link
             href={baseUrl}
@@ -56,6 +60,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
 
           {/* STATS */}
           <div className="flex items-center gap-3 text-xs text-text-muted">
+
             <Link
               href={statsLinks.followers}
               className="flex items-center gap-1 transition hover:text-text-primary"
@@ -71,12 +76,18 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
               <Music className="w-3 h-3" />
               {tracks}
             </Link>
+
           </div>
+
         </div>
       </div>
 
       {/* ACTION */}
-      <Button size="sm" variant="secondary" className="rounded-full px-3 py-1">
+      <Button
+        size="sm"
+        variant="secondary"
+        className="rounded-full px-3 py-1"
+      >
         Follow
       </Button>
     </div>

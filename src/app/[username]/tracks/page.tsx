@@ -4,7 +4,7 @@ import { TrackView } from '@/app/[username]/tracks/TrackView';
 import { useUserTracks } from '@/hooks/useUserTracks';
 import { QueryProvider } from '@/providers/QueryProvider';
 function UserTracksHookTest() {
-  const { tracks, isLoading, isError } = useUserTracks('');
+  const { tracks, isLoading, isError } = useUserTracks("");
 
   return (
     <div className="mt-6 rounded border border-dashed border-neutral-300 p-3 text-sm text-neutral-700">

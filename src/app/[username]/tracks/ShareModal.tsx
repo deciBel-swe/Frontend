@@ -38,9 +38,7 @@ function WaveformPlaceholder() {
         <div
           key={i}
           className="w-[2px] bg-border-strong rounded-full"
-          style={{
-            height: `${20 + Math.sin(i * 0.8) * 10 + Math.random() * 8}%`,
-          }}
+          style={{ height: `${20 + Math.sin(i * 0.8) * 10 + Math.random() * 8}%` }}
         />
       ))}
     </div>
@@ -48,7 +46,7 @@ function WaveformPlaceholder() {
 }
 
 // ─── Track preview card ───────────────────────────────────────────────────────
-
+ 
 /**
  * Stateless track preview shown at the top of the share modal.
  * Shows cover art, artist name, title, and waveform placeholder.
@@ -69,30 +67,9 @@ function TrackPreview({ track }: { track: TrackPreview }) {
         ) : (
           <div className="w-full h-full bg-surface-raised flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M9 18V5l12-2v13"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-text-muted"
-              />
-              <circle
-                cx="6"
-                cy="18"
-                r="3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-text-muted"
-              />
-              <circle
-                cx="18"
-                cy="16"
-                r="3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-text-muted"
-              />
+              <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted" />
+              <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" />
+              <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" />
             </svg>
           </div>
         )}
@@ -102,9 +79,7 @@ function TrackPreview({ track }: { track: TrackPreview }) {
       <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
         <div>
           <p className="text-xs text-text-muted">{track.artist}</p>
-          <p className="text-sm font-semibold text-text-primary truncate">
-            {track.title}
-          </p>
+          <p className="text-sm font-semibold text-text-primary truncate">{track.title}</p>
         </div>
         <WaveformPlaceholder />
       </div>
@@ -113,15 +88,14 @@ function TrackPreview({ track }: { track: TrackPreview }) {
 }
 
 // ─── Private share content ────────────────────────────────────────────────────
-
+ 
 /**
  * Share tab content for private tracks.
  * Shows the secret link with copy button, shorten link (disabled),
  * description, and reset secret link button.
  */
 function PrivateShareContent({ trackId }: { trackId: string }) {
-  const { secretUrl, isLoading, isError, regenerate, isRegenerating } =
-    useSecretLink(trackId);
+  const { secretUrl, isLoading, isError, regenerate, isRegenerating } = useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -140,15 +114,11 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
   };
 
   if (isLoading) {
-    return (
-      <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />
-    );
+    return <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />;
   }
 
   if (isError || !secretUrl) {
-    return (
-      <p className="text-xs text-status-error">Unable to load secret link.</p>
-    );
+    return <p className="text-xs text-status-error">Unable to load secret link.</p>;
   }
 
   return (
@@ -169,12 +139,12 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
           aria-label="Copy link"
           className={[
             'shrink-0 transition-colors duration-150',
-            copied
-              ? 'text-status-success'
-              : 'text-text-muted hover:text-text-primary',
+            copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
           ].join(' ')}
         >
-          {copied ? <CheckIcon /> : <CopyIcon />}
+          {copied ? <CheckIcon />: (
+            <CopyIcon />
+          )}
         </button>
       </div>
 
@@ -185,8 +155,8 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
       </label>
 
       <p className="text-xs text-text-muted leading-snug">
-        This track is set to private and can only be shared using the secret
-        link above. You can reset the secret link if you want to revoke access.
+        This track is set to private and can only be shared using the secret link above.
+        You can reset the secret link if you want to revoke access.
       </p>
 
       {/* Reset secret link */}
@@ -204,7 +174,7 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
 }
 
 // ─── Public share content ─────────────────────────────────────────────────────
-
+ 
 /**
  * Share tab content for public tracks.
  * Shows the track URL from API with copy button and shorten link (disabled).
@@ -212,21 +182,18 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
 function PublicShareContent({ trackId }: { trackId: string }) {
   const { metadata, isLoading } = useTrackMetadata(Number(trackId));
   const [copied, setCopied] = useState(false);
-
+ 
   const handleCopy = async () => {
     if (!trackUrl) return;
     await navigator.clipboard.writeText(trackUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  if (isLoading)
-    return (
-      <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />
-    );
-
+ 
+  if (isLoading) return <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />;
+ 
   const trackUrl = metadata?.trackUrl ?? '';
-
+ 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 border border-border-default rounded px-3 py-2 bg-surface-default">
@@ -242,15 +209,13 @@ function PublicShareContent({ trackId }: { trackId: string }) {
           aria-label="Copy link"
           className={[
             'shrink-0 transition-colors duration-150',
-            copied
-              ? 'text-status-success'
-              : 'text-text-muted hover:text-text-primary',
+            copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
           ].join(' ')}
         >
-          {copied ? <CheckIcon /> : <CopyIcon />}
+          {copied ? <CheckIcon />: <CopyIcon />}
         </button>
       </div>
-
+ 
       <label className="flex items-center gap-2 select-none cursor-not-allowed opacity-40">
         <input type="checkbox" disabled className="w-3.5 h-3.5" />
         <span className="text-xs text-text-secondary">Shorten link</span>
@@ -258,6 +223,7 @@ function PublicShareContent({ trackId }: { trackId: string }) {
     </div>
   );
 }
+ 
 
 const PLACEHOLDER_TRACK: TrackPreview = {
   title: 'Untitled Track',
@@ -309,6 +275,7 @@ export function ShareModal({
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div className="pointer-events-auto w-full max-w-md bg-bg-base border border-border-default rounded-lg shadow-2xl overflow-hidden">
+
           {/* Tabs */}
           <div className="border-b border-border-default">
             <nav className="flex">
@@ -338,22 +305,17 @@ export function ShareModal({
           {/* Content */}
           <div className="p-5">
             <TrackPreview track={track} />
-
-            {activeTab === 'share' &&
-              (isPrivate ? (
-                <PrivateShareContent trackId={trackId} />
-              ) : (
-                <PublicShareContent trackId={trackId} />
-              ))}
+ 
+            {activeTab === 'share' && (
+              isPrivate
+                ? <PrivateShareContent trackId={trackId} />
+                : <PublicShareContent trackId={trackId} />
+            )}
             {activeTab === 'embed' && (
-              <p className="text-xs text-text-muted">
-                Embed functionality coming soon.
-              </p>
+              <p className="text-xs text-text-muted">Embed functionality coming soon.</p>
             )}
             {activeTab === 'message' && (
-              <p className="text-xs text-text-muted">
-                Message functionality coming soon.
-              </p>
+              <p className="text-xs text-text-muted">Message functionality coming soon.</p>
             )}
           </div>
         </div>

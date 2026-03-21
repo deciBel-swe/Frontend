@@ -20,11 +20,7 @@ const visibilityKey = (trackId: number) => ['trackVisibility', trackId];
 export function useTrackVisibility(trackId: number | undefined) {
   const queryClient = useQueryClient();
 
-  const {
-    data: visibility,
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data: visibility, isLoading, isError } = useQuery({
     queryKey: visibilityKey(trackId!),
     queryFn: () => trackService.getTrackVisibility(trackId!),
     enabled: !!trackId,
@@ -36,13 +32,10 @@ export function useTrackVisibility(trackId: number | undefined) {
     onMutate: async (newData) => {
       await queryClient.cancelQueries({ queryKey: visibilityKey(trackId!) });
       const previous = queryClient.getQueryData(visibilityKey(trackId!));
-      queryClient.setQueryData(
-        visibilityKey(trackId!),
-        (old: TrackVisibility) => ({
-          ...old,
-          ...newData,
-        })
-      );
+      queryClient.setQueryData(visibilityKey(trackId!), (old: TrackVisibility) => ({
+        ...old,
+        ...newData,
+      }));
       return { previous };
     },
     onError: (_err, _newData, context) => {

@@ -48,12 +48,7 @@ function ProTooltip() {
 // ─── Radio option ─────────────────────────────────────────────────────────────
 
 function RadioOption({
-  id,
-  label,
-  checked,
-  disabled = false,
-  proOnly = false,
-  onChange,
+  id, label, checked, disabled = false, proOnly = false, onChange,
 }: RadioOptionProps) {
   return (
     <div className="relative group">
@@ -81,9 +76,7 @@ function RadioOption({
             checked ? 'border-text-primary' : 'border-border-strong',
           ].join(' ')}
         >
-          {checked && (
-            <span className="w-2.5 h-2.5 rounded-full bg-text-primary" />
-          )}
+          {checked && <span className="w-2.5 h-2.5 rounded-full bg-text-primary" />}
         </span>
         <span className="text-sm font-medium text-text-primary">{label}</span>
       </label>
@@ -104,8 +97,7 @@ function RadioOption({
 
 export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
   const numericTrackId = trackId ? Number(trackId) : undefined;
-  const { visibility, updateVisibility, isUpdating } =
-    useTrackVisibility(numericTrackId);
+  const { visibility, updateVisibility, isUpdating } = useTrackVisibility(numericTrackId);
 
   // Sync API state into parent when editing an existing track
   useEffect(() => {
@@ -123,9 +115,7 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-semibold text-text-primary">
-        Track Privacy
-      </span>
+      <span className="text-sm font-semibold text-text-primary">Track Privacy</span>
 
       <div className="flex items-center gap-6">
         <RadioOption
@@ -155,10 +145,13 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
       {/* Upload mode — info message only, no trackId yet */}
       {!trackId && value === 'private' && (
         <p className="text-xs text-text-muted leading-snug">
-          Only you and people you share the secret link with can listen to this
-          track. The secret link will be available after saving.
+          Only you and people you share the secret link with can listen to this track.
+          The secret link will be available after saving.
         </p>
       )}
+
+      
+      
     </div>
   );
 }
