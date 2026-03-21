@@ -3,6 +3,7 @@
 import React from 'react';
 import SignInForm from '@/features/auth/components/Forms/SignInForm'; // adjust path if needed
 import {ReCaptchaProvider} from '@/providers/ReCaptchaProvider'
+import { X } from 'lucide-react';
 
 type Props = {
   open: boolean;
@@ -21,7 +22,7 @@ const SignInModal: React.FC<Props> = ({ open, onClose }) => {
           onClick={onClose}
           className="absolute right-4 top-4 text-sm bg-white/10 px-3 py-1 rounded hover:bg-white/20"
         >
-          ✕
+          <X size={20} />
         </button>
 
         {/* BODY */}
