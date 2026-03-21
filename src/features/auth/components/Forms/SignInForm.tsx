@@ -40,7 +40,10 @@ import { type FieldErrors, type SignInFormValues } from '@/types/authSchemas';
  *   <SignInForm />
  * </ReCaptchaProvider>
  */
-const SignInForm: FC = () => {
+type SignInFormProps = {
+  onSuccess?: () => void;
+};
+const SignInForm: FC <SignInFormProps> = ({ onSuccess }) => {
   const [formValues, setFormValues] = useState<SignInFormValues>({
     email: '',
     password: '',
@@ -57,6 +60,7 @@ const SignInForm: FC = () => {
     setSubmitError,
     login,
     verifyReCaptcha,
+    onSuccess,
   });
 
   const updateField = (field: keyof SignInFormValues, value: string) => {
