@@ -12,7 +12,11 @@ const userTracksKey = (username?: string) => ['userTracks', username ?? 'me'];
 export function useUserTracks(username?: string) {
   const normalizedUsername = username?.trim();
 
-  const { data: tracks, isLoading, isError } = useQuery({
+  const {
+    data: tracks,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: userTracksKey(normalizedUsername),
     queryFn: () => trackService.getUserTracks(normalizedUsername),
   });

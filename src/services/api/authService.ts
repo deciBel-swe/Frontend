@@ -43,6 +43,7 @@ export interface ReCaptchaVerificationResult {
 }
 
 const USER_STORAGE_KEY = 'user';
+const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
 const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
@@ -106,9 +107,12 @@ export class RealAuthService implements AuthService {
     const stored = localStorage.getItem(USER_STORAGE_KEY);
     if (!stored) return null;
 
+    const storedAccessToken = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+
     return {
-      accessToken: this.accessToken ?? '',
-      refreshToken: localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
+      accessToken: this.accessToken ?? storedAccessToken ?? '',
+      refreshToken:
+        localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
       user: JSON.parse(stored),
       expiresIn: 3600,
     };
@@ -125,6 +129,7 @@ export class RealAuthService implements AuthService {
     });
 
     this.accessToken = response.accessToken;
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     return response;
   }
 
@@ -188,6 +193,7 @@ export class RealAuthService implements AuthService {
 
   private persistSession(response: LoginResponseDTO): void {
     this.accessToken = response.accessToken;
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
 
     if (response.refreshToken) {
@@ -197,6 +203,7 @@ export class RealAuthService implements AuthService {
 
   private clearSession(): void {
     this.accessToken = null;
+    localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
   }

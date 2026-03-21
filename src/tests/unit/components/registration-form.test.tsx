@@ -56,7 +56,10 @@ const fillValidRegistrationForm = async (
     getRequiredSelect(container, 'select[name="month"]'),
     'January'
   );
-  await user.selectOptions(getRequiredSelect(container, 'select[name="day"]'), '1');
+  await user.selectOptions(
+    getRequiredSelect(container, 'select[name="day"]'),
+    '1'
+  );
   await user.selectOptions(
     getRequiredSelect(container, 'select[name="year"]'),
     '2000'
@@ -82,11 +85,15 @@ describe('RegisterationForm', () => {
 
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Enter a valid email address.')
+    ).toBeInTheDocument();
     expect(
       await screen.findByText('Password must be at least 6 characters long.')
     ).toBeInTheDocument();
-    expect(await screen.findByText('Confirm password is required.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Confirm password is required.')
+    ).toBeInTheDocument();
     expect(await screen.findByText('Month is required.')).toBeInTheDocument();
     expect(await screen.findByText('Gender is required.')).toBeInTheDocument();
     expect(mockVerifyReCaptcha).not.toHaveBeenCalled();

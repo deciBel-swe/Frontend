@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useId } from 'react'
+import { useId } from 'react';
 
 interface UploadDropzoneProps {
-  error: string
-  onDragOver: (event: React.DragEvent<HTMLDivElement>) => void
-  onDrop: (event: React.DragEvent<HTMLDivElement>) => void
-  onFileSelected: (file: File) => void
+  error: string;
+  onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDrop: (event: React.DragEvent<HTMLDivElement>) => void;
+  onFileSelected: (file: File) => void;
 }
 
 export default function UploadDropzone({
@@ -15,7 +15,7 @@ export default function UploadDropzone({
   onDrop,
   onFileSelected,
 }: UploadDropzoneProps) {
-  const inputId = useId()
+  const inputId = useId();
 
   return (
     <section className="min-h-screen w-full">
@@ -36,7 +36,9 @@ export default function UploadDropzone({
 
           <div
             className={`group relative flex min-h-60 sm:min-h-70 cursor-pointer flex-col items-center justify-center gap-4 sm:gap-6 rounded-2xl border-2 border-dashed px-6 sm:px-8 py-10 sm:py-12 lg:py-16 text-center transition ${
-              error ? 'border-status-error' : 'border-border-default hover:border-white'
+              error
+                ? 'border-status-error'
+                : 'border-border-default hover:border-white'
             }`}
             onDragOver={onDragOver}
             onDrop={onDrop}
@@ -111,13 +113,13 @@ export default function UploadDropzone({
               accept=".mp3,.wav,.flac,.aac,audio/mpeg,audio/wav,audio/x-wav,audio/flac,audio/x-flac,audio/aac,audio/x-aac,audio/mp4"
               className="hidden"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0]
-                if (file) onFileSelected(file)
+                const file = e.target.files?.[0];
+                if (file) onFileSelected(file);
               }}
             />
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 interface PlaylistCardProps {
   title: string;
@@ -9,7 +9,7 @@ interface PlaylistCardProps {
 }
 
 const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
-    const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true); // mark component as mounted
@@ -17,7 +17,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
 
   if (!isMounted) return null; // render nothing on S
 
-    return (
+  return (
     <div
       className="
         group 

@@ -18,9 +18,8 @@ jest.mock('@/hooks/UseReCaptcha', () => ({
 }));
 
 jest.mock('@/features/auth', () => {
-  const actual = jest.requireActual<typeof import('@/features/auth')>(
-    '@/features/auth'
-  );
+  const actual =
+    jest.requireActual<typeof import('@/features/auth')>('@/features/auth');
 
   return {
     ...actual,
@@ -72,8 +71,12 @@ describe('SignInForm', () => {
 
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
-    expect(await screen.findByText('Password is required.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Enter a valid email address.')
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Password is required.')
+    ).toBeInTheDocument();
     expect(mockVerifyReCaptcha).not.toHaveBeenCalled();
     expect(mockLogin).not.toHaveBeenCalled();
   });
@@ -88,7 +91,10 @@ describe('SignInForm', () => {
 
     await waitFor(() => {
       expect(mockVerifyReCaptcha).toHaveBeenCalledWith('signin');
-      expect(mockLogin).toHaveBeenCalledWith('artist@decibel.test', 'Password1');
+      expect(mockLogin).toHaveBeenCalledWith(
+        'artist@decibel.test',
+        'Password1'
+      );
     });
   });
 
@@ -138,14 +144,12 @@ describe('SignInForm', () => {
     );
 
     expect(mockHandleGoogleLogin).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('link', { name: /forgot your password\?/i })).toHaveAttribute(
-      'href',
-      ROUTES.RESETPASSWORD
-    );
-    expect(screen.getByRole('link', { name: /create an account/i })).toHaveAttribute(
-      'href',
-      ROUTES.REGISTER
-    );
+    expect(
+      screen.getByRole('link', { name: /forgot your password\?/i })
+    ).toHaveAttribute('href', ROUTES.RESETPASSWORD);
+    expect(
+      screen.getByRole('link', { name: /create an account/i })
+    ).toHaveAttribute('href', ROUTES.REGISTER);
   });
 
   it('disables submit and google button while auth loading is true', () => {

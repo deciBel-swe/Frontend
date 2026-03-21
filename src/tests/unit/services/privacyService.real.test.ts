@@ -25,7 +25,9 @@ describe('RealPrivacyService', () => {
     const settings = await service.getPrivacySettings();
 
     expect(settings).toEqual({ isPrivate: true, showHistory: false });
-    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.USERS_ME_PRIVACY);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_ME_PRIVACY
+    );
   });
 
   it('updates privacy settings using USERS_ME_PRIVACY_UPDATE contract', async () => {

@@ -100,13 +100,6 @@ export const API_CONTRACTS = {
     responseSchema: userMeSchema,
   }),
 
-  USERS_PUBLIC: (username: string) =>
-    defineContract<void, z.infer<typeof userPublicSchema>>({
-      method: 'GET',
-      url: API_ENDPOINTS.USERS.BY_ID(username),
-      responseSchema: userPublicSchema,
-    }),
-
   USERS_ME_TRACKS: defineContract<
     void,
     z.infer<typeof trackDetailsResponseSchema>[]
@@ -129,12 +122,6 @@ export const API_CONTRACTS = {
     responseSchema: privacySettingsSchema,
   }),
 
-  USERS_ME_EDIT: defineContract({
-    method: 'PATCH',
-    url: API_ENDPOINTS.USERS.ME,
-    requestSchema: updateMeRequestSchema,
-    responseSchema: userMeSchema,
-  }),
   TRACKS_UPLOAD: defineContract<
     FormData,
     z.infer<typeof uploadTrackResponseSchema>
