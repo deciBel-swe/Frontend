@@ -5,27 +5,29 @@ import FloatingInputField from '@/features/auth/components/FormFields/FloatingIn
 import FloatingSelectField from '@/features/auth/components/FormFields/FloatingSelectField';
 
 interface UploadFormViewProps {
-  audioFile: File;
-  isUploading: boolean;
-  uploadProgress: number;
-  onReset: () => void;
-  onSubmit: () => void;
-  artworkPreview: string | null;
-  onArtworkSelect: (file: File) => void;
-  onRemoveArtwork: () => void;
-  title: string;
-  titleError: string;
-  onTitleChange: (value: string) => void;
-  trackLink: string;
-  onTrackLinkChange: (value: string) => void;
-  artist: string;
-  onArtistChange: (value: string) => void;
-  genre: string;
-  onGenreChange: (value: string) => void;
-  tags: string;
-  onTagsChange: (value: string) => void;
-  privacy: 'public' | 'private';
-  onPrivacyChange: (value: 'public' | 'private') => void;
+  audioFile: File
+  isUploading: boolean
+  uploadProgress: number
+  onReset: () => void
+  onSubmit: () => void
+  artworkPreview: string | null
+  onArtworkSelect: (file: File) => void
+  onRemoveArtwork: () => void
+  title: string
+  titleError: string
+  onTitleChange: (value: string) => void
+  trackLink: string
+  onTrackLinkChange: (value: string) => void
+  artist: string
+  onArtistChange: (value: string) => void
+  genre: string
+  onGenreChange: (value: string) => void
+  tags: string
+  onTagsChange: (value: string) => void
+  description: string
+  onDescriptionChange: (value: string) => void
+  privacy: 'public' | 'private'
+  onPrivacyChange: (value: 'public' | 'private') => void
 }
 
 export default function UploadFormView({
@@ -48,6 +50,8 @@ export default function UploadFormView({
   onGenreChange,
   tags,
   onTagsChange,
+  description,
+  onDescriptionChange,
   privacy,
   onPrivacyChange,
 }: UploadFormViewProps) {
@@ -251,6 +255,8 @@ export default function UploadFormView({
                   <textarea
                     rows={4}
                     placeholder="Tell listeners about your track..."
+                    value={description}
+                    onChange={(event) => onDescriptionChange(event.target.value)}
                     className="w-full bg-interactive-default border border-border-default rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:border-border-strong"
                   />
                 </div>
