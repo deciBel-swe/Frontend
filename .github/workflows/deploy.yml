@@ -10,7 +10,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  REPO: ghcr.io/decibel-org/frontend
+  REPO: ghcr.io/decibel-swe/frontend
 
 jobs:
   version-and-deploy:
