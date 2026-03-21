@@ -77,7 +77,7 @@ const AuthHarness: FC = () => {
       </button>
       <button onClick={logout}>Logout</button>
       {isAuthenticated && <p>logged in as {role}</p>}
-      {isAuthenticated && <p>username: {user?.username}</p>}
+      {isAuthenticated && <p>user id: {user?.id}</p>}
       {!isAuthenticated && <p>logged out</p>}
     </div>
   );
@@ -150,7 +150,7 @@ describe('bootstrap', () => {
     renderHarness();
     await waitForReady();
     expect(screen.getByText('logged in as artist')).toBeInTheDocument();
-    expect(screen.getByText('username: mockartist')).toBeInTheDocument();
+    expect(screen.getByText('user id: 1')).toBeInTheDocument();
   });
 
   it('restores a listener session from storage', async () => {
@@ -230,7 +230,7 @@ describe('login', () => {
     await clickHarnessButton('Login as Artist');
 
     await waitFor(() =>
-      expect(screen.getByText('username: mockartist')).toBeInTheDocument()
+      expect(screen.getByText('user id: 1')).toBeInTheDocument()
     );
   });
 });

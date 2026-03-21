@@ -131,7 +131,7 @@ describe('AuthService contract parity', () => {
     );
     const parsedRealLogin = assertValidLoginResponse(realLoginResponse);
 
-    expect(parsedRealLogin.user.username).toBe('real-user');
+    expect(parsedRealLogin.user.id).toBe(12);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.AUTH_LOGIN_LOCAL,
       {
@@ -147,11 +147,11 @@ describe('AuthService contract parity', () => {
     const mockLoginResponse = await mockLoginPromise;
 
     const parsedMockLogin = assertValidLoginResponse(mockLoginResponse);
-    expect(parsedMockLogin.user.username).toBe('user1');
+    expect(parsedMockLogin.user.id).toBe(1);
 
     const restoredMockSession = await mockService.getSession();
     expect(restoredMockSession).not.toBeNull();
-    expect(restoredMockSession?.user.username).toBe('user1');
+    expect(restoredMockSession?.user.id).toBe(1);
 
     jest.useRealTimers();
   });

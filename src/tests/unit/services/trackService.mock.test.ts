@@ -64,7 +64,7 @@ describe('MockTrackService', () => {
 
     const onProgress = jest.fn();
 
-    const uploadPromise = service.uploadTrack(formData, 'token-1', onProgress);
+    const uploadPromise = service.uploadTrack(formData, onProgress);
     await advance();
     const uploaded = await uploadPromise;
 
@@ -76,18 +76,11 @@ describe('MockTrackService', () => {
     expect(persistedRaw).toBeTruthy();
     expect(persistedRaw).toContain('Service Upload Test');
 
-    const tracksPromise = service.getUserTracks('service-tester');
+    const tracksPromise = service.getUserTracks(7);
     await advance(400);
     const tracks = await tracksPromise;
 
     expect(tracks.some((track) => track.id === uploaded.id)).toBe(true);
-  });
-
-  it('throws for blank upload token', async () => {
-    const service = new MockTrackService();
-    await expect(
-      service.uploadTrack(new FormData(), '   ', jest.fn())
-    ).rejects.toThrow('Missing upload token');
   });
 
   it('reads and updates visibility state', async () => {

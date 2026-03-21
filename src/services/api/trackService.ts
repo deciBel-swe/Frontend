@@ -20,7 +20,6 @@ export interface TrackService {
   /** Upload a track with progress updates (POST /tracks/upload) */
   uploadTrack(
     formData: FormData,
-    token: string,
     onProgress: (progress: number) => void
   ): Promise<UploadTrackResponse>;
 
@@ -28,7 +27,7 @@ export interface TrackService {
   getTrackMetadata(trackId: number): Promise<TrackMetaData>;
 
   /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
-  getUserTracks(username?: string): Promise<TrackMetaData[]>;
+  getUserTracks(userID: number): Promise<TrackMetaData[]>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -92,13 +91,11 @@ const normalizeTrackMetadata = (
 export class RealTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
-    token: string,
     onProgress: (progress: number) => void
   ): Promise<UploadTrackResponse> {
     return apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
       payload: formData,
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (event) => {
@@ -117,17 +114,12 @@ export class RealTrackService implements TrackService {
     return normalizeTrackMetadata(trackId, payload);
   }
 
-  async getUserTracks(username?: string): Promise<TrackMetaData[]> {
+  async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
     const tracks = payload.map((track) =>
       normalizeTrackMetadata(track.id, track)
     );
-
-    if (!username || username.trim().length === 0) {
-      return tracks;
-    }
-
-    return tracks.filter((track) => track.artist.username === username);
+    return tracks.filter((track) => track.artist.id === userId);
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

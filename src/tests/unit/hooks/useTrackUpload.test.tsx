@@ -24,14 +24,14 @@ describe('useTrackUpload', () => {
     };
 
     (trackService.uploadTrack as jest.Mock).mockImplementation(
-      async (_formData: FormData, _token: string, onProgress: (value: number) => void) => {
+      async (_formData: FormData, onProgress: (value: number) => void) => {
         onProgress(55);
         onProgress(100);
         return response;
       }
     );
 
-    const { result } = renderHook(() => useTrackUpload('token-123'));
+    const { result } = renderHook(() => useTrackUpload());
 
     const formData = new FormData();
 
@@ -42,7 +42,6 @@ describe('useTrackUpload', () => {
 
     expect(trackService.uploadTrack).toHaveBeenCalledWith(
       formData,
-      'token-123',
       expect.any(Function)
     );
     expect(result.current.progress).toBe(100);
@@ -52,9 +51,11 @@ describe('useTrackUpload', () => {
   });
 
   it('sets error state when upload fails', async () => {
-    (trackService.uploadTrack as jest.Mock).mockRejectedValue(new Error('boom'));
+    (trackService.uploadTrack as jest.Mock).mockRejectedValue(
+      new Error('boom')
+    );
 
-    const { result } = renderHook(() => useTrackUpload('token-123'));
+    const { result } = renderHook(() => useTrackUpload());
 
     await act(async () => {
       await result.current.startUpload(new FormData());

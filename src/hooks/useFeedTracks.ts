@@ -15,7 +15,7 @@ import { generateWaveform } from '@/utils/waveform';
  * const { feedTracks, isLoading, isError } = useFeedTracks();
  */
 export function useFeedTracks() {
-  const { tracks, isLoading, isError } = useUserTracks();
+  const { tracks, isLoading, isError } = useUserTracks(7);
 
   const parseWaveform = (value: string | undefined, fallbackId: number) => {
     if (!value || value.trim().length === 0) {

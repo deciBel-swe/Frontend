@@ -330,13 +330,8 @@ const getSessionUsername = (): string | null => {
 export class MockTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
-    token: string,
     onProgress: (progress: number) => void
   ): Promise<UploadTrackResponse> {
-    if (!token.trim()) {
-      throw new Error('Missing upload token');
-    }
-
     await delay();
 
     return new Promise((resolve) => {
@@ -449,14 +444,11 @@ export class MockTrackService implements TrackService {
     return toMetadata(track);
   }
 
-  async getUserTracks(username?: string): Promise<TrackMetaData[]> {
+  async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     await delay();
 
     const tracks = readTracks();
-    const filteredTracks =
-      !username || username.trim().length === 0
-        ? tracks
-        : tracks.filter((track) => track.artist.username === username);
+    const filteredTracks = tracks.filter((track) => track.artist.id === userId);
 
     return filteredTracks.map(toMetadata);
   }

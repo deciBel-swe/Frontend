@@ -62,7 +62,9 @@ describe('UploadSuccess', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: /upload another track/i }));
+    await user.click(
+      screen.getByRole('button', { name: /upload another track/i })
+    );
 
     expect(onReset).toHaveBeenCalledTimes(1);
   });
