@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {ReCaptchaProvider} from '@/providers/ReCaptchaProvider'
+import { ReCaptchaProvider } from '@/providers/ReCaptchaProvider';
 import RegistrationForm from './RegisterationForm';
 import { X } from 'lucide-react';
 
@@ -16,7 +16,6 @@ const SignInModal: React.FC<Props> = ({ open, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="relative rounded bg-[#111] text-white border border-white/10">
-
         {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
@@ -29,7 +28,7 @@ const SignInModal: React.FC<Props> = ({ open, onClose }) => {
         <div className="p-6 flex justify-center">
           <div className="w-full">
             <ReCaptchaProvider>
-            <RegistrationForm/>
+              <RegistrationForm />
             </ReCaptchaProvider>
           </div>
         </div>

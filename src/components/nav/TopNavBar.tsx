@@ -282,7 +282,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
-                {/* <Link href={ROUTES.SIGNIN}> */}
+                  {/* <Link href={ROUTES.SIGNIN}> */}
                   <Button
                     type="button"
                     variant="primary"
@@ -292,8 +292,8 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   >
                     Sign in
                   </Button>
-                {/* </Link> */}
-                {/* <Link href={ROUTES.REGISTER}> */}
+                  {/* </Link> */}
+                  {/* <Link href={ROUTES.REGISTER}> */}
                   <Button
                     type="button"
                     variant="secondary"
@@ -303,16 +303,13 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   >
                     Create account
                   </Button>
-                {/* </Link>   */}
+                  {/* </Link>   */}
                 </>
               )}
             </div>
           </div>
         )}
-        <SignInModal
-          open={signInOpen}
-          onClose={closeSignIn}
-        />
+        <SignInModal open={signInOpen} onClose={closeSignIn} />
         <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
     </header>

@@ -38,11 +38,7 @@ describe('RealTrackService', () => {
     formData.append('title', 'Uploaded Track');
 
     const onProgress = jest.fn();
-    const result = await service.uploadTrack(
-      formData,
-      'bearer-token',
-      onProgress
-    );
+    const result = await service.uploadTrack(formData, onProgress);
 
     expect(result).toEqual(response);
 
@@ -58,7 +54,6 @@ describe('RealTrackService', () => {
     expect(contract).toBe(API_CONTRACTS.TRACKS_UPLOAD);
     expect(requestOptions.payload).toBe(formData);
     expect(requestOptions.headers).toEqual({
-      Authorization: 'Bearer bearer-token',
       'Content-Type': 'multipart/form-data',
     });
 
@@ -106,7 +101,7 @@ describe('RealTrackService', () => {
     });
   });
 
-  it('returns and filters user tracks by username', async () => {
+  it('returns and filters user tracks by user id', async () => {
     mockedApiRequest.mockResolvedValue([
       {
         id: 1,
@@ -124,15 +119,16 @@ describe('RealTrackService', () => {
       },
     ] as TrackDetailsResponse[]);
 
-    const allTracks = await service.getUserTracks();
-    const onlyAlice = await service.getUserTracks('alice');
+    const onlyAlice = await service.getUserTracks(10);
+    const onlyBob = await service.getUserTracks(11);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.USERS_ME_TRACKS
     );
-    expect(allTracks).toHaveLength(2);
     expect(onlyAlice).toHaveLength(1);
-    expect(onlyAlice[0].artist.username).toBe('alice');
+    expect(onlyAlice[0].artist.id).toBe(10);
+    expect(onlyBob).toHaveLength(1);
+    expect(onlyBob[0].artist.id).toBe(11);
   });
 
   it('maps visibility operations to the expected API contracts', async () => {

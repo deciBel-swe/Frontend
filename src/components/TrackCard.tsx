@@ -42,7 +42,7 @@ export default function TrackCard({
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <div className="bg-surface-default text-text-primary p-4 rounded-lg">
+    <div className="bg-surface-default text-text-primary p-2 rounded-lg">
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
         <Link href={`/system${userSlug}`}>
@@ -74,7 +74,7 @@ export default function TrackCard({
         </Link>
 
         {/* RIGHT COLUMN */}
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 gap-2">
           {/* 1. NAME + PLAY */}
           <div className="flex items-center gap-3 h-12 px-2">
             <Button

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { trackService } from '@/services';
 
-export function useTrackUpload(token: string) {
+export function useTrackUpload() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<
     'idle' | 'uploading' | 'error' | 'complete'
@@ -16,11 +16,7 @@ export function useTrackUpload(token: string) {
       setProgress(0);
       setError(null);
 
-      const response = await trackService.uploadTrack(
-        formData,
-        token,
-        setProgress
-      );
+      const response = await trackService.uploadTrack(formData, setProgress);
 
       setStatus('complete');
 

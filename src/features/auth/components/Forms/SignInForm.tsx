@@ -43,7 +43,7 @@ import { type FieldErrors, type SignInFormValues } from '@/types/authSchemas';
 type SignInFormProps = {
   onSuccess?: () => void;
 };
-const SignInForm: FC <SignInFormProps> = ({ onSuccess }) => {
+const SignInForm: FC<SignInFormProps> = ({ onSuccess }) => {
   const [formValues, setFormValues] = useState<SignInFormValues>({
     email: '',
     password: '',

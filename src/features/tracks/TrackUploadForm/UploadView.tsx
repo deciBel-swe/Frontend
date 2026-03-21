@@ -192,7 +192,6 @@ export default function UploadView() {
 
       const response = await trackService.uploadTrack(
         formData,
-        'mock-token',
         setUploadProgress
       );
       const submittedTrackUrl = `${trackLinkPrefix}/${trackLinkSuffix}`;
