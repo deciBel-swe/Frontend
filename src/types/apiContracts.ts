@@ -32,7 +32,28 @@ import {
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
 } from './tracks';
-import { updateMeRequestSchema, userMeSchema, userPublicSchema } from './user';
+import {
+  addNewEmailRequestSchema,
+  followResponseSchema,
+  messageResponseSchema,
+  paginatedFeedResponseSchema,
+  paginatedFollowersResponseSchema,
+  paginatedTracksResponseSchema,
+  privateSocialLinksSchema,
+  resetLoggedInPasswordRequestSchema,
+  updateImagesJsonRequestSchema,
+  updateImagesResponseSchema,
+  updateMeRequestSchema,
+  updatePrimaryEmailRequestSchema,
+  updateRoleRequestSchema,
+  updateSocialLinksRequestSchema,
+  updateTierRequestSchema,
+  updateTierResponseSchema,
+  userMeSchema,
+  userPlaylistsResponseSchema,
+  userPublicSchema,
+  usersSuggestedResponseSchema,
+} from './user';
 
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -135,6 +156,130 @@ export const API_CONTRACTS = {
     requestSchema: updateMeRequestSchema,
     responseSchema: userMeSchema,
   }),
+
+  USERS_ME_RESET_PASSWORD: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.ME_RESET_PASSWORD,
+    requestSchema: resetLoggedInPasswordRequestSchema,
+    responseSchema: messageResponseSchema,
+  }),
+
+  USERS_ME_ADD_NEW_EMAIL: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.ME_ADD_EMAIL,
+    requestSchema: addNewEmailRequestSchema,
+    responseSchema: messageResponseSchema,
+  }),
+
+  USERS_ME_UPDATE_PRIMARY_EMAIL: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.ME_UPDATE_PRIMARY_EMAIL,
+    requestSchema: updatePrimaryEmailRequestSchema,
+    responseSchema: messageResponseSchema,
+  }),
+
+  USERS_ME_SOCIAL_LINKS_UPDATE: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_SOCIAL_LINKS,
+    requestSchema: updateSocialLinksRequestSchema,
+    responseSchema: privateSocialLinksSchema,
+  }),
+
+  USERS_ME_ROLE_UPDATE: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_ROLE,
+    requestSchema: updateRoleRequestSchema,
+    responseSchema: userMeSchema,
+  }),
+
+  USERS_ME_TIER_UPDATE: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_TIER,
+    requestSchema: updateTierRequestSchema,
+    responseSchema: updateTierResponseSchema,
+  }),
+
+  USERS_ME_IMAGES_UPDATE: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_IMAGES,
+    requestSchema: updateImagesJsonRequestSchema,
+    responseSchema: updateImagesResponseSchema,
+  }),
+
+  USERS_ME_HISTORY: defineContract<void, z.infer<typeof paginatedFeedResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_HISTORY,
+    responseSchema: paginatedFeedResponseSchema,
+  }),
+
+  USERS_ME_BLOCKED: defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_BLOCKED,
+    responseSchema: paginatedFollowersResponseSchema,
+  }),
+
+  USERS_SUGGESTED: defineContract<void, z.infer<typeof usersSuggestedResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.SUGGESTED,
+    responseSchema: usersSuggestedResponseSchema,
+  }),
+
+  USERS_TRACKS: (userId: string) =>
+    defineContract<void, z.infer<typeof paginatedTracksResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.TRACKS(userId),
+      responseSchema: paginatedTracksResponseSchema,
+    }),
+
+  USERS_PLAYLISTS: (userId: string) =>
+    defineContract<void, z.infer<typeof userPlaylistsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.PLAYLISTS(userId),
+      responseSchema: userPlaylistsResponseSchema,
+    }),
+
+  USERS_FOLLOW: (userId: string) =>
+    defineContract<void, z.infer<typeof followResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.USERS.FOLLOW(userId),
+      responseSchema: followResponseSchema,
+    }),
+
+  USERS_UNFOLLOW: (userId: string) =>
+    defineContract<void, z.infer<typeof followResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.USERS.FOLLOW(userId),
+      responseSchema: followResponseSchema,
+    }),
+
+  USERS_FOLLOWERS: (userId: string) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.FOLLOWERS(userId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+
+  USERS_FOLLOWING: (userId: string) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.FOLLOWING(userId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+
+  USERS_BLOCK: (userId: string) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.USERS.BLOCK(userId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  USERS_UNBLOCK: (userId: string) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.USERS.BLOCK(userId),
+      responseSchema: messageResponseSchema,
+    }),
+
   TRACKS_UPLOAD: defineContract<
     FormData,
     z.infer<typeof uploadTrackResponseSchema>
