@@ -18,6 +18,9 @@
 import { type FC } from 'react';
 import Link from 'next/link';
 
+import SignInModal from '@/features/auth/components/Forms/SignInModal';
+import RegisterModal from '@/features/auth/components/Forms/RegisterModal';
+
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
 import { Avatar } from '@/components/nav/Avatar';
@@ -63,7 +66,6 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     user,
     isAuthenticated,
     isMounted,
-    login,
     userMenuOpen,
     toggleUserMenu,
     closeUserMenu,
@@ -74,10 +76,18 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     moreMenuRef,
     initials,
     activeNav,
+    signInOpen,
+    registerOpen,
+    openSignIn,
+    closeSignIn,
+    openRegister,
+    closeRegister,
   } = useTopNavBar();
+
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
       <div className="sticky top-0 z-200 h-12 bg-transparent border-b border-transparent">
+
         {!isMounted ? (
           <div aria-hidden />
         ) : (
@@ -239,29 +249,39 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
+
+                {/* <Link href={ROUTES.SIGNIN}> */}
                   <Button
                     type="button"
                     variant="primary"
                     size="sm"
-                    onClick={() => {
-                      login('artist@decibel.test', 'x');
-                    }}
+                    onClick={openSignIn}
                   >
                     Sign in
                   </Button>
+                {/* </Link> */}
+                {/* <Link href={ROUTES.REGISTER}> */}
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
                     className="ml-1"
+                    onClick={openRegister}
                   >
                     Create account
                   </Button>
+
+                {/* </Link>   */}
                 </>
               )}
             </div>
           </div>
         )}
+        <SignInModal
+          open={signInOpen}
+          onClose={closeSignIn}
+        />
+        <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
     </header>
   );

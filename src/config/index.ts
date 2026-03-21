@@ -19,6 +19,9 @@ export interface AppConfig {
     appUrl:string;
     useMock: boolean;
   };
+  urls: {
+    domainName: string;
+  };
   pagination: {
     defaultPageSize: number;
     maxPageSize: number;
@@ -80,6 +83,12 @@ export const config: AppConfig = {
     wsURL: getEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:5000'),
     appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'https://localhost:3000'),
     useMock: getBoolEnv('NEXT_PUBLIC_USE_MOCK', true),
+  },
+  urls: {
+    domainName: getEnv(
+      'NEXT_PUBLIC_TRACK_BASE_URL',
+      getEnv('NEXT_PUBLIC_APP_URL', 'https://localhost:3000')
+    ),
   },
   // Pagination
   pagination: {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { TrackActionBar } from '@/app/[username]/tracks/TrackActionBar';
-import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/TrackPrivacy';
+import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
 import type { TrackPrivacyValue } from '@/types/tracks';
 
 interface TrackViewProps {

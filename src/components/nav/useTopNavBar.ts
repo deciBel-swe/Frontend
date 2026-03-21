@@ -11,10 +11,12 @@ import { useAuth } from '@/features/auth';
  * has no user-related props.
  */
 export function useTopNavBar() {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated} = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const pathname = usePathname();
   const activeNav = (NAV_LINKS.find(
     ({ href }) => pathname === href || pathname.startsWith(href + '/')
@@ -44,11 +46,30 @@ export function useTopNavBar() {
         .toUpperCase()
     : '';
 
+  const openSignIn = () => {
+    if (pathname === '/signin') {
+      return;
+    }
+
+    setSignInOpen(true);
+  };
+
+  const closeSignIn = () => setSignInOpen(false);
+
+  const openRegister = () => {
+    if (pathname === '/register') {
+      return;
+    }
+
+    setRegisterOpen(true);
+  };
+
+  const closeRegister = () => setRegisterOpen(false);
+
   return {
     user,
     isAuthenticated,
     isMounted,
-    login,
     userMenuOpen,
     toggleUserMenu: () => setUserMenuOpen((v) => !v),
     closeUserMenu: () => setUserMenuOpen(false),
@@ -59,5 +80,11 @@ export function useTopNavBar() {
     moreMenuRef,
     initials,
     activeNav,
+    signInOpen,
+    registerOpen,
+    openSignIn,
+    closeSignIn,
+    openRegister,
+    closeRegister,
   };
 }

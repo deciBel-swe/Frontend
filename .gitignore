@@ -71,5 +71,4 @@ yarn-error.log*
 # Temporary files
 .tmp
 temp/
-.github/*
 docs/Decibel_API.md

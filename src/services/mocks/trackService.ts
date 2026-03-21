@@ -254,7 +254,6 @@ const getTagsField = (formData: FormData): string[] => {
 
   return [...unique];
 };
-
 export class MockTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
@@ -295,7 +294,13 @@ export class MockTrackService implements TrackService {
         const genre = getStringField(formData, 'genre', 'Electronic');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
-        const artistName = getStringField(formData, 'artist', 'mockartist');
+
+
+        const artistName = getStringField(
+          formData,
+          'artist',
+          'mockartist'
+        );
 
         const uploaded: MockTrackRecord = {
           id: nextId,

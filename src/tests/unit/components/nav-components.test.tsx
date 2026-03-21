@@ -123,6 +123,7 @@ describe('TopNavBar', () => {
     jest.clearAllMocks();
   });
 
+<<<<<<< HEAD
   it('renders guest actions and triggers login from Sign in button', async () => {
     const user = userEvent.setup();
     const login = jest.fn();
@@ -147,6 +148,8 @@ describe('TopNavBar', () => {
     expect(login).toHaveBeenCalledWith('artist@decibel.test', 'x');
   });
 
+=======
+>>>>>>> dev
   it('renders authenticated actions when user is present', async () => {
     const closeUserMenu = jest.fn();
 

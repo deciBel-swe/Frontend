@@ -114,5 +114,6 @@ export interface NavLinkConfig {
   href: string;
   name: ActiveNav;
 }
-
 export type { UploadTrackResponse } from './tracks';
+export { uploadSchema, toTrackSlug } from './uploadSchema';
+export type { UploadFormValues } from './uploadSchema';

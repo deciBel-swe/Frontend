@@ -101,9 +101,6 @@ export default function Page() {
 
         </main>
 
-        {/* ================= SIDEBAR ================= */}
-        <Sidebar artists={artists} history={history} />
-
       </div>
 
     </div>
