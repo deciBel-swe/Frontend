@@ -32,7 +32,7 @@ import {
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
 } from './tracks';
-import { updateMeRequestSchema, userMeSchema } from './user';
+import { updateMeRequestSchema, userMeSchema, userPublicSchema } from './user';
 
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -67,6 +67,13 @@ export const API_CONTRACTS = {
     requestSchema: loginLocalRequestDTOSchema,
     responseSchema: loginResponseDTOSchema,
   }),
+
+  USERS_PUBLIC: (username: string) =>
+    defineContract<void, z.infer<typeof userPublicSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.BY_ID(parseInt(username)),
+      responseSchema: userPublicSchema,
+    }),
 
   AUTH_OAUTH_GOOGLE: defineContract({
     method: 'POST',

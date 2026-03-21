@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { UserPublic } from '@/types/user';
-import { userService } from '@/services';
+import { userService } from '@/services/index';
 
 const userPublicUser = (username: string) => ['userPublic', username];
 

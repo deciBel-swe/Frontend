@@ -27,6 +27,10 @@ import type { CountryService } from './api/countryService';
 import { RealCountryService } from './api/countryService';
 import { MockCountryService } from './mocks/countryService';
 
+import type { UserService } from './api/userService';
+import { RealUserService } from './api/userService';
+import { MockUserService } from './mocks/userService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -71,3 +75,14 @@ const resolveCountryService = (): CountryService => {
   }
   return new RealCountryService();
 };
+
+export const countryService = resolveCountryService();
+
+const resolveUserService = (): UserService => {
+  if (config.api.useMock) {
+    return new MockUserService();
+  }
+  return new RealUserService();
+};
+
+export const userService = resolveUserService();
