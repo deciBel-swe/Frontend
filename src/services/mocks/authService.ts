@@ -1,4 +1,9 @@
-import type { AuthService } from '@/services/api/authService';
+import type {
+  AuthService,
+  ReCaptchaVerificationResult,
+} from '@/services/api/authService';
+import { API_ENDPOINTS } from '@/constants/routes';
+import { apiClient } from '@/hooks/useAPI';
 
 import type {
   LoginResponseDTO,
@@ -74,6 +79,35 @@ const decodeMockToken = (
 // ================================
 
 export class MockAuthService implements AuthService {
+  async verifyReCaptcha(
+    token: string,
+    _action: string = 'submit_form'
+  ): Promise<ReCaptchaVerificationResult> {
+    await delay(50);
+
+    if (!token || !token.trim()) {
+      return {
+        success: false,
+        score: 0,
+        error: 'Verification failed',
+      };
+    }
+
+    // Frontend-only mock mode should never call the API endpoint.
+    if (token.startsWith('fail')) {
+      return {
+        success: false,
+        score: 0.1,
+        error: 'Verification failed',
+      };
+    }
+
+    return {
+      success: true,
+      score: 0.92,
+    };
+  }
+
   async getSession(): Promise<LoginResponseDTO | null> {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -162,7 +196,7 @@ export class MockAuthService implements AuthService {
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
-    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.
@@ -186,10 +220,11 @@ export class MockAuthService implements AuthService {
     };
 
     // Call API route to send real email
-    await fetch('/api/send-verification', {
+    await apiClient.request({
+      baseURL: '',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, token }),
+      url: API_ENDPOINTS.AUTH.SEND_VERIFICATION,
+      data: { email, token },
     });
 
     return { success: true };

@@ -91,7 +91,7 @@ const SignInForm: FC = () => {
               type="email"
               name="email"
               autoComplete="email"
-              label="Your email address or profile URL"
+              label="Email Address"
               value={formValues.email}
               onChange={(value) => updateField('email', value)}
               error={fieldErrors.email}

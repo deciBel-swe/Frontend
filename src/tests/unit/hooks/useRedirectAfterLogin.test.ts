@@ -48,7 +48,7 @@ describe('useRedirectAfterLogin', () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('redirects to /feed when authenticated and no redirect param', () => {
+  it('redirects to /discover when authenticated and no redirect param', () => {
     mockAuthState = { isAuthenticated: true, isLoading: false };
     mockSearchParams.get.mockReturnValue(null);
     renderHook(() => useRedirectAfterLogin());
@@ -60,6 +60,13 @@ describe('useRedirectAfterLogin', () => {
     mockSearchParams.get.mockReturnValue('/upload');
     renderHook(() => useRedirectAfterLogin());
     expect(mockReplace).toHaveBeenCalledWith('/upload');
+  });
+
+  it('preserves redirect query target including nested path/query', () => {
+    mockAuthState = { isAuthenticated: true, isLoading: false };
+    mockSearchParams.get.mockReturnValue('/feed?tab=following');
+    renderHook(() => useRedirectAfterLogin());
+    expect(mockReplace).toHaveBeenCalledWith('/feed?tab=following');
   });
 
   it('does not redirect when still loading even if authenticated', () => {

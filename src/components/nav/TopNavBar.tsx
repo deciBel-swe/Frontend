@@ -46,6 +46,7 @@ import {
 } from '@/components/icons/DropdownIcons';
 import {
   NAV_LINKS,
+  PROTECTED_ROUTES,
   ROUTES,
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
@@ -56,14 +57,28 @@ export interface TopNavBarProps {
   onSearch?: (query: string) => void;
 }
 
+const isProtectedRoute = (href: string): boolean =>
+  (PROTECTED_ROUTES as readonly string[]).some(
+    (route) => href === route || href.startsWith(`${route}/`)
+  );
+
+const shouldPrefetch = (
+  href: string,
+  isAuthenticated: boolean,
+  isAuthLoading: boolean
+): boolean => {
+  if (!isProtectedRoute(href)) return true;
+  return isAuthenticated && !isAuthLoading;
+};
+
 // ─── TopNavBar ────────────────────────────────────────────────────────────────
 
 export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   const {
     user,
     isAuthenticated,
+    isAuthLoading,
     isMounted,
-    login,
     userMenuOpen,
     toggleUserMenu,
     closeUserMenu,
@@ -77,11 +92,11 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   } = useTopNavBar();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
-      <div className="sticky top-0 z-200 h-12 bg-transparent border-b border-transparent">
+       <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
         {!isMounted ? (
           <div aria-hidden />
         ) : (
-          <div className="mx-2 flex flex-row w-full h-full">
+          <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8 flex flex-row h-full">
             {/* ── LEFT ──────────────────────────────────────────────── */}
             <div className="flex items-center w-fit h-full">
               <Link
@@ -101,6 +116,11 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                         href={href}
                         label={label}
                         isActive={activeNav === name}
+                        prefetch={shouldPrefetch(
+                          href,
+                          isAuthenticated,
+                          isAuthLoading
+                        )}
                         className=""
                       />
                     </li>
@@ -191,13 +211,26 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   <IconButton
                     href={ROUTES.NOTIFICATIONS}
                     aria-label="Notifications"
+                    prefetch={shouldPrefetch(
+                      ROUTES.NOTIFICATIONS,
+                      isAuthenticated,
+                      isAuthLoading
+                    )}
                   >
                     <BellIcon />
                     <Badge count={0} />
                     <span className="sr-only">Notifications</span>
                   </IconButton>
 
-                  <IconButton href={ROUTES.MESSAGES} aria-label="Messages">
+                  <IconButton
+                    href={ROUTES.MESSAGES}
+                    aria-label="Messages"
+                    prefetch={shouldPrefetch(
+                      ROUTES.MESSAGES,
+                      isAuthenticated,
+                      isAuthLoading
+                    )}
+                  >
                     <MailIcon />
                     <Badge count={11} />
                     <span className="sr-only">Messages</span>
@@ -239,16 +272,17 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
+                <Link href={ROUTES.SIGNIN}>
                   <Button
                     type="button"
                     variant="primary"
                     size="sm"
-                    onClick={() => {
-                      login('artist@decibel.test', 'x');
-                    }}
+                    disabled={isAuthLoading}
                   >
                     Sign in
                   </Button>
+                </Link>
+                <Link href={ROUTES.REGISTER}>
                   <Button
                     type="button"
                     variant="secondary"
@@ -257,6 +291,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                   >
                     Create account
                   </Button>
+                </Link>  
                 </>
               )}
             </div>

@@ -1,0 +1,154 @@
+type MockTrackServiceCtor =
+  typeof import('@/services/mocks/trackService').MockTrackService;
+
+const TRACKS_KEY = 'decibel_mock_tracks';
+
+const advance = async (ms = 2500) => {
+  await jest.advanceTimersByTimeAsync(ms);
+};
+
+describe('MockTrackService', () => {
+  let MockTrackService: MockTrackServiceCtor;
+  const storage = new Map<string, string>();
+
+  const bindStorageDouble = () => {
+    const localStorageDouble = {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        storage.set(key, value);
+      },
+      removeItem: (key: string) => {
+        storage.delete(key);
+      },
+      clear: () => {
+        storage.clear();
+      },
+    } as Storage;
+
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageDouble,
+      configurable: true,
+    });
+
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: localStorageDouble,
+      configurable: true,
+    });
+  };
+
+  beforeEach(async () => {
+    jest.resetModules();
+    jest.useFakeTimers();
+
+    storage.clear();
+    bindStorageDouble();
+
+    ({ MockTrackService } = await import('@/services/mocks/trackService'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('uploads a track, emits progress, and persists to storage', async () => {
+    const service = new MockTrackService();
+
+    const formData = new FormData();
+    formData.append('title', 'Service Upload Test');
+    formData.append('genre', 'Ambient');
+    formData.append('artist', 'service-tester');
+    formData.append('isPrivate', 'true');
+    formData.append('tags', 'test,upload');
+    formData.append('waveformData', '0.1');
+    formData.append('waveformData', '0.2');
+
+    const onProgress = jest.fn();
+
+    const uploadPromise = service.uploadTrack(formData, 'token-1', onProgress);
+    await advance();
+    const uploaded = await uploadPromise;
+
+    expect(onProgress).toHaveBeenCalledWith(100);
+    expect(uploaded.title).toBe('Service Upload Test');
+    expect(uploaded.durationSeconds).toBeGreaterThanOrEqual(30);
+
+    const persistedRaw = storage.get(TRACKS_KEY);
+    expect(persistedRaw).toBeTruthy();
+    expect(persistedRaw).toContain('Service Upload Test');
+
+    const tracksPromise = service.getUserTracks('service-tester');
+    await advance(400);
+    const tracks = await tracksPromise;
+
+    expect(tracks.some((track) => track.id === uploaded.id)).toBe(true);
+  });
+
+  it('throws for blank upload token', async () => {
+    const service = new MockTrackService();
+    await expect(
+      service.uploadTrack(new FormData(), '   ', jest.fn())
+    ).rejects.toThrow('Missing upload token');
+  });
+
+  it('reads and updates visibility state', async () => {
+    const service = new MockTrackService();
+
+    const initialPromise = service.getTrackVisibility(101);
+    await advance(400);
+    const initial = await initialPromise;
+    expect(initial).toEqual({ isPrivate: false });
+
+    const updatedPromise = service.updateTrackVisibility(101, {
+      isPrivate: true,
+    });
+    await advance(400);
+    const updated = await updatedPromise;
+    expect(updated).toEqual({ isPrivate: true });
+
+    const reloadedPromise = service.getTrackVisibility(101);
+    await advance(400);
+    const reloaded = await reloadedPromise;
+    expect(reloaded).toEqual({ isPrivate: true });
+  });
+
+  it('generates and regenerates secret links consistently', async () => {
+    const service = new MockTrackService();
+
+    const firstPromise = service.getSecretLink('103');
+    await advance(400);
+    const first = await firstPromise;
+
+    const secondPromise = service.getSecretLink('103');
+    await advance(400);
+    const second = await secondPromise;
+
+    expect(first.secretLink.length).toBeGreaterThan(0);
+    expect(second.secretLink).toBe(first.secretLink);
+
+    const regeneratedPromise = service.regenerateSecretLink('103');
+    await advance(400);
+    const regenerated = await regeneratedPromise;
+
+    expect(regenerated.secretLink).not.toBe(first.secretLink);
+  });
+
+  it('throws for invalid and missing track references', async () => {
+    const service = new MockTrackService();
+
+    const invalidIdExpectation = expect(
+      service.getSecretLink('not-a-number')
+    ).rejects.toThrow('Invalid track id');
+
+    await advance(400);
+    await invalidIdExpectation;
+
+    const missingTrackExpectation = expect(
+      service.updateTrackVisibility(999999, {
+        isPrivate: true,
+      })
+    ).rejects.toThrow('Track not found');
+
+    await advance(400);
+    await missingTrackExpectation;
+  });
+});
