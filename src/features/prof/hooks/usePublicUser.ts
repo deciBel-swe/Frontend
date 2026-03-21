@@ -10,7 +10,7 @@ const userPublicUser = (username: string) => ['userPublic', username];
 export const usePublicUser = (username: string) => {
   const { data, isLoading, isError } = useQuery<UserPublic>({
     queryKey: userPublicUser(username),
-    queryFn: () => userService.getPublicUser(username),
+    queryFn: () => userService.getPublicUserByUsername(username),
     enabled: username.length > 0,
   });
 

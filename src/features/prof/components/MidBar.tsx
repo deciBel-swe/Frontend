@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { IconButton } from '@/components/buttons/IconButton';
 import {
   ShareIcon,
@@ -9,23 +9,23 @@ import {
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
-import { useUserMe } from '@/features/prof/hooks/useUserMe';
+// import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
 interface MidBarProps {
   username: string;
 }
-import { useGetCountry } from '@/hooks';
+// import { useGetCountry } from '@/hooks';
 
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const { user: myUser } = useUserMe();
-  const countries = useGetCountry();
+  // const [isHydrated, setIsHydrated] = useState(false);
+  // const { user: myUser } = useUserMe();
+  // const countries = useGetCountry();
 
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsHydrated(true);
+  // }, []);
 
   //const isOwnProfile = isHydrated && myUser?.username === username;
   // there is problem in it I will just use dummy name for testing

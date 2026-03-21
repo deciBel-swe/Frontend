@@ -9,7 +9,7 @@ interface ProfileSideBarProps {
 }
 
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
-  const { data, isLoading, error } = usePublicUser(username);
+  const { data } = usePublicUser(username);
   return (
     <div className="flex flex-col gap-2 p-5">
       <StatsGroup

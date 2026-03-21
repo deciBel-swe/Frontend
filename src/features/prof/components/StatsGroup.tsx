@@ -1,7 +1,6 @@
 import StateItem from '@/features/prof/components/StatItem';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
-import { count } from 'console';
 
 interface StateItemProps {
   countTracks: number;

@@ -17,8 +17,8 @@ export default function Page() {
       <HeroSection />
       <SearchSection />
       <TrendingSection />
-      <InfoSection />     
-      <SignupSection />   
+      <InfoSection />
+      <SignupSection />
       <Footer />
     </>
   );

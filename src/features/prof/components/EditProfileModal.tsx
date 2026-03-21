@@ -5,7 +5,7 @@ import FloatingInputField from '@/features/auth/components/FormFields/FloatingIn
 import Button from '@/components/buttons/Button';
 import { IconButton } from '@/components/buttons/IconButton';
 import { Link2, Trash2, X } from 'lucide-react';
-import { useUserMe } from '@/features/prof/hooks/useUserMe';
+// import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import { z } from 'zod';
 import FloatingSelectField from '@/features/prof/formFeilds/FloatingSelectField';
 import { useGetCountry } from '@/hooks/useGetCountry';
@@ -135,7 +135,7 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const [formErrors, setFormErrors] = useState<EditProfileFormErrors>({});
-  const { user: myUser } = useUserMe();
+  // const { user: myUser } = useUserMe();
   const hasSupportLink = links.some((item) => item.kind === 'support');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   // Handle file input change

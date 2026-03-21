@@ -17,7 +17,7 @@ describe('MockUserService', () => {
   };
 
   it('returns public profile and me payload', async () => {
-    const publicPromise = service.getPublicUser(1);
+    const publicPromise = service.getPublicUserById(1);
     await flush();
     const publicUser = await publicPromise;
 

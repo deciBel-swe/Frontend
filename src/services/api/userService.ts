@@ -54,7 +54,9 @@ const toQueryParams = (
  */
 export interface UserService {
   /** Read public profile data by user ID (GET /users/:userId). */
-  getPublicUser(userId: number): Promise<UserPublic>;
+  getPublicUserById(userId: number): Promise<UserPublic>;
+
+  getPublicUserByUsername(username: string): Promise<UserPublic>;
 
   /** Read current authenticated user payload (GET /users/me). */
   getUserMe(): Promise<UserMe>;
@@ -139,8 +141,12 @@ export interface UserService {
 
 /** Real implementation backed by centralized axios + Zod API template. */
 export class RealUserService implements UserService {
-  async getPublicUser(userId: number): Promise<UserPublic> {
-    return apiRequest(API_CONTRACTS.USERS_PUBLIC(userId));
+  async getPublicUserById(userId: number): Promise<UserPublic> {
+    return apiRequest(API_CONTRACTS.USERS_PUBLIC_BY_ID(userId));
+  }
+
+  async getPublicUserByUsername(username: string): Promise<UserPublic> {
+    return apiRequest(API_CONTRACTS.USERS_PUBLIC_BY_USERNAME(username));
   }
 
   async getUserMe(): Promise<UserMe> {

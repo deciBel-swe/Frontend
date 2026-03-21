@@ -13,7 +13,7 @@ export class MockEditMeService implements editMeService {
       twitter: 'http://example.com/twitter',
       ...(data.socialLinks ?? {}),
     };
-    var response: UserMe = {
+    const response: UserMe = {
       id: 1,
       Role: 'LISTENER',
       email: 'mockuser@example.com',

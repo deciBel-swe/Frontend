@@ -8,7 +8,7 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ username }: ProfileHeaderProps) => {
-  const { data, isLoading, error } = usePublicUser(username);
+  const { data } = usePublicUser(username);
   return (
     <div className="relative">
       <ProfileBanner coverPhotoUrl={data?.profile.coverPhotoUrl} />

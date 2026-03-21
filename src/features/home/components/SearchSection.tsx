@@ -5,8 +5,8 @@ export default function SearchSection() {
     <section className="flex flex-row items-center py-10 gap-3 p-50">
       {/* <Input placeholder="Search..." /> */}
       <SearchBar />
-      <p className='font-bold'> or </p>
-      <Button variant='secondary'>Upload your own</Button>
+      <p className="font-bold"> or </p>
+      <Button variant="secondary">Upload your own</Button>
     </section>
   );
 }

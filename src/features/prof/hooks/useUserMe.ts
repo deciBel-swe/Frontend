@@ -19,7 +19,7 @@ export const useUserMe = () => {
         return null;
       }
 
-      const me = await userService.getUserMe(session.accessToken);
+      const me = await userService.getUserMe();
       return me ?? null;
     },
   });
