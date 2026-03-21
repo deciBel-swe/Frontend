@@ -1,7 +1,11 @@
-import React from 'react';
+'use client';
 
-const page = () => {
-  return <div>page</div>;
+import { useState } from 'react';
+
+const Page = () => {
+  const [genre, setGenre] = useState('');
+
+  return <></>;
 };
 
-export default page;
+export default Page;

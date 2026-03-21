@@ -106,6 +106,11 @@ export { useApiMutation } from './useAPI';
  */
 export { useUserTracks } from './useUserTracks';
 
+/**
+ * useGetCountry — queries country options by user input.
+ */
+export { useGetCountry } from './useGetCountry';
+
 // Additional hooks will be exported here as they are created
 // export { usePlayer } from './usePlayer';
 // export { useIntersectionObserver } from './useIntersectionObserver';

@@ -14,12 +14,14 @@ import EditProfileModal from '@/features/prof/components/EditProfileModal';
 interface MidBarProps {
   username: string;
 }
+import { useGetCountry } from '@/hooks';
 
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const { user: myUser } = useUserMe();
+  const countries = useGetCountry();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -44,7 +46,11 @@ const MidBar = ({ username }: MidBarProps) => {
         </div>
       )}
       {isOwnProfile && (
-        <IconButton aria-label="edit" className="w-auto h-auto" onClick={() => setIsEditOpen(true)}>
+        <IconButton
+          aria-label="edit"
+          className="w-auto h-auto"
+          onClick={() => setIsEditOpen(true)}
+        >
           <span className="flex items-center bg-gray-300 rounded-md px-4 py-2 flex-shrink-0 dark:bg-gray-800">
             <EditIcon /> edit
           </span>
@@ -61,7 +67,6 @@ const MidBar = ({ username }: MidBarProps) => {
           className="group w-auto h-auto"
           onClick={() => {
             setIsFollowing((prev) => !prev);
-            console.log(myUser);
           }}
         >
           <span
@@ -77,9 +82,9 @@ const MidBar = ({ username }: MidBarProps) => {
       <ProfileNav username={`${username}`} />
       {/* not sure if this is the correct way to call the modal component */}
       <EditProfileModal
-  open={isEditOpen}
-  onClose={() => setIsEditOpen(false)}
-/>
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+      />
     </div>
   );
 };
