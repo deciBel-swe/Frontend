@@ -50,9 +50,9 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_USE_MOCK=${{ vars.NEXT_PUBLIC_USE_MOCK }}
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
             NEXT_PUBLIC_OAUTH_REDIRECT_URI=${{ vars.NEXT_PUBLIC_OAUTH_REDIRECT_URI }}
-            NEXT_PUBLIC_RECATCHA_SITE_KEY=${{ secrets.NEXT_PUBLIC_RECATCHA_SITE_KEY }}
+            NEXT_PUBLIC_RECATCHA_SITE_KEY=${{ vars.NEXT_PUBLIC_RECATCHA_SITE_KEY }}
           tags: |
             ${{ env.REPO }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev-latest' }}
             ${{ env.REPO }}:${{ steps.versioning.outputs.version }}
