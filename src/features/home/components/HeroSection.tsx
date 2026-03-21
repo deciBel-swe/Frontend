@@ -19,8 +19,7 @@ const slides = [
   {
     title: 'Where every music scene lives.',
     description: 'Discover millions of tracks you can’t find anywhere else.',
-    image:
-      'https://a-v2.sndcdn.com/assets/images/front-hero-fan-7bdd78dc.jpeg',
+    image: 'https://a-v2.sndcdn.com/assets/images/front-hero-fan-7bdd78dc.jpeg',
   },
 ];
 
@@ -38,7 +37,6 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-[500px] overflow-hidden rounded-2xl">
-      
       {/* Slides wrapper */}
       <div
         className="flex h-full transition-transform duration-700 ease-in-out"
@@ -49,7 +47,6 @@ export default function HeroSection() {
       >
         {slides.map((slide, index) => (
           <div key={index} className="w-full h-full relative flex-shrink-0">
-            
             {/* Background image */}
             <img
               src={slide.image}
@@ -64,11 +61,9 @@ export default function HeroSection() {
               <h1 className="text-5xl font-bold whitespace-pre-line mb-4">
                 {slide.title}
               </h1>
-              <p className="text-lg mb-6">
-                {slide.description}
-              </p>
+              <p className="text-lg mb-6">{slide.description}</p>
 
-              <Button className="px-6 py-2 rounded w-fit" variant='ghost'>
+              <Button className="px-6 py-2 rounded w-fit" variant="ghost">
                 Get Started
               </Button>
             </div>

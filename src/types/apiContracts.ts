@@ -119,7 +119,12 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.USERS.ME,
     responseSchema: userMeSchema,
   }),
-
+  USERS_ME_EDIT: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME,
+    requestSchema: updateMeRequestSchema,
+    responseSchema: userMeSchema,
+  }),
   USERS_ME_TRACKS: defineContract<
     void,
     z.infer<typeof trackDetailsResponseSchema>[]
@@ -141,14 +146,6 @@ export const API_CONTRACTS = {
     requestSchema: updatePrivacySettingsDtoSchema,
     responseSchema: privacySettingsSchema,
   }),
-
-  USERS_ME_EDIT: defineContract({
-    method: 'PATCH',
-    url: API_ENDPOINTS.USERS.ME,
-    requestSchema: updateMeRequestSchema,
-    responseSchema: userMeSchema,
-  }),
-
   USERS_ME_RESET_PASSWORD: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.USERS.ME_RESET_PASSWORD,
@@ -281,10 +278,16 @@ export const API_CONTRACTS = {
       responseSchema: messageResponseSchema,
     }),
 
-  USERS_PUBLIC: (userId: number) =>
+  USERS_PUBLIC_BY_ID: (userId: number) =>
     defineContract<void, z.infer<typeof userPublicSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.USERS.BY_ID(userId),
+      responseSchema: userPublicSchema,
+    }),
+  USERS_PUBLIC_BY_USERNAME: (username: string) =>
+    defineContract<void, z.infer<typeof userPublicSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.BY_USERNAME(username),
       responseSchema: userPublicSchema,
     }),
   TRACKS_UPLOAD: defineContract<

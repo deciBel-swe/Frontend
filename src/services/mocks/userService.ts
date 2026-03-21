@@ -286,9 +286,18 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
 });
 
 export class MockUserService implements UserService {
-  async getPublicUser(userId: number): Promise<UserPublic> {
+  async getPublicUserById(userId: number): Promise<UserPublic> {
     await delay();
     const user = findUser(userId);
+    return toUserPublic(user);
+  }
+
+  async getPublicUserByUsername(username: string): Promise<UserPublic> {
+    await delay();
+    const user = inMemoryUsers.find((u) => u.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     return toUserPublic(user);
   }
 

@@ -130,6 +130,7 @@ export const API_ENDPOINTS = {
     ME_BLOCKED: '/users/me/blocked',
     SUGGESTED: '/users/suggested',
     BY_ID: (userId: number) => `/users/${userId}`,
+    BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
     PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
     FOLLOW: (userId: number) => `/users/${userId}/follow`,
