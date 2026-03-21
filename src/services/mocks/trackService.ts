@@ -318,7 +318,8 @@ const getSessionUsername = (): string | null => {
 
   try {
     const parsed = JSON.parse(raw) as { username?: string };
-    return typeof parsed.username === 'string' && parsed.username.trim().length > 0
+    return typeof parsed.username === 'string' &&
+      parsed.username.trim().length > 0
       ? parsed.username
       : null;
   } catch {
@@ -396,7 +397,7 @@ export class MockTrackService implements TrackService {
         const artistName = getStringField(
           formData,
           'artist',
-          getSessionUsername() ?? 'mockartist',
+          getSessionUsername() ?? 'mockartist'
         );
 
         const finalizeUpload = async () => {

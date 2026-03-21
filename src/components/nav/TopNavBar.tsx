@@ -91,7 +91,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
   } = useTopNavBar();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
-       <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
+      <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
         {!isMounted ? (
           <div aria-hidden />
         ) : (
@@ -271,26 +271,26 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                 </>
               ) : (
                 <>
-                <Link href={ROUTES.SIGNIN}>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    disabled={isAuthLoading}
-                  >
-                    Sign in
-                  </Button>
-                </Link>
-                <Link href={ROUTES.REGISTER}>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="ml-1"
-                  >
-                    Create account
-                  </Button>
-                </Link>  
+                  <Link href={ROUTES.SIGNIN}>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={isAuthLoading}
+                    >
+                      Sign in
+                    </Button>
+                  </Link>
+                  <Link href={ROUTES.REGISTER}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="ml-1"
+                    >
+                      Create account
+                    </Button>
+                  </Link>
                 </>
               )}
             </div>

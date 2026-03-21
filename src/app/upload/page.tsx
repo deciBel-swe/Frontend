@@ -1,5 +1,5 @@
-import UploadView from '@/features/tracks/TrackUploadForm/UploadView'
+import UploadView from '@/features/tracks/TrackUploadForm/UploadView';
 
 export default function UploadPage() {
-  return <UploadView />
+  return <UploadView />;
 }

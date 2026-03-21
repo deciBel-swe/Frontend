@@ -73,7 +73,7 @@ export default function UploadForm({
       <div className="sticky top-0 w-full mb-8">
         <div className="w-full max-w-6xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4">
           {isUploading ? (
-            <div className="flex gap-2 w-full justify-end" >
+            <div className="flex gap-2 w-full justify-end">
               <span className="text-xs text-text-secondary font-medium">
                 {audioFile.name}
               </span>

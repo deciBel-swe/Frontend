@@ -43,12 +43,12 @@ export default function TrackTextField({
           </div>
         ) : null}
       </div>
-    <div className="relative w-full">
-    <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`
+      <div className="relative w-full">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`
         peer w-full
         bg-transparent
         text-text-primary text-xs
@@ -61,11 +61,13 @@ export default function TrackTextField({
 
         focus:border-transparent
         `}
-    />
+        />
 
-    <span className="absolute left-1/2 bottom-0 h-px w-0 -translate-x-1/2 bg-border-contrast transition-all duration-200 peer-focus:w-full peer-hover:w-full" />
-    </div>
-      {error ? <p className="mt-1 font-light text-xs text-status-error">{error}</p> : null}
+        <span className="absolute left-1/2 bottom-0 h-px w-0 -translate-x-1/2 bg-border-contrast transition-all duration-200 peer-focus:w-full peer-hover:w-full" />
+      </div>
+      {error ? (
+        <p className="mt-1 font-light text-xs text-status-error">{error}</p>
+      ) : null}
     </div>
   );
 }

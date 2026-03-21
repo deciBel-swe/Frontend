@@ -133,7 +133,7 @@ describe('TopNavBar', () => {
 
   it('renders guest actions and navigates to sign-in and register pages', async () => {
     const user = userEvent.setup();
-    
+
     mockUseTopNavBar.mockReturnValue(
       createTopNavState({
         isAuthenticated: false,
@@ -143,10 +143,14 @@ describe('TopNavBar', () => {
 
     render(<TopNavBar />);
 
-    expect(screen.getByRole('link', { name: "Sign in" })).toHaveAttribute('href', '/signin');
-    expect(screen.getByRole('link', { name: "Create account" })).toHaveAttribute('href', '/register');
-
-    });
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
+      'href',
+      '/signin'
+    );
+    expect(
+      screen.getByRole('link', { name: 'Create account' })
+    ).toHaveAttribute('href', '/register');
+  });
 
   it('renders authenticated actions when user is present', async () => {
     const closeUserMenu = jest.fn();

@@ -87,10 +87,7 @@ export default function Waveform({
       ) : bars.length === 0 ? (
         <div className="text-xs text-text-muted">No waveform data yet.</div>
       ) : (
-        <div
-          className="flex items-center gap-px"
-          style={{ height }}
-        >
+        <div className="flex items-center gap-px" style={{ height }}>
           {bars.map((bar) => (
             <div
               key={bar.key}

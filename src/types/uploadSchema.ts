@@ -63,7 +63,10 @@ export const uploadSchema = z.object({
         .trim()
         .min(1)
         .max(MAX_TAG_LENGTH)
-        .regex(/^[a-z0-9-]*$/, 'Tags can only contain lowercase letters, numbers, and hyphens')
+        .regex(
+          /^[a-z0-9-]*$/,
+          'Tags can only contain lowercase letters, numbers, and hyphens'
+        )
     )
     .max(MAX_TAGS, 'Maximum 20 tags'),
   description: z

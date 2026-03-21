@@ -118,11 +118,7 @@ export default function TrackTagsCombobox({
                 return;
               }
 
-              if (
-                event.key === 'Backspace' &&
-                !query &&
-                value.length > 0
-              ) {
+              if (event.key === 'Backspace' && !query && value.length > 0) {
                 onChange(value.slice(0, -1));
               }
             }}
