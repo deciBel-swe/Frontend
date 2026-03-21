@@ -124,7 +124,6 @@ export default function UploadView() {
       formData.append('artist', artist)
     }
     const tagEntries = tags
-      .split(',')
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0)
     if (tagEntries.length > 0) {
