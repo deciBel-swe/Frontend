@@ -83,6 +83,10 @@ export { usePublicUser } from '../features/prof/hooks/usePublicUser';
  * to be used for setting and authenticated user only
  */
 export { useUserMe } from '../features/prof/hooks/useUserMe';
+/**
+ * useEditMe — updates the authenticated user's profile data.
+ */
+export { useEditMe } from '../features/prof/hooks/useEditMe';
 /* useAPI — imperative access to the centralized axios + Zod request pipeline.
  *
  * Returns `{ request, client }` for one-off controlled calls.
