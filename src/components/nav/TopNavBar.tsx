@@ -19,6 +19,7 @@ import { type FC } from 'react';
 import Link from 'next/link';
 import { useState } from 'react';
 import SignInModal from '@/features/auth/components/Forms/SignInModal';
+import RegisterModal from '@/features/auth/components/Forms/RegisterModal';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
@@ -93,6 +94,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     activeNav,
   } = useTopNavBar();
    const [open, setOpen] = useState(false);
+   const [registerOpen, setRegisterOpen] = useState(false);
    const pathname = usePathname();
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
@@ -290,16 +292,20 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     Sign in
                   </Button>
                 {/* </Link> */}
-                <Link href={ROUTES.REGISTER}>
+                {/* <Link href={ROUTES.REGISTER}> */}
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
                     className="ml-1"
+                      onClick={() => {
+                      if (pathname === ROUTES.REGISTER) return;
+                        setRegisterOpen(true);
+                     }}
                   >
                     Create account
                   </Button>
-                </Link>  
+                {/* </Link>   */}
                 </>
               )}
             </div>
@@ -308,6 +314,10 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
         <SignInModal
         open={open}
         onClose={() => setOpen(false)}
+      />
+      <RegisterModal
+      open={registerOpen}
+      onClose={() => setRegisterOpen(false)}
       />
       </div>
     </header>
