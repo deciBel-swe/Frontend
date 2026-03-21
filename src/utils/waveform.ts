@@ -15,9 +15,14 @@
  * const bars = generateWaveform(track.id);        // 120 points, unique per track
  * const short = generateWaveform(track.id, 60);   // 60 points
  */
-export function generateWaveform(seed: number = 0, length: number = 120): number[] {
+export function generateWaveform(
+  seed: number = 0,
+  length: number = 120
+): number[] {
   const phase = seed * 0.3;
   return Array.from({ length }, (_, i) =>
-    Math.round(50 + 30 * Math.sin(i * 0.25 + phase) + 10 * Math.sin(i * 0.05 + phase))
+    Math.round(
+      50 + 30 * Math.sin(i * 0.25 + phase) + 10 * Math.sin(i * 0.05 + phase)
+    )
   );
 }

@@ -1,0 +1,69 @@
+name: Versioning and Deploying
+on:
+  push:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  REPO: ghcr.io/decibel-org/frontend
+
+jobs:
+  version-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Semantic versioning
+        id: versioning
+        uses: PaulHatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+          major_pattern: "/BREAKING CHANGE:|!:/"
+          minor_pattern: "/feat(\\(.*\\))?:/"
+          version_format: ${{ github.ref == 'refs/heads/main' && 'v${major}.${minor}.${patch}' || 'v${major}.${minor}.${patch}-prerelease${increment}' }} 
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_USE_MOCK=${{ vars.NEXT_PUBLIC_USE_MOCK }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+            NEXT_PUBLIC_OAUTH_REDIRECT_URI=${{ vars.NEXT_PUBLIC_OAUTH_REDIRECT_URI }}
+            NEXT_PUBLIC_RECATCHA_SITE_KEY=${{ vars.NEXT_PUBLIC_RECATCHA_SITE_KEY }}
+          tags: |
+            ${{ env.REPO }}:${{ github.ref == 'refs/heads/main' && 'latest' || 'dev-latest' }}
+            ${{ env.REPO }}:${{ steps.versioning.outputs.version }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          tag_name: ${{ steps.versioning.outputs.version }}

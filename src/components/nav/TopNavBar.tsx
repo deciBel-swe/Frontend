@@ -17,10 +17,10 @@
 
 import { type FC } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
+
 import SignInModal from '@/features/auth/components/Forms/SignInModal';
 import RegisterModal from '@/features/auth/components/Forms/RegisterModal';
-import { usePathname } from 'next/navigation';
+
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
 import { Avatar } from '@/components/nav/Avatar';
@@ -92,13 +92,17 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     moreMenuRef,
     initials,
     activeNav,
+    signInOpen,
+    registerOpen,
+    openSignIn,
+    closeSignIn,
+    openRegister,
+    closeRegister,
   } = useTopNavBar();
-   const [open, setOpen] = useState(false);
-   const [registerOpen, setRegisterOpen] = useState(false);
-   const pathname = usePathname();
+
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
-       <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
+      <div className="fixed top-0 left-0 right-0 z-200 h-12 bg-bg-base border-b border-border-default">
         {!isMounted ? (
           <div aria-hidden />
         ) : (
@@ -284,10 +288,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     variant="primary"
                     size="sm"
                     disabled={isAuthLoading}
-                    onClick={() => {
-                      if (pathname === ROUTES.SIGNIN) return;
-                      setOpen(true);
-                    }}
+                    onClick={openSignIn}
                   >
                     Sign in
                   </Button>
@@ -298,10 +299,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     variant="secondary"
                     size="sm"
                     className="ml-1"
-                      onClick={() => {
-                      if (pathname === ROUTES.REGISTER) return;
-                        setRegisterOpen(true);
-                     }}
+                    onClick={openRegister}
                   >
                     Create account
                   </Button>
@@ -312,13 +310,10 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
           </div>
         )}
         <SignInModal
-        open={open}
-        onClose={() => setOpen(false)}
-      />
-      <RegisterModal
-      open={registerOpen}
-      onClose={() => setRegisterOpen(false)}
-      />
+          open={signInOpen}
+          onClose={closeSignIn}
+        />
+        <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
     </header>
   );
