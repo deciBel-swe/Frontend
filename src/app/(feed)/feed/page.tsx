@@ -20,7 +20,7 @@ export default function FeedPage() {
   if (isLoading) {
     return (
       <>
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 20 }).map((_, i) => (
           <div
             key={i}
             className="bg-surface-default rounded-lg h-40 animate-pulse"

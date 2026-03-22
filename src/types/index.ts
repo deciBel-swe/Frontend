@@ -34,6 +34,22 @@ export const deviceInfoDTOSchema = z.object({
 });
 export type DeviceInfoDTO = z.infer<typeof deviceInfoDTOSchema>;
 
+/** DTO sent to POST /auth/register/local */
+export const registerLocalRequestDTOSchema = z.object({
+  email: z.string().trim().email(),
+  username: z.string().trim().min(1),
+  password: z.string().min(1),
+  dateOfBirth: z.string().trim().min(1),
+  gender: z.string().trim().min(1),
+  city: z.string().trim().optional(),
+  country: z.string().trim().optional(),
+  captchaToken: z.string().trim().min(1),
+  deviceInfo: deviceInfoDTOSchema,
+});
+export type RegisterLocalRequestDTO = z.infer<
+  typeof registerLocalRequestDTOSchema
+>;
+
 /** DTO sent to POST /auth/oauth/google */
 export const googleOAuthRequestDTOSchema = z.object({
   authTokenDto: z.string().trim().min(1),

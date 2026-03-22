@@ -1,16 +1,22 @@
 import type {
   AuthService,
-  ReCaptchaVerificationResult,
+  RegisterLocalPayload,
 } from '@/services/api/authService';
-import { API_ENDPOINTS } from '@/constants/routes';
-import { apiClient } from '@/hooks/useAPI';
 
 import type {
   LoginResponseDTO,
   LoginUserDTO,
   RefreshTokenResponseDTO,
-  UserRole,
 } from '@/types';
+
+import {
+  createMockAuthAccount,
+  getMockAuthAccountByEmail,
+  upsertMockAuthAccount,
+  updateMockAuthEmailVerification,
+} from './mockAuthUsersStore';
+import { getMockEmailVerificationStore } from './mockSystemStore';
+import { sha256Hex } from '@/utils/sha256';
 
 // ================================
 // Mock data
@@ -22,28 +28,6 @@ const REFRESH_TOKEN_KEY = 'decibel_refresh_token';
 const USER_KEY = 'decibel_mock_user';
 /** Cookie name read by middleware to gate protected routes. */
 const AUTH_COOKIE = 'decibel_auth';
-
-const mockUsers: Record<UserRole, LoginUserDTO> = {
-  artist: {
-    id: 1,
-    username: 'mockartist',
-    tier: 'ARTIST',
-  },
-  listener: {
-    id: 2,
-    username: 'mocklistener',
-    tier: 'FREE',
-  },
-};
-
-// For testing purposes, only allow 5 specific users to log in with email (any password allowed)
-const allowedUsers: Record<string, LoginUserDTO> = {
-  'user1@test.com': { id: 1, username: 'user1', tier: 'FREE' },
-  'user2@test.com': { id: 2, username: 'user2', tier: 'FREE' },
-  'user3@test.com': { id: 3, username: 'user3', tier: 'FREE' },
-  'user4@test.com': { id: 4, username: 'user4', tier: 'FREE' },
-  'user5@test.com': { id: 5, username: 'user5', tier: 'FREE' },
-};
 
 /** Simulates a network round-trip */
 const delay = (ms = MOCK_DELAY_MS) =>
@@ -70,42 +54,132 @@ const decodeMockToken = (
   }
 };
 
-/** Select mock user by email. artist@decibel.test → artist, everything else → listener */
-// const resolveUserByEmail = (email: string): LoginUserDTO =>
-//   email === 'artist@decibel.test' ? mockUsers.artist : mockUsers.listener;
+const toLoginUser = (
+  account: ReturnType<typeof getMockAuthAccountByEmail>
+): LoginUserDTO => {
+  if (!account) {
+    throw new Error('User not found');
+  }
+
+  return {
+    id: account.id,
+    username: account.username,
+    tier: account.tier,
+    avatarUrl: account.avatarUrl,
+  };
+};
+
+const parseJwtPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
+const normalizeUsername = (value: string): string => {
+  const cleaned = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-_.]+|[-_.]+$/g, '');
+
+  return cleaned || 'google-user';
+};
+
+const extractGoogleIdentity = (
+  code: string
+): { email: string; username: string; avatarUrl?: string } => {
+  const payload = parseJwtPayload(code);
+  if (payload) {
+    const payloadEmail =
+      typeof payload.email === 'string' ? payload.email.trim() : '';
+    const payloadName =
+      typeof payload.name === 'string'
+        ? payload.name
+        : typeof payload.given_name === 'string'
+          ? payload.given_name
+          : '';
+    const payloadPicture =
+      typeof payload.picture === 'string' ? payload.picture.trim() : '';
+
+    if (payloadEmail) {
+      return {
+        email: payloadEmail.toLowerCase(),
+        username: normalizeUsername(
+          payloadName || payloadEmail.split('@')[0] || ''
+        ),
+        avatarUrl: payloadPicture || undefined,
+      };
+    }
+  }
+
+  try {
+    const parsed = JSON.parse(code) as {
+      email?: string;
+      username?: string;
+      name?: string;
+      picture?: string;
+      avatarUrl?: string;
+    };
+
+    if (parsed.email?.trim()) {
+      const email = parsed.email.trim().toLowerCase();
+      return {
+        email,
+        username: normalizeUsername(
+          (parsed.username || parsed.name || email.split('@')[0] || '').trim()
+        ),
+        avatarUrl:
+          (parsed.picture || parsed.avatarUrl || '').trim() || undefined,
+      };
+    }
+  } catch {
+    // Ignore JSON parse errors and continue with simpler fallbacks.
+  }
+
+  if (code.includes('@')) {
+    const email = code.trim().toLowerCase();
+    return {
+      email,
+      username: normalizeUsername(email.split('@')[0] || ''),
+    };
+  }
+
+  // OAuth authorization codes are opaque and should not be treated as names.
+  return {
+    email: 'google-user@google.mock',
+    username: 'google-user',
+  };
+};
 
 // ================================
 // Mock auth service
 // ================================
 
 export class MockAuthService implements AuthService {
-  async verifyReCaptcha(
-    token: string,
-    _action: string = 'submit_form'
-  ): Promise<ReCaptchaVerificationResult> {
-    await delay(50);
+  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+    await delay();
 
-    if (!token || !token.trim()) {
-      return {
-        success: false,
-        score: 0,
-        error: 'Verification failed',
-      };
-    }
+    createMockAuthAccount({
+      email: payload.email,
+      username:
+        payload.username.trim() || payload.email.split('@')[0] || 'user',
+      password: await sha256Hex(payload.password),
+      emailVerified: true,
+      tier: 'FREE',
+    });
 
-    // Frontend-only mock mode should never call the API endpoint.
-    if (token.startsWith('fail')) {
-      return {
-        success: false,
-        score: 0.1,
-        error: 'Verification failed',
-      };
-    }
-
-    return {
-      success: true,
-      score: 0.92,
-    };
+    return 'User Generated successfully';
   }
 
   async getSession(): Promise<LoginResponseDTO | null> {
@@ -138,14 +212,15 @@ export class MockAuthService implements AuthService {
 
     if (!code) throw new Error('Authorization code is missing');
 
-    // When the backend is ready, the RealAuthService will look like this:
-    // return await apiClient.post('/auth/oauth/google', {
-    //   code,
-    //   deviceInfo: getDeviceInfo()
-    // });
-
-    // Mock successful exchange: default to listener role
-    const user = mockUsers.listener;
+    const googleIdentity = extractGoogleIdentity(code);
+    const account = upsertMockAuthAccount({
+      email: googleIdentity.email,
+      username: googleIdentity.username,
+      avatarUrl: googleIdentity.avatarUrl,
+      emailVerified: true,
+      tier: 'FREE',
+    });
+    const user = toLoginUser(account);
     const expiresIn = 3600;
 
     const accessToken = createMockToken(user.id, expiresIn);
@@ -183,15 +258,23 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
-  async login(email: string, _password: string): Promise<LoginResponseDTO> {
+  async login(email: string, password: string): Promise<LoginResponseDTO> {
     await delay();
-    //const user = resolveUserByEmail(email);
-
-    // Check if email exists in allowed users
-    const user = allowedUsers[email];
-    if (!user) {
-      throw new Error('User not allowed. Only 5 users can login in this mock.');
+    const account = getMockAuthAccountByEmail(email);
+    if (!account) {
+      throw new Error('Invalid email or password.');
     }
+
+    if (!account.emailVerified) {
+      throw new Error('Email is not verified yet.');
+    }
+
+    const passwordHash = await sha256Hex(password);
+    if (passwordHash !== account.password) {
+      throw new Error('Invalid email or password.');
+    }
+
+    const user = toLoginUser(account);
 
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
@@ -208,7 +291,7 @@ export class MockAuthService implements AuthService {
   // Email verification methods
   // ================================
 
-  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async resendVerification(email: string): Promise<{ success: boolean }> {
     await delay();
 
     const token = crypto.randomUUID();
@@ -216,16 +299,10 @@ export class MockAuthService implements AuthService {
     mockEmailVerification[token] = {
       email,
       token,
-      verified: false,
+      verified: true,
     };
 
-    // Call API route to send real email
-    await apiClient.request({
-      baseURL: '',
-      method: 'POST',
-      url: API_ENDPOINTS.AUTH.SEND_VERIFICATION,
-      data: { email, token },
-    });
+    updateMockAuthEmailVerification(email, true);
 
     return { success: true };
   }
@@ -233,20 +310,18 @@ export class MockAuthService implements AuthService {
   async verifyEmail(token: string): Promise<{ success: boolean }> {
     await delay();
 
-    if (!mockEmailVerification[token]) {
+    const entry = mockEmailVerification[token];
+    if (!entry) {
       return { success: false };
     }
 
-    mockEmailVerification[token].verified = true;
+    entry.verified = true;
+    updateMockAuthEmailVerification(entry.email, true);
     return { success: true };
   }
 
-  async checkEmailVerified(email: string): Promise<boolean> {
-    await delay();
-
-    return Object.values(mockEmailVerification).some(
-      (entry) => entry.email === email && entry.verified === true
-    );
+  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+    return this.resendVerification(email);
   }
 
   // ================================
@@ -267,4 +342,4 @@ export class MockAuthService implements AuthService {
 export const mockEmailVerification: Record<
   string,
   { email: string; token: string; verified: boolean }
-> = {};
+> = getMockEmailVerificationStore();

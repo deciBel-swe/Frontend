@@ -3,7 +3,6 @@
 import { useCallback } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 
-import type { ReCaptchaResult } from '@/hooks/UseReCaptcha';
 import {
   getSchemaFieldErrors,
   signInSchema,
@@ -18,14 +17,12 @@ import {
  * @property {Dispatch<SetStateAction<FieldErrors<SignInFormValues>>>} setFieldErrors - Function to set field-level validation errors
  * @property {Dispatch<SetStateAction<string>>} setSubmitError - Function to set form-level submission error
  * @property {(email: string, password: string) => Promise<void>} login - Function to authenticate user with backend
- * @property {(action?: string) => Promise<ReCaptchaResult>} verifyReCaptcha - Function to verify reCAPTCHA token
  */
 interface UseSignInSubmitParams {
   formValues: SignInFormValues;
   setFieldErrors: Dispatch<SetStateAction<FieldErrors<SignInFormValues>>>;
   setSubmitError: Dispatch<SetStateAction<string>>;
   login: (email: string, password: string) => Promise<void>;
-  verifyReCaptcha: (action?: string) => Promise<ReCaptchaResult>;
   onSuccess?: () => void;
 }
 
@@ -34,20 +31,18 @@ export const useSignInSubmit = ({
   setFieldErrors,
   setSubmitError,
   login,
-  verifyReCaptcha,
   onSuccess,
 }: UseSignInSubmitParams) => {
   /**
    * Hook for handling sign-in form submission
    *
-   * Validates form data, performs reCAPTCHA verification, and attempts user authentication.
-   * Handles validation errors, reCAPTCHA failures, and authentication failures gracefully.
+   * Validates form data and attempts user authentication.
+   * Handles validation errors and authentication failures gracefully.
    *
    * Flow:
    * 1. Validates email and password against schema
-   * 2. Verifies reCAPTCHA token with backend
-   * 3. If reCAPTCHA passes, calls login function with credentials
-   * 4. Sets appropriate errors if any step fails
+   * 2. Calls login function with credentials
+   * 3. Sets appropriate errors if any step fails
    *
    * @hook
    * @param {UseSignInSubmitParams} params - Hook parameters
@@ -55,7 +50,7 @@ export const useSignInSubmit = ({
    * @returns {(event: FormEvent<HTMLFormElement>) => Promise<void>} handleSubmit - Form submission handler
    *
    * @example
-   * const { handleSubmit } = useSignInSubmit({ formValues, login, verifyReCaptcha, ... });
+   * const { handleSubmit } = useSignInSubmit({ formValues, login, ... });
    * <form onSubmit={handleSubmit}>
    *   // form fields
    * </form>
@@ -73,15 +68,6 @@ export const useSignInSubmit = ({
       setFieldErrors({});
       setSubmitError('');
 
-      const recaptchaResult = await verifyReCaptcha('signin');
-      if (!recaptchaResult.success) {
-        setSubmitError(
-          recaptchaResult.error ||
-            'ReCaptcha verification failed. Please try again.'
-        );
-        return;
-      }
-
       try {
         await login(parsedValues.data.email, parsedValues.data.password);
         onSuccess?.();
@@ -91,7 +77,7 @@ export const useSignInSubmit = ({
         );
       }
     },
-    [formValues, login, setFieldErrors, setSubmitError, verifyReCaptcha]
+    [formValues, login, setFieldErrors, setSubmitError, onSuccess]
   );
 
   return { handleSubmit };

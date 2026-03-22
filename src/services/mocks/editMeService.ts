@@ -1,52 +1,68 @@
 import type { editMeService } from '@/services/api/editMeService';
 import type { UpdateMeRequest, UserMe } from '@/types/user';
+import {
+  getMockUsersStore,
+  resolveCurrentMockUserId,
+  syncAuthAccountsToMockUsers,
+} from './mockSystemStore';
 
 /**
  * Mock implementation of editMeService for testing or development without backend.
  */
 export class MockEditMeService implements editMeService {
   async editMe(token: string, data: UpdateMeRequest): Promise<UserMe> {
-    const mergedSocialLinks = {
-      instagram: 'http://example.com/instagram',
-      website: 'http://example.com/website',
-      supportLink: 'http://example.com/support',
-      twitter: 'http://example.com/twitter',
-      ...(data.socialLinks ?? {}),
-    };
-    const response: UserMe = {
-      id: 1,
-      Role: 'LISTENER',
-      email: 'mockuser@example.com',
-      username: 'mockuser',
-      emailVerified: true,
-      tier: 'ARTIST',
+    void token;
+    syncAuthAccountsToMockUsers();
+
+    const currentUserId = resolveCurrentMockUserId();
+    const me = getMockUsersStore().find((user) => user.id === currentUserId);
+
+    if (!me) {
+      throw new Error('Current user not found');
+    }
+
+    if (data.bio !== undefined) me.profile.bio = data.bio;
+    if (data.city !== undefined) me.profile.city = data.city;
+    if (data.country !== undefined) me.profile.country = data.country;
+    if (data.favoriteGenres !== undefined) {
+      me.profile.favoriteGenres = [...data.favoriteGenres];
+    }
+    if (data.socialLinks) {
+      me.socialLinks = {
+        ...me.socialLinks,
+        ...data.socialLinks,
+      };
+    }
+
+    return {
+      id: me.id,
+      Role: me.role,
+      email: me.email,
+      username: me.username,
+      emailVerified: me.emailVerified,
+      tier: me.tier,
       profile: {
-        bio: 'Mock bio',
-        city: 'Mock City',
-        country: 'Mock Country',
-        profilePic: 'http://example.com/profile.jpg',
-        coverPic: 'http://example.com/cover.jpg',
-        favoriteGenres: ['Mock Genre'],
+        bio: me.profile.bio,
+        city: me.profile.city,
+        country: me.profile.country,
+        profilePic: me.profile.profilePic,
+        coverPic: me.profile.coverPic,
+        favoriteGenres: [...me.profile.favoriteGenres],
+      },
+      socialLinks: {
+        instagram: me.socialLinks.instagram,
+        website: me.socialLinks.website,
+        supportLink: me.socialLinks.supportLink,
+        twitter: me.socialLinks.twitter,
       },
       privacySettings: {
-        isPrivate: false,
-        showHistory: true,
+        ...me.privacySettings,
       },
       stats: {
-        followers: 100,
-        following: 50,
-        tracksCount: 10,
+        followers: me.followers.size,
+        following: me.following.size,
+        tracksCount: me.tracks.length,
       },
-      ...data,
-      socialLinks: mergedSocialLinks,
     };
-    console.log(
-      'MockEditMeService.editMe called with data:',
-      data,
-      'Response:',
-      response
-    );
-    // Return a mock user object, merging defaults with provided data
-    return response;
   }
 }
