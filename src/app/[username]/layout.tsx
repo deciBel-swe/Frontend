@@ -1,6 +1,7 @@
 import ProfileHeader from '@/features/prof/components/ProfileHeader';
 import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
 import MidBar from '@/features/prof/components/MidBar';
+import { ProfileGuard } from '@/tests/unit/components/profile-guard';
 
 const Layout = async ({
   children,
@@ -12,6 +13,7 @@ const Layout = async ({
   const { username } = await params;
 
   return (
+    <ProfileGuard username={username}>
     <div>
       <div>
         <ProfileHeader username={username} />
@@ -24,6 +26,7 @@ const Layout = async ({
         </div>
       </div>
     </div>
+    </ProfileGuard>
   );
 };
 

@@ -283,16 +283,20 @@ export class MockTrackService implements TrackService {
 
   async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     await delay();
+    const currentUserId = resolveCurrentMockUserId();
+    const isOwner = currentUserId === userId;
 
-    const tracks = readTracks();
-    const filteredTracks = tracks.filter((track) => track.artist.id === userId);
-
-    return filteredTracks.map(toMetadata);
+    return readTracks()
+      .filter((track) => track.artist.id === userId)
+      .filter((track) => isOwner || !track.isPrivate)
+      .map(toMetadata);
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
-    return readTracks().map(toMetadata);
+    return readTracks()
+    .filter((track) => !track.isPrivate)
+    .map(toMetadata);
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

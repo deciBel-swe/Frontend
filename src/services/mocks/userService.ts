@@ -170,6 +170,12 @@ export class MockUserService implements UserService {
     if (!user) {
       throw new Error('User not found');
     }
+    
+    const currentUserId = resolveCurrentMockUserId();
+    if (user.privacySettings.isPrivate && user.id !== currentUserId) {
+      throw new Error('User not found');
+    }
+
     return toUserPublic(user);
   }
 
