@@ -3,7 +3,7 @@ import { usePathname } from 'next/navigation';
 import type { ActiveNav } from '@/types';
 import { NAV_LINKS } from '@/constants/routes';
 import { useAuth } from '@/features/auth';
-
+import { useRedirectAfterLogin } from '@/hooks';
 /**
  * useTopNavBar — manages the user dropdown state, derives activeNav from the URL, and computes initials.
  *
@@ -23,6 +23,7 @@ export function useTopNavBar() {
   )?.name ?? null) as ActiveNav | null;
   const userMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  useRedirectAfterLogin();
   useEffect(() => {
     setIsMounted(true);
   }, []);

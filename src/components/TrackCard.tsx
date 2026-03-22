@@ -46,10 +46,10 @@ export default function TrackCard({
   const [editOpen, setEditOpen] = useState(false);
 
   return (
-    <div className="bg-surface-default text-text-primary p-2 rounded-lg">
+    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-        <Link href={`/system${userSlug}`}>
+        <Link href={`/${userSlug}`}>
           <img
             src={user.avatar}
             className="w-8 h-8 rounded-full object-cover"
@@ -58,18 +58,18 @@ export default function TrackCard({
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/system${userSlug}`}>{user.name}</Link>
+            <Link href={`/${userSlug}`}>{user.name}</Link>
           </span>{' '}
           {postedText} <span>{timeAgo}</span>
         </div>
       </div>
 
       {/* MAIN ROW */}
-      <div className="flex gap-2 sm:gap-4 items-start min-w-0">
+      <div className="flex gap-2 sm:gap-3 md:gap-4 items-start min-w-0">
         {/* LEFT IMAGE */}
         <Link
-          href={`/system${userSlug}/${trackSlug}`}
-          className="w-28 sm:w-36 aspect-square flex-shrink-0 -mt-1"
+          href={`/${userSlug}/${trackSlug}`}
+          className="w-24 sm:w-28 md:w-36 aspect-square flex-shrink-0 -mt-1"
         >
           <img
             src={track.cover}
@@ -97,14 +97,14 @@ export default function TrackCard({
 
             <div className="flex flex-col">
               <Link
-                href={`/system${userSlug}`}
-                className="text-text-muted text-sm inline-flex w-fit self-start font-bold hover:opacity-40"
+                href={`/${userSlug}`}
+                className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
               >
                 {track.artist}
               </Link>
 
               <Link
-                href={`/system${userSlug}/${trackSlug}`}
+                href={`/${userSlug}/${trackSlug}`}
                 className="text-text-primary font-semibold inline-block hover:opacity-40"
               >
                 {track.title}
@@ -114,7 +114,11 @@ export default function TrackCard({
 
           {/* 2. WAVEFORM */}
           <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0">
-            <Waveform data={waveform} height={90} barClassName="bg-gray-500" />
+            <Waveform
+              data={waveform}
+              height={90}
+              barClassName="bg-text-muted hover:bg-brand-primary"
+            />
           </div>
 
           {/* 3. ACTIONS */}

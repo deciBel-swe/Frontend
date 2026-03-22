@@ -23,16 +23,12 @@ type MockTrackRecord = {
   waveformData: string;
   genre: string;
   tags: string[];
-  description?: string;
-  releaseDate: string;
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
 };
 
 const MOCK_DELAY_MS = 220;
-const TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
-const AUTH_USER_KEY = 'decibel_mock_user';
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -78,7 +74,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
       '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'Electronic',
     tags: ['synthwave', 'night-drive'],
-    releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 214,
   },
@@ -92,7 +87,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Lo-Fi',
     tags: ['chill', 'study'],
-    releaseDate: '2025-11-02',
     isPrivate: true,
     durationSeconds: 182,
     secretLink: 'c8n2x3ya',
@@ -107,7 +101,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'House',
     tags: ['club', 'warmup'],
-    releaseDate: '2025-09-18',
     isPrivate: false,
     durationSeconds: 256,
   },
@@ -121,7 +114,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Ambient',
     tags: ['meditation', 'sleep'],
-    releaseDate: '2025-08-01',
     isPrivate: true,
     durationSeconds: 301,
     secretLink: 'f4m0qt9b',
@@ -136,7 +128,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Breakbeat',
     tags: ['drums', 'vinyl'],
-    releaseDate: '2025-07-12',
     isPrivate: false,
     durationSeconds: 199,
   },
@@ -150,7 +141,6 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Downtempo',
     tags: ['sunrise', 'focus'],
-    releaseDate: '2025-06-03',
     isPrivate: false,
     durationSeconds: 238,
   },
@@ -191,12 +181,6 @@ const normalizeTrackRecord = (value: unknown): MockTrackRecord | null => {
     tags: Array.isArray(raw.tags)
       ? raw.tags.filter((tag): tag is string => typeof tag === 'string')
       : [],
-    description:
-      typeof raw.description === 'string' ? raw.description : undefined,
-    releaseDate:
-      typeof raw.releaseDate === 'string' && raw.releaseDate.trim().length > 0
-        ? raw.releaseDate
-        : new Date().toISOString().slice(0, 10),
     isPrivate: Boolean(raw.isPrivate),
     durationSeconds: raw.durationSeconds ?? 180,
     secretLink: typeof raw.secretLink === 'string' ? raw.secretLink : undefined,
@@ -204,54 +188,11 @@ const normalizeTrackRecord = (value: unknown): MockTrackRecord | null => {
 };
 
 const readTracks = (): MockTrackRecord[] => {
-  if (!hasStorage()) {
-    return inMemoryTracks.map(cloneTrack);
-  }
-
-  try {
-    const raw = window.localStorage.getItem(TRACKS_STORAGE_KEY);
-    if (!raw) {
-      window.localStorage.setItem(
-        TRACKS_STORAGE_KEY,
-        JSON.stringify(inMemoryTracks)
-      );
-      return inMemoryTracks.map(cloneTrack);
-    }
-
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) {
-      throw new Error('Invalid mock track storage shape');
-    }
-
-    const normalized = parsed
-      .map(normalizeTrackRecord)
-      .filter((track): track is MockTrackRecord => track !== null);
-
-    if (normalized.length === 0) {
-      throw new Error('Mock track storage was empty');
-    }
-
-    inMemoryTracks = normalized;
-    return inMemoryTracks.map(cloneTrack);
-  } catch {
-    inMemoryTracks = createSeedTracks();
-    window.localStorage.setItem(
-      TRACKS_STORAGE_KEY,
-      JSON.stringify(inMemoryTracks)
-    );
-    return inMemoryTracks.map(cloneTrack);
-  }
+  return getMockTracksStore().map(cloneTrack);
 };
 
 const writeTracks = (tracks: MockTrackRecord[]): void => {
-  inMemoryTracks = tracks.map(cloneTrack);
-
-  if (hasStorage()) {
-    window.localStorage.setItem(
-      TRACKS_STORAGE_KEY,
-      JSON.stringify(inMemoryTracks)
-    );
-  }
+  replaceMockTracksStore(tracks.map(cloneTrack));
 };
 
 const parseTrackId = (trackId: string): number => {
@@ -375,25 +316,26 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-const getSessionUsername = (): string | null => {
+const getSessionArtist = (): { id: number; username: string } | null => {
   if (typeof window === 'undefined') {
     return null;
   }
 
-  const raw = window.localStorage.getItem(AUTH_USER_KEY);
+  const raw = window.localStorage.getItem('decibel_mock_user');
   if (!raw) {
     return null;
   }
 
-  try {
-    const parsed = JSON.parse(raw) as { username?: string };
-    return typeof parsed.username === 'string' &&
-      parsed.username.trim().length > 0
-      ? parsed.username
-      : null;
-  } catch {
+  const sessionUserId = resolveCurrentMockUserId();
+  const user = getMockUsersStore().find((item) => item.id === sessionUserId);
+  if (!user) {
     return null;
   }
+
+  return {
+    id: user.id,
+    username: user.username,
+  };
 };
 
 export class MockTrackService implements TrackService {
@@ -459,16 +401,12 @@ export class MockTrackService implements TrackService {
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
-        const releaseDate = getStringField(
-          formData,
-          'releaseDate',
-          new Date().toISOString().slice(0, 10)
-        );
         const artistName = getStringField(
           formData,
           'artist',
-          getSessionUsername() ?? 'mockartist'
+          sessionArtist?.username ?? 'mockartist'
         );
+        const artistId = sessionArtist?.id ?? 7;
 
         const finalizeUpload = async () => {
           const coverImageEntry = formData.get('coverImage');
@@ -481,7 +419,7 @@ export class MockTrackService implements TrackService {
             id: nextId,
             title,
             artist: {
-              id: 7,
+              id: artistId,
               username: artistName,
             },
             trackUrl: buildTrackUrl(nextId),
@@ -500,6 +438,21 @@ export class MockTrackService implements TrackService {
 
           const updated = [uploaded, ...tracks];
           writeTracks(updated);
+
+          const uploader = getMockUsersStore().find(
+            (user) => user.id === artistId
+          );
+          if (
+            uploader &&
+            !uploader.tracks.some((track) => track.id === uploaded.id)
+          ) {
+            uploader.tracks.unshift({
+              id: uploaded.id,
+              title: uploaded.title,
+              genre: uploaded.genre,
+            });
+            persistMockSystemState();
+          }
 
           resolve({
             id: uploaded.id,
@@ -528,70 +481,6 @@ export class MockTrackService implements TrackService {
     const filteredTracks = tracks.filter((track) => track.artist.id === userId);
 
     return filteredTracks.map(toMetadata);
-  }
-
-  async updateTrack(
-    trackId: number,
-    formData: FormData
-  ): Promise<TrackUpdateResponse> {
-    await delay();
-
-    const tracks = readTracks();
-    const index = tracks.findIndex((track) => track.id === trackId);
-    if (index < 0) {
-      throw new Error('Track not found');
-    }
-
-    const current = tracks[index];
-    const title = getOptionalStringField(formData, 'title');
-    const genre = getOptionalStringField(formData, 'genre');
-    const description = getOptionalStringField(formData, 'description', {
-      allowEmpty: true,
-    });
-    const releaseDate = getOptionalStringField(formData, 'releaseDate');
-    const tags = getOptionalTagsField(formData);
-    const artistName = getOptionalStringField(formData, 'artist');
-    const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
-    const coverImageEntry = formData.get('coverImage');
-    const coverImageDataUrl =
-      coverImageEntry instanceof File
-        ? await readFileAsDataUrl(coverImageEntry)
-        : undefined;
-
-    const nextIsPrivate = isPrivate ?? current.isPrivate;
-    const nextSecretLink = nextIsPrivate
-      ? (current.secretLink ?? createSecretToken())
-      : current.secretLink;
-
-    const updated: MockTrackRecord = {
-      ...current,
-      title: title ?? current.title,
-      genre: genre ?? current.genre,
-      tags: tags ?? current.tags,
-      description: description !== undefined ? description : current.description,
-      releaseDate: releaseDate ?? current.releaseDate,
-      artist: artistName
-        ? { ...current.artist, username: artistName }
-        : current.artist,
-      isPrivate: nextIsPrivate,
-      secretLink: nextSecretLink,
-      coverUrl: coverImageDataUrl ?? current.coverUrl,
-      coverImageDataUrl: coverImageDataUrl ?? current.coverImageDataUrl,
-    };
-
-    tracks[index] = updated;
-    writeTracks(tracks);
-
-    return {
-      id: updated.id,
-      coverUrl: updated.coverUrl,
-      title: updated.title,
-      genre: updated.genre,
-      description: updated.description ?? '',
-      isPrivate: updated.isPrivate,
-      tags: [...updated.tags],
-      releaseDate: updated.releaseDate,
-    };
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

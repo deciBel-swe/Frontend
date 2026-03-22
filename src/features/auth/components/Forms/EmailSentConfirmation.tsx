@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MockAuthService } from '@/services/mocks/authService';
+import React, { useEffect, useState } from 'react';
+import { authService } from '@/services';
 
 /**
  * Props for the EmailSentConfirmation component
@@ -13,8 +13,6 @@ interface EmailSentConfirmationProps {
   email: string;
   onBackToRegister?: () => void;
 }
-
-const authService = new MockAuthService();
 
 /**
  * EmailSentConfirmation Component
@@ -46,11 +44,32 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) {
+      return;
+    }
+
+    authService
+      .verifyEmail(token)
+      .then((result) => {
+        if (result.success) {
+          setMessage('Email verified successfully!');
+        } else {
+          setMessage('Verification link is invalid or expired.');
+        }
+      })
+      .catch(() => {
+        setMessage('Failed to verify email.');
+      });
+  }, []);
+
   const handleResend = async () => {
     setLoading(true);
     setMessage('');
     try {
-      await authService.requestEmailVerification(email);
+      await authService.resendVerification(email);
       setMessage('Verification email sent!');
     } catch (err) {
       console.error(err);

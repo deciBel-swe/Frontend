@@ -7,7 +7,7 @@ const Layout = async ({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{username: string }>;
+  params: Promise<{ username: string }>;
 }) => {
   const { username } = await params;
 

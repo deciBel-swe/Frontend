@@ -1,8 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
 import { trackService } from '@/services';
 import { formatSecretUrl } from '@/utils/formatSecretUrl';
-
-const secretLinkKey = (trackId: string) => ['secretLink', trackId];
 
 /**
  * Fetches and manages the secret share link for a private track.
@@ -18,25 +16,71 @@ const secretLinkKey = (trackId: string) => ['secretLink', trackId];
  * const { secretUrl, regenerate, isRegenerating } = useSecretLink(trackId);
  */
 export function useSecretLink(trackId: string | undefined) {
-  const queryClient = useQueryClient();
+  const [data, setData] = useState<Awaited<
+    ReturnType<typeof trackService.getSecretLink>
+  > | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: secretLinkKey(trackId!),
-    queryFn: () => trackService.getSecretLink(trackId!),
-    enabled: !!trackId,
-  });
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!trackId) {
+      setData(null);
+      setIsLoading(false);
+      setIsError(false);
+      return;
+    }
+
+    const fetchSecretLink = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        const next = await trackService.getSecretLink(trackId);
+        if (!isCancelled) {
+          setData(next);
+        }
+      } catch {
+        if (!isCancelled) {
+          setIsError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchSecretLink();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [trackId]);
 
   /** Full formatted URL e.g. https://localhost:3000/tracks/1?s=nQ7ENRPl */
   const secretUrl =
     data && trackId ? formatSecretUrl(trackId, data.secretLink) : null;
 
-  const { mutate: regenerate, isPending: isRegenerating } = useMutation({
-    mutationFn: () => trackService.regenerateSecretLink(trackId!),
-    onSuccess: (newData) => {
-      // Update cache directly with new token — no need to refetch
-      queryClient.setQueryData(secretLinkKey(trackId!), newData);
-    },
-  });
+  const regenerate = useCallback(async () => {
+    if (!trackId) {
+      return;
+    }
+
+    setIsRegenerating(true);
+    setIsError(false);
+
+    try {
+      const next = await trackService.regenerateSecretLink(trackId);
+      setData(next);
+    } catch {
+      setIsError(true);
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [trackId]);
 
   return { secretUrl, isLoading, isError, regenerate, isRegenerating };
 }

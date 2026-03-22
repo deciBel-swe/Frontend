@@ -1,4 +1,4 @@
-import { apiClient, apiRequest } from '@/hooks/useAPI';
+import { apiRequest } from '@/hooks/useAPI';
 import { RealAuthService } from '@/services/api/authService';
 import { MockAuthService } from '@/services/mocks/authService';
 import {
@@ -8,6 +8,21 @@ import {
   type LoginUserDTO,
 } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
+import { TextEncoder } from 'util';
+
+Object.defineProperty(globalThis, 'TextEncoder', {
+  value: TextEncoder,
+  configurable: true,
+});
+
+const PASSWORD1_HASH =
+  '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
+
+jest.mock('@/utils/sha256', () => ({
+  sha256Hex: jest.fn(async (value: string) =>
+    value === 'Password1' ? PASSWORD1_HASH : 'f'.repeat(64)
+  ),
+}));
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
@@ -17,9 +32,6 @@ jest.mock('@/hooks/useAPI', () => ({
 }));
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockedApiClientRequest = apiClient.request as jest.MockedFunction<
-  typeof apiClient.request
->;
 
 const localStorageStore = new Map<string, string>();
 const sessionStorageStore = new Map<string, string>();
@@ -135,23 +147,29 @@ describe('AuthService contract parity', () => {
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.AUTH_LOGIN_LOCAL,
       {
-        payload: { email: 'service@test.dev', password: 'Password1' },
+        payload: {
+          email: 'service@test.dev',
+          password: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
       }
     );
 
     jest.useFakeTimers();
 
     const mockService = new MockAuthService();
-    const mockLoginPromise = mockService.login('user1@test.com', 'Password1');
+    const mockLoginPromise = mockService.login(
+      'artist@decibel.test',
+      'Password1'
+    );
     await advanceMockDelay();
     const mockLoginResponse = await mockLoginPromise;
 
     const parsedMockLogin = assertValidLoginResponse(mockLoginResponse);
-    expect(parsedMockLogin.user.id).toBe(1);
+    expect(parsedMockLogin.user.id).toBeGreaterThan(0);
 
     const restoredMockSession = await mockService.getSession();
     expect(restoredMockSession).not.toBeNull();
-    expect(restoredMockSession?.user.id).toBe(1);
+    expect(restoredMockSession?.user.id).toBe(parsedMockLogin.user.id);
 
     jest.useRealTimers();
   });
@@ -232,43 +250,104 @@ describe('AuthService contract parity', () => {
     jest.useRealTimers();
   });
 
-  it('returns consistently shaped recaptcha verification results for real and mock services', async () => {
-    mockedApiClientRequest.mockResolvedValueOnce({
-      data: {
-        success: true,
-        score: 0.93,
-      },
-    } as never);
-
-    const realService = new RealAuthService();
-    const realResult = await realService.verifyReCaptcha('token-abc', 'signin');
-
-    expect(realResult.success).toBe(true);
-    expect(realResult.score).toBe(0.93);
-
+  it('supports registering a mock user then logging in with same credentials', async () => {
     jest.useFakeTimers();
 
     const mockService = new MockAuthService();
-    const mockResultPromise = mockService.verifyReCaptcha(
-      'token-abc',
-      'signin'
-    );
-    await advanceMockDelay(100);
-    const mockResult = await mockResultPromise;
+    const email = 'new.registered.user@decibel.test';
+    const password = 'Password1';
 
-    expect(typeof mockResult.success).toBe('boolean');
-    expect(mockResult.success).toBe(true);
-    expect(typeof mockResult.score).toBe('number');
-
-    const mockFailPromise = mockService.verifyReCaptcha('fail-token', 'signin');
-    await advanceMockDelay(100);
-    const mockFail = await mockFailPromise;
-
-    expect(mockFail).toEqual({
-      success: false,
-      score: 0.1,
-      error: 'Verification failed',
+    const registerPromise = mockService.registerLocal({
+      email,
+      username: 'newuser',
+      password,
+      dateOfBirth: '2000-01-01',
+      gender: 'female',
+      captchaToken: 'mock-captcha-token',
     });
+    await advanceMockDelay();
+    await registerPromise;
+
+    const loginPromise = mockService.login(email, password);
+    await advanceMockDelay();
+    const loginResponse = await loginPromise;
+
+    const parsedLogin = assertValidLoginResponse(loginResponse);
+    expect(parsedLogin.user.username).toBe('newuser');
+
+    const badLoginPromise = mockService.login(email, 'WrongPassword');
+    const badLoginAssertion = expect(badLoginPromise).rejects.toThrow(
+      'Invalid email or password.'
+    );
+    await advanceMockDelay();
+    await badLoginAssertion;
+
+    jest.useRealTimers();
+  });
+
+  it('creates mock user from Google account identity', async () => {
+    jest.useFakeTimers();
+
+    const mockService = new MockAuthService();
+    const googleIdentity = {
+      email: 'google.mock.user@decibel.test',
+      username: 'Google User',
+      picture: 'https://example.com/avatar.jpg',
+    };
+
+    const loginPromise = mockService.loginWithGoogle(
+      JSON.stringify(googleIdentity)
+    );
+    await advanceMockDelay();
+    const googleLogin = await loginPromise;
+
+    const parsed = assertValidLoginResponse(googleLogin);
+    expect(parsed.user.username).toMatch(/^google-user(?:-\d+)?$/);
+    expect(parsed.user.avatarUrl).toBe('https://example.com/avatar.jpg');
+
+    const session = await mockService.getSession();
+    expect(session?.user.id).toBe(parsed.user.id);
+    expect(session?.user.username).toBe(parsed.user.username);
+    expect(session?.user.avatarUrl).toBe('https://example.com/avatar.jpg');
+
+    jest.useRealTimers();
+  });
+
+  it('uses clean fallback username for opaque Google auth codes', async () => {
+    jest.useFakeTimers();
+
+    const mockService = new MockAuthService();
+    const loginPromise = mockService.loginWithGoogle('opaque-code-from-google');
+    await advanceMockDelay();
+    const googleLogin = await loginPromise;
+
+    const parsed = assertValidLoginResponse(googleLogin);
+    expect(parsed.user.username).toBe('google-user');
+    expect(parsed.user.avatarUrl).toBeUndefined();
+
+    jest.useRealTimers();
+  });
+
+  it('rejects registration when username already exists', async () => {
+    jest.useFakeTimers();
+
+    const mockService = new MockAuthService();
+
+    const duplicatePromise = mockService.registerLocal({
+      email: 'unique-email@decibel.test',
+      username: 'mockartist',
+      password: 'Password1',
+      dateOfBirth: '2000-01-01',
+      gender: 'female',
+      captchaToken: 'mock-captcha-token',
+    });
+
+    const duplicateAssertion = expect(duplicatePromise).rejects.toThrow(
+      'Username already exists. Please choose a different username.'
+    );
+
+    await advanceMockDelay();
+    await duplicateAssertion;
 
     jest.useRealTimers();
   });

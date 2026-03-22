@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 import { GoogleLoginButton } from '@/features/auth';
 import { useAuth } from '@/features/auth';
-import { useReCaptcha } from '@/hooks/UseReCaptcha';
 import { useSignInSubmit } from '@/features/auth/useSignInSubmit';
 import ContinueButton from '../ContinueButton';
 import PasswordInput from '../FormFields/PasswordInput';
@@ -24,13 +23,11 @@ import { type FieldErrors, type SignInFormValues } from '@/types/authSchemas';
  * - "Forgot password" link to password reset
  * - "Create account" link to registration
  * - Form-level and field-level error handling
- * - reCAPTCHA v3 verification on submission
  * - Disabled state during authentication loading
  *
  * The form uses:
  * - `useSignInSubmit` hook for form submission logic
  * - `useAuth` hook for authentication operations
- * - `useReCaptcha` hook for reCAPTCHA verification
  *
  * @component
  * @returns {JSX.Element} The sign-in form
@@ -53,13 +50,11 @@ const SignInForm: FC<SignInFormProps> = ({ onSuccess }) => {
   );
   const [submitError, setSubmitError] = useState('');
   const { handleGoogleLogin, isLoading, login } = useAuth();
-  const { verifyReCaptcha } = useReCaptcha();
   const { handleSubmit } = useSignInSubmit({
     formValues,
     setFieldErrors,
     setSubmitError,
     login,
-    verifyReCaptcha,
     onSuccess,
   });
 
@@ -85,6 +80,10 @@ const SignInForm: FC<SignInFormProps> = ({ onSuccess }) => {
             >
               Sign in to your account
             </h1>
+            <p>Mock accounts</p>
+            <p>mockuser@email.com</p>
+            <p>artist@decibel.test</p>
+            <p>password:CMPS#203</p>
           </div>
           <div className="flex flex-col w-full gap-3">
             <GoogleLoginButton

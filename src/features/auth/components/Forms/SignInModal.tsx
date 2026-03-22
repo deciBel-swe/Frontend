@@ -2,7 +2,6 @@
 
 import React from 'react';
 import SignInForm from '@/features/auth/components/Forms/SignInForm'; // adjust path if needed
-import { ReCaptchaProvider } from '@/providers/ReCaptchaProvider';
 import { X } from 'lucide-react';
 
 type Props = {
@@ -27,9 +26,7 @@ const SignInModal: React.FC<Props> = ({ open, onClose }) => {
         {/* BODY */}
         <div className="p-6 flex justify-center">
           <div className="w-full">
-            <ReCaptchaProvider>
-              <SignInForm onSuccess={onClose} />
-            </ReCaptchaProvider>
+            <SignInForm onSuccess={onClose} />
           </div>
         </div>
       </div>
