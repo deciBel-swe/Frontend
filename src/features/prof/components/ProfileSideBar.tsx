@@ -16,6 +16,7 @@ const trackService = new MockTrackService();
 
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   const { data } = usePublicUser(username);
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [tracks, setTracks] = useState<any[]>([]);
 
   useEffect(() => {
