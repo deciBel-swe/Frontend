@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Heart,
@@ -8,10 +8,12 @@ import {
   Share2,
   MoreHorizontal,
   Copy,
+  Pencil,
   Play,
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
+import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 
 type TrackCardProps = {
   user: {
@@ -40,6 +42,7 @@ export default function TrackCard({
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
+  const [editOpen, setEditOpen] = useState(false);
 
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
@@ -135,6 +138,15 @@ export default function TrackCard({
               <Copy size={16} />
             </Button>
 
+            <Button
+              variant="ghost"
+              aria-label="Edit"
+              title="Edit"
+              onClick={() => setEditOpen(true)}
+            >
+              <Pencil size={16} />
+            </Button>
+
             <Button variant="ghost" aria-label="More" title="More">
               <MoreHorizontal size={16} />
             </Button>
@@ -144,6 +156,12 @@ export default function TrackCard({
         {/* DURATION */}
         <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
+
+      <EditTrackModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        track={{ title: track.title, artist: track.artist, cover: track.cover }}
+      />
     </div>
   );
 }
