@@ -1,6 +1,6 @@
 /**
  * Application Configuration
- * 
+ *
  * Centralized configuration for environment variables and app settings.
  * This file should be imported whenever you need to access environment variables.
  */
@@ -16,7 +16,11 @@ export interface AppConfig {
   api: {
     baseURL: string;
     wsURL: string;
+    appUrl: string;
     useMock: boolean;
+  };
+  urls: {
+    domainName: string;
   };
   pagination: {
     defaultPageSize: number;
@@ -69,7 +73,7 @@ const getNumberEnv = (key: string, defaultValue: number): number => {
 
 export const config: AppConfig = {
   // Environment
-  env: (getEnv('NODE_ENV', 'development') as AppConfig['env']),
+  env: getEnv('NODE_ENV', 'development') as AppConfig['env'],
   isDevelopment: getEnv('NODE_ENV') !== 'production',
   isProduction: getEnv('NODE_ENV') === 'production',
 
@@ -77,7 +81,14 @@ export const config: AppConfig = {
   api: {
     baseURL: getEnv('NEXT_PUBLIC_API_URL', 'http://localhost:5000/api/v1'),
     wsURL: getEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:5000'),
+    appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
     useMock: getBoolEnv('NEXT_PUBLIC_USE_MOCK', true),
+  },
+  urls: {
+    domainName: getEnv(
+      'NEXT_PUBLIC_TRACK_BASE_URL',
+      getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000')
+    ),
   },
   // Pagination
   pagination: {
@@ -86,7 +97,10 @@ export const config: AppConfig = {
   },
   // Development Tools
   devTools: {
-    reactQueryDevTools: getBoolEnv('NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS', true)
+    reactQueryDevTools: getBoolEnv(
+      'NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS',
+      true
+    ),
   },
 };
 
@@ -108,10 +122,12 @@ export const validateConfig = (): void => {
 
   if (errors.length > 0) {
     console.error('Configuration validation errors:');
-    errors.forEach(error => console.error(`  - ${error}`));
-    
+    errors.forEach((error) => console.error(`  - ${error}`));
+
     if (config.isProduction) {
-      throw new Error('Invalid configuration. Please check environment variables.');
+      throw new Error(
+        'Invalid configuration. Please check environment variables.'
+      );
     }
   }
 };

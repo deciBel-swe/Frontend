@@ -1,6 +1,6 @@
 /**
  * Tests for useDebounce Hook
- * 
+ *
  * Testing custom React hooks with React Testing Library.
  */
 
@@ -19,7 +19,7 @@ describe('useDebounce', () => {
 
   it('should return initial value immediately', () => {
     const { result } = renderHook(() => useDebounce('initial', 500));
-    
+
     expect(result.current).toBe('initial');
   });
 
@@ -61,12 +61,12 @@ describe('useDebounce', () => {
     act(() => {
       jest.advanceTimersByTime(250);
     });
-    
+
     rerender({ value: 'value3', delay: 500 });
     act(() => {
       jest.advanceTimersByTime(250);
     });
-    
+
     // Value should still be initial because timer keeps resetting
     expect(result.current).toBe('value1');
 
@@ -88,7 +88,7 @@ describe('useDebounce', () => {
     );
 
     rerender({ value: 'updated' });
-    
+
     // Advance by less than default delay
     act(() => {
       jest.advanceTimersByTime(400);
@@ -111,7 +111,7 @@ describe('useDebounce', () => {
     );
 
     rerender({ value: 'updated', delay: 1000 });
-    
+
     act(() => {
       jest.advanceTimersByTime(500);
     });
@@ -178,15 +178,15 @@ describe('useDebounce', () => {
     );
 
     rerender({ value: 'updated' });
-    
+
     // Spy on clearTimeout
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-    
+
     // Unmount should clear the timeout
     unmount();
-    
+
     expect(clearTimeoutSpy).toHaveBeenCalled();
-    
+
     clearTimeoutSpy.mockRestore();
   });
 
@@ -202,7 +202,7 @@ describe('useDebounce', () => {
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    
+
     expect(result.current).toBe('');
   });
 
@@ -220,25 +220,25 @@ describe('useDebounce', () => {
     act(() => {
       jest.advanceTimersByTime(100);
     });
-    
+
     // User types "re"
     rerender({ searchTerm: 're' });
     act(() => {
       jest.advanceTimersByTime(100);
     });
-    
+
     // User types "rea"
     rerender({ searchTerm: 'rea' });
     act(() => {
       jest.advanceTimersByTime(100);
     });
-    
+
     // User types "react"
     rerender({ searchTerm: 'react' });
-    
+
     // Still showing initial value
     expect(result.current).toBe('');
-    
+
     // After full delay, shows final value
     act(() => {
       jest.advanceTimersByTime(300);
