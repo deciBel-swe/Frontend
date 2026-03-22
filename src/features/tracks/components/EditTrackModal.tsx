@@ -9,13 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { toTrackSlug } from '@/types/uploadSchema';
 import Button from '@/components/buttons/Button';
-import ArtworkPreviewField from '@/features/tracks/TrackUploadForm/FormFields/ArtworkPreviewField';
-import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTextField';
-import TrackLinkField from '@/features/tracks/TrackUploadForm/FormFields/TrackLinkField';
-import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
-import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
-import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
-import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
+import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 
 type EditTrackModalProps = {
   open: boolean;
@@ -284,75 +278,46 @@ export default function EditTrackModal({
           {/* Content */}
           <div className="max-h-[70vh] overflow-y-auto">
             {activeTab === 'basic' ? (
-              <div className="grid gap-6 md:grid-cols-[240px_1fr] px-5 py-6">
-                <div className="flex flex-col gap-3">
-                  <ArtworkPreviewField
-                    artworkPreview={artworkPreview}
-                    onArtworkSelect={handleArtwork}
-                    onRemoveArtwork={removeArtwork}
-                  />
-                  {artworkFile ? (
-                    <p className="text-[11px] text-text-muted">
-                      New artwork selected.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="max-w-xl">
-                  {isLoadingMeta ? (
-                    <p className="mb-3 text-xs text-text-muted">
-                      Loading track details...
-                    </p>
-                  ) : null}
-                  <form className="space-y-4 text-sm">
-                    <TrackTextField
-                      label="Title"
-                      value={title}
-                      onChange={setTitle}
-                      required
-                      tooltipTitle="Track title"
-                      tooltipText="Clear track titles help your fans know what they are listening to."
-                    />
-
-                    <TrackLinkField
-                      prefix={trackLinkPrefix}
-                      suffix={trackLinkSuffix}
-                      onChange={(nextSuffix) => {
-                        setTrackLinkEdited(true);
-                        setTrackLinkSuffix(toTrackSlug(nextSuffix));
-                      }}
-                    />
-
-                    <TrackTextField
-                      label="Main Artist"
-                      value={artist}
-                      onChange={setArtist}
-                      tooltipTitle="Main artist"
-                      tooltipText="Put your name and any featured artists you want to give primary credit to here. These names will be displayed underneath your track title."
-                    />
-
-                    <TrackGenreField value={genre} onChange={setGenre} />
-
-                    <TrackTagsCombobox value={tags} onChange={setTags} />
-
-                    <TrackDescriptionField
-                      value={description}
-                      onChange={(next) => {
-                        setDescriptionTouched(true);
-                        setDescription(next);
-                      }}
-                    />
-
-
-                    <TrackPrivacy
-                      value={privacy}
-                      onChange={(next) => {
-                        setPrivacyTouched(true);
-                        setPrivacy(next);
-                      }}
-                    />
-                  </form>
-                </div>
+              <div className="px-5 py-6">
+                {isLoadingMeta ? (
+                  <p className="mb-3 text-xs text-text-muted">
+                    Loading track details...
+                  </p>
+                ) : null}
+                <UploadForm
+                  variant="modal"
+                  showHeader={false}
+                  showFooter={false}
+                  onSubmit={handleSave}
+                  artworkPreview={artworkPreview}
+                  onArtworkSelect={handleArtwork}
+                  onRemoveArtwork={removeArtwork}
+                  title={title}
+                  titleError=""
+                  onTitleChange={setTitle}
+                  trackLinkPrefix={trackLinkPrefix}
+                  trackLinkSuffix={trackLinkSuffix}
+                  onTrackLinkSuffixChange={(nextSuffix) => {
+                    setTrackLinkEdited(true);
+                    setTrackLinkSuffix(toTrackSlug(nextSuffix));
+                  }}
+                  artist={artist}
+                  onArtistChange={setArtist}
+                  genre={genre}
+                  onGenreChange={setGenre}
+                  tags={tags}
+                  onTagsChange={setTags}
+                  description={description}
+                  onDescriptionChange={(next) => {
+                    setDescriptionTouched(true);
+                    setDescription(next);
+                  }}
+                  privacy={privacy}
+                  onPrivacyChange={(next) => {
+                    setPrivacyTouched(true);
+                    setPrivacy(next);
+                  }}
+                />
               </div>
             ) : null}
 
