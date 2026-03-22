@@ -67,8 +67,11 @@ export type MockTrackRecord = {
 };
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
+const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
+const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 const LEGACY_TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
 const MOCK_SYSTEM_STORAGE_KEY = 'decibel_mock_system_state_v1';
+const MAX_PERSISTED_DATA_URL_LENGTH = 100_000;
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 const normalizeUsername = (username: string): string =>
@@ -418,8 +421,59 @@ let state: MockSystemState | null = null;
 const hasStorage = (): boolean =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
+const isOversizedDataUrl = (value: string | undefined): boolean => {
+  if (!value) {
+    return false;
+  }
+
+  return value.startsWith('data:') && value.length > MAX_PERSISTED_DATA_URL_LENGTH;
+};
+
+const getFallbackCoverUrl = (trackId: number): string =>
+  `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`;
+
+const compactImageForPersistence = (
+  value: string | undefined,
+  fallback = ''
+): string => {
+  if (!value) {
+    return fallback;
+  }
+
+  if (isOversizedDataUrl(value)) {
+    return fallback;
+  }
+
+  return value;
+};
+
+const compactTrackForPersistence = (
+  track: MockTrackRecord,
+  options?: { stripWaveformData?: boolean }
+): MockTrackRecord => {
+  const coverImageDataUrl = isOversizedDataUrl(track.coverImageDataUrl)
+    ? undefined
+    : track.coverImageDataUrl;
+  const coverUrl = compactImageForPersistence(
+    track.coverUrl,
+    getFallbackCoverUrl(track.id)
+  );
+
+  return {
+    ...track,
+    coverUrl,
+    coverImageDataUrl,
+    waveformData: options?.stripWaveformData ? '[]' : track.waveformData,
+  };
+};
+
 const serializeUser = (user: MockUserRecord): PersistedMockUserRecord => ({
   ...user,
+  profile: {
+    ...user.profile,
+    profilePic: compactImageForPersistence(user.profile.profilePic),
+    coverPic: compactImageForPersistence(user.profile.coverPic),
+  },
   followers: [...user.followers],
   following: [...user.following],
   blocked: [...user.blocked],
@@ -432,10 +486,13 @@ const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   blocked: new Set(user.blocked ?? []),
 });
 
-const toPersistedState = (current: MockSystemState): PersistedMockSystemState => ({
+const toPersistedState = (
+  current: MockSystemState,
+  options?: { stripWaveformData?: boolean }
+): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map(serializeUser),
-  tracks: current.tracks,
+  tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
   emailVerification: current.emailVerification,
 });
 
@@ -492,10 +549,22 @@ const syncLegacyTracksStorage = (): void => {
     return;
   }
 
-  window.localStorage.setItem(
-    LEGACY_TRACKS_STORAGE_KEY,
-    toLegacyTracksPayload(state.tracks)
-  );
+  try {
+    window.localStorage.setItem(
+      LEGACY_TRACKS_STORAGE_KEY,
+      toLegacyTracksPayload(state.tracks.map((track) => compactTrackForPersistence(track)))
+    );
+  } catch {
+    // Best-effort compatibility key; ignore quota failures.
+  }
+};
+
+const isQuotaExceeded = (error: unknown): boolean => {
+  if (!(error instanceof DOMException)) {
+    return false;
+  }
+
+  return error.name === 'QuotaExceededError' || error.code === 22;
 };
 
 export const persistMockSystemState = (): void => {
@@ -503,12 +572,59 @@ export const persistMockSystemState = (): void => {
     return;
   }
 
-  window.localStorage.setItem(
-    MOCK_SYSTEM_STORAGE_KEY,
-    JSON.stringify(toPersistedState(state))
-  );
+  const primaryPayload = JSON.stringify(toPersistedState(state));
+
+  try {
+    window.localStorage.setItem(MOCK_SYSTEM_STORAGE_KEY, primaryPayload);
+  } catch (error) {
+    if (!isQuotaExceeded(error)) {
+      return;
+    }
+
+    // Fallback payload strips the largest regenerated fields.
+    try {
+      const fallbackPayload = JSON.stringify(
+        toPersistedState(state, { stripWaveformData: true })
+      );
+      window.localStorage.setItem(MOCK_SYSTEM_STORAGE_KEY, fallbackPayload);
+    } catch {
+      // If storage is still full, keep runtime state only.
+    }
+  }
+
   syncLegacyTracksStorage();
 };
+
+export const flushMockLocalStorage = (): void => {
+  if (!hasStorage()) {
+    state = null;
+    return;
+  }
+
+  const keys = [
+    MOCK_SYSTEM_STORAGE_KEY,
+    LEGACY_TRACKS_STORAGE_KEY,
+    AUTH_USER_STORAGE_KEY,
+    ACCESS_TOKEN_STORAGE_KEY,
+    REFRESH_TOKEN_STORAGE_KEY,
+  ];
+
+  for (const key of keys) {
+    window.localStorage.removeItem(key);
+  }
+
+  state = null;
+};
+
+declare global {
+  interface Window {
+    __flushDecibelMockStorage?: () => void;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__flushDecibelMockStorage = flushMockLocalStorage;
+}
 
 const createDefaultUserFromAccount = (
   account: MockAuthAccount
