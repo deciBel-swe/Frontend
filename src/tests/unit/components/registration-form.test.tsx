@@ -3,12 +3,23 @@ import userEvent from '@testing-library/user-event';
 
 import RegisterationForm from '@/features/auth/components/Forms/RegisterationForm';
 
-const mockVerifyReCaptcha = jest.fn();
+const mockRegisterLocal = jest.fn();
+const mockResendVerification = jest.fn();
+const mockGetRecaptchaToken = jest.fn();
 
 jest.mock('@/hooks/UseReCaptcha', () => ({
   useReCaptcha: () => ({
-    verifyReCaptcha: mockVerifyReCaptcha,
+    getRecaptchaToken: (...args: unknown[]) => mockGetRecaptchaToken(...args),
   }),
+}));
+
+jest.mock('@/services', () => ({
+  authService: {
+    registerLocal: (...args: unknown[]) => mockRegisterLocal(...args),
+    resendVerification: (...args: unknown[]) => mockResendVerification(...args),
+    requestEmailVerification: (...args: unknown[]) =>
+      mockResendVerification(...args),
+  },
 }));
 
 const getRequiredInput = (container: HTMLElement, selector: string) => {
@@ -72,9 +83,13 @@ const fillValidRegistrationForm = async (
 
 describe('RegisterationForm', () => {
   beforeEach(() => {
-    mockVerifyReCaptcha.mockReset().mockResolvedValue({
+    mockRegisterLocal
+      .mockReset()
+      .mockResolvedValue('User Generated successfully');
+    mockResendVerification.mockReset().mockResolvedValue({ success: true });
+    mockGetRecaptchaToken.mockReset().mockResolvedValue({
       success: true,
-      score: 0.92,
+      token: 'test-captcha-token',
     });
   });
 
@@ -96,14 +111,15 @@ describe('RegisterationForm', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText('Month is required.')).toBeInTheDocument();
     expect(await screen.findByText('Gender is required.')).toBeInTheDocument();
-    expect(mockVerifyReCaptcha).not.toHaveBeenCalled();
+    expect(mockRegisterLocal).not.toHaveBeenCalled();
+    expect(mockResendVerification).not.toHaveBeenCalled();
+    expect(mockGetRecaptchaToken).not.toHaveBeenCalled();
   });
 
-  it('shows verification error when recaptcha verification fails', async () => {
-    mockVerifyReCaptcha.mockResolvedValue({
+  it('shows recaptcha error when token generation fails', async () => {
+    mockGetRecaptchaToken.mockResolvedValue({
       success: false,
-      score: 0.12,
-      error: 'Verification failed',
+      error: 'ReCaptcha is still loading. Please try again.',
     });
 
     const user = userEvent.setup();
@@ -112,8 +128,23 @@ describe('RegisterationForm', () => {
     await fillValidRegistrationForm(container, user);
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(await screen.findByText('Verification failed')).toBeInTheDocument();
-    expect(mockVerifyReCaptcha).toHaveBeenCalledWith('submit_form');
+    expect(
+      await screen.findByText('ReCaptcha is still loading. Please try again.')
+    ).toBeInTheDocument();
+    expect(mockRegisterLocal).not.toHaveBeenCalled();
+  });
+
+  it('shows service error when registration fails', async () => {
+    mockRegisterLocal.mockRejectedValue(new Error('Registration failed'));
+
+    const user = userEvent.setup();
+    const { container } = render(<RegisterationForm />);
+
+    await fillValidRegistrationForm(container, user);
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(await screen.findByText('Registration failed')).toBeInTheDocument();
+    expect(mockResendVerification).not.toHaveBeenCalled();
   });
 
   it('shows email confirmation overlay after successful submit', async () => {
@@ -125,6 +156,16 @@ describe('RegisterationForm', () => {
 
     expect(await screen.findByText('Check your inbox!')).toBeInTheDocument();
     expect(await screen.findByText('user@example.com')).toBeInTheDocument();
+    expect(mockRegisterLocal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'user@example.com',
+        username: 'user',
+        password: 'Password1',
+        captchaToken: 'test-captcha-token',
+      })
+    );
+    expect(mockGetRecaptchaToken).toHaveBeenCalledWith('register_local');
+    expect(mockResendVerification).toHaveBeenCalledWith('user@example.com');
   });
 
   it('keeps auto-suggested display name in sync with email changes until user edits it', async () => {

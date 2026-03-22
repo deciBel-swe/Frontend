@@ -18,6 +18,7 @@ import {
   googleOAuthRequestDTOSchema,
   loginLocalRequestDTOSchema,
   loginResponseDTOSchema,
+  registerLocalRequestDTOSchema,
   refreshTokenRequestDTOSchema,
   refreshTokenResponseDTOSchema,
 } from './index';
@@ -86,6 +87,13 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.AUTH.LOGIN_LOCAL,
     requestSchema: loginLocalRequestDTOSchema,
     responseSchema: loginResponseDTOSchema,
+  }),
+
+  AUTH_REGISTER_LOCAL: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.REGISTER_LOCAL,
+    requestSchema: registerLocalRequestDTOSchema,
+    responseSchema: z.string().min(1),
   }),
 
   AUTH_OAUTH_GOOGLE: defineContract({
@@ -304,6 +312,13 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
       responseSchema: trackDetailsResponseSchema,
+    }),
+
+  TRACKS_UPDATE: (trackId: number) =>
+    defineContract<FormData, z.infer<typeof trackUpdateResponseSchema>>({
+      method: 'PATCH',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      responseSchema: trackUpdateResponseSchema,
     }),
 
   TRACKS_UPDATE_VISIBILITY: (trackId: number) =>

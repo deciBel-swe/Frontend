@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { generateWaveform } from '@/utils/generateWaveform';
 
 type WaveformValue = number | string;
+const MIN_WAVEFORM_LENGTH = 200;
+const BAR_SLOT_WIDTH_PX = 3;
+const MIN_VISIBLE_BARS = 150;
 
 interface WaveformProps {
   file?: File | null;
@@ -16,11 +19,20 @@ interface WaveformProps {
 
 const normalizeWaveform = (values: WaveformValue[] | undefined): number[] => {
   if (!values || values.length === 0) return [];
-  return values.map((value) => {
+  const normalized = values.map((value) => {
     const parsed = typeof value === 'string' ? Number(value) : value;
     if (!Number.isFinite(parsed)) return 0;
     return Math.max(0, Math.min(1, parsed));
   });
+
+  if (normalized.length >= MIN_WAVEFORM_LENGTH) {
+    return normalized;
+  }
+
+  return [
+    ...normalized,
+    ...Array.from({ length: MIN_WAVEFORM_LENGTH - normalized.length }, () => 0),
+  ];
 };
 
 export default function Waveform({
@@ -31,11 +43,31 @@ export default function Waveform({
   barClassName,
   onGenerated,
 }: WaveformProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [waveform, setWaveform] = useState<number[]>(() =>
     normalizeWaveform(data)
   );
+  const [containerWidth, setContainerWidth] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const nextWidth = entries[0]?.contentRect.width ?? 0;
+      setContainerWidth(nextWidth);
+    });
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     setWaveform(normalizeWaveform(data));
@@ -72,14 +104,23 @@ export default function Waveform({
 
   const bars = useMemo(() => {
     if (!waveform.length) return [];
-    return waveform.map((value, index) => {
+    const dynamicBarCount = Math.max(
+      MIN_VISIBLE_BARS,
+      Math.floor(containerWidth / BAR_SLOT_WIDTH_PX)
+    );
+    const visibleWaveform = waveform.slice(0, dynamicBarCount);
+
+    return visibleWaveform.map((value, index) => {
       const barHeight = Math.max(2, Math.round(value * height));
       return { key: `bar-${index}`, height: barHeight };
     });
-  }, [waveform, height]);
+  }, [waveform, height, containerWidth]);
 
   return (
-    <div className={`w-full ${className ?? ''}`}>
+    <div
+      ref={containerRef}
+      className={`w-full overflow-hidden ${className ?? ''}`}
+    >
       {loading ? (
         <div className="text-xs text-text-muted">Generating waveform...</div>
       ) : error ? (

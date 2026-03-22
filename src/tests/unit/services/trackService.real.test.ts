@@ -98,6 +98,7 @@ describe('RealTrackService', () => {
       waveformUrl: `${config.api.appUrl}/waveforms/42.json`,
       genre: 'Electronic',
       tags: ['night'],
+      description: '',
     });
   });
 

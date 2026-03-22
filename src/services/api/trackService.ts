@@ -6,6 +6,7 @@ import type {
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
+  TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
 } from '@/types/tracks';
@@ -28,6 +29,11 @@ export interface TrackService {
 
   /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
   getUserTracks(userID: number): Promise<TrackMetaData[]>;
+
+  /** Read all visible tracks for feed listing (GET /users/me/tracks) */
+  getAllTracks(): Promise<TrackMetaData[]>;
+  /** Update track metadata (PATCH /tracks/:trackId) */
+  updateTrack(trackId: number, formData: FormData): Promise<TrackUpdateResponse>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -85,6 +91,7 @@ const normalizeTrackMetadata = (
     waveformUrl: toAbsoluteUrl(payload.waveformUrl, DEFAULT_WAVEFORM_PATH),
     genre: payload.genre,
     tags: payload.tags,
+    description: payload.description ?? '',
   };
 };
 
@@ -120,6 +127,23 @@ export class RealTrackService implements TrackService {
       normalizeTrackMetadata(track.id, track)
     );
     return tracks.filter((track) => track.artist.id === userId);
+  }
+
+  async getAllTracks(): Promise<TrackMetaData[]> {
+    const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
+    return payload.map((track) => normalizeTrackMetadata(track.id, track));
+  }
+
+  async updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse> {
+    return apiRequest(API_CONTRACTS.TRACKS_UPDATE(trackId), {
+      payload: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

@@ -56,7 +56,7 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
   >({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const isFormComplete = resetPasswordSchema.safeParse(formValues).success;
-  const { verifyReCaptcha } = useReCaptcha();
+  const { getRecaptchaToken } = useReCaptcha();
 
   const updateEmail = (value: string) => {
     setFormValues({ email: value });
@@ -73,7 +73,7 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
       setFieldErrors(getSchemaFieldErrors(parsedValues.error));
       return;
     }
-    verifyReCaptcha('reset_password').then((recaptchaResult) => {
+    getRecaptchaToken('reset_password').then((recaptchaResult) => {
       if (!recaptchaResult.success) {
         setFieldErrors({
           email:

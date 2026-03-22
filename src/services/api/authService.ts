@@ -3,9 +3,13 @@ import { apiClient, apiRequest } from '@/hooks/useAPI';
 import type {
   DeviceInfoDTO,
   LoginResponseDTO,
+  RegisterLocalRequestDTO,
   RefreshTokenResponseDTO,
 } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
+import { sha256Hex } from '@/utils/sha256';
+
+export type RegisterLocalPayload = Omit<RegisterLocalRequestDTO, 'deviceInfo'>;
 /**
  * Auth service contract.
  * Both real and mock implementations must satisfy this interface.
@@ -13,6 +17,9 @@ import { API_CONTRACTS } from '@/types/apiContracts';
 export interface AuthService {
   /** Log in with email and password (POST /auth/login/local) */
   login(email: string, password: string): Promise<LoginResponseDTO>;
+
+  /** Register a local account (POST /auth/register/local). */
+  registerLocal(payload: RegisterLocalPayload): Promise<string>;
 
   // NEW: Handle the Google OAuth code exchange
   loginWithGoogle(code: string): Promise<LoginResponseDTO>;
@@ -29,17 +36,14 @@ export interface AuthService {
   /** Log out of all sessions (POST /auth/logout-all) */
   logoutAll(): Promise<void>;
 
-  /** Verify a ReCaptcha token before auth-related submissions */
-  verifyReCaptcha(
-    token: string,
-    action?: string
-  ): Promise<ReCaptchaVerificationResult>;
-}
+  /** Resend email verification message (POST /auth/resend-verification). */
+  resendVerification(email: string): Promise<{ success: boolean }>;
 
-export interface ReCaptchaVerificationResult {
-  success: boolean;
-  score?: number;
-  error?: string;
+  /** Verify email token (POST /auth/verify-email). */
+  verifyEmail(token: string): Promise<{ success: boolean }>;
+
+  /** Backward-compatible alias for resendVerification. */
+  requestEmailVerification(email: string): Promise<{ success: boolean }>;
 }
 
 const USER_STORAGE_KEY = 'user';
@@ -83,12 +87,26 @@ export class RealAuthService implements AuthService {
   private accessToken: string | null = null;
 
   async login(email: string, password: string): Promise<LoginResponseDTO> {
+    const hashedPassword = await sha256Hex(password);
+
     const response = await apiRequest(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
-      payload: { email, password },
+      payload: { email, password: hashedPassword },
     });
 
     this.persistSession(response);
     return response;
+  }
+
+  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+    const hashedPassword = await sha256Hex(payload.password);
+
+    return apiRequest(API_CONTRACTS.AUTH_REGISTER_LOCAL, {
+      payload: {
+        ...payload,
+        password: hashedPassword,
+        deviceInfo: buildDeviceInfo(),
+      },
+    });
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -143,52 +161,30 @@ export class RealAuthService implements AuthService {
     this.clearSession();
   }
 
-  async verifyReCaptcha(
-    token: string,
-    action: string = 'submit_form'
-  ): Promise<ReCaptchaVerificationResult> {
-    if (!token || !token.trim()) {
-      return { success: false, error: 'Token is required' };
-    }
+  async resendVerification(email: string): Promise<{ success: boolean }> {
+    await apiClient.request({
+      baseURL: '',
+      method: 'POST',
+      url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
+      data: { email },
+    });
 
-    try {
-      const response = await apiClient.request<{
-        success: boolean;
-        score?: number;
-        error?: string;
-        errors?: string[];
-      }>({
-        baseURL: '',
-        method: 'POST',
-        url: API_ENDPOINTS.AUTH.VERIFY_RECAPTCHA,
-        data: { token, action },
-      });
+    return { success: true };
+  }
 
-      const data = response.data;
-      if (data.success) {
-        return {
-          success: true,
-          score: data.score,
-        };
-      }
+  async verifyEmail(token: string): Promise<{ success: boolean }> {
+    await apiClient.request({
+      baseURL: '',
+      method: 'POST',
+      url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
+      data: { token },
+    });
 
-      const normalizedError =
-        data.error ||
-        (Array.isArray(data.errors) && data.errors.length > 0
-          ? data.errors.join(', ')
-          : 'Verification failed');
+    return { success: true };
+  }
 
-      return {
-        success: false,
-        score: data.score,
-        error: normalizedError,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+    return this.resendVerification(email);
   }
 
   private persistSession(response: LoginResponseDTO): void {

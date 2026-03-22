@@ -1,90 +1,91 @@
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { authService } from '@/services';
-import type { ReCaptchaVerificationResult } from '@/services/api/authService';
+
+export interface ReCaptchaResult {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
 
 /**
- * Result object returned from reCAPTCHA verification
+ * Result object returned from reCAPTCHA execution
  * @interface ReCaptchaResult
  * @property {boolean} success - Whether the reCAPTCHA verification was successful
- * @property {number} [score] - Confidence score from Google (0.0 - 1.0), where 1.0 is very likely a legitimate user
- * @property {string} [error] - Error message if verification failed
+ * @property {string} [token] - reCAPTCHA token to pass in API payloads that require captchaToken
+ * @property {string} [error] - Error message if token generation failed
  */
-export type ReCaptchaResult = ReCaptchaVerificationResult;
 
 /**
  * Hook for reCAPTCHA v3 verification
  *
- * Provides a function to execute reCAPTCHA token verification for form submissions.
+ * Provides a function to execute reCAPTCHA and return a token for form submissions.
  * Must be used within a ReCaptchaProvider.
  *
  * The verification process:
  * 1. Executes reCAPTCHA on the client to get a token
- * 2. Delegates token verification to the configured auth service
- * 3. Returns the verification result and score
+ * 2. Returns the generated token for endpoints that accept captchaToken in payload
  *
  * @hook
  * @returns {Object} Hook return object
- * @returns {(action?: string) => Promise<ReCaptchaResult>} verifyReCaptcha - Function to verify reCAPTCHA token
+ * @returns {(action?: string) => Promise<ReCaptchaResult>} getRecaptchaToken - Function to get reCAPTCHA token
  *
  * @example
- * const { verifyReCaptcha } = useReCaptcha();
- * const result = await verifyReCaptcha('signin');
+ * const { getRecaptchaToken } = useReCaptcha();
+ * const result = await getRecaptchaToken('register_local');
  * if (result.success) {
- *   console.log('User score:', result.score);
+ *   console.log('Captcha token:', result.token);
  * } else {
- *   console.error('Verification failed:', result.error);
+ *   console.error('Token generation failed:', result.error);
  * }
  */
 export const useReCaptcha = () => {
   const { executeRecaptcha } = useGoogleReCaptcha();
 
+  const isRuntimeReady = (): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    const runtime = window as Window & {
+      grecaptcha?: { execute?: unknown };
+      ___grecaptcha_cfg?: { auto_render_clients?: unknown; clients?: unknown };
+    };
+
+    return (
+      typeof runtime.grecaptcha?.execute === 'function' &&
+      runtime.___grecaptcha_cfg !== undefined &&
+      (runtime.___grecaptcha_cfg.auto_render_clients !== undefined ||
+        runtime.___grecaptcha_cfg.clients !== undefined)
+    );
+  };
+
   /**
    * Verifies a reCAPTCHA token with the backend
    *
-   * @param {string} [action='submit_form'] - Action identifier for reCAPTCHA (e.g., 'signin', 'reset_password', 'submit_form')
-   * @returns {Promise<ReCaptchaResult>} Verification result containing success status and optional score/error
+   * @param {string} [action='submit_form'] - Action identifier for reCAPTCHA
+   * @returns {Promise<ReCaptchaResult>} Result containing success status and token/error
    */
-  const verifyReCaptcha = async (
+  const getRecaptchaToken = async (
     action: string = 'submit_form'
   ): Promise<ReCaptchaResult> => {
     if (!executeRecaptcha) {
       return { success: false, error: 'ReCaptcha not loaded' };
     }
 
+    if (!isRuntimeReady()) {
+      return {
+        success: false,
+        error: 'ReCaptcha is initializing. Please try again in a moment.',
+      };
+    }
+
     try {
       // Get the token
       const token = await executeRecaptcha(action);
-      console.log('ReCaptcha token:', token);
-
-      const verificationResult = await authService.verifyReCaptcha(
-        token,
-        action
-      );
-
-      if (verificationResult.success) {
-        console.log(
-          'ReCaptcha verification successful, score:',
-          verificationResult.score
-        );
-        return {
-          success: true,
-          score: verificationResult.score,
-        };
-      } else {
-        console.log(
-          'ReCaptcha verification failed, score:',
-          verificationResult.score,
-          'error:',
-          verificationResult.error
-        );
-        return {
-          success: false,
-          score: verificationResult.score,
-          error: verificationResult.error || 'Verification failed',
-        };
+      if (!token || !token.trim()) {
+        return { success: false, error: 'Failed to generate captcha token' };
       }
+
+      return { success: true, token };
     } catch (error) {
-      console.error('ReCaptcha verification error:', error);
+      console.error('ReCaptcha token generation error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -92,5 +93,5 @@ export const useReCaptcha = () => {
     }
   };
 
-  return { verifyReCaptcha };
+  return { getRecaptchaToken };
 };

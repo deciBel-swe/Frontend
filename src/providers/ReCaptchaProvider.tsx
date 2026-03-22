@@ -18,7 +18,7 @@ interface ReCaptchaProviderProps {
  * Wraps a section of the application with Google reCAPTCHA v3 functionality.
  * Must wrap any component that uses the `useReCaptcha` hook.
  *
- * The reCAPTCHA site key is read from the environment variable `NEXT_PUBLIC_RECATCHA_SITE_KEY`.
+ * The reCAPTCHA site key is read from the environment variable `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`.
  * Unlike reCAPTCHA v2, v3 runs invisibly and returns a score (0-1) indicating user trustworthiness.
  *
  * @component
@@ -36,10 +36,16 @@ interface ReCaptchaProviderProps {
 export const ReCaptchaProvider: React.FC<ReCaptchaProviderProps> = ({
   children,
 }) => {
+  const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || null;
+
+  // Gracefully disable captcha integration when site key is not configured.
+  if (!reCaptchaKey) {
+    console.warn('ReCaptcha site key is missing. Captcha checks are disabled.');
+    return <>{children}</>;
+  }
+
   return (
-    <GoogleReCaptchaProvider
-      reCaptchaKey={process.env.NEXT_PUBLIC_RECATCHA_SITE_KEY!}
-    >
+    <GoogleReCaptchaProvider reCaptchaKey={reCaptchaKey}>
       {children}
     </GoogleReCaptchaProvider>
   );
