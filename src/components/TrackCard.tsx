@@ -64,7 +64,7 @@ export default function TrackCard({
       <div className="flex gap-2 sm:gap-3 md:gap-4 items-start min-w-0">
         {/* LEFT IMAGE */}
         <Link
-          href={`/system${userSlug}/${trackSlug}`}
+          href={`/${userSlug}/${trackSlug}`}
           className="w-24 sm:w-28 md:w-36 aspect-square flex-shrink-0 -mt-1"
         >
           <img
