@@ -22,6 +22,7 @@ type TrackCardProps = {
   };
   postedText?: string;
   timeAgo?: string;
+  showEditButton?: boolean;
 
   track: {
     id: number;
@@ -38,6 +39,7 @@ export default function TrackCard({
   user,
   postedText = 'posted a track',
   timeAgo = '',
+  showEditButton = true,
   track,
   waveform,
 }: TrackCardProps) {
@@ -139,14 +141,16 @@ export default function TrackCard({
               <Copy size={16} />
             </Button>
 
-            <Button
-              variant="ghost"
-              aria-label="Edit"
-              title="Edit"
-              onClick={() => setEditOpen(true)}
-            >
-              <Pencil size={16} />
-            </Button>
+            {showEditButton ? (
+              <Button
+                variant="ghost"
+                aria-label="Edit"
+                title="Edit"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil size={16} />
+              </Button>
+            ) : null}
 
             <Button variant="ghost" aria-label="More" title="More">
               <MoreHorizontal size={16} />
