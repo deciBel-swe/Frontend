@@ -54,6 +54,7 @@ export default function FeedPage() {
           user={item.user}
           postedText={item.postedText}
           timeAgo={item.timeAgo}
+          showEditButton={false}
           track={item.track}
           waveform={item.waveform}
         />

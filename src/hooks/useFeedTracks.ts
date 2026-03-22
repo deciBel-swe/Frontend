@@ -20,6 +20,22 @@ export function useFeedTracks() {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleUpdate = () => {
+      setRefreshIndex((prev) => prev + 1);
+    };
+
+    window.addEventListener('track-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('track-updated', handleUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -49,7 +65,7 @@ export function useFeedTracks() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [refreshIndex]);
 
   const parseWaveform = (value: string | undefined): number[] => {
     if (!value || value.trim().length === 0) {
@@ -84,6 +100,7 @@ export function useFeedTracks() {
       postedText: 'posted a track' as const,
       timeAgo: '',
       track: {
+        id: track.id,
         artist: artistName,
         title: track.title,
         cover: track.coverUrl,
