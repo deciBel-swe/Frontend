@@ -51,6 +51,8 @@ export default function FeedPage() {
       {feedTracks.map((item) => (
         <TrackCard
           key={item.id}
+          trackId={String(item.id)}
+          isPrivate={item.isPrivate}
           user={item.user}
           postedText={item.postedText}
           timeAgo={item.timeAgo}

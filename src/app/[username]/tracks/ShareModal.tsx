@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useSecretLink } from '@/hooks/useSecretLink';
-import { useTrackMetadata } from '@/hooks/useTrackMetaData';
+import { formatSecretUrlWithSlug } from '@/utils/formatSecretUrl';
 import { CheckIcon, CopyIcon } from '@/components/nav/TrackActionBar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ShareTab = 'share' | 'embed' | 'message';
 
 /** Track metadata shown in the modal preview section */
-export interface TrackPreview {
+export interface TrackPreviewData {
   title: string;
   artist: string;
   coverUrl?: string;
@@ -22,7 +22,7 @@ interface ShareModalProps {
   onClose: () => void;
   trackId: string;
   isPrivate: boolean;
-  track?: TrackPreview;
+  track?: TrackPreviewData;
 }
 
 // ─── Waveform placeholder ─────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ function WaveformPlaceholder() {
  * Shows cover art, artist name, title, and waveform placeholder.
  */
 
-function TrackPreview({ track }: { track: TrackPreview }) {
+function TrackPreview({ track }: { track: TrackPreviewData }) {
   return (
     <div className="flex gap-3 mb-5">
       {/* Cover */}
@@ -119,14 +119,27 @@ function TrackPreview({ track }: { track: TrackPreview }) {
  * Shows the secret link with copy button, shorten link (disabled),
  * description, and reset secret link button.
  */
-function PrivateShareContent({ trackId }: { trackId: string }) {
-  const { secretUrl, isLoading, isError, regenerate, isRegenerating } =
-    useSecretLink(trackId);
+function PrivateShareContent({trackId,track,}: {trackId: string;track: TrackPreviewData;}) {
+  const {
+    secretUrl,
+    secretToken,
+    isLoading,
+    isError,
+    regenerate,
+    isRegenerating,
+  } = useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
+  const slugShareUrl =
+    secretToken && track
+      ? formatSecretUrlWithSlug(track.artist, track.title, secretToken)
+      : null;
+
+  const urlToUse = slugShareUrl ?? secretUrl;
+
   const handleCopy = async () => {
-    if (!secretUrl) return;
-    await navigator.clipboard.writeText(secretUrl);
+    if (!urlToUse) return;
+    await navigator.clipboard.writeText(urlToUse);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -160,7 +173,7 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
         <input
           type="text"
           readOnly
-          value={secretUrl}
+          value={urlToUse ?? ''}
           aria-label="Secret share link"
           className="flex-1 text-xs text-text-primary font-mono bg-transparent outline-none truncate"
         />
@@ -209,24 +222,25 @@ function PrivateShareContent({ trackId }: { trackId: string }) {
  * Share tab content for public tracks.
  * Shows the track URL from API with copy button and shorten link (disabled).
  */
-function PublicShareContent({ trackId }: { trackId: string }) {
-  const { metadata, isLoading } = useTrackMetadata(Number(trackId));
+function PublicShareContent({
+  artist,
+  title,
+}: {
+  artist: string;
+  title: string;
+}) {
   const [copied, setCopied] = useState(false);
-
+ 
+  const userSlug = artist.toLowerCase().replace(/\s+/g, '');
+  const trackSlug = title.toLowerCase().replace(/\s+/g, '-');
+  const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${trackSlug}`;
+ 
   const handleCopy = async () => {
-    if (!trackUrl) return;
     await navigator.clipboard.writeText(trackUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  if (isLoading)
-    return (
-      <div className="h-10 w-full bg-surface-raised rounded animate-pulse" />
-    );
-
-  const trackUrl = metadata?.trackUrl ?? '';
-
+ 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 border border-border-default rounded px-3 py-2 bg-surface-default">
@@ -242,15 +256,12 @@ function PublicShareContent({ trackId }: { trackId: string }) {
           aria-label="Copy link"
           className={[
             'shrink-0 transition-colors duration-150',
-            copied
-              ? 'text-status-success'
-              : 'text-text-muted hover:text-text-primary',
+            copied ? 'text-status-success' : 'text-text-muted hover:text-text-primary',
           ].join(' ')}
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
         </button>
       </div>
-
       <label className="flex items-center gap-2 select-none cursor-not-allowed opacity-40">
         <input type="checkbox" disabled className="w-3.5 h-3.5" />
         <span className="text-xs text-text-secondary">Shorten link</span>
@@ -259,7 +270,7 @@ function PublicShareContent({ trackId }: { trackId: string }) {
   );
 }
 
-const PLACEHOLDER_TRACK: TrackPreview = {
+const PLACEHOLDER_TRACK: TrackPreviewData = {
   title: 'Untitled Track',
   artist: 'Unknown Artist',
   duration: '0:00',
@@ -341,9 +352,9 @@ export function ShareModal({
 
             {activeTab === 'share' &&
               (isPrivate ? (
-                <PrivateShareContent trackId={trackId} />
+                <PrivateShareContent trackId={trackId} track={track} />
               ) : (
-                <PublicShareContent trackId={trackId} />
+                <PublicShareContent artist={track.artist} title={track.title} />
               ))}
             {activeTab === 'embed' && (
               <p className="text-xs text-text-muted">

@@ -44,6 +44,7 @@ describe('useSecretLink', () => {
 
     expect(trackService.getSecretLink).toHaveBeenCalledWith('42');
     expect(result.current.secretUrl).toContain('/tracks/42?s=token-abc');
+    expect(result.current.secretToken).toBe('token-abc');
   });
 
   it('does not fetch when trackId is undefined', async () => {

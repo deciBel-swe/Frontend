@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React,{ useState } from 'react';
 import Link from 'next/link';
 import {
   Heart,
@@ -9,11 +9,18 @@ import {
   MoreHorizontal,
   Copy,
   Play,
+  Check,
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
+import { ShareModal } from '@/app/[username]/tracks/ShareModal';
+import { useSecretLink } from '@/hooks/useSecretLink';
+import { useTrackMetadata } from '@/hooks/useTrackMetaData';
+import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 
 type TrackCardProps = {
+  trackId: string;
+  isPrivate?: boolean;
   user: {
     name: string;
     avatar: string;
@@ -32,6 +39,8 @@ type TrackCardProps = {
 };
 
 export default function TrackCard({
+  trackId,
+  isPrivate = false,
   user,
   postedText = 'posted a track',
   timeAgo = '',
@@ -40,6 +49,38 @@ export default function TrackCard({
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
+
+  const { visibility } = useTrackVisibility(Number(trackId));
+  const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
+
+   // ── Share modal state
+  const [isShareOpen, setIsShareOpen] = useState(false);
+ 
+  // ── Copy link state
+  const [copied, setCopied] = useState(false);
+ 
+  // ── Fetch correct URL based on privacy
+  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
+  const { metadata } = useTrackMetadata(
+    !resolvedIsPrivate ? Number(trackId) : undefined
+  );
+ 
+  /**
+   * Copies the correct URL to clipboard:
+   * - Private track → secret link (only accessible to people with the link)
+   * - Public track  → public trackUrl
+   */
+  const handleCopy = async () => {
+    const urlToCopy = resolvedIsPrivate
+      ? (secretUrl ?? '')
+      : (metadata?.trackUrl ?? '');
+ 
+    if (!urlToCopy) return;
+ 
+    await navigator.clipboard.writeText(urlToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
@@ -127,12 +168,20 @@ export default function TrackCard({
               <Repeat2 size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Share" title="Share">
+            <Button variant="ghost" aria-label="Share" title="Share" onClick={() => setIsShareOpen(true)}>
               <Share2 size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Copy Link" title="Copy Link">
-              <Copy size={16} />
+            <Button variant="ghost" 
+              aria-label={copied ? 'Copied!' : 'Copy link'}
+              title={copied ? 'Copied!' : 'Copy link'}
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check size={16} className="text-status-success" />
+              ) : (
+                <Copy size={16} />
+              )}
             </Button>
 
             <Button variant="ghost" aria-label="More" title="More">
@@ -144,6 +193,18 @@ export default function TrackCard({
         {/* DURATION */}
         <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        trackId={trackId}
+        isPrivate={resolvedIsPrivate}
+        track={{
+          title: track.title,
+          artist: track.artist,
+          coverUrl: track.cover,
+          duration: track.duration,
+        }}
+      />
     </div>
   );
 }
