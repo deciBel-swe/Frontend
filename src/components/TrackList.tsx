@@ -76,6 +76,7 @@ export default function TrackList({ userId, username }: TrackListProps) {
             postedText="posted a track"
             timeAgo=""
             track={{
+              id: track.id,
               artist: artistName,
               title: track.title,
               cover: track.coverUrl,

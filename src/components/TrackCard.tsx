@@ -1,6 +1,6 @@
 'use client';
 
-import React,{ useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Heart,
@@ -8,6 +8,7 @@ import {
   Share2,
   MoreHorizontal,
   Copy,
+  Pencil,
   Play,
   Check,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import { ShareModal } from '@/app/[username]/tracks/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
+import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 
 type TrackCardProps = {
   trackId: string;
@@ -27,8 +29,10 @@ type TrackCardProps = {
   };
   postedText?: string;
   timeAgo?: string;
+  showEditButton?: boolean;
 
   track: {
+    id: number;
     artist: string;
     title: string;
     cover: string;
@@ -44,11 +48,13 @@ export default function TrackCard({
   user,
   postedText = 'posted a track',
   timeAgo = '',
+  showEditButton = true,
   track,
   waveform,
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
+  const [editOpen, setEditOpen] = useState(false);
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
@@ -184,6 +190,17 @@ export default function TrackCard({
               )}
             </Button>
 
+            {showEditButton ? (
+              <Button
+                variant="ghost"
+                aria-label="Edit"
+                title="Edit"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil size={16} />
+              </Button>
+            ) : null}
+
             <Button variant="ghost" aria-label="More" title="More">
               <MoreHorizontal size={16} />
             </Button>
@@ -193,6 +210,7 @@ export default function TrackCard({
         {/* DURATION */}
         <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
+
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
@@ -204,6 +222,13 @@ export default function TrackCard({
           coverUrl: track.cover,
           duration: track.duration,
         }}
+      />
+
+      <EditTrackModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        trackId={track.id}
+        track={{ title: track.title, artist: track.artist, cover: track.cover }}
       />
     </div>
   );

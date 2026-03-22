@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { authService, EditMeService } from '@/services';
+import { authService, userService } from '@/services';
 import type { UpdateMeRequest, UserMe } from '@/types/user';
 
 /**
@@ -19,8 +19,8 @@ export const useEditMe = () => {
       if (!session?.accessToken) {
         throw new Error('Missing access token');
       }
-
-      return EditMeService.editMe(session.accessToken, data);
+      
+      return userService.updateMe(data);
     } catch (caughtError) {
       const message =
         caughtError instanceof Error

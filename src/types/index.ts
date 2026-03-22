@@ -134,3 +134,15 @@ export interface NavLinkConfig {
 export type { UploadTrackResponse } from './tracks';
 export { uploadSchema, toTrackSlug } from './uploadSchema';
 export type { UploadFormValues } from './uploadSchema';
+export {
+  editProfileSchema,
+  getEditProfileFormErrors,
+  buildSocialLinksFromProfileLinks,
+  emptyEditProfileFormValues,
+  MAX_PROFILE_LINKS,
+} from './editProfile';
+export type {
+  EditProfileFormValues,
+  EditProfileFormErrors,
+  EditProfileFormErrorKey,
+} from './editProfile';

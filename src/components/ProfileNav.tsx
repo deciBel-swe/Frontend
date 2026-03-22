@@ -21,26 +21,33 @@ export default function ProfileNav({ username }: ProfileNavProps) {
 
   return (
     <nav className="bg-[#121212] w-full">
-      <div className="flex items-center gap-8 px-6">
+      <div className="flex items-center gap-8">
         {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
-              className="relative py-4 group"
+              className="relative py-2 group"
             >
-              {/* Text styling */}
+              {/* Text */}
               <span
-                className={`text-[15px] font-medium transition-colors duration-200 whitespace-nowrap
-            ${isActive ? 'text-white' : 'text-[#999] group-hover:text-white'}`}
+                className={`
+                  font-medium whitespace-nowrap transition-colors duration-200
+                  text-[12px] sm:text-[13px] md:text-[14px] lg:text-[15px]
+                  ${
+                    isActive
+                      ? 'text-black dark:text-white'
+                      : 'text-[#999] group-hover:text-black dark:text-[#bbb] dark:group-hover:text-white'
+                  }
+                `}
               >
                 {item.name}
               </span>
 
-              {/* Active underline - shifted down by 2 pixels */}
+              {/* Active underline */}
               {isActive && (
-                <div className="absolute -bottom-[4px] left-0 right-0 h-[1px] bg-white" />
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-black dark:bg-white" />
               )}
             </Link>
           );

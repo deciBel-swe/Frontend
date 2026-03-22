@@ -87,14 +87,14 @@ export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
 
 /** Schema for PATCH /tracks/:trackId */
 export const trackUpdateResponseSchema = z.object({
-  id: z.number().int().nonnegative().optional(),
-  coverUrl: z.string().trim().min(1).optional(),
-  title: z.string().trim().min(1).optional(),
-  genre: z.string().trim().min(1).optional(),
-  description: z.string().optional(),
+  id: z.number().int().nonnegative(),
+  coverUrl: z.string().trim().min(1),
+  title: z.string().trim().min(1),
+  genre: z.string().trim().min(1),
+  description: z.string(),
   isPrivate: z.boolean(),
-  tags: z.array(z.string()).optional(),
-  releaseDate: z.string().optional(),
+  tags: z.array(z.string()),
+  releaseDate: z.string().trim().min(1),
 });
 export type TrackUpdateResponse = z.infer<typeof trackUpdateResponseSchema>;
 
@@ -109,6 +109,7 @@ export const trackMetadataSchema = z.object({
   waveformData: z.string().optional(), //this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
   genre: z.string(),
   tags: z.array(z.string()),
+  description: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
 
