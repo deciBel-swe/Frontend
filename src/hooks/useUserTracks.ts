@@ -19,6 +19,22 @@ export function useUserTracks(params: UseUserTracksParams) {
   >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleUpdate = () => {
+      setRefreshIndex((prev) => prev + 1);
+    };
+
+    window.addEventListener('track-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('track-updated', handleUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -64,7 +80,7 @@ export function useUserTracks(params: UseUserTracksParams) {
     return () => {
       isCancelled = true;
     };
-  }, [params.userId, params.username]);
+  }, [params.userId, params.username, refreshIndex]);
 
   return {
     tracks,
