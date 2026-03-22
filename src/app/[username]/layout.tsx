@@ -1,7 +1,7 @@
 import ProfileHeader from '@/features/prof/components/ProfileHeader';
 import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
 import MidBar from '@/features/prof/components/MidBar';
-import { ProfileGuard } from '@/tests/unit/components/profile-guard';
+import { ProfileGuard } from '@/components/profile-guard';
 
 const Layout = async ({
   children,
