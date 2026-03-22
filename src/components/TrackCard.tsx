@@ -45,7 +45,7 @@ export default function TrackCard({
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-        <Link href={`/system${userSlug}`}>
+        <Link href={`/${userSlug}`}>
           <img
             src={user.avatar}
             className="w-8 h-8 rounded-full object-cover"
@@ -54,7 +54,7 @@ export default function TrackCard({
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/system${userSlug}`}>{user.name}</Link>
+            <Link href={`/${userSlug}`}>{user.name}</Link>
           </span>{' '}
           {postedText} <span>{timeAgo}</span>
         </div>
@@ -100,7 +100,7 @@ export default function TrackCard({
               </Link>
 
               <Link
-                href={`${userSlug}/${trackSlug}`}
+                href={`/${userSlug}/${trackSlug}`}
                 className="text-text-primary font-semibold inline-block hover:opacity-40"
               >
                 {track.title}

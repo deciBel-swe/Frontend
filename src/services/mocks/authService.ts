@@ -15,7 +15,10 @@ import {
   upsertMockAuthAccount,
   updateMockAuthEmailVerification,
 } from './mockAuthUsersStore';
-import { getMockEmailVerificationStore } from './mockSystemStore';
+import {
+  getMockEmailVerificationStore,
+  persistMockSystemState,
+} from './mockSystemStore';
 import { sha256Hex } from '@/utils/sha256';
 
 // ================================
@@ -303,6 +306,7 @@ export class MockAuthService implements AuthService {
     };
 
     updateMockAuthEmailVerification(email, true);
+    persistMockSystemState();
 
     return { success: true };
   }
@@ -317,6 +321,7 @@ export class MockAuthService implements AuthService {
 
     entry.verified = true;
     updateMockAuthEmailVerification(entry.email, true);
+    persistMockSystemState();
     return { success: true };
   }
 

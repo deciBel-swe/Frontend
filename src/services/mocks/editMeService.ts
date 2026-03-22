@@ -2,6 +2,7 @@ import type { editMeService } from '@/services/api/editMeService';
 import type { UpdateMeRequest, UserMe } from '@/types/user';
 import {
   getMockUsersStore,
+  persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
 } from './mockSystemStore';
@@ -33,6 +34,8 @@ export class MockEditMeService implements editMeService {
         ...data.socialLinks,
       };
     }
+
+    persistMockSystemState();
 
     return {
       id: me.id,

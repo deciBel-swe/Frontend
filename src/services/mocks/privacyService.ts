@@ -5,6 +5,7 @@ import type {
 } from '@/types/privacy';
 import {
   getMockUsersStore,
+  persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
 } from './mockSystemStore';
@@ -41,6 +42,7 @@ export class MockPrivacyService implements PrivacyService {
     const current = this._getCurrentUserPrivacy();
     current.isPrivate = data.isPrivate ?? current.isPrivate;
     current.showHistory = data.showHistory ?? current.showHistory;
+    persistMockSystemState();
     return { ...current };
   }
 }

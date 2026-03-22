@@ -10,6 +10,7 @@ import type {
 import {
   getMockTracksStore,
   getMockUsersStore,
+  persistMockSystemState,
   replaceMockTracksStore,
   resolveCurrentMockUserId,
   type MockTrackRecord,
@@ -257,6 +258,7 @@ export class MockTrackService implements TrackService {
               title: uploaded.title,
               genre: uploaded.genre,
             });
+            persistMockSystemState();
           }
 
           resolve({

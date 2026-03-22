@@ -1,6 +1,7 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
 import {
   getMockUsersStore,
+  persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
   type MockUserRecord,
@@ -62,6 +63,10 @@ const syncAuthAccountsToUserStore = (): void => {
 
 const resolveCurrentUserId = (): number => {
   return resolveCurrentMockUserId();
+};
+
+const commitMockUserState = (): void => {
+  persistMockSystemState();
 };
 
 const getCurrentUser = (): MockUserRecord => {
@@ -191,6 +196,8 @@ export class MockUserService implements UserService {
       };
     }
 
+    commitMockUserState();
+
     return toUserMe(me);
   }
 
@@ -209,6 +216,7 @@ export class MockUserService implements UserService {
     const me = getCurrentUser();
     if (!me.additionalEmails.includes(payload.newEmail)) {
       me.additionalEmails.push(payload.newEmail);
+      commitMockUserState();
     }
     return { message: 'Email added' };
   }
@@ -220,6 +228,7 @@ export class MockUserService implements UserService {
     const me = getCurrentUser();
     me.email = payload.newEmail;
     me.emailVerified = false;
+    commitMockUserState();
     return { message: 'Primary email updated' };
   }
 
@@ -232,6 +241,7 @@ export class MockUserService implements UserService {
       ...me.socialLinks,
       ...payload,
     };
+    commitMockUserState();
 
     return {
       instagram: me.socialLinks.instagram,
@@ -248,6 +258,7 @@ export class MockUserService implements UserService {
     if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
       me.tier = 'FREE';
     }
+    commitMockUserState();
     return toUserMe(me);
   }
 
@@ -255,6 +266,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.tier = payload.newTier;
+    commitMockUserState();
     return {
       tier: payload.newTier,
     };
@@ -272,6 +284,8 @@ export class MockUserService implements UserService {
     if (payload.coverPic !== undefined) {
       me.profile.coverPic = payload.coverPic;
     }
+
+    commitMockUserState();
 
     return {
       profilePic: me.profile.profilePic,
@@ -335,6 +349,7 @@ export class MockUserService implements UserService {
 
     me.following.add(target.id);
     target.followers.add(me.id);
+    commitMockUserState();
 
     return {
       message: `Now following ${target.username}`,
@@ -350,6 +365,7 @@ export class MockUserService implements UserService {
 
     me.following.delete(target.id);
     target.followers.delete(me.id);
+    commitMockUserState();
 
     return {
       message: `Unfollowed ${target.username}`,
@@ -402,6 +418,7 @@ export class MockUserService implements UserService {
     me.followers.delete(target.id);
     target.following.delete(me.id);
     target.followers.delete(me.id);
+    commitMockUserState();
 
     return { message: `Blocked ${target.username}` };
   }
@@ -413,6 +430,7 @@ export class MockUserService implements UserService {
     const target = findUser(userId);
 
     me.blocked.delete(target.id);
+    commitMockUserState();
 
     return { message: `Unblocked ${target.username}` };
   }

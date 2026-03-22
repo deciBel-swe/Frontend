@@ -68,6 +68,7 @@ export type MockTrackRecord = {
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
 const LEGACY_TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
+const MOCK_SYSTEM_STORAGE_KEY = 'decibel_mock_system_state_v1';
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 const normalizeUsername = (username: string): string =>
@@ -393,10 +394,95 @@ type MockSystemState = {
   >;
 };
 
+type PersistedMockUserRecord = Omit<
+  MockUserRecord,
+  'followers' | 'following' | 'blocked'
+> & {
+  followers: number[];
+  following: number[];
+  blocked: number[];
+};
+
+type PersistedMockSystemState = {
+  authAccounts: MockAuthAccount[];
+  users: PersistedMockUserRecord[];
+  tracks: MockTrackRecord[];
+  emailVerification: Record<
+    string,
+    { email: string; token: string; verified: boolean }
+  >;
+};
+
 let state: MockSystemState | null = null;
 
 const hasStorage = (): boolean =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
+const serializeUser = (user: MockUserRecord): PersistedMockUserRecord => ({
+  ...user,
+  followers: [...user.followers],
+  following: [...user.following],
+  blocked: [...user.blocked],
+});
+
+const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
+  ...user,
+  followers: new Set(user.followers ?? []),
+  following: new Set(user.following ?? []),
+  blocked: new Set(user.blocked ?? []),
+});
+
+const toPersistedState = (current: MockSystemState): PersistedMockSystemState => ({
+  authAccounts: Array.from(current.authAccountsByEmail.values()),
+  users: current.users.map(serializeUser),
+  tracks: current.tracks,
+  emailVerification: current.emailVerification,
+});
+
+const toRuntimeState = (persisted: PersistedMockSystemState): MockSystemState => {
+  const authAccountsByEmail = new Map<string, MockAuthAccount>(
+    (persisted.authAccounts ?? []).map((account) => [
+      normalizeEmail(account.email),
+      { ...account },
+    ])
+  );
+
+  return {
+    authAccountsByEmail,
+    users: (persisted.users ?? []).map(deserializeUser),
+    tracks: persisted.tracks ?? [],
+    emailVerification: persisted.emailVerification ?? {},
+  };
+};
+
+const readPersistedState = (): MockSystemState | null => {
+  if (!hasStorage()) {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(MOCK_SYSTEM_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<PersistedMockSystemState>;
+    if (
+      !parsed ||
+      !Array.isArray(parsed.authAccounts) ||
+      !Array.isArray(parsed.users) ||
+      !Array.isArray(parsed.tracks) ||
+      typeof parsed.emailVerification !== 'object' ||
+      parsed.emailVerification === null
+    ) {
+      return null;
+    }
+
+    return toRuntimeState(parsed as PersistedMockSystemState);
+  } catch {
+    return null;
+  }
+};
 
 const toLegacyTracksPayload = (tracks: MockTrackRecord[]): string =>
   JSON.stringify(tracks);
@@ -410,6 +496,18 @@ const syncLegacyTracksStorage = (): void => {
     LEGACY_TRACKS_STORAGE_KEY,
     toLegacyTracksPayload(state.tracks)
   );
+};
+
+export const persistMockSystemState = (): void => {
+  if (!hasStorage() || !state) {
+    return;
+  }
+
+  window.localStorage.setItem(
+    MOCK_SYSTEM_STORAGE_KEY,
+    JSON.stringify(toPersistedState(state))
+  );
+  syncLegacyTracksStorage();
 };
 
 const createDefaultUserFromAccount = (
@@ -522,21 +620,26 @@ export const getMockSystemState = (): MockSystemState => {
     return state;
   }
 
-  const authAccountsByEmail = new Map<string, MockAuthAccount>(
-    seedAccounts.map((account) => [account.email.toLowerCase(), { ...account }])
-  );
+  const persisted = readPersistedState();
+  if (persisted) {
+    state = persisted;
+  } else {
+    const authAccountsByEmail = new Map<string, MockAuthAccount>(
+      seedAccounts.map((account) => [normalizeEmail(account.email), { ...account }])
+    );
 
-  state = {
-    authAccountsByEmail,
-    users: seedUsers(),
-    tracks: seedTracks(),
-    emailVerification: {},
-  };
+    state = {
+      authAccountsByEmail,
+      users: seedUsers(),
+      tracks: seedTracks(),
+      emailVerification: {},
+    };
+  }
 
   syncUserProfilesWithCredentials();
   syncTracksWithCredentialUsers();
 
-  syncLegacyTracksStorage();
+  persistMockSystemState();
   return state;
 };
 
@@ -559,7 +662,7 @@ export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {
   const current = getMockSystemState();
   current.tracks.splice(0, current.tracks.length, ...tracks);
   syncTracksWithCredentialUsers();
-  syncLegacyTracksStorage();
+  persistMockSystemState();
 };
 
 export const getMockAuthAccountByEmail = (
@@ -619,6 +722,7 @@ export const createMockAuthAccount = (params: {
 
   current.authAccountsByEmail.set(normalizedEmail, account);
   ensureUserFromAccount(account);
+  persistMockSystemState();
   return account;
 };
 
@@ -652,6 +756,7 @@ export const upsertMockAuthAccount = (params: {
       existing.tier = params.tier;
     }
     ensureUserFromAccount(existing);
+    persistMockSystemState();
     return existing;
   }
 
@@ -667,6 +772,7 @@ export const upsertMockAuthAccount = (params: {
 
   getMockSystemState().authAccountsByEmail.set(normalizedEmail, created);
   ensureUserFromAccount(created);
+  persistMockSystemState();
   return created;
 };
 
@@ -681,12 +787,14 @@ export const updateMockAuthEmailVerification = (
 
   account.emailVerified = verified;
   ensureUserFromAccount(account);
+  persistMockSystemState();
   return true;
 };
 
 export const syncAuthAccountsToMockUsers = (): void => {
   syncUserProfilesWithCredentials();
   syncTracksWithCredentialUsers();
+  persistMockSystemState();
 };
 
 export const resolveCurrentMockUserId = (): number => {
@@ -712,5 +820,5 @@ export const resolveCurrentMockUserId = (): number => {
 };
 
 export const trackStoreChanged = (): void => {
-  syncLegacyTracksStorage();
+  persistMockSystemState();
 };
