@@ -20,8 +20,8 @@ export default function ProfileNav({ username }: ProfileNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="w-full">
-      <div className="flex items-center gap-8 px-6">
+    <nav className="w-full border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center gap-8">
         {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
           return (
