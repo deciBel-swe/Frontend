@@ -80,6 +80,10 @@ const SignInForm: FC<SignInFormProps> = ({ onSuccess }) => {
             >
               Sign in to your account
             </h1>
+            <p>Mock accounts</p>
+            <p>mockuser@email.com</p>
+            <p>artist@decibel.test</p>
+            <p>password:CMPS#203</p>
           </div>
           <div className="flex flex-col w-full gap-3">
             <GoogleLoginButton

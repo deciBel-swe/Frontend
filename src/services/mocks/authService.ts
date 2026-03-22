@@ -15,6 +15,8 @@ import {
   upsertMockAuthAccount,
   updateMockAuthEmailVerification,
 } from './mockAuthUsersStore';
+import { getMockEmailVerificationStore } from './mockSystemStore';
+import { sha256Hex } from '@/utils/sha256';
 
 // ================================
 // Mock data
@@ -172,7 +174,7 @@ export class MockAuthService implements AuthService {
     createMockAuthAccount({
       email: payload.email,
       username: payload.username.trim() || payload.email.split('@')[0] || 'user',
-      password: payload.password,
+      password: await sha256Hex(payload.password),
       emailVerified: true,
       tier: 'FREE',
     });
@@ -256,18 +258,19 @@ export class MockAuthService implements AuthService {
     await this.logout();
   }
 
-  async login(email: string, _password: string): Promise<LoginResponseDTO> {
+  async login(email: string, password: string): Promise<LoginResponseDTO> {
     await delay();
     const account = getMockAuthAccountByEmail(email);
     if (!account) {
-      throw new Error('User not found. Please register first.');
+      throw new Error('Invalid email or password.');
     }
 
     if (!account.emailVerified) {
       throw new Error('Email is not verified yet.');
     }
 
-    if (_password !== account.password) {
+    const passwordHash = await sha256Hex(password);
+    if (passwordHash !== account.password) {
       throw new Error('Invalid email or password.');
     }
 
@@ -339,4 +342,4 @@ export class MockAuthService implements AuthService {
 export const mockEmailVerification: Record<
   string,
   { email: string; token: string; verified: boolean }
-> = {};
+> = getMockEmailVerificationStore();

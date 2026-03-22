@@ -5,6 +5,9 @@ import { z } from 'zod';
  * @constant {number}
  */
 const MINIMUM_AGE = 13;
+const MAX_EMAIL_LENGTH = 254;
+const MAX_PASSWORD_LENGTH = 128;
+const MAX_USERNAME_LENGTH = 30;
 
 /**
  * Error message shown when user is below minimum age
@@ -35,10 +38,37 @@ const MINIMUM_AGE_MESSAGE =
  */
 export const registrationSchema = z
   .object({
-    email: z.string().trim().email('Enter a valid email address.'),
-    password: z.string().min(6, 'Password must be at least 6 characters long.'),
-    confirmPassword: z.string().min(1, 'Confirm password is required.'),
-    displayName: z.string().trim().min(1, 'Display name is required.'),
+    email: z
+      .string()
+      .trim()
+      .max(MAX_EMAIL_LENGTH, 'Email is too long.')
+      .email('Enter a valid email address.'),
+    password: z
+      .string()
+      .max(
+        MAX_PASSWORD_LENGTH,
+        `Password must be at most ${MAX_PASSWORD_LENGTH} characters long.`
+      )
+      .min(6, 'Password must be at least 6 characters long.'),
+    confirmPassword: z
+      .string()
+      .max(
+        MAX_PASSWORD_LENGTH,
+        `Confirm password must be at most ${MAX_PASSWORD_LENGTH} characters long.`
+      )
+      .min(1, 'Confirm password is required.'),
+    displayName: z
+      .string()
+      .trim()
+      .min(1, 'Display name is required.')
+      .max(
+        MAX_USERNAME_LENGTH,
+        `Display name must be at most ${MAX_USERNAME_LENGTH} characters long.`
+      )
+      .regex(
+        /^[a-zA-Z0-9._-]+$/,
+        'Display name can only contain letters, numbers, dots, underscores, and hyphens.'
+      ),
     month: z.string().min(1, 'Month is required.'),
     day: z.string().min(1, 'Day is required.'),
     year: z.string().min(1, 'Year is required.'),
@@ -61,8 +91,18 @@ export const registrationSchema = z
 
     const password = values.password.trim();
     const confirmPassword = values.confirmPassword.trim();
+    //eslint-disable-next-line no-control-regex
+    const hasControlCharacters = /[\u0000-\u001F\u007F]/.test(password);
     const isStrongPassword =
       password.length >= 6 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+
+    if (hasControlCharacters) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['password'],
+        message: 'Password contains invalid characters.',
+      });
+    }
 
     if (!isStrongPassword) {
       ctx.addIssue({
@@ -97,8 +137,21 @@ export const registrationSchema = z
  * }
  */
 export const signInSchema = z.object({
-  email: z.string().trim().email('Enter a valid email address.'),
-  password: z.string().trim().min(1, 'Password is required.'),
+  email: z
+    .string()
+    .trim()
+    .max(MAX_EMAIL_LENGTH, 'Email is too long.')
+    .email('Enter a valid email address.'),
+  password: z
+    .string()
+    .trim()
+    .max(
+      MAX_PASSWORD_LENGTH,
+      `Password must be at most ${MAX_PASSWORD_LENGTH} characters long.`
+    )
+    //eslint-disable-next-line no-control-regex
+    .regex(/^[^\u0000-\u001F\u007F]*$/, 'Password contains invalid characters.')
+    .min(1, 'Password is required.'),
 });
 
 export type RegistrationFormValues = z.infer<typeof registrationSchema>;

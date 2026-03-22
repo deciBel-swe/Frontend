@@ -1,31 +1,58 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { authService } from '@/services';
 import { userService } from '@/services/index';
 import { UserMe } from '@/types/user';
-
-const currentUsernameKey = ['currentUsername'];
 
 /**
  * Hook to get the current authenticated user's data via /users/me.
  */
 // TODO : currently doesn't work fixing it later
 export const useUserMe = () => {
-  const { data, isLoading, isError } = useQuery<UserMe | null>({
-    queryKey: currentUsernameKey,
-    queryFn: async () => {
+  const [user, setUser] = useState<UserMe | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchMe = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
       const session = await authService.getSession();
 
       if (!session?.accessToken) {
-        return null;
+          if (!isCancelled) {
+            setUser(null);
+          }
+          return;
       }
 
       const me = await userService.getUserMe();
-      return me ?? null;
-    },
-  });
+        if (!isCancelled) {
+          setUser(me ?? null);
+        }
+      } catch {
+        if (!isCancelled) {
+          setIsError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchMe();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   return {
-    user: data ?? null,
+    user,
     isLoading,
     error: isError ? 'Failed to fetch current user data' : null,
   };

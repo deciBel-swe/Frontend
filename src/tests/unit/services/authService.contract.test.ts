@@ -15,8 +15,13 @@ Object.defineProperty(globalThis, 'TextEncoder', {
   configurable: true,
 });
 
+const PASSWORD1_HASH =
+  '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
+
 jest.mock('@/utils/sha256', () => ({
-  sha256Hex: jest.fn(async () => 'a'.repeat(64)),
+  sha256Hex: jest.fn(async (value: string) =>
+    value === 'Password1' ? PASSWORD1_HASH : 'f'.repeat(64)
+  ),
 }));
 
 jest.mock('@/hooks/useAPI', () => ({
@@ -297,12 +302,12 @@ describe('AuthService contract parity', () => {
     const googleLogin = await loginPromise;
 
     const parsed = assertValidLoginResponse(googleLogin);
-    expect(parsed.user.username).toBe('google-user');
+    expect(parsed.user.username).toMatch(/^google-user(?:-\d+)?$/);
     expect(parsed.user.avatarUrl).toBe('https://example.com/avatar.jpg');
 
     const session = await mockService.getSession();
     expect(session?.user.id).toBe(parsed.user.id);
-    expect(session?.user.username).toBe('google-user');
+    expect(session?.user.username).toBe(parsed.user.username);
     expect(session?.user.avatarUrl).toBe('https://example.com/avatar.jpg');
 
     jest.useRealTimers();
@@ -319,6 +324,30 @@ describe('AuthService contract parity', () => {
     const parsed = assertValidLoginResponse(googleLogin);
     expect(parsed.user.username).toBe('google-user');
     expect(parsed.user.avatarUrl).toBeUndefined();
+
+    jest.useRealTimers();
+  });
+
+  it('rejects registration when username already exists', async () => {
+    jest.useFakeTimers();
+
+    const mockService = new MockAuthService();
+
+    const duplicatePromise = mockService.registerLocal({
+      email: 'unique-email@decibel.test',
+      username: 'mockartist',
+      password: 'Password1',
+      dateOfBirth: '2000-01-01',
+      gender: 'female',
+      captchaToken: 'mock-captcha-token',
+    });
+
+    const duplicateAssertion = expect(duplicatePromise).rejects.toThrow(
+      'Username already exists. Please choose a different username.'
+    );
+
+    await advanceMockDelay();
+    await duplicateAssertion;
 
     jest.useRealTimers();
   });

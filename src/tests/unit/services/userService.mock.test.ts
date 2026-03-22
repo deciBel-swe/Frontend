@@ -1,6 +1,15 @@
 import { MockUserService } from '@/services/mocks/userService';
 import { MockAuthService } from '@/services/mocks/authService';
 
+const PASSWORD1_HASH =
+  '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
+
+jest.mock('@/utils/sha256', () => ({
+  sha256Hex: jest.fn(async (value: string) =>
+    value === 'Password1' ? PASSWORD1_HASH : 'f'.repeat(64)
+  ),
+}));
+
 describe('MockUserService', () => {
   let service: MockUserService;
 

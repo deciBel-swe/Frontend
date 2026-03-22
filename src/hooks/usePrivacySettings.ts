@@ -1,41 +1,69 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
 import { privacyService } from '@/services';
 import type { UpdatePrivacySettingsDto } from '@/types/privacy';
 
-const PRIVACY_QUERY_KEY = ['privacySettings'];
-
 export function usePrivacySettings() {
-  const queryClient = useQueryClient();
+  const [settings, setSettings] = useState<Awaited<
+    ReturnType<typeof privacyService.getPrivacySettings>
+  > | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const {
-    data: settings,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: PRIVACY_QUERY_KEY,
-    queryFn: () => privacyService.getPrivacySettings(),
-  });
+  useEffect(() => {
+    let isCancelled = false;
 
-  const { mutate: updateSetting, isPending: isUpdating } = useMutation({
-    mutationFn: (data: UpdatePrivacySettingsDto) =>
-      privacyService.updatePrivacySettings(data),
-    // Optimistic update
-    onMutate: async (newData) => {
-      await queryClient.cancelQueries({ queryKey: PRIVACY_QUERY_KEY });
-      const previous = queryClient.getQueryData(PRIVACY_QUERY_KEY);
-      queryClient.setQueryData(PRIVACY_QUERY_KEY, (old: typeof settings) => ({
-        ...old,
-        ...newData,
-      }));
-      return { previous };
-    },
-    onError: (_err, _newData, context) => {
-      queryClient.setQueryData(PRIVACY_QUERY_KEY, context?.previous);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: PRIVACY_QUERY_KEY });
-    },
-  });
+    const fetchSettings = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        const data = await privacyService.getPrivacySettings();
+        if (!isCancelled) {
+          setSettings(data);
+        }
+      } catch {
+        if (!isCancelled) {
+          setIsError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchSettings();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const updateSetting = useCallback(async (data: UpdatePrivacySettingsDto) => {
+    setIsUpdating(true);
+    setIsError(false);
+
+    const previous = settings;
+    if (previous) {
+      setSettings({
+        ...previous,
+        ...data,
+      });
+    }
+
+    try {
+      const updated = await privacyService.updatePrivacySettings(data);
+      setSettings(updated);
+    } catch {
+      if (previous) {
+        setSettings(previous);
+      }
+      setIsError(true);
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [settings]);
 
   return {
     settings,

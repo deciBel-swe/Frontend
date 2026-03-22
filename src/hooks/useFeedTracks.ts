@@ -1,5 +1,5 @@
-import { useUserTracks } from '@/hooks/useUserTracks';
-import { generateWaveform } from '@/utils/waveform';
+import { useEffect, useState } from 'react';
+import { trackService } from '@/services';
 
 /**
  * useFeedTracks
@@ -15,57 +15,60 @@ import { generateWaveform } from '@/utils/waveform';
  * const { feedTracks, isLoading, isError } = useFeedTracks();
  */
 export function useFeedTracks() {
-  const { tracks, isLoading, isError } = useUserTracks(7);
+  const [tracks, setTracks] = useState<Awaited<
+    ReturnType<typeof trackService.getAllTracks>
+  >>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
-  const parseWaveform = (value: string | undefined, fallbackId: number) => {
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchTracks = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        const data = await trackService.getAllTracks();
+        if (!isCancelled) {
+          setTracks(data);
+        }
+      } catch {
+        if (!isCancelled) {
+          setIsError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchTracks();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const parseWaveform = (value: string | undefined): number[] => {
     if (!value || value.trim().length === 0) {
-      return generateWaveform(fallbackId);
+      return [];
     }
 
     try {
       const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        const numeric = parsed
-          .map((entry) => Number(entry))
-          .filter((entry) => Number.isFinite(entry))
-          .map((entry) => Math.max(0, Math.min(1, entry)))
-          .map((entry) => Math.pow(entry, 0.5));
-
-        if (numeric.length === 0) {
-          return generateWaveform(fallbackId);
-        }
-
-        const targetCount = 200;
-        if (numeric.length === targetCount) {
-          return numeric;
-        }
-
-        if (numeric.length < targetCount) {
-          const lastIndex = numeric.length - 1;
-          return Array.from({ length: targetCount }, (_, index) => {
-            const t = (index / (targetCount - 1)) * lastIndex;
-            const left = Math.floor(t);
-            const right = Math.min(lastIndex, left + 1);
-            const weight = t - left;
-            return numeric[left] * (1 - weight) + numeric[right] * weight;
-          });
-        }
-
-        const step = numeric.length / targetCount;
-        return Array.from({ length: targetCount }, (_, index) => {
-          const start = Math.floor(index * step);
-          const end = Math.floor((index + 1) * step);
-          const slice = numeric.slice(start, Math.max(start + 1, end));
-          const avg =
-            slice.reduce((sum, value) => sum + value, 0) / slice.length;
-          return avg;
-        });
+      if (!Array.isArray(parsed)) {
+        return [];
       }
-    } catch {
-      // Fall back to deterministic placeholder waveform.
-    }
 
-    return generateWaveform(fallbackId);
+      return parsed
+        .map((entry) => Number(entry))
+        .filter((entry) => Number.isFinite(entry))
+        .map((entry) => Math.max(0, Math.min(1, entry)));
+    } catch {
+      return [];
+    }
   };
 
   const feedTracks = tracks.map((track) => {
@@ -86,7 +89,7 @@ export function useFeedTracks() {
         cover: track.coverUrl,
         duration: '',
       },
-      waveform: parseWaveform(track.waveformData, track.id),
+      waveform: parseWaveform(track.waveformData),
     };
   });
 

@@ -1,5 +1,10 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
-import { getAllMockAuthAccounts } from './mockAuthUsersStore';
+import {
+  getMockUsersStore,
+  resolveCurrentMockUserId,
+  syncAuthAccountsToMockUsers,
+  type MockUserRecord,
+} from './mockSystemStore';
 import type {
   AddNewEmailRequest,
   FollowResponse,
@@ -9,7 +14,6 @@ import type {
   PaginatedTracksResponse,
   PrivateSocialLinks,
   ResetLoggedInPasswordRequest,
-  SearchPlaylist,
   SearchUser,
   UpdateImagesJsonRequest,
   UpdateImagesResponse,
@@ -25,46 +29,7 @@ import type {
   UsersSuggestedResponse,
 } from '@/types/user';
 
-type MockRole = 'LISTENER' | 'ARTIST' | 'OTHER';
-type MockTier = 'FREE' | 'ARTIST' | 'ARTIST_PRO' | 'LISTENER' | 'OTHER';
-
-type MockUserRecord = {
-  id: number;
-  username: string;
-  email: string;
-  emailVerified: boolean;
-  role: MockRole;
-  tier: MockTier;
-  profile: {
-    bio: string;
-    city: string;
-    country: string;
-    profilePic: string;
-    coverPic: string;
-    favoriteGenres: string[];
-  };
-  socialLinks: {
-    instagram: string;
-    website: string;
-    supportLink: string;
-    twitter: string;
-  };
-  privacySettings: {
-    isPrivate: boolean;
-    showHistory: boolean;
-  };
-  followers: Set<number>;
-  following: Set<number>;
-  blocked: Set<number>;
-  playlists: SearchPlaylist[];
-  tracks: Array<{ id: number; title: string; genre: string }>;
-  history: Array<{ id: number; title: string }>;
-  additionalEmails: string[];
-};
-
 const MOCK_DELAY_MS = 120;
-const CURRENT_USER_ID = 1;
-const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -89,187 +54,14 @@ const paginate = <T>(items: T[], params?: PaginationParams) => {
   };
 };
 
-const buildSeedUsers = (): MockUserRecord[] => [
-  {
-    id: 1,
-    username: 'mockuser',
-    email: 'mockuser@email.com',
-    emailVerified: true,
-    role: 'ARTIST',
-    tier: 'ARTIST',
-    profile: {
-      bio: 'This is my profile.',
-      city: '6 October',
-      country: 'Egypt',
-      profilePic: 'https://i.ibb.co/SD1pMkyy/GRgo-Ocga-YAIm6-TF.jpg',
-      coverPic: 'https://i.ibb.co/r2ZssgJZ/sl-063022-51250-12.jpg',
-      favoriteGenres: ['Pop', 'Rock'],
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/mockuser',
-      website: 'https://decibel.foo',
-      supportLink: 'https://support.mockuser.com',
-      twitter: 'https://twitter.com/mockuser',
-    },
-    privacySettings: {
-      isPrivate: false,
-      showHistory: true,
-    },
-    followers: new Set([2]),
-    following: new Set([2]),
-    blocked: new Set(),
-    playlists: [
-      { id: 1001, title: 'Late Night Mix' },
-      { id: 1002, title: 'Studio Drafts' },
-    ],
-    tracks: [
-      { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
-      { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
-      { id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' },
-    ],
-    history: [
-      { id: 301, title: 'Morning Focus' },
-      { id: 302, title: 'Night Ride' },
-      { id: 303, title: 'Cloud Room Sessions' },
-    ],
-    additionalEmails: [],
-  },
-  {
-    id: 2,
-    username: 'listenertwo',
-    email: 'listenertwo@email.com',
-    emailVerified: true,
-    role: 'LISTENER',
-    tier: 'FREE',
-    profile: {
-      bio: 'Curates chill playlists.',
-      city: 'Alexandria',
-      country: 'Egypt',
-      profilePic: 'https://picsum.photos/seed/listener/400/400',
-      coverPic: 'https://picsum.photos/seed/listener-cover/1200/400',
-      favoriteGenres: ['Lo-Fi', 'Ambient'],
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/listenertwo',
-      website: 'https://listener.example.com',
-      supportLink: 'https://listener.example.com/support',
-      twitter: 'https://twitter.com/listenertwo',
-    },
-    privacySettings: {
-      isPrivate: false,
-      showHistory: true,
-    },
-    followers: new Set([1]),
-    following: new Set([1]),
-    blocked: new Set(),
-    playlists: [{ id: 1003, title: 'Study Session' }],
-    tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
-    history: [{ id: 304, title: 'Dawn Drifts' }],
-    additionalEmails: [],
-  },
-  {
-    id: 3,
-    username: 'beatpilot',
-    email: 'beatpilot@email.com',
-    emailVerified: false,
-    role: 'ARTIST',
-    tier: 'ARTIST_PRO',
-    profile: {
-      bio: 'Produces club tracks.',
-      city: 'Cairo',
-      country: 'Egypt',
-      profilePic: 'https://picsum.photos/seed/beatpilot/400/400',
-      coverPic: 'https://picsum.photos/seed/beatpilot-cover/1200/400',
-      favoriteGenres: ['House', 'Techno'],
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/beatpilot',
-      website: 'https://beatpilot.example.com',
-      supportLink: 'https://beatpilot.example.com/support',
-      twitter: 'https://twitter.com/beatpilot',
-    },
-    privacySettings: {
-      isPrivate: false,
-      showHistory: true,
-    },
-    followers: new Set(),
-    following: new Set(),
-    blocked: new Set(),
-    playlists: [{ id: 1004, title: 'Warehouse Cuts' }],
-    tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
-    history: [{ id: 305, title: 'Peak Hour' }],
-    additionalEmails: [],
-  },
-];
-
-const inMemoryUsers = buildSeedUsers();
+const inMemoryUsers = getMockUsersStore();
 
 const syncAuthAccountsToUserStore = (): void => {
-  for (const account of getAllMockAuthAccounts()) {
-    const existing = inMemoryUsers.find((user) => user.email === account.email);
-    if (existing) {
-      existing.username = account.username;
-      existing.emailVerified = account.emailVerified;
-      existing.tier = account.tier;
-      continue;
-    }
-
-    inMemoryUsers.push({
-      id: account.id,
-      username: account.username,
-      email: account.email,
-      emailVerified: account.emailVerified,
-      role: 'LISTENER',
-      tier: account.tier,
-      profile: {
-        bio: '',
-        city: '',
-        country: '',
-        profilePic: '',
-        coverPic: '',
-        favoriteGenres: [],
-      },
-      socialLinks: {
-        instagram: '',
-        website: '',
-        supportLink: '',
-        twitter: '',
-      },
-      privacySettings: {
-        isPrivate: false,
-        showHistory: true,
-      },
-      followers: new Set(),
-      following: new Set(),
-      blocked: new Set(),
-      playlists: [],
-      tracks: [],
-      history: [],
-      additionalEmails: [],
-    });
-  }
+  syncAuthAccountsToMockUsers();
 };
 
 const resolveCurrentUserId = (): number => {
-  if (typeof window === 'undefined') {
-    return CURRENT_USER_ID;
-  }
-
-  try {
-    const rawUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
-    if (!rawUser) {
-      return CURRENT_USER_ID;
-    }
-
-    const parsed = JSON.parse(rawUser) as { id?: unknown };
-    if (typeof parsed.id === 'number' && Number.isFinite(parsed.id)) {
-      return parsed.id;
-    }
-  } catch {
-    return CURRENT_USER_ID;
-  }
-
-  return CURRENT_USER_ID;
+  return resolveCurrentMockUserId();
 };
 
 const getCurrentUser = (): MockUserRecord => {
