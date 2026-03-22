@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { IconButton } from '@/components/buttons/IconButton';
 import {
   ShareIcon,
   EditIcon,

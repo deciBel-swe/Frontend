@@ -1,9 +1,6 @@
 'use client';
 
 import React from 'react';
-import TrackRow from '@/components/sidebar/TrackRow';
-import SidebarArtistCard from '@/components/sidebar/SidebarArtistCard';
-import Link from 'next/link';
 import ListOfArtistCards from './ListOfArtistCards';
 import ListOfTrackRows from './ListOfTrackRows'
 

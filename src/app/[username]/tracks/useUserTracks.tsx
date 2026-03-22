@@ -43,6 +43,7 @@ export default function Page() {
                     avatar: 'https://i.pravatar.cc/100',
                   }}
                   track={{
+                    id: t.id,
                     artist: t.artist.username,
                     title: t.title,
                     cover: t.coverUrl,

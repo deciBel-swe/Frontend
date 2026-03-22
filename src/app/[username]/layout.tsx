@@ -2,7 +2,6 @@ import ProfileHeader from '@/features/prof/components/ProfileHeader';
 import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
 import MidBar from '@/features/prof/components/MidBar';
 import LayoutContainer from '@/components/LayoutContainer'
-import ProfileNav from '@/components/ProfileNav'
 const Layout = async ({
   children,
   params,
