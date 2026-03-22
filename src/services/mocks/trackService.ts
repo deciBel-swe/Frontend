@@ -49,6 +49,7 @@ const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   waveformData: track.waveformData,
   genre: track.genre,
   tags: [...track.tags],
+  description: track.description ?? '',
 });
 
 const readTracks = (): MockTrackRecord[] => {
@@ -379,6 +380,7 @@ export class MockTrackService implements TrackService {
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
+    const removeCover = getOptionalBooleanField(formData, 'removeCover');
     const coverImageEntry = formData.get('coverImage');
     const coverImageDataUrl =
       coverImageEntry instanceof File
@@ -389,6 +391,13 @@ export class MockTrackService implements TrackService {
     const nextSecretLink = nextIsPrivate
       ? (current.secretLink ?? createSecretToken())
       : current.secretLink;
+
+    const nextCoverUrl = removeCover
+      ? buildCoverUrl(trackId)
+      : coverImageDataUrl ?? current.coverUrl;
+    const nextCoverImageDataUrl = removeCover
+      ? undefined
+      : coverImageDataUrl ?? current.coverImageDataUrl;
 
     const updated: MockTrackRecord = {
       ...current,
@@ -402,8 +411,8 @@ export class MockTrackService implements TrackService {
         : current.artist,
       isPrivate: nextIsPrivate,
       secretLink: nextSecretLink,
-      coverUrl: coverImageDataUrl ?? current.coverUrl,
-      coverImageDataUrl: coverImageDataUrl ?? current.coverImageDataUrl,
+      coverUrl: nextCoverUrl,
+      coverImageDataUrl: nextCoverImageDataUrl,
     };
 
     tracks[index] = updated;

@@ -91,6 +91,7 @@ const normalizeTrackMetadata = (
     waveformUrl: toAbsoluteUrl(payload.waveformUrl, DEFAULT_WAVEFORM_PATH),
     genre: payload.genre,
     tags: payload.tags,
+    description: payload.description ?? '',
   };
 };
 

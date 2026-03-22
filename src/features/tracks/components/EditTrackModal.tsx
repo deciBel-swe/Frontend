@@ -49,6 +49,7 @@ export default function EditTrackModal({
     track.cover ?? null
   );
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
+  const [artworkRemoved, setArtworkRemoved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
@@ -79,6 +80,7 @@ export default function EditTrackModal({
       setPrivacyTouched(false);
       setArtworkPreview(track.cover ?? null);
       setArtworkFile(null);
+      setArtworkRemoved(false);
       setSaveError('');
     };
 
@@ -103,6 +105,7 @@ export default function EditTrackModal({
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
         setArtworkPreview(data.coverUrl ?? null);
+        setArtworkRemoved(false);
       } catch (err) {
         console.error('Failed to load track metadata:', err);
         if (!isCancelled) {
@@ -134,6 +137,7 @@ export default function EditTrackModal({
     }
 
     setArtworkFile(file);
+    setArtworkRemoved(false);
     const reader = new FileReader();
     reader.onload = () => {
       setArtworkPreview(reader.result as string);
@@ -144,6 +148,7 @@ export default function EditTrackModal({
   const removeArtwork = () => {
     setArtworkFile(null);
     setArtworkPreview(null);
+    setArtworkRemoved(true);
   };
 
   const handleSave = async () => {
@@ -164,6 +169,9 @@ export default function EditTrackModal({
       const formData = new FormData();
       if (artworkFile) {
         formData.append('coverImage', artworkFile);
+      }
+      if (!artworkFile && artworkRemoved) {
+        formData.append('removeCover', 'true');
       }
       formData.append('title', trimmedTitle);
 
