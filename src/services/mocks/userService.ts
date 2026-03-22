@@ -195,7 +195,6 @@ export class MockUserService implements UserService {
         ...payload.socialLinks,
       };
     }
-
     commitMockUserState();
 
     return toUserMe(me);
