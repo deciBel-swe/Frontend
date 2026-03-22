@@ -109,6 +109,7 @@ export const trackMetadataSchema = z.object({
   waveformData: z.string().optional(), //this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
   genre: z.string(),
   tags: z.array(z.string()),
+  description: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
 

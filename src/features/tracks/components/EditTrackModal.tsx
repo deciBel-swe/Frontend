@@ -59,32 +59,78 @@ export default function EditTrackModal({
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  const [metaError, setMetaError] = useState('');
 
   const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
   const trackLinkPrefix = useMemo(() => {
-    const username = user?.username ?? track.artist ?? 'user';
+    const username = user?.username ?? artist ?? track.artist ?? 'user';
     return `${normalizedDomainName}/${username}`;
-  }, [normalizedDomainName, track.artist, user?.username]);
+  }, [artist, normalizedDomainName, track.artist, user?.username]);
 
   useEffect(() => {
     if (!open) return;
-    setActiveTab('basic');
-    setTitle(track.title);
-    setArtist(track.artist);
-    setTrackLinkSuffix(toTrackSlug(track.title));
-    setTrackLinkEdited(false);
-    setGenre('');
-    setTags([]);
-    setDescription('');
-    setDescriptionTouched(false);
-    setReleaseDate('');
-    setReleaseDateTouched(false);
-    setPrivacy('public');
-    setPrivacyTouched(false);
-    setArtworkPreview(track.cover ?? null);
-    setArtworkFile(null);
-    setSaveError('');
-  }, [open, track.artist, track.cover, track.title]);
+
+    let isCancelled = false;
+
+    const resetFormState = () => {
+      setActiveTab('basic');
+      setTitle(track.title);
+      setArtist(track.artist);
+      setTrackLinkSuffix(toTrackSlug(track.title));
+      setTrackLinkEdited(false);
+      setGenre('');
+      setTags([]);
+      setDescription('');
+      setDescriptionTouched(false);
+      setReleaseDate('');
+      setReleaseDateTouched(false);
+      setPrivacy('public');
+      setPrivacyTouched(false);
+      setArtworkPreview(track.cover ?? null);
+      setArtworkFile(null);
+      setSaveError('');
+    };
+
+    const loadTrack = async () => {
+      resetFormState();
+      setIsLoadingMeta(true);
+      setMetaError('');
+
+      try {
+        const data = await trackService.getTrackMetadata(trackId);
+        if (isCancelled) return;
+
+        const artistName =
+          typeof data.artist === 'string'
+            ? data.artist
+            : data.artist.username;
+
+        setTitle(data.title);
+        setArtist(artistName);
+        setTrackLinkSuffix(toTrackSlug(data.title));
+        setGenre(data.genre ?? '');
+        setTags(data.tags ?? []);
+        setDescription(data.description ?? '');
+        setArtworkPreview(data.coverUrl ?? null);
+      } catch (err) {
+        console.error('Failed to load track metadata:', err);
+        if (!isCancelled) {
+          setMetaError('Unable to load track details. Please try again.');
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingMeta(false);
+        }
+      }
+    };
+
+    void loadTrack();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [open, track.cover, track.artist, track.title, trackId]);
 
   useEffect(() => {
     if (trackLinkEdited) return;
@@ -245,7 +291,7 @@ export default function EditTrackModal({
                       </span>
                     ) : null}
                     {isActive ? (
-                      <span className="absolute left-0 right-0 -bottom-px h-[2px] bg-text-primary" />
+                      <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-text-primary" />
                     ) : null}
                   </button>
                 );
@@ -271,6 +317,11 @@ export default function EditTrackModal({
                 </div>
 
                 <div className="max-w-xl">
+                  {isLoadingMeta ? (
+                    <p className="mb-3 text-xs text-text-muted">
+                      Loading track details...
+                    </p>
+                  ) : null}
                   <form className="space-y-4 text-sm">
                     <TrackTextField
                       label="Title"
@@ -343,7 +394,11 @@ export default function EditTrackModal({
           {/* Footer */}
           <div className="flex items-center justify-between px-5 py-4 border-t border-border-default">
             <span className="text-[11px] text-text-muted">
-              {saveError.length > 0 ? saveError : '* Required fields'}
+              {saveError.length > 0
+                ? saveError
+                : metaError.length > 0
+                  ? metaError
+                  : '* Required fields'}
             </span>
             <div className="flex items-center gap-2">
               <Button variant="ghost" onClick={onClose}>
@@ -352,7 +407,7 @@ export default function EditTrackModal({
               <Button
                 variant="secondary"
                 onClick={handleSave}
-                disabled={isSaving}
+                disabled={isSaving || isLoadingMeta}
               >
                 {isSaving ? 'Saving...' : 'Save changes'}
               </Button>
