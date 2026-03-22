@@ -31,18 +31,18 @@ export const useSignInSubmit = ({
   setFieldErrors,
   setSubmitError,
   login,
-  onSuccess
+  onSuccess,
 }: UseSignInSubmitParams) => {
   /**
    * Hook for handling sign-in form submission
    *
-    * Validates form data and attempts user authentication.
-    * Handles validation errors and authentication failures gracefully.
+   * Validates form data and attempts user authentication.
+   * Handles validation errors and authentication failures gracefully.
    *
    * Flow:
    * 1. Validates email and password against schema
-    * 2. Calls login function with credentials
-    * 3. Sets appropriate errors if any step fails
+   * 2. Calls login function with credentials
+   * 3. Sets appropriate errors if any step fails
    *
    * @hook
    * @param {UseSignInSubmitParams} params - Hook parameters
@@ -50,7 +50,7 @@ export const useSignInSubmit = ({
    * @returns {(event: FormEvent<HTMLFormElement>) => Promise<void>} handleSubmit - Form submission handler
    *
    * @example
-    * const { handleSubmit } = useSignInSubmit({ formValues, login, ... });
+   * const { handleSubmit } = useSignInSubmit({ formValues, login, ... });
    * <form onSubmit={handleSubmit}>
    *   // form fields
    * </form>
@@ -67,7 +67,6 @@ export const useSignInSubmit = ({
 
       setFieldErrors({});
       setSubmitError('');
-
 
       try {
         await login(parsedValues.data.email, parsedValues.data.password);

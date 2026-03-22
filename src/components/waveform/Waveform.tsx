@@ -117,7 +117,10 @@ export default function Waveform({
   }, [waveform, height, containerWidth]);
 
   return (
-    <div ref={containerRef} className={`w-full overflow-hidden ${className ?? ''}`}>
+    <div
+      ref={containerRef}
+      className={`w-full overflow-hidden ${className ?? ''}`}
+    >
       {loading ? (
         <div className="text-xs text-text-muted">Generating waveform...</div>
       ) : error ? (

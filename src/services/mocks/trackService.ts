@@ -209,7 +209,11 @@ export class MockTrackService implements TrackService {
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
         const sessionArtist = getSessionArtist();
-        const artistName = getStringField(formData, 'artist', sessionArtist?.username ?? 'mockartist');
+        const artistName = getStringField(
+          formData,
+          'artist',
+          sessionArtist?.username ?? 'mockartist'
+        );
         const artistId = sessionArtist?.id ?? 7;
 
         const finalizeUpload = async () => {
@@ -241,8 +245,13 @@ export class MockTrackService implements TrackService {
           const updated = [uploaded, ...tracks];
           writeTracks(updated);
 
-          const uploader = getMockUsersStore().find((user) => user.id === artistId);
-          if (uploader && !uploader.tracks.some((track) => track.id === uploaded.id)) {
+          const uploader = getMockUsersStore().find(
+            (user) => user.id === artistId
+          );
+          if (
+            uploader &&
+            !uploader.tracks.some((track) => track.id === uploaded.id)
+          ) {
             uploader.tracks.unshift({
               id: uploaded.id,
               title: uploaded.title,

@@ -26,9 +26,8 @@ export const usePublicUser = (username: string) => {
       setIsError(false);
 
       try {
-        const result = await userService.getPublicUserByUsername(
-          normalizedUsername
-        );
+        const result =
+          await userService.getPublicUserByUsername(normalizedUsername);
         if (!isCancelled) {
           setData(result);
         }

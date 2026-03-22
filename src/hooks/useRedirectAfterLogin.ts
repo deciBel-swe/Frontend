@@ -41,7 +41,8 @@ export const useRedirectAfterLogin = (): void => {
 
     const currentPath = window.location.pathname;
     const destination =
-      new URLSearchParams(window.location.search).get('redirect') ?? ROUTES.DISCOVER;
+      new URLSearchParams(window.location.search).get('redirect') ??
+      ROUTES.DISCOVER;
 
     // Avoid redundant replaces when already on the target page.
     const destinationPath = destination.split('?')[0].split('#')[0] || '/';

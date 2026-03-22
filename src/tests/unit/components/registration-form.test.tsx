@@ -16,8 +16,7 @@ jest.mock('@/hooks/UseReCaptcha', () => ({
 jest.mock('@/services', () => ({
   authService: {
     registerLocal: (...args: unknown[]) => mockRegisterLocal(...args),
-    resendVerification: (...args: unknown[]) =>
-      mockResendVerification(...args),
+    resendVerification: (...args: unknown[]) => mockResendVerification(...args),
     requestEmailVerification: (...args: unknown[]) =>
       mockResendVerification(...args),
   },
@@ -84,7 +83,9 @@ const fillValidRegistrationForm = async (
 
 describe('RegisterationForm', () => {
   beforeEach(() => {
-    mockRegisterLocal.mockReset().mockResolvedValue('User Generated successfully');
+    mockRegisterLocal
+      .mockReset()
+      .mockResolvedValue('User Generated successfully');
     mockResendVerification.mockReset().mockResolvedValue({ success: true });
     mockGetRecaptchaToken.mockReset().mockResolvedValue({
       success: true,

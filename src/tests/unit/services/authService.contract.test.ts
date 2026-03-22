@@ -351,5 +351,4 @@ describe('AuthService contract parity', () => {
 
     jest.useRealTimers();
   });
-
 });

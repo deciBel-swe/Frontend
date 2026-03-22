@@ -40,30 +40,33 @@ export function usePrivacySettings() {
     };
   }, []);
 
-  const updateSetting = useCallback(async (data: UpdatePrivacySettingsDto) => {
-    setIsUpdating(true);
-    setIsError(false);
+  const updateSetting = useCallback(
+    async (data: UpdatePrivacySettingsDto) => {
+      setIsUpdating(true);
+      setIsError(false);
 
-    const previous = settings;
-    if (previous) {
-      setSettings({
-        ...previous,
-        ...data,
-      });
-    }
-
-    try {
-      const updated = await privacyService.updatePrivacySettings(data);
-      setSettings(updated);
-    } catch {
+      const previous = settings;
       if (previous) {
-        setSettings(previous);
+        setSettings({
+          ...previous,
+          ...data,
+        });
       }
-      setIsError(true);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [settings]);
+
+      try {
+        const updated = await privacyService.updatePrivacySettings(data);
+        setSettings(updated);
+      } catch {
+        if (previous) {
+          setSettings(previous);
+        }
+        setIsError(true);
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [settings]
+  );
 
   return {
     settings,

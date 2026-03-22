@@ -60,30 +60,33 @@ export function useTrackVisibility(trackId: number | undefined) {
     };
   }, [trackId]);
 
-  const updateVisibility = useCallback(async (data: UpdateTrackVisibilityDto) => {
-    if (!trackId) {
-      return;
-    }
+  const updateVisibility = useCallback(
+    async (data: UpdateTrackVisibilityDto) => {
+      if (!trackId) {
+        return;
+      }
 
-    setIsUpdating(true);
-    setIsError(false);
+      setIsUpdating(true);
+      setIsError(false);
 
-    const previous = visibility;
-    setVisibility((old) => ({
-      ...(old ?? { isPrivate: false }),
-      ...data,
-    }));
+      const previous = visibility;
+      setVisibility((old) => ({
+        ...(old ?? { isPrivate: false }),
+        ...data,
+      }));
 
-    try {
-      const updated = await trackService.updateTrackVisibility(trackId, data);
-      setVisibility(updated);
-    } catch {
-      setVisibility(previous);
-      setIsError(true);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [trackId, visibility]);
+      try {
+        const updated = await trackService.updateTrackVisibility(trackId, data);
+        setVisibility(updated);
+      } catch {
+        setVisibility(previous);
+        setIsError(true);
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [trackId, visibility]
+  );
 
   return { visibility, isLoading, isError, isUpdating, updateVisibility };
 }

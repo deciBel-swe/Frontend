@@ -139,7 +139,8 @@ const extractGoogleIdentity = (
         username: normalizeUsername(
           (parsed.username || parsed.name || email.split('@')[0] || '').trim()
         ),
-        avatarUrl: (parsed.picture || parsed.avatarUrl || '').trim() || undefined,
+        avatarUrl:
+          (parsed.picture || parsed.avatarUrl || '').trim() || undefined,
       };
     }
   } catch {
@@ -166,14 +167,13 @@ const extractGoogleIdentity = (
 // ================================
 
 export class MockAuthService implements AuthService {
-  async registerLocal(
-    payload: RegisterLocalPayload
-  ): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
     await delay();
 
     createMockAuthAccount({
       email: payload.email,
-      username: payload.username.trim() || payload.email.split('@')[0] || 'user',
+      username:
+        payload.username.trim() || payload.email.split('@')[0] || 'user',
       password: await sha256Hex(payload.password),
       emailVerified: true,
       tier: 'FREE',

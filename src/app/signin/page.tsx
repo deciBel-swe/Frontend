@@ -2,7 +2,6 @@
 
 import SignInForm from '@/features/auth/components/Forms/SignInForm';
 import { useRedirectAfterLogin } from '@/hooks';
-import { ReCaptchaProvider } from '@/providers/ReCaptchaProvider';
 import { useEffect, useState } from 'react';
 
 /**

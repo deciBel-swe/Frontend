@@ -15,9 +15,9 @@ import { trackService } from '@/services';
  * const { feedTracks, isLoading, isError } = useFeedTracks();
  */
 export function useFeedTracks() {
-  const [tracks, setTracks] = useState<Awaited<
-    ReturnType<typeof trackService.getAllTracks>
-  >>([]);
+  const [tracks, setTracks] = useState<
+    Awaited<ReturnType<typeof trackService.getAllTracks>>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 

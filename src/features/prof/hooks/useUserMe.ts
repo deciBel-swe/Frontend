@@ -20,16 +20,16 @@ export const useUserMe = () => {
       setIsError(false);
 
       try {
-      const session = await authService.getSession();
+        const session = await authService.getSession();
 
-      if (!session?.accessToken) {
+        if (!session?.accessToken) {
           if (!isCancelled) {
             setUser(null);
           }
           return;
-      }
+        }
 
-      const me = await userService.getUserMe();
+        const me = await userService.getUserMe();
         if (!isCancelled) {
           setUser(me ?? null);
         }

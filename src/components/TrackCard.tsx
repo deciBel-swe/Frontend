@@ -110,7 +110,11 @@ export default function TrackCard({
 
           {/* 2. WAVEFORM */}
           <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0">
-            <Waveform data={waveform} height={90} barClassName="bg-text-muted hover:bg-brand-primary" />
+            <Waveform
+              data={waveform}
+              height={90}
+              barClassName="bg-text-muted hover:bg-brand-primary"
+            />
           </div>
 
           {/* 3. ACTIONS */}

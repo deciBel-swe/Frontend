@@ -9,10 +9,7 @@ import type {
 import { API_CONTRACTS } from '@/types/apiContracts';
 import { sha256Hex } from '@/utils/sha256';
 
-export type RegisterLocalPayload = Omit<
-  RegisterLocalRequestDTO,
-  'deviceInfo'
->;
+export type RegisterLocalPayload = Omit<RegisterLocalRequestDTO, 'deviceInfo'>;
 /**
  * Auth service contract.
  * Both real and mock implementations must satisfy this interface.
@@ -44,7 +41,6 @@ export interface AuthService {
 
   /** Verify email token (POST /auth/verify-email). */
   verifyEmail(token: string): Promise<{ success: boolean }>;
-
 
   /** Backward-compatible alias for resendVerification. */
   requestEmailVerification(email: string): Promise<{ success: boolean }>;
@@ -101,9 +97,7 @@ export class RealAuthService implements AuthService {
     return response;
   }
 
-  async registerLocal(
-    payload: RegisterLocalPayload
-  ): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
     const hashedPassword = await sha256Hex(payload.password);
 
     return apiRequest(API_CONTRACTS.AUTH_REGISTER_LOCAL, {
@@ -167,9 +161,7 @@ export class RealAuthService implements AuthService {
     this.clearSession();
   }
 
-  async resendVerification(
-    email: string
-  ): Promise<{ success: boolean }> {
+  async resendVerification(email: string): Promise<{ success: boolean }> {
     await apiClient.request({
       baseURL: '',
       method: 'POST',
@@ -191,10 +183,7 @@ export class RealAuthService implements AuthService {
     return { success: true };
   }
 
-
-  async requestEmailVerification(
-    email: string
-  ): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
     return this.resendVerification(email);
   }
 

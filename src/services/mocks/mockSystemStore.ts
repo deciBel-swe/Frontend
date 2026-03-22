@@ -111,7 +111,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 1,
     email: 'mockuser@email.com',
     username: 'mockuser',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'ARTIST',
   },
@@ -119,7 +120,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 2,
     email: 'listenertwo@email.com',
     username: 'listenertwo',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'FREE',
   },
@@ -127,7 +129,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 3,
     email: 'beatpilot@email.com',
     username: 'beatpilot',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: false,
     tier: 'ARTIST_PRO',
   },
@@ -135,7 +138,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 7,
     email: 'artist@decibel.test',
     username: 'mockartist',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'ARTIST',
   },
@@ -143,7 +147,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 5,
     email: 'listener@decibel.test',
     username: 'mocklistener',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'FREE',
   },
@@ -151,7 +156,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 9,
     email: 'nightlistener@decibel.test',
     username: 'nightlistener',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'FREE',
   },
@@ -159,7 +165,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 12,
     email: 'guestproducer@decibel.test',
     username: 'guestproducer',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'ARTIST',
   },
@@ -167,7 +174,8 @@ const seedAccounts: MockAuthAccount[] = [
     id: 15,
     email: 'soundpilot@decibel.test',
     username: 'soundpilot',
-    password: '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
+    password:
+      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
     emailVerified: true,
     tier: 'ARTIST',
   },
@@ -308,8 +316,8 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: '/tracks/102',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-102/640/640',
     waveformUrl: '/mock/waveforms/102.json',
-        waveformData:
-        '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08,0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14]',
+    waveformData:
+      '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08,0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14]',
     genre: 'Lo-Fi',
     tags: ['chill', 'study'],
     isPrivate: true,
@@ -323,7 +331,7 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: '/tracks/103',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-103/640/640',
     waveformUrl: '/mock/waveforms/103.json',
-waveformData:
+    waveformData:
       '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'House',
     tags: ['club', 'warmup'],
@@ -337,7 +345,7 @@ waveformData:
     trackUrl: '/tracks/104',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-104/640/640',
     waveformUrl: '/mock/waveforms/104.json',
-waveformData:
+    waveformData:
       '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'Ambient',
     tags: ['meditation', 'sleep'],
@@ -352,7 +360,7 @@ waveformData:
     trackUrl: '/tracks/105',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-105/640/640',
     waveformUrl: '/mock/waveforms/105.json',
-waveformData:
+    waveformData:
       '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'Breakbeat',
     tags: ['drums', 'vinyl'],
@@ -587,12 +595,16 @@ export const createMockAuthAccount = (params: {
   const current = getMockSystemState();
 
   if (current.authAccountsByEmail.has(normalizedEmail)) {
-    throw new Error('Email already registered. Please use a different email address.');
+    throw new Error(
+      'Email already registered. Please use a different email address.'
+    );
   }
 
   const existingByUsername = getMockAuthAccountByUsername(normalizedUsername);
   if (existingByUsername) {
-    throw new Error('Username already exists. Please choose a different username.');
+    throw new Error(
+      'Username already exists. Please choose a different username.'
+    );
   }
 
   const account: MockAuthAccount = {
@@ -619,7 +631,10 @@ export const upsertMockAuthAccount = (params: {
   tier?: LoginUserDTO['tier'];
 }): MockAuthAccount => {
   const normalizedEmail = normalizeEmail(params.email);
-  const resolvedUsername = buildAvailableUsername(params.username, normalizedEmail);
+  const resolvedUsername = buildAvailableUsername(
+    params.username,
+    normalizedEmail
+  );
   const existing = getMockAuthAccountByEmail(normalizedEmail);
 
   if (existing) {

@@ -79,15 +79,8 @@ export const useRegistrationSubmit = ({
       setIsSubmitting(true);
 
       try {
-        const {
-          email,
-          password,
-          displayName,
-          month,
-          day,
-          year,
-          gender,
-        } = parsedValues.data;
+        const { email, password, displayName, month, day, year, gender } =
+          parsedValues.data;
 
         const recaptchaResult = await getRecaptchaToken('register_local');
         if (!recaptchaResult.success) {

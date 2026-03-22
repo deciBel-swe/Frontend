@@ -14,9 +14,9 @@ type UseUserTracksParams = {
  * pagination/filtering once real page logic is finalized.
  */
 export function useUserTracks(params: UseUserTracksParams) {
-  const [tracks, setTracks] = useState<Awaited<
-    ReturnType<typeof trackService.getUserTracks>
-  >>([]);
+  const [tracks, setTracks] = useState<
+    Awaited<ReturnType<typeof trackService.getUserTracks>>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -32,9 +32,8 @@ export function useUserTracks(params: UseUserTracksParams) {
         const normalizedUsername = params.username?.trim() ?? '';
 
         if (!resolvedUserId && normalizedUsername.length > 0) {
-          const publicUser = await userService.getPublicUserByUsername(
-            normalizedUsername
-          );
+          const publicUser =
+            await userService.getPublicUserByUsername(normalizedUsername);
           resolvedUserId = publicUser.id;
         }
 

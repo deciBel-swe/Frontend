@@ -197,5 +197,4 @@ describe('RealAuthService', () => {
     expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
   });
-
 });

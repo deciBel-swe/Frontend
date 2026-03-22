@@ -53,11 +53,7 @@ export default function TrackList({ userId, username }: TrackListProps) {
   }
 
   if (tracks.length === 0) {
-    return (
-      <p className="text-text-muted text-sm">
-        No tracks published yet.
-      </p>
-    );
+    return <p className="text-text-muted text-sm">No tracks published yet.</p>;
   }
 
   return (

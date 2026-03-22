@@ -17,7 +17,9 @@ export class MockPrivacyService implements PrivacyService {
   private _getCurrentUserPrivacy(): PrivacySettings {
     syncAuthAccountsToMockUsers();
     const currentUserId = resolveCurrentMockUserId();
-    const user = getMockUsersStore().find((entry) => entry.id === currentUserId);
+    const user = getMockUsersStore().find(
+      (entry) => entry.id === currentUserId
+    );
 
     if (!user) {
       return { isPrivate: false, showHistory: true };
