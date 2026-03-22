@@ -3,7 +3,7 @@
 import SignInForm from '@/features/auth/components/Forms/SignInForm';
 import { useRedirectAfterLogin } from '@/hooks';
 import { useEffect, useState } from 'react';
-
+import { ReCaptchaProvider } from '@/providers/ReCaptchaProvider'
 /**
  * Sign In Page (Route: /signin)
  *
@@ -35,7 +35,9 @@ export default function Page() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="flex flex-center flex-col items-center h-fit justify-center bg-bg-base border border-text-on-brand px-1.5 py-5">
+        <ReCaptchaProvider>
         {isMounted && <SignInForm />}
+        </ReCaptchaProvider>
       </div>
     </div>
   );
