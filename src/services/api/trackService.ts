@@ -6,6 +6,7 @@ import type {
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
+  TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
 } from '@/types/tracks';
@@ -28,6 +29,9 @@ export interface TrackService {
 
   /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
   getUserTracks(userID: number): Promise<TrackMetaData[]>;
+
+  /** Update track metadata (PATCH /tracks/:trackId) */
+  updateTrack(trackId: number, formData: FormData): Promise<TrackUpdateResponse>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -120,6 +124,18 @@ export class RealTrackService implements TrackService {
       normalizeTrackMetadata(track.id, track)
     );
     return tracks.filter((track) => track.artist.id === userId);
+  }
+
+  async updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse> {
+    return apiRequest(API_CONTRACTS.TRACKS_UPDATE(trackId), {
+      payload: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

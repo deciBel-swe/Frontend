@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '@/hooks';
 import { config } from '@/config';
+import { trackService } from '@/services';
+import { useQueryClient } from '@tanstack/react-query';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { toTrackSlug } from '@/types/uploadSchema';
 import Button from '@/components/buttons/Button';
@@ -18,6 +20,7 @@ import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/Track
 type EditTrackModalProps = {
   open: boolean;
   onClose: () => void;
+  trackId: number;
   track: {
     title: string;
     artist: string;
@@ -30,9 +33,11 @@ type EditTab = 'basic' | 'metadata' | 'permissions' | 'advanced';
 export default function EditTrackModal({
   open,
   onClose,
+  trackId,
   track,
 }: EditTrackModalProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<EditTab>('basic');
   const [title, setTitle] = useState(track.title);
   const [artist, setArtist] = useState(track.artist);
@@ -43,11 +48,17 @@ export default function EditTrackModal({
   const [genre, setGenre] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
+  const [descriptionTouched, setDescriptionTouched] = useState(false);
+  const [releaseDate, setReleaseDate] = useState('');
+  const [releaseDateTouched, setReleaseDateTouched] = useState(false);
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
+  const [privacyTouched, setPrivacyTouched] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
     track.cover ?? null
   );
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
   const trackLinkPrefix = useMemo(() => {
@@ -65,9 +76,14 @@ export default function EditTrackModal({
     setGenre('');
     setTags([]);
     setDescription('');
+    setDescriptionTouched(false);
+    setReleaseDate('');
+    setReleaseDateTouched(false);
     setPrivacy('public');
+    setPrivacyTouched(false);
     setArtworkPreview(track.cover ?? null);
     setArtworkFile(null);
+    setSaveError('');
   }, [open, track.artist, track.cover, track.title]);
 
   useEffect(() => {
@@ -92,6 +108,75 @@ export default function EditTrackModal({
   const removeArtwork = () => {
     setArtworkFile(null);
     setArtworkPreview(null);
+  };
+
+  const handleSave = async () => {
+    if (isSaving) return;
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length === 0) {
+      setSaveError('Title is required.');
+      return;
+    }
+
+    if (
+      releaseDateTouched &&
+      releaseDate.trim().length > 0 &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(releaseDate.trim())
+    ) {
+      setSaveError('Release date must be YYYY-MM-DD.');
+      return;
+    }
+
+    setSaveError('');
+    setIsSaving(true);
+
+    try {
+      const formData = new FormData();
+      if (artworkFile) {
+        formData.append('coverImage', artworkFile);
+      }
+      formData.append('title', trimmedTitle);
+
+      const trimmedArtist = artist.trim();
+      if (trimmedArtist.length > 0) {
+        formData.append('artist', trimmedArtist);
+      }
+
+      const trimmedGenre = genre.trim();
+      if (trimmedGenre.length > 0) {
+        formData.append('genre', trimmedGenre);
+      }
+
+      const normalizedTags = tags
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+      if (normalizedTags.length > 0) {
+        formData.append('tags', JSON.stringify(normalizedTags));
+      }
+
+      if (descriptionTouched) {
+        formData.append('description', description.trim());
+      }
+
+      if (releaseDateTouched && releaseDate.trim().length > 0) {
+        formData.append('releaseDate', releaseDate.trim());
+      }
+
+      if (privacyTouched) {
+        formData.append('isPrivate', String(privacy === 'private'));
+      }
+
+      await trackService.updateTrack(trackId, formData);
+      await queryClient.invalidateQueries({
+        queryKey: ['userTracks', user?.id ?? 7],
+      });
+      onClose();
+    } catch (err) {
+      console.error('Track update error:', err);
+      setSaveError('Unable to save changes. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -210,10 +295,30 @@ export default function EditTrackModal({
 
                     <TrackDescriptionField
                       value={description}
-                      onChange={setDescription}
+                      onChange={(next) => {
+                        setDescriptionTouched(true);
+                        setDescription(next);
+                      }}
                     />
 
-                    <TrackPrivacy value={privacy} onChange={setPrivacy} />
+                    <TrackTextField
+                      label="Release date"
+                      value={releaseDate}
+                      onChange={(next) => {
+                        setReleaseDateTouched(true);
+                        setReleaseDate(next);
+                      }}
+                      tooltipTitle="Release date"
+                      tooltipText="Use YYYY-MM-DD format."
+                    />
+
+                    <TrackPrivacy
+                      value={privacy}
+                      onChange={(next) => {
+                        setPrivacyTouched(true);
+                        setPrivacy(next);
+                      }}
+                    />
                   </form>
                 </div>
               </div>
@@ -228,12 +333,20 @@ export default function EditTrackModal({
 
           {/* Footer */}
           <div className="flex items-center justify-between px-5 py-4 border-t border-border-default">
-            <span className="text-[11px] text-text-muted">* Required fields</span>
+            <span className="text-[11px] text-text-muted">
+              {saveError.length > 0 ? saveError : '* Required fields'}
+            </span>
             <div className="flex items-center gap-2">
               <Button variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
-              <Button variant="secondary">Save changes</Button>
+              <Button
+                variant="secondary"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save changes'}
+              </Button>
             </div>
           </div>
         </div>

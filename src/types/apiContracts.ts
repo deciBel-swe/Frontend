@@ -306,6 +306,13 @@ export const API_CONTRACTS = {
       responseSchema: trackDetailsResponseSchema,
     }),
 
+  TRACKS_UPDATE: (trackId: number) =>
+    defineContract<FormData, z.infer<typeof trackUpdateResponseSchema>>({
+      method: 'PATCH',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      responseSchema: trackUpdateResponseSchema,
+    }),
+
   TRACKS_UPDATE_VISIBILITY: (trackId: number) =>
     defineContract({
       method: 'PATCH',

@@ -4,6 +4,7 @@ import type { UploadTrackResponse } from '@/types';
 import type {
   SecretLink,
   TrackMetaData,
+  TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
 } from '@/types/tracks';
@@ -22,6 +23,8 @@ type MockTrackRecord = {
   waveformData: string;
   genre: string;
   tags: string[];
+  description?: string;
+  releaseDate: string;
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
@@ -75,6 +78,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
       '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
     genre: 'Electronic',
     tags: ['synthwave', 'night-drive'],
+    releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 214,
   },
@@ -88,6 +92,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Lo-Fi',
     tags: ['chill', 'study'],
+    releaseDate: '2025-11-02',
     isPrivate: true,
     durationSeconds: 182,
     secretLink: 'c8n2x3ya',
@@ -102,6 +107,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'House',
     tags: ['club', 'warmup'],
+    releaseDate: '2025-09-18',
     isPrivate: false,
     durationSeconds: 256,
   },
@@ -115,6 +121,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Ambient',
     tags: ['meditation', 'sleep'],
+    releaseDate: '2025-08-01',
     isPrivate: true,
     durationSeconds: 301,
     secretLink: 'f4m0qt9b',
@@ -129,6 +136,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Breakbeat',
     tags: ['drums', 'vinyl'],
+    releaseDate: '2025-07-12',
     isPrivate: false,
     durationSeconds: 199,
   },
@@ -142,6 +150,7 @@ const createSeedTracks = (): MockTrackRecord[] => [
     waveformData: '[]',
     genre: 'Downtempo',
     tags: ['sunrise', 'focus'],
+    releaseDate: '2025-06-03',
     isPrivate: false,
     durationSeconds: 238,
   },
@@ -182,6 +191,12 @@ const normalizeTrackRecord = (value: unknown): MockTrackRecord | null => {
     tags: Array.isArray(raw.tags)
       ? raw.tags.filter((tag): tag is string => typeof tag === 'string')
       : [],
+    description:
+      typeof raw.description === 'string' ? raw.description : undefined,
+    releaseDate:
+      typeof raw.releaseDate === 'string' && raw.releaseDate.trim().length > 0
+        ? raw.releaseDate
+        : new Date().toISOString().slice(0, 10),
     isPrivate: Boolean(raw.isPrivate),
     durationSeconds: raw.durationSeconds ?? 180,
     secretLink: typeof raw.secretLink === 'string' ? raw.secretLink : undefined,
@@ -260,9 +275,55 @@ const getStringField = (
   return trimmed.length > 0 ? trimmed : fallback;
 };
 
+const getOptionalStringField = (
+  formData: FormData,
+  key: string,
+  options?: { allowEmpty?: boolean }
+): string | undefined => {
+  if (!formData.has(key)) {
+    return undefined;
+  }
+
+  const value = formData.get(key);
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0 && !options?.allowEmpty) {
+    return undefined;
+  }
+
+  return trimmed;
+};
+
 const getBooleanField = (formData: FormData, key: string): boolean => {
   const value = formData.get(key);
   return typeof value === 'string' && value.toLowerCase() === 'true';
+};
+
+const getOptionalBooleanField = (
+  formData: FormData,
+  key: string
+): boolean | undefined => {
+  if (!formData.has(key)) {
+    return undefined;
+  }
+
+  const value = formData.get(key);
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  if (normalized === 'true') {
+    return true;
+  }
+  if (normalized === 'false') {
+    return false;
+  }
+
+  return undefined;
 };
 
 const getTagsField = (formData: FormData): string[] => {
@@ -296,6 +357,14 @@ const getTagsField = (formData: FormData): string[] => {
     .forEach((tag) => unique.add(tag));
 
   return [...unique];
+};
+
+const getOptionalTagsField = (formData: FormData): string[] | undefined => {
+  const entries = formData.getAll('tags');
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return getTagsField(formData);
 };
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -387,8 +456,14 @@ export class MockTrackService implements TrackService {
 
         const title = getStringField(formData, 'title', `Untitled ${nextId}`);
         const genre = getStringField(formData, 'genre', 'Electronic');
+        const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
+        const releaseDate = getStringField(
+          formData,
+          'releaseDate',
+          new Date().toISOString().slice(0, 10)
+        );
         const artistName = getStringField(
           formData,
           'artist',
@@ -415,7 +490,9 @@ export class MockTrackService implements TrackService {
             waveformUrl: buildWaveformUrl(nextId),
             waveformData: waveformJson,
             genre,
+            description,
             tags,
+            releaseDate,
             isPrivate,
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
@@ -451,6 +528,70 @@ export class MockTrackService implements TrackService {
     const filteredTracks = tracks.filter((track) => track.artist.id === userId);
 
     return filteredTracks.map(toMetadata);
+  }
+
+  async updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse> {
+    await delay();
+
+    const tracks = readTracks();
+    const index = tracks.findIndex((track) => track.id === trackId);
+    if (index < 0) {
+      throw new Error('Track not found');
+    }
+
+    const current = tracks[index];
+    const title = getOptionalStringField(formData, 'title');
+    const genre = getOptionalStringField(formData, 'genre');
+    const description = getOptionalStringField(formData, 'description', {
+      allowEmpty: true,
+    });
+    const releaseDate = getOptionalStringField(formData, 'releaseDate');
+    const tags = getOptionalTagsField(formData);
+    const artistName = getOptionalStringField(formData, 'artist');
+    const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
+    const coverImageEntry = formData.get('coverImage');
+    const coverImageDataUrl =
+      coverImageEntry instanceof File
+        ? await readFileAsDataUrl(coverImageEntry)
+        : undefined;
+
+    const nextIsPrivate = isPrivate ?? current.isPrivate;
+    const nextSecretLink = nextIsPrivate
+      ? (current.secretLink ?? createSecretToken())
+      : current.secretLink;
+
+    const updated: MockTrackRecord = {
+      ...current,
+      title: title ?? current.title,
+      genre: genre ?? current.genre,
+      tags: tags ?? current.tags,
+      description: description !== undefined ? description : current.description,
+      releaseDate: releaseDate ?? current.releaseDate,
+      artist: artistName
+        ? { ...current.artist, username: artistName }
+        : current.artist,
+      isPrivate: nextIsPrivate,
+      secretLink: nextSecretLink,
+      coverUrl: coverImageDataUrl ?? current.coverUrl,
+      coverImageDataUrl: coverImageDataUrl ?? current.coverImageDataUrl,
+    };
+
+    tracks[index] = updated;
+    writeTracks(tracks);
+
+    return {
+      id: updated.id,
+      coverUrl: updated.coverUrl,
+      title: updated.title,
+      genre: updated.genre,
+      description: updated.description ?? '',
+      isPrivate: updated.isPrivate,
+      tags: [...updated.tags],
+      releaseDate: updated.releaseDate,
+    };
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {
