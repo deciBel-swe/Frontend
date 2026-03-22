@@ -1,7 +1,7 @@
 import ProfileHeader from '@/features/prof/components/ProfileHeader';
 import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
 import MidBar from '@/features/prof/components/MidBar';
-
+import LayoutContainer from '@/components/LayoutContainer'
 const Layout = async ({
   children,
   params,
@@ -12,17 +12,25 @@ const Layout = async ({
   const { username } = await params;
 
   return (
-    <div>
-      <div>
-        <ProfileHeader username={username} />
-      </div>
-      <MidBar username={username} />
-      <div className="flex w-full mt-6 px-8">
-        <div className="flex-1">{children}</div>
-        <div className="w-[340px] ml-10">
-          <ProfileSideBar username={username} />
+      <div className="w-full">
+      {/* HEADER */}
+      <ProfileHeader username={username} />
+
+      {/* CONTENT AREA */}
+      <LayoutContainer>
+        <MidBar username={username} />
+
+        <div className="flex w-full mt-6 gap-6">
+          {/* ✅ THIS LINE FIXES YOUR WHOLE PROBLEM */}
+          <div className="flex-1 min-w-0">
+            {children}
+          </div>
+
+          <div className="w-[340px] hidden lg:block shrink-0">
+            <ProfileSideBar username={username} />
+          </div>
         </div>
-      </div>
+      </LayoutContainer>
     </div>
   );
 };
