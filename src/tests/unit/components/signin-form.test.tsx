@@ -4,18 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { ROUTES } from '@/constants/routes';
 import SignInForm from '@/features/auth/components/Forms/SignInForm';
 
-const mockVerifyReCaptcha = jest.fn();
 const mockLogin = jest.fn();
 const mockHandleGoogleLogin = jest.fn();
 const mockLoginWithGoogle = jest.fn();
 const mockLogout = jest.fn();
 let mockIsLoading = false;
-
-jest.mock('@/hooks/UseReCaptcha', () => ({
-  useReCaptcha: () => ({
-    verifyReCaptcha: mockVerifyReCaptcha,
-  }),
-}));
 
 jest.mock('@/features/auth', () => {
   const actual =
@@ -57,7 +50,6 @@ const getPasswordInput = (container: HTMLElement) => {
 describe('SignInForm', () => {
   beforeEach(() => {
     mockIsLoading = false;
-    mockVerifyReCaptcha.mockReset().mockResolvedValue({ success: true });
     mockLogin.mockReset().mockResolvedValue(undefined);
     mockHandleGoogleLogin.mockReset();
     mockLoginWithGoogle.mockReset();
@@ -77,11 +69,10 @@ describe('SignInForm', () => {
     expect(
       await screen.findByText('Password is required.')
     ).toBeInTheDocument();
-    expect(mockVerifyReCaptcha).not.toHaveBeenCalled();
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
-  it('submits valid credentials after passing recaptcha', async () => {
+  it('submits valid credentials', async () => {
     const user = userEvent.setup();
     const { container } = render(<SignInForm />);
 
@@ -90,31 +81,11 @@ describe('SignInForm', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     await waitFor(() => {
-      expect(mockVerifyReCaptcha).toHaveBeenCalledWith('signin');
       expect(mockLogin).toHaveBeenCalledWith(
         'artist@decibel.test',
         'Password1'
       );
     });
-  });
-
-  it('shows recaptcha errors and blocks login calls when verification fails', async () => {
-    mockVerifyReCaptcha.mockResolvedValue({
-      success: false,
-      error: 'Captcha verification failed.',
-    });
-
-    const user = userEvent.setup();
-    const { container } = render(<SignInForm />);
-
-    await user.type(getEmailInput(container), 'artist@decibel.test');
-    await user.type(getPasswordInput(container), 'Password1');
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
-
-    expect(
-      await screen.findByText('Captcha verification failed.')
-    ).toBeInTheDocument();
-    expect(mockLogin).not.toHaveBeenCalled();
   });
 
   it('shows a generic credential error when login throws', async () => {

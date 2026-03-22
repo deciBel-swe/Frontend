@@ -1,4 +1,5 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
+import { getAllMockAuthAccounts } from './mockAuthUsersStore';
 import type {
   AddNewEmailRequest,
   FollowResponse,
@@ -63,6 +64,7 @@ type MockUserRecord = {
 
 const MOCK_DELAY_MS = 120;
 const CURRENT_USER_ID = 1;
+const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -202,8 +204,78 @@ const buildSeedUsers = (): MockUserRecord[] => [
 
 const inMemoryUsers = buildSeedUsers();
 
+const syncAuthAccountsToUserStore = (): void => {
+  for (const account of getAllMockAuthAccounts()) {
+    const existing = inMemoryUsers.find((user) => user.email === account.email);
+    if (existing) {
+      existing.username = account.username;
+      existing.emailVerified = account.emailVerified;
+      existing.tier = account.tier;
+      continue;
+    }
+
+    inMemoryUsers.push({
+      id: account.id,
+      username: account.username,
+      email: account.email,
+      emailVerified: account.emailVerified,
+      role: 'LISTENER',
+      tier: account.tier,
+      profile: {
+        bio: '',
+        city: '',
+        country: '',
+        profilePic: '',
+        coverPic: '',
+        favoriteGenres: [],
+      },
+      socialLinks: {
+        instagram: '',
+        website: '',
+        supportLink: '',
+        twitter: '',
+      },
+      privacySettings: {
+        isPrivate: false,
+        showHistory: true,
+      },
+      followers: new Set(),
+      following: new Set(),
+      blocked: new Set(),
+      playlists: [],
+      tracks: [],
+      history: [],
+      additionalEmails: [],
+    });
+  }
+};
+
+const resolveCurrentUserId = (): number => {
+  if (typeof window === 'undefined') {
+    return CURRENT_USER_ID;
+  }
+
+  try {
+    const rawUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+    if (!rawUser) {
+      return CURRENT_USER_ID;
+    }
+
+    const parsed = JSON.parse(rawUser) as { id?: unknown };
+    if (typeof parsed.id === 'number' && Number.isFinite(parsed.id)) {
+      return parsed.id;
+    }
+  } catch {
+    return CURRENT_USER_ID;
+  }
+
+  return CURRENT_USER_ID;
+};
+
 const getCurrentUser = (): MockUserRecord => {
-  const current = inMemoryUsers.find((user) => user.id === CURRENT_USER_ID);
+  syncAuthAccountsToUserStore();
+  const currentUserId = resolveCurrentUserId();
+  const current = inMemoryUsers.find((user) => user.id === currentUserId);
   if (!current) {
     throw new Error('Current user not found');
   }
@@ -211,6 +283,7 @@ const getCurrentUser = (): MockUserRecord => {
 };
 
 const findUser = (userId: number): MockUserRecord => {
+  syncAuthAccountsToUserStore();
   const user = inMemoryUsers.find((user) => user.id === userId);
   if (!user) {
     throw new Error('User not found');
@@ -288,12 +361,14 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
 export class MockUserService implements UserService {
   async getPublicUserById(userId: number): Promise<UserPublic> {
     await delay();
+    syncAuthAccountsToUserStore();
     const user = findUser(userId);
     return toUserPublic(user);
   }
 
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
     await delay();
+    syncAuthAccountsToUserStore();
     const user = inMemoryUsers.find((u) => u.username === username);
     if (!user) {
       throw new Error('User not found');

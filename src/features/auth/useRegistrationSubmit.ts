@@ -4,12 +4,21 @@ import { useCallback } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 
 import { useReCaptcha } from '@/hooks/UseReCaptcha';
+import { authService } from '@/services';
 import {
   getSchemaFieldErrors,
   registrationSchema,
   type FieldErrors,
   type RegistrationFormValues,
 } from '@/types/authSchemas';
+
+const toIsoDate = (year: string, month: string, day: string): string => {
+  const monthIndex = new Date(`${month} 1, 2000`).getMonth() + 1;
+  const safeMonth = Number.isNaN(monthIndex) ? 1 : monthIndex;
+  const safeDay = Number.parseInt(day, 10) || 1;
+
+  return `${year}-${String(safeMonth).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
+};
 
 /**
  * Parameters for the useRegistrationSubmit hook
@@ -35,13 +44,13 @@ export const useRegistrationSubmit = ({
   setIsSubmitting,
   onSuccess,
 }: UseRegistrationSubmitParams) => {
-  const { verifyReCaptcha } = useReCaptcha();
+  const { getRecaptchaToken } = useReCaptcha();
 
   /**
    * Hook for handling registration form submission
    *
-   * Validates form data, performs reCAPTCHA verification, and processes user registration.
-   * Handles validation errors, reCAPTCHA failures, and submission errors gracefully.
+   * Validates form data, registers the user, and triggers verification email flow.
+   * Handles validation errors and submission errors gracefully.
    *
    * @hook
    * @param {UseRegistrationSubmitParams} params - Hook parameters
@@ -70,7 +79,17 @@ export const useRegistrationSubmit = ({
       setIsSubmitting(true);
 
       try {
-        const recaptchaResult = await verifyReCaptcha('submit_form');
+        const {
+          email,
+          password,
+          displayName,
+          month,
+          day,
+          year,
+          gender,
+        } = parsedValues.data;
+
+        const recaptchaResult = await getRecaptchaToken('register_local');
         if (!recaptchaResult.success) {
           setSubmitError(
             recaptchaResult.error ||
@@ -79,28 +98,29 @@ export const useRegistrationSubmit = ({
           return;
         }
 
-        const { email, displayName, month, day, year, gender } =
-          parsedValues.data;
+        if (!recaptchaResult.token) {
+          setSubmitError('ReCaptcha token is missing. Please try again.');
+          return;
+        }
 
-        const userData = {
+        await authService.registerLocal({
           email,
-          profile: {
-            displayName,
-            dateOfBirth: {
-              month,
-              day,
-              year,
-            },
-            gender,
-          },
-          registrationDate: new Date().toISOString(),
-          ageVerified: true,
-        };
-        console.log('Email verification requested for:', userData);
+          username: displayName,
+          password,
+          dateOfBirth: toIsoDate(year, month, day),
+          gender,
+          captchaToken: recaptchaResult.token,
+        });
+
+        await authService.resendVerification(email);
         onSuccess();
       } catch (error) {
         console.error('Registration submit failed:', error);
-        setSubmitError('Failed to submit registration. Please try again.');
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to submit registration. Please try again.';
+        setSubmitError(message);
       } finally {
         setIsSubmitting(false);
       }
@@ -111,7 +131,7 @@ export const useRegistrationSubmit = ({
       setFieldErrors,
       setIsSubmitting,
       setSubmitError,
-      verifyReCaptcha,
+      getRecaptchaToken,
     ]
   );
 

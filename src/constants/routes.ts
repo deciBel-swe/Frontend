@@ -112,8 +112,7 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/auth/reset-password',
     GOOGLE_TRIGGER: '/oauth2/authorization/google',
     GOOGLE_OAUTH: '/auth/oauth/google',
-    VERIFY_RECAPTCHA: '/api/verify-recaptcha',
-    SEND_VERIFICATION: '/api/send-verification',
+    SEND_VERIFICATION: '/auth/verify-email',
   },
   USERS: {
     ME: '/users/me',

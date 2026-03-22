@@ -2,11 +2,19 @@ import { apiRequest } from '@/hooks/useAPI';
 import { RealUserService } from '@/services/api/userService';
 import { API_CONTRACTS } from '@/types/apiContracts';
 
+const MOCKED_PASSWORD_HASH = 'b'.repeat(64);
+
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
 }));
 
+jest.mock('@/utils/sha256', () => ({
+  sha256Hex: jest.fn(),
+}));
+
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
+const mockedSha256Hex = jest.requireMock('@/utils/sha256')
+  .sha256Hex as jest.MockedFunction<(value: string) => Promise<string>>;
 
 describe('RealUserService', () => {
   let service: RealUserService;
@@ -14,6 +22,7 @@ describe('RealUserService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new RealUserService();
+    mockedSha256Hex.mockResolvedValue(MOCKED_PASSWORD_HASH);
   });
 
   it('calls USERS_ME_RESET_PASSWORD with payload', async () => {
@@ -24,10 +33,11 @@ describe('RealUserService', () => {
     });
 
     expect(response).toEqual({ message: 'Password updated' });
+    expect(mockedSha256Hex).toHaveBeenCalledWith('pass123');
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.USERS_ME_RESET_PASSWORD,
       {
-        payload: { newPassword: 'pass123' },
+        payload: { newPassword: MOCKED_PASSWORD_HASH },
       }
     );
   });

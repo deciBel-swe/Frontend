@@ -1,5 +1,6 @@
 import { apiRequest, type ApiQueryParams } from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
+import { sha256Hex } from '@/utils/sha256';
 
 import type {
   AddNewEmailRequest,
@@ -162,8 +163,13 @@ export class RealUserService implements UserService {
   async resetLoggedInPassword(
     payload: ResetLoggedInPasswordRequest
   ): Promise<MessageResponse> {
+    const hashedNewPassword = await sha256Hex(payload.newPassword);
+
     return apiRequest(API_CONTRACTS.USERS_ME_RESET_PASSWORD, {
-      payload,
+      payload: {
+        ...payload,
+        newPassword: hashedNewPassword,
+      },
     });
   }
 

@@ -1,4 +1,5 @@
 import { MockUserService } from '@/services/mocks/userService';
+import { MockAuthService } from '@/services/mocks/authService';
 
 describe('MockUserService', () => {
   let service: MockUserService;
@@ -126,5 +127,34 @@ describe('MockUserService', () => {
     await flush();
     const tier = await tierPromise;
     expect(tier.tier).toBe('ARTIST_PRO');
+  });
+
+  it('uses logged-in mock session user as current user', async () => {
+    const auth = new MockAuthService();
+    const email = 'session.user@decibel.test';
+    const password = 'Password1';
+
+    const registerPromise = auth.registerLocal({
+      email,
+      username: 'session-user',
+      password,
+      dateOfBirth: '2001-01-01',
+      gender: 'female',
+      captchaToken: 'mock-captcha-token',
+    });
+    await flush(400);
+    await registerPromise;
+
+    const loginPromise = auth.login(email, password);
+    await flush(400);
+    const loginSession = await loginPromise;
+
+    const mePromise = service.getUserMe();
+    await flush();
+    const me = await mePromise;
+
+    expect(me.id).toBe(loginSession.user.id);
+    expect(me.email).toBe(email);
+    expect(me.username).toBe('session-user');
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ROUTES } from '@/constants/routes';
@@ -10,9 +10,9 @@ import { useAuth } from '@/features/auth';
  * useRedirectAfterLogin — redirects the user after a successful login.
  *
  * Reads the `?redirect=` query parameter set by middleware when an
- * unauthenticated user attempts to visit a protected route. On mount,
- * and whenever `isAuthenticated` becomes `true`, the user is sent to
- * that destination (or `/discover` if no redirect param is present).
+ * unauthenticated user attempts to visit a protected route. Only when
+ * `isAuthenticated` transitions from `false` to `true`, the user is sent
+ * to that destination (or `/discover` if no redirect param is present).
  *
  * This hook responds to `isAuthenticated` changing regardless of how
  * login occurred — email/password form, OAuth, or session restore on
@@ -30,9 +30,14 @@ import { useAuth } from '@/features/auth';
 export const useRedirectAfterLogin = (): void => {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const previousIsAuthenticated = useRef(isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    const becameAuthenticated =
+      previousIsAuthenticated.current === false && isAuthenticated === true;
+    previousIsAuthenticated.current = isAuthenticated;
+
+    if (!becameAuthenticated) return;
 
     const currentPath = window.location.pathname;
     const destination =
