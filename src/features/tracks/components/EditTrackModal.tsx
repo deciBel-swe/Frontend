@@ -49,8 +49,6 @@ export default function EditTrackModal({
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [descriptionTouched, setDescriptionTouched] = useState(false);
-  const [releaseDate, setReleaseDate] = useState('');
-  const [releaseDateTouched, setReleaseDateTouched] = useState(false);
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [privacyTouched, setPrivacyTouched] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
@@ -83,8 +81,6 @@ export default function EditTrackModal({
       setTags([]);
       setDescription('');
       setDescriptionTouched(false);
-      setReleaseDate('');
-      setReleaseDateTouched(false);
       setPrivacy('public');
       setPrivacyTouched(false);
       setArtworkPreview(track.cover ?? null);
@@ -167,16 +163,6 @@ export default function EditTrackModal({
       setSaveError('Title is required.');
       return;
     }
-
-    if (
-      releaseDateTouched &&
-      releaseDate.trim().length > 0 &&
-      !/^\d{4}-\d{2}-\d{2}$/.test(releaseDate.trim())
-    ) {
-      setSaveError('Release date must be YYYY-MM-DD.');
-      return;
-    }
-
     setSaveError('');
     setIsSaving(true);
 
@@ -206,10 +192,6 @@ export default function EditTrackModal({
 
       if (descriptionTouched) {
         formData.append('description', description.trim());
-      }
-
-      if (releaseDateTouched && releaseDate.trim().length > 0) {
-        formData.append('releaseDate', releaseDate.trim());
       }
 
       if (privacyTouched) {
@@ -361,16 +343,6 @@ export default function EditTrackModal({
                       }}
                     />
 
-                    <TrackTextField
-                      label="Release date"
-                      value={releaseDate}
-                      onChange={(next) => {
-                        setReleaseDateTouched(true);
-                        setReleaseDate(next);
-                      }}
-                      tooltipTitle="Release date"
-                      tooltipText="Use YYYY-MM-DD format."
-                    />
 
                     <TrackPrivacy
                       value={privacy}
