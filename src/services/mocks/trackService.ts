@@ -4,6 +4,7 @@ import type { UploadTrackResponse } from '@/types';
 import type {
   SecretLink,
   TrackMetaData,
+  TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
 } from '@/types/tracks';
@@ -79,9 +80,55 @@ const getStringField = (
   return trimmed.length > 0 ? trimmed : fallback;
 };
 
+const getOptionalStringField = (
+  formData: FormData,
+  key: string,
+  options?: { allowEmpty?: boolean }
+): string | undefined => {
+  if (!formData.has(key)) {
+    return undefined;
+  }
+
+  const value = formData.get(key);
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0 && !options?.allowEmpty) {
+    return undefined;
+  }
+
+  return trimmed;
+};
+
 const getBooleanField = (formData: FormData, key: string): boolean => {
   const value = formData.get(key);
   return typeof value === 'string' && value.toLowerCase() === 'true';
+};
+
+const getOptionalBooleanField = (
+  formData: FormData,
+  key: string
+): boolean | undefined => {
+  if (!formData.has(key)) {
+    return undefined;
+  }
+
+  const value = formData.get(key);
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  if (normalized === 'true') {
+    return true;
+  }
+  if (normalized === 'false') {
+    return false;
+  }
+
+  return undefined;
 };
 
 const getTagsField = (formData: FormData): string[] => {
@@ -115,6 +162,14 @@ const getTagsField = (formData: FormData): string[] => {
     .forEach((tag) => unique.add(tag));
 
   return [...unique];
+};
+
+const getOptionalTagsField = (formData: FormData): string[] | undefined => {
+  const entries = formData.getAll('tags');
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return getTagsField(formData);
 };
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -207,9 +262,15 @@ export class MockTrackService implements TrackService {
 
         const title = getStringField(formData, 'title', `Untitled ${nextId}`);
         const genre = getStringField(formData, 'genre', 'Electronic');
+        const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
         const sessionArtist = getSessionArtist();
+        const releaseDate = getStringField(
+          formData,
+          'releaseDate',
+          new Date().toISOString().slice(0, 10)
+        );
         const artistName = getStringField(
           formData,
           'artist',
@@ -237,7 +298,9 @@ export class MockTrackService implements TrackService {
             waveformUrl: buildWaveformUrl(nextId),
             waveformData: waveformJson,
             genre,
+            description,
             tags,
+            releaseDate,
             isPrivate,
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
@@ -293,6 +356,69 @@ export class MockTrackService implements TrackService {
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
     return readTracks().map(toMetadata);
+  }
+  async updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse> {
+    await delay();
+
+    const tracks = readTracks();
+    const index = tracks.findIndex((track) => track.id === trackId);
+    if (index < 0) {
+      throw new Error('Track not found');
+    }
+
+    const current = tracks[index];
+    const title = getOptionalStringField(formData, 'title');
+    const genre = getOptionalStringField(formData, 'genre');
+    const description = getOptionalStringField(formData, 'description', {
+      allowEmpty: true,
+    });
+    const releaseDate = getOptionalStringField(formData, 'releaseDate');
+    const tags = getOptionalTagsField(formData);
+    const artistName = getOptionalStringField(formData, 'artist');
+    const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
+    const coverImageEntry = formData.get('coverImage');
+    const coverImageDataUrl =
+      coverImageEntry instanceof File
+        ? await readFileAsDataUrl(coverImageEntry)
+        : undefined;
+
+    const nextIsPrivate = isPrivate ?? current.isPrivate;
+    const nextSecretLink = nextIsPrivate
+      ? (current.secretLink ?? createSecretToken())
+      : current.secretLink;
+
+    const updated: MockTrackRecord = {
+      ...current,
+      title: title ?? current.title,
+      genre: genre ?? current.genre,
+      tags: tags ?? current.tags,
+      description: description !== undefined ? description : current.description,
+      releaseDate: releaseDate ?? current.releaseDate,
+      artist: artistName
+        ? { ...current.artist, username: artistName }
+        : current.artist,
+      isPrivate: nextIsPrivate,
+      secretLink: nextSecretLink,
+      coverUrl: coverImageDataUrl ?? current.coverUrl,
+      coverImageDataUrl: coverImageDataUrl ?? current.coverImageDataUrl,
+    };
+
+    tracks[index] = updated;
+    writeTracks(tracks);
+
+    return {
+      id: updated.id,
+      coverUrl: updated.coverUrl,
+      title: updated.title,
+      genre: updated.genre,
+      description: updated.description ?? '',
+      isPrivate: updated.isPrivate,
+      tags: [...updated.tags],
+      releaseDate: updated.releaseDate,
+    };
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

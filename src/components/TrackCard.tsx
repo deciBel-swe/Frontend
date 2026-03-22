@@ -24,6 +24,7 @@ type TrackCardProps = {
   timeAgo?: string;
 
   track: {
+    id: number;
     artist: string;
     title: string;
     cover: string;
@@ -160,6 +161,7 @@ export default function TrackCard({
       <EditTrackModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
+        trackId={track.id}
         track={{ title: track.title, artist: track.artist, cover: track.cover }}
       />
     </div>

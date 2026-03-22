@@ -84,6 +84,7 @@ export function useFeedTracks() {
       postedText: 'posted a track' as const,
       timeAgo: '',
       track: {
+        id: track.id,
         artist: artistName,
         title: track.title,
         cover: track.coverUrl,
