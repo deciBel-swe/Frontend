@@ -112,6 +112,10 @@ export default function EditTrackModal({
 
   const handleSave = async () => {
     if (isSaving) return;
+    if (!Number.isFinite(trackId)) {
+      setSaveError('Track is missing an id.');
+      return;
+    }
     const trimmedTitle = title.trim();
     if (trimmedTitle.length === 0) {
       setSaveError('Title is required.');
@@ -170,6 +174,11 @@ export default function EditTrackModal({
       await queryClient.invalidateQueries({
         queryKey: ['userTracks', user?.id ?? 7],
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('track-updated', { detail: { trackId } })
+        );
+      }
       onClose();
     } catch (err) {
       console.error('Track update error:', err);

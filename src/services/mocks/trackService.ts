@@ -260,12 +260,12 @@ export class MockTrackService implements TrackService {
             ? Math.max(30, Math.min(1200, waveformSampleCount * 2))
             : 180;
 
+        const sessionArtist = getSessionArtist();
         const title = getStringField(formData, 'title', `Untitled ${nextId}`);
         const genre = getStringField(formData, 'genre', 'Electronic');
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
-        const sessionArtist = getSessionArtist();
         const releaseDate = getStringField(
           formData,
           'releaseDate',
