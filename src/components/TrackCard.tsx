@@ -93,14 +93,14 @@ export default function TrackCard({
 
             <div className="flex flex-col">
               <Link
-                href={`/system${userSlug}`}
+                href={`/${userSlug}`}
                 className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
               >
                 {track.artist}
               </Link>
 
               <Link
-                href={`/system${userSlug}/${trackSlug}`}
+                href={`${userSlug}/${trackSlug}`}
                 className="text-text-primary font-semibold inline-block hover:opacity-40"
               >
                 {track.title}
