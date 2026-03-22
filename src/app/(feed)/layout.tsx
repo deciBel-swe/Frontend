@@ -69,7 +69,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* ================= SIDEBAR ================= */}
         <div className="hidden lg:block xl:w-[340px] shrink-0 ">
-          <Sidebar artists={artists} history={history} />
+          <Sidebar History_header='Listening history' Artist_header='Artists you should follow' artists={artists} history={history} />
         </div>
       </div>
     </div>
