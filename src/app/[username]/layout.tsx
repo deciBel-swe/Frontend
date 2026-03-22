@@ -13,27 +13,21 @@ const Layout = async ({
   const { username } = await params;
 
   return (
-     <div className="w-full">
-      {/* HEADER now behaves like others */}
-      <LayoutContainer>
-        <div className="overflow-x-auto">
-          <ProfileHeader username={username} />
-        </div>
-      </LayoutContainer>
+      <div className="w-full">
+      {/* HEADER */}
+      <ProfileHeader username={username} />
 
-      {/* NAV */}
+      {/* CONTENT AREA */}
       <LayoutContainer>
-        <div className="overflow-x-wrap">
-          <MidBar username={username} />
-        </div>
-      </LayoutContainer>
+        <MidBar username={username} />
 
-      {/* CONTENT */}
-      <LayoutContainer>
         <div className="flex w-full mt-6 gap-6">
-          <div className="flex-1">{children}</div>
+          {/* ✅ THIS LINE FIXES YOUR WHOLE PROBLEM */}
+          <div className="flex-1 min-w-0">
+            {children}
+          </div>
 
-          <div className="w-[340px] hidden lg:block">
+          <div className="w-[340px] hidden lg:block shrink-0">
             <ProfileSideBar username={username} />
           </div>
         </div>

@@ -1,9 +1,9 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import { SocialList } from './SocialList';
 import StatsGroup from './StatsGroup';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
-import Sidebar from '@/components/sidebar/Sidebar';
 import ListOfArtistCards from '@/components/sidebar/ListOfArtistCards';
 import ListOfTrackRows from '@/components/sidebar/ListOfTrackRows';
 import { MockTrackService } from '@/services/mocks/trackService';
@@ -16,31 +16,24 @@ const trackService = new MockTrackService();
 
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   const { data } = usePublicUser(username);
-
   const [tracks, setTracks] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchTracks = async () => {
-      try {
-        // If your API gives user id → use it directly
-        if (!data?.id) return;
+      if (!data?.id) return;
 
-        const userTracks = await trackService.getUserTracks(data.id);
+      const userTracks = await trackService.getUserTracks(data.id);
 
-        // fallback safety if usernames mismatch
-        const filtered = userTracks.filter(
-          (track) => track.artist.username === username
-        );
+      const filtered = userTracks.filter(
+        (track) => track.artist.username === username
+      );
 
-        setTracks(filtered);
-      } catch (err) {
-        console.error(err);
-      }
+      setTracks(filtered);
     };
 
     fetchTracks();
   }, [data?.id, username]);
-  // Map tracks → HISTORY format
+
   const historyData = tracks.map((track) => ({
     image: track.coverUrl,
     artist: track.artist.username,
@@ -54,43 +47,67 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   }));
 
   const likes = historyData.length;
+
   return (
-    <>
-      <div className="flex flex-col gap-2 p-5">
+    <div
+      className="
+        w-full
+        flex flex-col
+        gap-6
+        text-sm
+      "
+    >
+      {/* TOP SECTION */}
+      <div
+        className="
+          flex flex-col
+          items-center
+          gap-3
+          p-4 sm:p-5
+          bg-[#121212]
+          rounded-lg
+        "
+      >
         <StatsGroup
           countTracks={data?.stats.trackCount || 0}
           countFollowers={data?.stats.followersCount || 0}
           countFollowing={data?.stats.followingCount || 0}
         />
 
-        <p>{data?.profile.bio}</p>
+        {data?.profile.bio && (
+          <p className="text-center text-gray-400 text-xs sm:text-sm">
+            {data.profile.bio}
+          </p>
+        )}
 
         <SocialList items={data?.socialLinks} />
       </div>
 
-      <div className="gap-6">
-        {/* HISTORY */}
-        <div className="mb-4">
-          <ListOfTrackRows
-          headerUrl='/[username]]likes'
-            History_header={`${likes} ${likes === 1 ? 'like' : 'likes'}`}
-            history={historyData}
-          />
-        </div>
-
-        {/* ARTISTS */}
-        <div>
-          <ListOfArtistCards
-            headerUrl=''
-            Artist_header="Fans also like"
-            artists={[
-              { name: 'mockartist', followers: 1200, tracks: 10 },
-              { name: 'guestproducer', followers: 540, tracks: 5 },
-            ]}
-          />
-        </div>
+      {/* HISTORY */}
+      <div
+        className="bg-[#121212] rounded-lg p-3 sm:p-4"
+      >
+        <ListOfTrackRows
+          headerUrl={`/${username}/likes`}
+          History_header={`${likes} ${likes === 1 ? 'like' : 'likes'}`}
+          history={historyData}
+        />
       </div>
-    </>
+
+      {/* ARTISTS */}
+      <div
+        className="bg-[#121212] rounded-lg p-3 sm:p-4"
+      >
+        <ListOfArtistCards
+          headerUrl='/feed#'
+          Artist_header="Fans also like"
+          artists={[
+            { name: 'mockartist', followers: 1200, tracks: 10 },
+            { name: 'guestproducer', followers: 540, tracks: 5 },
+          ]}
+        />
+      </div>
+    </div>
   );
 };
 

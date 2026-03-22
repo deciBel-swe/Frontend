@@ -11,6 +11,7 @@ import {
 import ProfileNav from './ProfileNav';
 // import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
+import Button from '@/components/buttons/Button';
 interface MidBarProps {
   username: string;
 }
@@ -31,45 +32,44 @@ const MidBar = ({ username }: MidBarProps) => {
   // there is problem in it I will just use dummy name for testing
   const isOwnProfile = 'mockuser' === username;
   return (
-       <div className="w-full flex flex-col gap-3 mt-2">
+       <div className="w-full flex items-center justify-between mt-3">
 
       {/* NAV */}
       <ProfileNav username={username} />
 
       {/* BUTTON ROW */}
-      <div className="flex justify-end items-center gap-2 flex-nowrap">
+      <div className="flex justify-end items-center w-full gap-0">
 
         {!isOwnProfile && (
-          <IconButton aria-label="message" className="shrink-0">
+          <Button aria-label="message" className="shrink-0">
             <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-700 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
               <MessageIcon />
             </span>
-          </IconButton>
+          </Button>
         )}
 
         {isOwnProfile && (
-          <IconButton
+          <Button
             aria-label="edit"
             className="shrink-0"
             onClick={() => setIsEditOpen(true)}
           >
-            <span className="flex items-center gap-1
-              bg-gray-300 dark:bg-gray-800 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+            <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-800 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
               <EditIcon />
               <span className="hidden sm:inline">edit</span>
             </span>
-          </IconButton>
+          </Button>
         )}
 
-        <IconButton aria-label="share" className="shrink-0">
+        <Button aria-label="share" className="shrink-0">
           <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-800 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
             <ShareIcon />
             <span className="hidden sm:inline">share</span>
           </span>
-        </IconButton>
+        </Button>
 
         {!isOwnProfile && (
-          <IconButton
+          <Button
             aria-label={isFollowing ? 'Following' : 'Follow'}
             className="shrink-0"
             onClick={() => setIsFollowing((p) => !p)}
@@ -80,7 +80,7 @@ const MidBar = ({ username }: MidBarProps) => {
                 {isFollowing ? 'Following' : 'Follow'}
               </span>
             </span>
-          </IconButton>
+          </Button>
         )}
 
       </div>
