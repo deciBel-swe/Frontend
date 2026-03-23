@@ -17,7 +17,7 @@ export const ShareIcon: FC = () => (
     width="20"
     height="20"
     fill="currentColor"
-    style={{ display: 'block', color: '#fff' }}
+    style={{ display: 'block' }}
   >
     <path
       d="M8 .94l3.03 3.03-1.06 1.06-1.22-1.22V10h-1.5V3.81L6.03 5.03 4.97 3.97 8 .94z"

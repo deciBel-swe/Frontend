@@ -22,14 +22,7 @@ export default function ProfileNav({ username }: ProfileNavProps) {
   return (
     <nav className="w-full bg-white dark:bg-[#121212] border-b border-gray-200 dark:border-white/10">
       <div
-        className="
-          flex items-center
-          gap-x-3 gap-y-2
-          sm:gap-x-5
-          md:gap-x-6
-          lg:gap-x-8
-        "
-      >
+        className="flex items-center gap-x-3 gap-y-2 sm:gap-x-5 md:gap-x-6 lg:gap-x-8">
         {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
 
