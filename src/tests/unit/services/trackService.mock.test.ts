@@ -76,6 +76,9 @@ describe('MockTrackService', () => {
     expect(persistedRaw).toBeTruthy();
     expect(persistedRaw).toContain('Service Upload Test');
 
+    // Simulate logged-in session as user 7 so getUserTracks shows private tracks
+    storage.set('decibel_mock_user', JSON.stringify({ id: 7, username: 'service-tester' }));
+
     const tracksPromise = service.getUserTracks(7);
     await advance(400);
     const tracks = await tracksPromise;
