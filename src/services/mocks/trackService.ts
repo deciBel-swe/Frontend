@@ -50,6 +50,7 @@ const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   genre: track.genre,
   tags: [...track.tags],
   description: track.description ?? '',
+  releaseDate: track.releaseDate,
 });
 
 const readTracks = (): MockTrackRecord[] => {

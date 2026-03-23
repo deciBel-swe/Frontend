@@ -31,6 +31,8 @@ const slugSchema = z
   .min(1, 'Track link is required')
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Track link must be a valid slug');
 
+const getTodayIsoDate = (): string => new Date().toISOString().slice(0, 10);
+
 export const uploadSchema = z.object({
   title: z
     .string()
@@ -81,6 +83,12 @@ export const uploadSchema = z.object({
       'Description contains invalid symbols'
     )
     .optional(),
+  releaseDate: z
+    .string()
+    .trim()
+    .min(1, 'Release date is required')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Release date must be YYYY-MM-DD')
+    .refine((value) => value <= getTodayIsoDate(), 'Release date cannot be in the future'),
   privacy: trackPrivacyValueSchema,
 });
 

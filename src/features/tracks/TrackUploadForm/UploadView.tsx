@@ -35,6 +35,7 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 
 export default function UploadView() {
   const { user } = useAuth();
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [titleError, setTitleError] = useState<string>('');
@@ -53,6 +54,8 @@ export default function UploadView() {
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -141,6 +144,7 @@ export default function UploadView() {
       genre,
       tags,
       description,
+      releaseDate,
       privacy,
     });
 
@@ -149,12 +153,14 @@ export default function UploadView() {
       setTitleError(fieldErrors.title?.[0] ?? '');
       setTrackLinkError(fieldErrors.trackLinkSuffix?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setTrackLinkError('');
     setGenreError('');
+    setReleaseDateError('');
 
     const formData = new FormData();
 
@@ -168,7 +174,7 @@ export default function UploadView() {
     formData.append('trackLinkSuffix', trackLinkSuffix);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
-    formData.append('releaseDate', new Date().toISOString().slice(0, 10));
+    formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
     }
@@ -224,6 +230,8 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
+    setReleaseDate(todayIsoDate);
+    setReleaseDateError('');
     setPrivacy('public');
     setArtworkFile(null);
     setArtworkPreview(null);
@@ -384,6 +392,16 @@ export default function UploadView() {
         onTagsChange={setTags}
         description={description}
         onDescriptionChange={setDescription}
+        releaseDate={releaseDate}
+        releaseDateError={releaseDateError}
+        onReleaseDateChange={(nextDate) => {
+          setReleaseDate(nextDate);
+          if (releaseDateError) {
+            setReleaseDateError('');
+          }
+        }}
+        releaseDateMax={todayIsoDate}
+        showReleaseDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />

@@ -33,6 +33,7 @@ export default function EditTrackModal({
 }: EditTrackModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [activeTab, setActiveTab] = useState<EditTab>('basic');
   const [title, setTitle] = useState(track.title);
   const [artist, setArtist] = useState(track.artist);
@@ -44,6 +45,8 @@ export default function EditTrackModal({
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [descriptionTouched, setDescriptionTouched] = useState(false);
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [privacyTouched, setPrivacyTouched] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
@@ -77,6 +80,8 @@ export default function EditTrackModal({
       setTags([]);
       setDescription('');
       setDescriptionTouched(false);
+      setReleaseDate(todayIsoDate);
+      setReleaseDateError('');
       setPrivacy('public');
       setPrivacyTouched(false);
       setArtworkPreview(track.cover ?? null);
@@ -105,6 +110,7 @@ export default function EditTrackModal({
         setGenre(data.genre ?? '');
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
+        setReleaseDate(data.releaseDate?.trim() || todayIsoDate);
         setArtworkPreview(data.coverUrl ?? null);
         setArtworkRemoved(false);
       } catch (err) {
@@ -169,7 +175,16 @@ export default function EditTrackModal({
       setSaveError('Title is required.');
       return;
     }
+    if (!releaseDate) {
+      setReleaseDateError('Release date is required.');
+      return;
+    }
+    if (releaseDate > todayIsoDate) {
+      setReleaseDateError('Release date cannot be in the future.');
+      return;
+    }
     setSaveError('');
+    setReleaseDateError('');
     setIsSaving(true);
 
     try {
@@ -202,6 +217,8 @@ export default function EditTrackModal({
       if (descriptionTouched) {
         formData.append('description', description.trim());
       }
+
+      formData.append('releaseDate', releaseDate);
 
       if (privacyTouched) {
         formData.append('isPrivate', String(privacy === 'private'));
@@ -327,6 +344,16 @@ export default function EditTrackModal({
                     setDescriptionTouched(true);
                     setDescription(next);
                   }}
+                  releaseDate={releaseDate}
+                  releaseDateError={releaseDateError}
+                  onReleaseDateChange={(nextDate) => {
+                    setReleaseDate(nextDate);
+                    if (releaseDateError) {
+                      setReleaseDateError('');
+                    }
+                  }}
+                  releaseDateMax={todayIsoDate}
+                  showReleaseDate
                   privacy={privacy}
                   onPrivacyChange={(next) => {
                     setPrivacyTouched(true);
