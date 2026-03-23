@@ -38,7 +38,7 @@ export default function EditTrackModal({
   const [title, setTitle] = useState(track.title);
   const [artist, setArtist] = useState(track.artist);
   const [trackLinkSuffix, setTrackLinkSuffix] = useState(
-    toTrackSlug(track.title)
+    toTrackSlug('')
   );
   const [trackLinkEdited, setTrackLinkEdited] = useState(false);
   const [genre, setGenre] = useState('');
@@ -74,7 +74,7 @@ export default function EditTrackModal({
       setActiveTab('basic');
       setTitle(track.title);
       setArtist(track.artist);
-      setTrackLinkSuffix(toTrackSlug(track.title));
+      setTrackLinkSuffix('');
       setTrackLinkEdited(false);
       setGenre('');
       setTags([]);
@@ -106,7 +106,18 @@ export default function EditTrackModal({
 
         setTitle(data.title);
         setArtist(artistName);
-        setTrackLinkSuffix(toTrackSlug(data.title));
+        const trackUrl = data.trackUrl ?? '';
+        const trackUrlPath = trackUrl
+          ? new URL(trackUrl, normalizedDomainName).pathname
+          : '';
+        const trackUrlSegments = trackUrlPath.split('/').filter(Boolean);
+        const trackUrlSuffix =
+          trackUrlSegments.length > 0
+            ? trackUrlSegments[trackUrlSegments.length - 1]
+            : '';
+        setTrackLinkSuffix(
+          trackUrlSuffix ? toTrackSlug(trackUrlSuffix) : toTrackSlug(data.title)
+        );
         setGenre(data.genre ?? '');
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
@@ -218,6 +229,7 @@ export default function EditTrackModal({
         formData.append('description', description.trim());
       }
 
+      formData.append('trackLinkSuffix', trackLinkSuffix);
       formData.append('releaseDate', releaseDate);
 
       if (privacyTouched) {

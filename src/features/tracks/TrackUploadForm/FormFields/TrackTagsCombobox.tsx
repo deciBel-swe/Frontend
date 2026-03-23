@@ -117,7 +117,14 @@ export default function TrackTagsCombobox({
           <input
             type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              const normalized = normalizeTag(nextValue);
+              if (normalized.length > MAX_TAG_LENGTH) {
+                return;
+              }
+              setQuery(nextValue);
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className="min-w-30 flex-1 bg-transparent text-xs text-text-primary outline-none placeholder:text-text-muted"
