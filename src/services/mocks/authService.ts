@@ -165,6 +165,20 @@ const extractGoogleIdentity = (
   };
 };
 
+const handleMobileRedirect = (
+  accessToken: string,
+  refreshToken: string
+) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUri = urlParams.get('redirect_uri');
+
+  if (!redirectUri) return;
+
+  const finalUrl = `${redirectUri}?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+  window.location.href = finalUrl;
+};
+
+
 // ================================
 // Mock auth service
 // ================================
@@ -288,45 +302,9 @@ export class MockAuthService implements AuthService {
     // Sync to cookie so middleware can read it on the server side.
     document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
-    // --- MOBILE INTEGRATION START ---
-  // Check the browser URL for a redirect parameter (e.g., ?redirect_uri=soundcloud-clone://callback)
-  const urlParams = new URLSearchParams(window.location.search);
-  const redirectUri = urlParams.get('redirect_uri');
-
-  if (redirectUri) {
-    // Construct the final URL to send the user back to the app with the token
-    const finalUrl = `${redirectUri}?token=${accessToken}&refreshToken=${refreshToken}`;
-    
-    // This is the "magic" line that closes the mobile browser and re-opens the app
-    window.location.href = finalUrl;
-  }
+  // --- MOBILE INTEGRATION START ---
+  handleMobileRedirect(accessToken, refreshToken);
   // --- MOBILE INTEGRATION END ---
-
-  //mobile link: https://your-site.com/login?redirect_uri=soundcloud-clone://callback
-
-//   import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
-
-// Future<void> loginWithWeb() async {
-//   // 1. They point to your login page with the redirect_uri query param
-//   final url = 'https://your-website.com/login?redirect_uri=soundcloud-clone://callback';
-
-//   try {
-//     // 2. This opens the secure browser session
-//     final result = await FlutterWebAuth2.authenticate(
-//       url: url,
-//       callbackUrlScheme: "soundcloud-clone",
-//     );
-
-//     // 3. 'result' will be the full string you sent: 
-//     // "soundcloud-clone://callback?token=ABC&refreshToken=XYZ"
-//     final Uri callbackUri = Uri.parse(result);
-//     final String? token = callbackUri.queryParameters['token'];
-    
-//     print("Success! Received token: $token");
-//   } catch (e) {
-//     print("User closed the browser or error occurred: $e");
-//   }
-// }
 
     return { accessToken, expiresIn, refreshToken, user };
   }
