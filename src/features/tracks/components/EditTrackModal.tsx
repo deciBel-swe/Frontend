@@ -8,6 +8,7 @@ import { trackService } from '@/services';
 import { useQueryClient } from '@tanstack/react-query';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { toTrackSlug } from '@/types/uploadSchema';
+import { validateImageFile } from '@/utils/fileValidation';
 import Button from '@/components/buttons/Button';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 
@@ -130,19 +131,25 @@ export default function EditTrackModal({
     setTrackLinkSuffix(toTrackSlug(title));
   }, [title, trackLinkEdited]);
 
-  const handleArtwork = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Artwork must be an image file');
-      return;
-    }
+  const handleArtwork = async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Artwork must be a valid image file.');
+        return;
+      }
 
-    setArtworkFile(file);
-    setArtworkRemoved(false);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setArtworkPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+      setArtworkFile(file);
+      setArtworkRemoved(false);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setArtworkPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Artwork validation failed:', err);
+      alert('Unable to read artwork file. Please try another image.');
+    }
   };
 
   const removeArtwork = () => {
