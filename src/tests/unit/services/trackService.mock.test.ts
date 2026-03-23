@@ -147,4 +147,28 @@ describe('MockTrackService', () => {
     await advance(400);
     await missingTrackExpectation;
   });
+  it('getAllTracks does not include private tracks', async () => {
+  const service = new MockTrackService();
+ 
+  // seed track 102 is private (Cloud Room Sessions)
+  const allPromise = service.getAllTracks();
+  await advance(400);
+  const all = await allPromise;
+ 
+  expect(all.every((track) => !(track as any).isPrivate)).toBe(true);
+  expect(all.find((t) => t.id === 102)).toBeUndefined();
+});
+ 
+it('getUserTracks hides private tracks from non-owners', async () => {
+  const service = new MockTrackService();
+ 
+  // No session set — resolveCurrentMockUserId returns a default that is not 7
+  // so the caller is treated as a visitor, not the owner
+  const tracksPromise = service.getUserTracks(7);
+  await advance(400);
+  const tracks = await tracksPromise;
+ 
+  // seed track 102 (Cloud Room Sessions) belongs to user 7 and is private
+  expect(tracks.find((t) => t.id === 102)).toBeUndefined();
+});
 });
