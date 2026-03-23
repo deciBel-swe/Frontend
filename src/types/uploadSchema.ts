@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { trackPrivacyValueSchema } from './tracks';
 
-const MAX_TITLE_LENGTH = 300;
-const MAX_ARTIST_LENGTH = 120;
-const MAX_GENRE_LENGTH = 80;
-const MAX_TAG_LENGTH = 40;
-const MAX_TAGS = 20;
-const MAX_DESCRIPTION_LENGTH = 5000;
+export const MAX_TITLE_LENGTH = 300;
+export const MAX_ARTIST_LENGTH = 120;
+export const MAX_GENRE_LENGTH = 80;
+export const MAX_TAG_LENGTH = 40;
+export const MAX_TAGS = 20;
+export const MAX_DESCRIPTION_LENGTH = 5000;
 
 const safeTextPattern = /^[a-zA-Z0-9\s\-_'".,!?&() ]+$/;
 const hasInvalidControlChars = (value: string): boolean =>

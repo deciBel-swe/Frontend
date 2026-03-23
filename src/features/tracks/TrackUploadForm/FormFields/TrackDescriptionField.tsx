@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { MAX_DESCRIPTION_LENGTH } from '@/types/uploadSchema';
 
 interface TrackDescriptionFieldProps {
   value: string;
@@ -33,11 +34,17 @@ export default function TrackDescriptionField({
           rows={1}
           placeholder="Tracks with descriptions tend to get more plays and engangements."
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) =>
+            onChange(event.target.value.slice(0, MAX_DESCRIPTION_LENGTH))
+          }
           className="w-full resize-none overflow-hidden bg-transparent py-2 text-xs text-text-primary border-b border-text-primary/15 outline-none placeholder:text-text-muted"
         />
         <span className="absolute left-1/2 bottom-0 h-px w-0 -translate-x-1/2 bg-border-contrast transition-all duration-200 group-hover:w-full group-focus-within:w-full" />
       </div>
+      <p className="mt-1 text-[11px] text-text-muted">
+        Max {MAX_DESCRIPTION_LENGTH} characters. {value.length}/
+        {MAX_DESCRIPTION_LENGTH}
+      </p>
     </div>
   );
 }

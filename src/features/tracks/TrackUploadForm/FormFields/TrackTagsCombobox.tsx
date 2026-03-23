@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { MAX_TAG_LENGTH, MAX_TAGS } from '@/types/uploadSchema';
 
 const TAG_OPTIONS = [
   'ambient',
@@ -55,8 +56,18 @@ export default function TrackTagsCombobox({
   }, [query, value]);
 
   const addTag = (rawValue: string) => {
+    if (value.length >= MAX_TAGS) {
+      setQuery('');
+      return;
+    }
+
     const tag = normalizeTag(rawValue);
     if (!tag || value.includes(tag)) {
+      setQuery('');
+      return;
+    }
+
+    if (tag.length > MAX_TAG_LENGTH) {
       setQuery('');
       return;
     }
@@ -145,6 +156,8 @@ export default function TrackTagsCombobox({
       </div>
       <p className="mt-1 text-[11px] text-text-muted">
         Press Enter to add a tag.
+        Max {MAX_TAGS} tags, {MAX_TAG_LENGTH} chars each. {value.length}/
+        {MAX_TAGS} used.
       </p>
     </div>
   );
