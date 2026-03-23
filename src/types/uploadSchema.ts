@@ -8,7 +8,8 @@ export const MAX_TAG_LENGTH = 40;
 export const MAX_TAGS = 20;
 export const MAX_DESCRIPTION_LENGTH = 5000;
 
-const safeTextPattern = /^[a-zA-Z0-9\s\-_'".,!?&() ]+$/;
+const safeTextPattern =
+  /^[\p{L}\p{N}\s\-_'".,!?&()]+$/u;
 const hasInvalidControlChars = (value: string): boolean =>
   [...value].some((char) => {
     const code = char.charCodeAt(0);
