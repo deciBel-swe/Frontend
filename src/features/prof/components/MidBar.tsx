@@ -8,7 +8,7 @@ import {
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
-// import { useUserMe } from '@/features/prof/hooks/useUserMe';
+import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
 import Button from '@/components/buttons/Button';
 interface MidBarProps {
@@ -20,7 +20,7 @@ const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   // const [isHydrated, setIsHydrated] = useState(false);
-  // const { user: myUser } = useUserMe();
+  const { user: myUser } = useUserMe();
   // const countries = useGetCountry();
 
   // useEffect(() => {
@@ -29,16 +29,14 @@ const MidBar = ({ username }: MidBarProps) => {
 
   //const isOwnProfile = isHydrated && myUser?.username === username;
   // there is problem in it I will just use dummy name for testing
-  const isOwnProfile = 'mockuser' === username;
+  const isOwnProfile = myUser?.username === username;
   return (
-       <div className="w-full flex items-center justify-between mt-3">
-
+    <div className="w-full flex items-center justify-between mt-3">
       {/* NAV */}
       <ProfileNav username={username} />
 
       {/* BUTTON ROW */}
       <div className="flex justify-end items-center w-full gap-0">
-
         {!isOwnProfile && (
           <Button aria-label="message" className="shrink-0">
             <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-700 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
@@ -81,7 +79,6 @@ const MidBar = ({ username }: MidBarProps) => {
             </span>
           </Button>
         )}
-
       </div>
 
       <EditProfileModal
