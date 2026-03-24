@@ -11,9 +11,34 @@ const SUPPORT_PLATFORM_DOMAINS = {
   Gofundme: ['gofundme.com'],
 };
 
-export const isValidUrl = (value: string): boolean => {
+export const isValidUrlOrEmail = (value: string): boolean => {
+  const trimmed = value.trim();
+
+  // Guard 1: Block XSS / malicious protocols immediately
+  if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
+
+  // Guard 2: Stricter Email Check (Requires a TLD like .com)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+  if (emailRegex.test(trimmed)) return true;
+  if (
+    trimmed.toLowerCase().startsWith('mailto:') &&
+    emailRegex.test(trimmed.slice(7))
+  )
+    return true;
+
+  // Guard 3: URL Check
+  const urlToTest = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
   try {
-    const parsed = new URL(value);
+    const parsed = new URL(urlToTest);
+
+    //Enforce a dot in the hostname to prevent sth like "https://justaword"
+    if (!parsed.hostname.includes('.')) return false;
+
+    if (parsed.pathname.includes(parsed.hostname)) return false;
+
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
@@ -21,13 +46,22 @@ export const isValidUrl = (value: string): boolean => {
 };
 
 export const isSupportedPlatformUrl = (value: string): boolean => {
+  const trimmed = value.trim();
+
+  if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
+
   try {
-    const parsed = new URL(value);
+    const urlToTest = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    const parsed = new URL(urlToTest);
+
+    if (parsed.pathname.includes(parsed.hostname)) return false;
+
     const hostname = parsed.hostname.toLowerCase();
-    const normalized =
-      hostname.startsWith('www.') && hostname.length > 4
-        ? hostname.slice(4)
-        : hostname;
+    const normalized = hostname.startsWith('www.')
+      ? hostname.slice(4)
+      : hostname;
     const supportedDomains = Object.values(SUPPORT_PLATFORM_DOMAINS).flat();
 
     return supportedDomains.some(
@@ -51,8 +85,8 @@ export const validateLinks = (items: ProfileLink[]): Record<number, string> => {
       return;
     }
 
-    if (!isValidUrl(item.url.trim())) {
-      errors[item.id] = 'Enter a valid URL (include http:// or https://).';
+    if (item.kind === 'regular' && !isValidUrlOrEmail(item.url)) {
+      errors[item.id] = 'Enter a valid URL or email address.';
       return;
     }
 
