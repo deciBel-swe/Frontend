@@ -24,7 +24,6 @@ const Layout = async ({
         <MidBar username={username} />
 
         <div className="flex w-full mt-6 gap-6">
-          {/* ✅ THIS LINE FIXES YOUR WHOLE PROBLEM */}
           <div className="flex-1 min-w-0">
             {children}
           </div>

@@ -41,7 +41,7 @@ const MidBar = ({ username }: MidBarProps) => {
 
         {!isOwnProfile && (
           <IconButton aria-label="message">
-            <span className={`${buttonBase} bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300`}>
+            <span className={`${buttonBase} bg-interactive-default dark:bg-interactive-default text-text-muted dark:text-text-secondary`}>
               <MessageIcon />
             </span>
           </IconButton>
@@ -49,7 +49,7 @@ const MidBar = ({ username }: MidBarProps) => {
 
         {isOwnProfile && (
           <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>
-            <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300`}>
+            <span className={`${buttonBase} bg-bg-subtle dark:bg-gray-800 text-text-muted dark:text-text-secondary`}>
               <EditIcon />
               <span className="hidden sm:inline">edit</span>
             </span>
@@ -57,7 +57,7 @@ const MidBar = ({ username }: MidBarProps) => {
         )}
 
         <IconButton aria-label="share">
-          <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300`}>
+          <span className={`${buttonBase} bg-bg-subtle dark:bg-gray-800 text-text-muted dark:text-text-secondary`}>
             <ShareIcon /> {/* inherits text-gray-500 */}
             <span className="hidden sm:inline">share</span>
           </span>
