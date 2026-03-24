@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
-import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
+import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
@@ -59,18 +59,18 @@ export default function TrackCard({
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
 
-   // ── Share modal state
+  // ── Share modal state
   const [isShareOpen, setIsShareOpen] = useState(false);
- 
+
   // ── Copy link state
   const [copied, setCopied] = useState(false);
- 
+
   // ── Fetch correct URL based on privacy
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
   const { metadata } = useTrackMetadata(
     !resolvedIsPrivate ? Number(trackId) : undefined
   );
- 
+
   /**
    * Copies the correct URL to clipboard:
    * - Private track → secret link (only accessible to people with the link)
@@ -80,9 +80,9 @@ export default function TrackCard({
     const urlToCopy = resolvedIsPrivate
       ? (secretUrl ?? '')
       : (metadata?.trackUrl ?? '');
- 
+
     if (!urlToCopy) return;
- 
+
     await navigator.clipboard.writeText(urlToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -174,11 +174,17 @@ export default function TrackCard({
               <Repeat2 size={16} />
             </Button>
 
-            <Button variant="ghost" aria-label="Share" title="Share" onClick={() => setIsShareOpen(true)}>
+            <Button
+              variant="ghost"
+              aria-label="Share"
+              title="Share"
+              onClick={() => setIsShareOpen(true)}
+            >
               <Share2 size={16} />
             </Button>
 
-            <Button variant="ghost" 
+            <Button
+              variant="ghost"
               aria-label={copied ? 'Copied!' : 'Copy link'}
               title={copied ? 'Copied!' : 'Copy link'}
               onClick={handleCopy}
