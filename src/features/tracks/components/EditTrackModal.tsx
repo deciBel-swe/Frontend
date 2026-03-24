@@ -56,7 +56,7 @@ export default function EditTrackModal({
   const [artworkRemoved, setArtworkRemoved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  // const [isLoadingMeta, setIsLoadingMeta] = useState(false);
   const [metaError, setMetaError] = useState('');
 
   const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
@@ -92,7 +92,7 @@ export default function EditTrackModal({
 
     const loadTrack = async () => {
       resetFormState();
-      setIsLoadingMeta(true);
+      // setIsLoadingMeta(true);
       setMetaError('');
 
       try {
@@ -129,11 +129,11 @@ export default function EditTrackModal({
         if (!isCancelled) {
           setMetaError('Unable to load track details. Please try again.');
         }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingMeta(false);
-        }
-      }
+      // } finally {
+      //   if (!isCancelled) {
+      //     setIsLoadingMeta(false);
+      //   }
+       }
     };
 
     void loadTrack();
@@ -265,140 +265,103 @@ export default function EditTrackModal({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-surface-overlay"
-        onClick={onClose}
-      />
+      
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl bg-surface-default text-text-primary border border-border-default rounded-lg shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
-            <div className="text-sm font-semibold">Edit Track</div>
-            <button
-              type="button"
-              aria-label="Close"
-              onClick={onClose}
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      {/* MODAL WRAPPER */}
+      <div className="fixed inset-0 z-50 flex items-end justify-center">
+        {/* BACKDROP */}
+      <div className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative w-full max-w-5xl bg-white dark:bg-black rounded-lg border border-white/10 shadow-2xl overflow-hidden">
+
+          {/* CLOSE BUTTON (like EditProfileModal style) */}
+          <button
+            onClick={onClose}
+            className="fixed top-15 right-6 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
+            <X size={20} />
+          </button>
+
+          {/* HEADER */}
+          <div className="px-5 py-4 border-b border-border-default font-semibold">
+            Edit Track
           </div>
 
-          {/* Tabs */}
-          <div className="border-b border-border-default">
-            <nav className="flex items-center gap-6 px-5">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={[
-                      'relative py-3 text-xs font-semibold transition-colors',
-                      isActive
-                        ? 'text-text-primary'
-                        : 'text-text-muted hover:text-text-secondary',
-                    ].join(' ')}
-                  >
-                    {tab.label}
-                    {tab.isNew ? (
-                      <span className="ml-1 rounded bg-status-error px-1.5 py-0.5 text-[9px] font-bold text-white">
-                        NEW
-                      </span>
-                    ) : null}
-                    {isActive ? (
-                      <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-text-primary" />
-                    ) : null}
-                  </button>
-                );
-              })}
-            </nav>
+          {/* TABS */}
+          <div className="flex gap-6 px-5 border-b border-border-default">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-3 text-xs font-semibold ${
+                  activeTab === tab.id
+                    ? 'text-black dark:text-white'
+                    : 'text-gray-400'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* Content */}
-          <div className="max-h-[70vh] overflow-y-auto">
+          {/* BODY */}
+          <div className="max-h-[70vh] overflow-y-auto px-5 py-6">
             {activeTab === 'basic' ? (
-              <div className="px-5 py-6">
-                {isLoadingMeta ? (
-                  <p className="mb-3 text-xs text-text-muted">
-                    Loading track details...
-                  </p>
-                ) : null}
-                <UploadForm
-                  variant="modal"
-                  showHeader={false}
-                  showFooter={false}
-                  onSubmit={handleSave}
-                  artworkPreview={artworkPreview}
-                  onArtworkSelect={handleArtwork}
-                  onRemoveArtwork={removeArtwork}
-                  title={title}
-                  titleError=""
-                  onTitleChange={setTitle}
-                  trackLinkPrefix={trackLinkPrefix}
-                  trackLinkSuffix={trackLinkSuffix}
-                  onTrackLinkSuffixChange={(nextSuffix) => {
-                    setTrackLinkEdited(true);
-                    setTrackLinkSuffix(toTrackSlug(nextSuffix));
-                  }}
-                  artist={artist}
-                  onArtistChange={setArtist}
-                  genre={genre}
-                  onGenreChange={setGenre}
-                  tags={tags}
-                  onTagsChange={setTags}
-                  description={description}
-                  onDescriptionChange={(next) => {
-                    setDescriptionTouched(true);
-                    setDescription(next);
-                  }}
-                  releaseDate={releaseDate}
-                  releaseDateError={releaseDateError}
-                  onReleaseDateChange={(nextDate) => {
-                    setReleaseDate(nextDate);
-                    if (releaseDateError) {
-                      setReleaseDateError('');
-                    }
-                  }}
-                  releaseDateMax={todayIsoDate}
-                  showReleaseDate
-                  privacy={privacy}
-                  onPrivacyChange={(next) => {
-                    setPrivacyTouched(true);
-                    setPrivacy(next);
-                  }}
-                />
-              </div>
-            ) : null}
-
-            {activeTab !== 'basic' ? (
-              <div className="px-5 py-8 text-sm text-text-muted">
+              <UploadForm
+                variant="modal"
+                showHeader={false}
+                showFooter={false}
+                onSubmit={handleSave}
+                artworkPreview={artworkPreview}
+                onArtworkSelect={handleArtwork}
+                onRemoveArtwork={removeArtwork}
+                title={title}
+                titleError=""
+                onTitleChange={setTitle}
+                trackLinkPrefix={trackLinkPrefix}
+                trackLinkSuffix={trackLinkSuffix}
+                onTrackLinkSuffixChange={(v) => {
+                  setTrackLinkEdited(true);
+                  setTrackLinkSuffix(toTrackSlug(v));
+                }}
+                artist={artist}
+                onArtistChange={setArtist}
+                genre={genre}
+                onGenreChange={setGenre}
+                tags={tags}
+                onTagsChange={setTags}
+                description={description}
+                onDescriptionChange={(v) => {
+                  setDescriptionTouched(true);
+                  setDescription(v);
+                }}
+                releaseDate={releaseDate}
+                releaseDateError={releaseDateError}
+                onReleaseDateChange={setReleaseDate}
+                releaseDateMax={todayIsoDate}
+                showReleaseDate
+                privacy={privacy}
+                onPrivacyChange={setPrivacy}
+              />
+            ) : (
+              <div className="text-sm text-gray-400">
                 This section will be available soon.
               </div>
-            ) : null}
+            )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between px-5 py-4 border-t border-border-default">
-            <span className="text-[11px] text-text-muted">
-              {saveError.length > 0
-                ? saveError
-                : metaError.length > 0
-                  ? metaError
-                  : '* Required fields'}
+          {/* FOOTER */}
+          <div className="flex justify-between items-center px-5 py-4 border-t border-border-default">
+            <span className="text-xs text-red-400">
+              {saveError || metaError || '* Required fields'}
             </span>
-            <div className="flex items-center gap-2">
+
+            <div className="flex gap-2">
               <Button variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
               <Button
                 variant="secondary"
                 onClick={handleSave}
-                disabled={isSaving || isLoadingMeta}
+                disabled={isSaving}
               >
                 {isSaving ? 'Saving...' : 'Save changes'}
               </Button>

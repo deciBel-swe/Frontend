@@ -38,7 +38,7 @@ export const EditIcon: FC = () => (
     width="20"
     height="20"
     fill="none"
-    style={{ display: 'block', color: '#fff' }}
+    style={{ display: 'block' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >

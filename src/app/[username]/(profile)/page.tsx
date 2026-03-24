@@ -18,13 +18,19 @@ export default function Page() {
   // Fetch the profile data to grab the real avatar
   const { data: profileData } = usePublicUser(username);
   return (
-    <div className="px-8 py-8 max-w-3xl">
-      <Suspense fallback={<TrackListFallback />}>
+    <div className="w-full flex justify-center">
+      {/* PAGE CONTAINER */}
+      <div className="w-full max-w-[1200px] flex gap-8 py-6">
+        {/* ================= MAIN FEED ================= */}
+        <main className="flex-1 flex flex-col">      
+        <Suspense fallback={<TrackListFallback />}>
         <TrackList
           username={username}
           artistAvatar={profileData?.profile.avatarUrl}
         />
-      </Suspense>
+      </Suspense></main>
+
+      </div>
     </div>
   );
 }

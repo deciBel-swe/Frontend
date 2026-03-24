@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
-import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
+import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
@@ -75,7 +75,7 @@ export default function TrackCard({
   });
 
   return (
-    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
+    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
         <Link href={`/${userSlug}`}>
@@ -204,6 +204,7 @@ export default function TrackCard({
       </div>
 
       <ShareModal
+        variant="track"
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}

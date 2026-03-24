@@ -2,8 +2,8 @@
 
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useState, type ReactNode } from 'react';
-import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
-import type { TrackPreviewData } from '@/app/[username]/(profile)/tracks/ShareModal';
+import { ShareModal } from '@/features/prof/components/ShareModal';
+import type { TrackPreviewData } from '@/features/prof/components/ShareModal';
 import {
   CheckIcon,
   CopyIcon,
@@ -133,6 +133,7 @@ export function TrackActionBar({
       </div>
 
       <ShareModal
+        variant="track"
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}

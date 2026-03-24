@@ -134,9 +134,7 @@ const RegistrationForm: React.FC = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex items-center justify-center gap-3">
               <h2
-                className="text-[17px] font-bold mb-1"
-                style={{ fontFamily: 'var(--font-sans)' }}
-              >
+                className="text-3xl font-bold mb-1 text-black dark:text-neutral-0">
                 Tell us more about you
               </h2>
             </div>
