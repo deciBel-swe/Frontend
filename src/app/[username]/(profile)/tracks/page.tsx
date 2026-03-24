@@ -31,7 +31,7 @@
 // }
 'use client';
 import { Suspense } from 'react';
-import { TrackView } from '@/app/[username]/tracks/TrackView';
+import { TrackView } from '@/app/[username]/(profile)/tracks/TrackView';
 import TrackList from '@/components/TrackList';
 import { useParams } from 'next/navigation';
 

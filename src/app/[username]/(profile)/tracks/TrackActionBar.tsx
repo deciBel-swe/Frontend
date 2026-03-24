@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { ShareModal } from '@/app/[username]/tracks/ShareModal';
-import type { TrackPreview } from '@/app/[username]/tracks/ShareModal';
+import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
+import type { TrackPreview } from '@/app/[username]/(profile)/tracks/ShareModal';
 import {
   CheckIcon,
   CopyIcon,
