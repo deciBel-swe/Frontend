@@ -107,7 +107,9 @@ const toUserPublic = (user: MockUserRecord): UserPublic => ({
     username: user.username,
     id: user.id,
     bio: user.profile.bio,
-    location: `${user.profile.city}, ${user.profile.country}`,
+   location: [user.profile.city, user.profile.country]
+  .filter(Boolean)
+  .join(', '),
     avatarUrl: user.profile.profilePic,
     coverPhotoUrl: user.profile.coverPic,
     favoriteGenres: [...user.profile.favoriteGenres],
