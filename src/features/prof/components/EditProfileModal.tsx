@@ -79,8 +79,8 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay">
-      <div className="relative w-225 max-w-[95vw] max-h-[90vh] rounded bg-surface-default text-text-primary border border-border-default overflow-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" onClick={onClose}>
+      <div className="relative w-225 max-w-[95vw] max-h-[90vh] rounded bg-surface-default text-text-primary border border-border-default overflow-auto" onClick={(e) => e.stopPropagation()}>
         <Button
           aria-label="Close"
           onClick={onClose}

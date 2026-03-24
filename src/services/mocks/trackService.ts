@@ -22,8 +22,10 @@ const MOCK_DELAY_MS = 220;
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const buildTrackUrl = (trackId: number): string =>
-  `${config.api.appUrl}/tracks/${trackId}`;
+const buildTrackUrl = (username: string, slug: string): string => {
+  const base = config.urls.domainName.replace(/\/+$/, '');
+  return `${base}/${username}/${slug}`;
+};
 
 const buildCoverUrl = (trackId: number): string =>
   `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`;
@@ -50,6 +52,7 @@ const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   genre: track.genre,
   tags: [...track.tags],
   description: track.description ?? '',
+  releaseDate: track.releaseDate,
 });
 
 const readTracks = (): MockTrackRecord[] => {
@@ -263,6 +266,11 @@ export class MockTrackService implements TrackService {
 
         const sessionArtist = getSessionArtist();
         const title = getStringField(formData, 'title', `Untitled ${nextId}`);
+        const trackLinkSuffix = getStringField(
+          formData,
+          'trackLinkSuffix',
+          `track-${nextId}`
+        );
         const genre = getStringField(formData, 'genre', 'Electronic');
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
@@ -293,7 +301,7 @@ export class MockTrackService implements TrackService {
               id: artistId,
               username: artistName,
             },
-            trackUrl: buildTrackUrl(nextId),
+            trackUrl: buildTrackUrl(artistName, trackLinkSuffix),
             coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
             coverImageDataUrl,
             waveformUrl: buildWaveformUrl(nextId),
@@ -377,6 +385,10 @@ export class MockTrackService implements TrackService {
       allowEmpty: true,
     });
     const releaseDate = getOptionalStringField(formData, 'releaseDate');
+    const trackLinkSuffix = getOptionalStringField(
+      formData,
+      'trackLinkSuffix'
+    );
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
@@ -399,6 +411,11 @@ export class MockTrackService implements TrackService {
       ? undefined
       : coverImageDataUrl ?? current.coverImageDataUrl;
 
+    const nextArtistName = artistName ?? current.artist.username;
+    const nextTrackUrl = trackLinkSuffix
+      ? buildTrackUrl(nextArtistName, trackLinkSuffix)
+      : current.trackUrl;
+
     const updated: MockTrackRecord = {
       ...current,
       title: title ?? current.title,
@@ -409,6 +426,7 @@ export class MockTrackService implements TrackService {
       artist: artistName
         ? { ...current.artist, username: artistName }
         : current.artist,
+      trackUrl: nextTrackUrl,
       isPrivate: nextIsPrivate,
       secretLink: nextSecretLink,
       coverUrl: nextCoverUrl,

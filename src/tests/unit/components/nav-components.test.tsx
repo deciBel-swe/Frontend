@@ -9,6 +9,7 @@ import { SearchBar } from '@/components/nav/SearchBar';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { useTopNavBar } from '@/components/nav/useTopNavBar';
 
+import { AuthProvider } from '@/features/auth/AuthContext';
 jest.mock('next/link', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function MockLink({
@@ -33,6 +34,17 @@ jest.mock('next/link', () => {
     );
   };
 });
+
+jest.mock('next/navigation', () => ({
+  usePathname: jest.fn(() => '/'),
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+}));
+
+import { usePathname } from 'next/navigation';
 
 jest.mock('@/components/nav/useTopNavBar', () => ({
   useTopNavBar: jest.fn(),
@@ -177,5 +189,37 @@ describe('TopNavBar', () => {
     render(<TopNavBar />);
 
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
+  });
+
+  it('automatically closes the Sign In modal when the URL path changes', async () => {
+    const closeSignIn = jest.fn();
+    (usePathname as jest.Mock).mockReturnValue('/');
+    mockUseTopNavBar.mockReturnValue(
+      createTopNavState({
+        signInOpen: true,
+        closeSignIn,
+      })
+    );
+
+    const { rerender } = render(<TopNavBar />, {
+      wrapper: ({ children }) => <AuthProvider>{children}</AuthProvider>,
+    });
+
+    expect(screen.getByText(/sign in to your account/i)).toBeInTheDocument();
+
+    (usePathname as jest.Mock).mockReturnValue('/register');
+
+    mockUseTopNavBar.mockReturnValue(
+      createTopNavState({
+        signInOpen: false,
+        closeSignIn,
+      })
+    );
+
+    rerender(<TopNavBar />);
+
+    expect(
+      screen.queryByText(/sign in to your account/i)
+    ).not.toBeInTheDocument();
   });
 });

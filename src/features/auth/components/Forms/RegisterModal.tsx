@@ -14,8 +14,8 @@ const SignInModal: React.FC<Props> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="relative rounded bg-[#111] text-white border border-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="relative rounded bg-[#111] text-white border border-white/10" onClick={(e) => e.stopPropagation()}>
         {/* CLOSE BUTTON */}
         <button
           onClick={onClose}

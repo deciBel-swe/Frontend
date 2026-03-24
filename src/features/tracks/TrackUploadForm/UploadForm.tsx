@@ -7,6 +7,7 @@ import TrackLinkField from '@/features/tracks/TrackUploadForm/FormFields/TrackLi
 import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
 import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
+import TrackReleaseDateField from '@/features/tracks/TrackUploadForm/FormFields/TrackReleaseDateField';
 import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
 
 interface UploadFormProps {
@@ -40,6 +41,11 @@ interface UploadFormProps {
   onTagsChange: (value: string[]) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
+  releaseDate?: string;
+  releaseDateError?: string;
+  onReleaseDateChange?: (value: string) => void;
+  releaseDateMax?: string;
+  showReleaseDate?: boolean;
   privacy: TrackPrivacyValue;
   onPrivacyChange: (value: TrackPrivacyValue) => void;
 }
@@ -75,6 +81,11 @@ export default function UploadForm({
   onTagsChange,
   description,
   onDescriptionChange,
+  releaseDate = '',
+  releaseDateError,
+  onReleaseDateChange,
+  releaseDateMax,
+  showReleaseDate = false,
   privacy,
   onPrivacyChange,
 }: UploadFormProps) {
@@ -191,6 +202,14 @@ export default function UploadForm({
                   value={description}
                   onChange={onDescriptionChange}
                 />
+                {showReleaseDate && onReleaseDateChange ? (
+                  <TrackReleaseDateField
+                    value={releaseDate}
+                    onChange={onReleaseDateChange}
+                    error={releaseDateError}
+                    maxDate={releaseDateMax}
+                  />
+                ) : null}
                 <div>
                   <TrackPrivacy value={privacy} onChange={onPrivacyChange} />
                 </div>

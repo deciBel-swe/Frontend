@@ -10,11 +10,11 @@ import {
 import ProfileNav from './ProfileNav';
 import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
-import Button from '@/components/buttons/Button';
+import { IconButton } from '@/components/buttons/IconButton';
+
 interface MidBarProps {
   username: string;
 }
-// import { useGetCountry } from '@/hooks';
 
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -23,9 +23,12 @@ const MidBar = ({ username }: MidBarProps) => {
   const { user: myUser } = useUserMe();
   // const countries = useGetCountry();
 
-  // useEffect(() => {
-  //   setIsHydrated(true);
-  // }, []);
+  const isOwnProfile = 'mockuser' === username; // dummy check
+
+  // shared button classes
+  const buttonBase =
+    'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
+    'transition-all duration-150 shrink-0';
 
   //const isOwnProfile = isHydrated && myUser?.username === username;
   // there is problem in it I will just use dummy name for testing
@@ -36,55 +39,54 @@ const MidBar = ({ username }: MidBarProps) => {
       <ProfileNav username={username} />
 
       {/* BUTTON ROW */}
-      <div className="flex justify-end items-center w-full gap-0">
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+
         {!isOwnProfile && (
-          <Button aria-label="message" className="shrink-0">
-            <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-700 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+          <IconButton aria-label="message">
+            <span className={`${buttonBase} bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300`}>
               <MessageIcon />
             </span>
-          </Button>
+          </IconButton>
         )}
 
         {isOwnProfile && (
-          <Button
-            aria-label="edit"
-            className="shrink-0"
-            onClick={() => setIsEditOpen(true)}
-          >
-            <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-800 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+          <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>
+            <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300`}>
               <EditIcon />
               <span className="hidden sm:inline">edit</span>
             </span>
-          </Button>
+          </IconButton>
         )}
 
-        <Button aria-label="share" className="shrink-0">
-          <span className="flex items-center gap-1 bg-gray-300 dark:bg-gray-800 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
-            <ShareIcon />
+        <IconButton aria-label="share">
+          <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-300`}>
+            <ShareIcon /> {/* inherits text-gray-500 */}
             <span className="hidden sm:inline">share</span>
           </span>
-        </Button>
+        </IconButton>
 
         {!isOwnProfile && (
-          <Button
+          <IconButton
             aria-label={isFollowing ? 'Following' : 'Follow'}
-            className="shrink-0"
             onClick={() => setIsFollowing((p) => !p)}
           >
-            <span className="flex items-center gap-1 bg-black dark:bg-white text-white dark:text-black rounded-md px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+            <span
+              className={`${buttonBase} ${
+                isFollowing
+                  ? 'bg-black text-white dark:bg-white dark:text-black'
+                  : 'bg-black text-white dark:bg-white dark:text-black'
+              }`}
+            >
               {isFollowing ? <FollowingIcon /> : <FollowIcon />}
               <span className="hidden sm:inline">
                 {isFollowing ? 'Following' : 'Follow'}
               </span>
             </span>
-          </Button>
+          </IconButton>
         )}
       </div>
 
-      <EditProfileModal
-        open={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-      />
+      <EditProfileModal open={isEditOpen} onClose={() => setIsEditOpen(false)} />
     </div>
   );
 };
