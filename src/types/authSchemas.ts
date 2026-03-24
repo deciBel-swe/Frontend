@@ -14,7 +14,7 @@ const MAX_USERNAME_LENGTH = 30;
  * @constant {string}
  */
 const MINIMUM_AGE_MESSAGE =
-  "Sorry, but you don't meet SoundCloud's minimum age requirements";
+  "Sorry, but you don't meet Decibel's minimum age requirements";
 
 /**
  * Zod schema for user registration validation
