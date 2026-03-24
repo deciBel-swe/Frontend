@@ -13,7 +13,7 @@ const ProfileAvatar = ({ avatarUrl }: ProfileAvatarProps) => {
       <div className="h-full w-full rounded-full overflow-hidden shadow-2xl">
         <img
           src={imageSrc}
-          alt="Profile Avatar"
+          // alt="Profile Avatar"
           className="h-full w-full object-cover"
         />
       </div>

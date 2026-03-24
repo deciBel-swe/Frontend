@@ -13,10 +13,16 @@ const TrackListFallback = () => (
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   return (
-    <div className="px-8 py-8 max-w-3xl">
-      <Suspense fallback={<TrackListFallback />}>
+    <div className="w-full flex justify-center">
+      {/* PAGE CONTAINER */}
+      <div className="w-full max-w-[1200px] flex gap-8 py-6">
+        {/* ================= MAIN FEED ================= */}
+        <main className="flex-1 flex flex-col">      
+        <Suspense fallback={<TrackListFallback />}>
         <TrackList username={username} />
-      </Suspense>
+      </Suspense></main>
+
+      </div>
     </div>
   );
 }

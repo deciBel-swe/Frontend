@@ -89,7 +89,7 @@ export default function TrackCard({
   };
 
   return (
-    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full">
+    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
       <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
         <Link href={`/${userSlug}`}>
