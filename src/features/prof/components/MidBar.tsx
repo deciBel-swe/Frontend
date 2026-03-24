@@ -23,8 +23,6 @@ const MidBar = ({ username }: MidBarProps) => {
   const { user: myUser } = useUserMe();
   // const countries = useGetCountry();
 
-  const isOwnProfile = 'mockuser' === username; // dummy check
-
   // shared button classes
   const buttonBase =
     'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
