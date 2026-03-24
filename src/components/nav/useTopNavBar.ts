@@ -38,6 +38,14 @@ export function useTopNavBar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    //close all modals and drop down menus when changing route
+    setSignInOpen(false);
+    setRegisterOpen(false);
+    setUserMenuOpen(false);
+    setMoreMenuOpen(false);
+  }, [pathname]);
+
   const initials = user
     ? user.username
         .split(' ')
