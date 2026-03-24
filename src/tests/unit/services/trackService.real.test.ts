@@ -99,6 +99,7 @@ describe('RealTrackService', () => {
       genre: 'Electronic',
       tags: ['night'],
       description: '',
+      releaseDate: '',
     });
   });
 
