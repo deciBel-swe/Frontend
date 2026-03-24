@@ -79,8 +79,13 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" onClick={onClose}>
-      <div className="relative w-225 max-w-[95vw] max-h-[90vh] rounded bg-surface-default text-text-primary border border-border-default overflow-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay">
+          {/* BACKDROP (ONLY THIS closes modal) */}
+    <div
+      className="absolute inset-0 bg-black/60"
+      onClick={onClose}
+    />
+      <div className="relative w-225 max-w-[95vw] max-h-[90vh] rounded bg-surface-default text-text-primary border border-border-default overflow-auto">
         <Button
           aria-label="Close"
           onClick={onClose}

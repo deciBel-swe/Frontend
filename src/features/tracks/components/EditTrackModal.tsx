@@ -270,10 +270,9 @@ export default function EditTrackModal({
         className="fixed inset-0 z-40 bg-surface-overlay"
         onClick={onClose}
       />
-
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl bg-surface-default text-text-primary border border-border-default rounded-lg shadow-2xl overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <div className="w-full max-w-5xl bg-surface-default text-text-primary border border-border-default rounded-lg shadow-2xl overflow-hidden pointer-events-auto">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
             <div className="text-sm font-semibold">Edit Track</div>
