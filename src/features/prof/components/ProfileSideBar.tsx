@@ -11,19 +11,13 @@ import { MockTrackService } from '@/services/mocks/trackService';
 interface ProfileSideBarProps {
   username: string;
 }
-type Track = {
-  coverUrl: string;
-  title: string;
-  artist: {
-    username: string;
-  };
-};
 
 const trackService = new MockTrackService();
 
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   const { data } = usePublicUser(username);
-  const [tracks, setTracks] = useState<Track[]>([]);
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [tracks, setTracks] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchTracks = async () => {
