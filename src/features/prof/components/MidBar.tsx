@@ -57,7 +57,7 @@ const MidBar = ({ username }: MidBarProps) => {
         )}
 
         <IconButton aria-label="share">
-          <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-300`}>
+          <span className={`${buttonBase} bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300`}>
             <ShareIcon /> {/* inherits text-gray-500 */}
             <span className="hidden sm:inline">share</span>
           </span>
