@@ -1,5 +1,6 @@
 'use client';
 
+import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useState, type ReactNode } from 'react';
 import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
 import type { TrackPreviewData } from '@/app/[username]/(profile)/tracks/ShareModal';
@@ -9,7 +10,6 @@ import {
   ShareIcon,
 } from '@/components/nav/TrackActionBar';
 import { useSecretLink } from '@/hooks/useSecretLink';
-import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -92,26 +92,19 @@ export function TrackActionBar({
   extraActions = [],
 }: TrackActionBarProps) {
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
 
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
-  const { metadata } = useTrackMetadata(
-    !resolvedIsPrivate ? Number(trackId) : undefined
-  );
 
-  const handleCopy = async () => {
-    const urlToCopy = resolvedIsPrivate
-      ? (secretUrl ?? '')
-      : (metadata?.trackUrl ?? '');
-
-    if (!urlToCopy) return;
-    await navigator.clipboard.writeText(urlToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // ── Use the centralized copy hook
+  const { copied, handleCopy } = useCopyTrackLink({
+    trackId,
+    isPrivate: resolvedIsPrivate,
+    secretUrl,
+    artistName: track?.artist,
+    trackTitle: track?.title,
+  });
 
   const defaultActions: TrackActionItem[] = [
     {
