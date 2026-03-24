@@ -6,6 +6,7 @@ import { useUserTracks } from '@/hooks/useUserTracks';
 type TrackListProps = {
   userId?: number;
   username?: string;
+  artistAvatar?: string;
 };
 
 const parseWaveform = (value: string | undefined): number[] => {
@@ -28,7 +29,11 @@ const parseWaveform = (value: string | undefined): number[] => {
   }
 };
 
-export default function TrackList({ userId, username }: TrackListProps) {
+export default function TrackList({
+  userId,
+  username,
+  artistAvatar,
+}: TrackListProps) {
   const { tracks, isLoading, isError } = useUserTracks({ userId, username });
 
   if (isLoading) {
@@ -71,7 +76,7 @@ export default function TrackList({ userId, username }: TrackListProps) {
             isPrivate={false}
             user={{
               name: artistName,
-              avatar: track.coverUrl,
+              avatar: artistAvatar || track.coverUrl, //if artist avatar missing use that of track
             }}
             postedText="posted a track"
             timeAgo=""
