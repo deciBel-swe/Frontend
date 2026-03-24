@@ -92,6 +92,7 @@ const normalizeTrackMetadata = (
     genre: payload.genre,
     tags: payload.tags,
     description: payload.description ?? '',
+    releaseDate: payload.releaseDate ?? '',
   };
 };
 

@@ -73,6 +73,7 @@ export const trackDetailsResponseSchema = z.object({
   title: z.string().trim().min(1),
   genre: z.string().trim().optional().default('Unknown'),
   description: z.string().optional(),
+  releaseDate: z.string().trim().optional(),
   isPrivate: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional().default([]),
   trackUrl: z.string().trim().min(1).optional(),
@@ -110,6 +111,7 @@ export const trackMetadataSchema = z.object({
   genre: z.string(),
   tags: z.array(z.string()),
   description: z.string().optional().default(''),
+  releaseDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
 

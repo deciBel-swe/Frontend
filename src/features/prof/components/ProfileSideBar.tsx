@@ -51,24 +51,10 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
 
   return (
     <div
-      className="
-        w-full
-        flex flex-col
-        gap-6
-        text-sm
-      "
-    >
+      className="w-full flex flex-col gap-6 text-sm">
       {/* TOP SECTION */}
       <div
-        className="
-          flex flex-col
-          items-center
-          gap-3
-          p-4 sm:p-5
-          bg-[#121212]
-          rounded-lg
-        "
-      >
+        className="flex flex-col items-center gap-3 p-4 sm:p-5 dark:bg-[#121212] bg-gray-200 rounded-lg">
         <StatsGroup
           countTracks={data?.stats.trackCount || 0}
           countFollowers={data?.stats.followersCount || 0}
@@ -76,17 +62,18 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
         />
 
         {data?.profile.bio && (
-          <p className="text-center text-gray-400 text-xs sm:text-sm">
+          <p className="text-center text-gray-400 text-xs sm:text-sm ">
             {data.profile.bio}
           </p>
         )}
-
-        <SocialList items={data?.socialLinks} />
+            <div className="w-full flex justify-start">
+            <SocialList items={data?.socialLinks} />
+            </div>
       </div>
 
       {/* HISTORY */}
       <div
-        className="bg-[#121212] rounded-lg p-3 sm:p-4"
+        className="bg-gray-200 dark:bg-[#121212] rounded-lg p-3 sm:p-4"
       >
         <ListOfTrackRows
           headerUrl={`/${username}/likes`}
@@ -97,7 +84,7 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
 
       {/* ARTISTS */}
       <div
-        className="bg-[#121212] rounded-lg p-3 sm:p-4"
+        className="bg-gray-200 dark:bg-[#121212] rounded-lg p-3 sm:p-4"
       >
         <ListOfArtistCards
           headerUrl='/feed#'
