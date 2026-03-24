@@ -67,6 +67,8 @@ export default function TrackList({ userId, username }: TrackListProps) {
         return (
           <TrackCard
             key={track.id}
+            trackId={String(track.id)}
+            isPrivate={false}
             user={{
               name: artistName,
               avatar: track.coverUrl,

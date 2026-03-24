@@ -63,6 +63,7 @@ export function useSecretLink(trackId: string | undefined) {
   /** Full formatted URL e.g. https://localhost:3000/tracks/1?s=nQ7ENRPl */
   const secretUrl =
     data && trackId ? formatSecretUrl(trackId, data.secretLink) : null;
+  const secretToken = data?.secretLink ?? null;
 
   const regenerate = useCallback(async () => {
     if (!trackId) {
@@ -82,5 +83,5 @@ export function useSecretLink(trackId: string | undefined) {
     }
   }, [trackId]);
 
-  return { secretUrl, isLoading, isError, regenerate, isRegenerating };
+  return { secretUrl, secretToken, isLoading, isError, regenerate, isRegenerating };
 }

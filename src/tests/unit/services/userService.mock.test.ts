@@ -166,4 +166,58 @@ describe('MockUserService', () => {
     expect(me.email).toBe(email);
     expect(me.username).toBe('session-user');
   });
+  it('getPublicUserByUsername returns profile for public user', async () => {
+  const publicPromise = service.getPublicUserByUsername('mockartist');
+  await flush();
+  const profile = await publicPromise;
+ 
+  expect(profile.username).toBe('mockartist');
+});
+ 
+it('getPublicUserByUsername throws for non-existent username', async () => {
+  jest.useRealTimers();
+  
+  await expect(
+    service.getPublicUserByUsername('this-user-does-not-exist')
+  ).rejects.toThrow('User not found');
+});
+
+it('getPublicUserByUsername throws for private profile when not the owner', async () => {
+  jest.useRealTimers();
+  
+  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
+  const users = getMockUsersStore();
+  const mockartist = users.find((u) => u.username === 'mockartist');
+  if (!mockartist) throw new Error('seed user mockartist not found');
+
+  mockartist.privacySettings.isPrivate = true;
+
+  await expect(
+    service.getPublicUserByUsername('mockartist')
+  ).rejects.toThrow('User not found');
+
+  mockartist.privacySettings.isPrivate = false;
+});
+
+it('getPublicUserByUsername succeeds for private profile when IS the owner', async () => {
+  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
+  const users = getMockUsersStore();
+  const mockartist = users.find((u) => u.username === 'mockartist');
+  if (!mockartist) throw new Error('seed user mockartist not found');
+
+  mockartist.privacySettings.isPrivate = true;
+
+  // Simulate session as mockartist (id: 7)
+  localStorage.setItem('decibel_mock_user', JSON.stringify({ id: 7, username: 'mockartist' }));
+
+  const fetchPromise = service.getPublicUserByUsername('mockartist');
+  await flush();
+  const profile = await fetchPromise;
+
+  expect(profile.username).toBe('mockartist');
+
+  // Cleanup
+  mockartist.privacySettings.isPrivate = false;
+  localStorage.removeItem('decibel_mock_user');
+});
 });

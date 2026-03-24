@@ -93,6 +93,7 @@ export function useFeedTracks() {
 
     return {
       id: track.id,
+      isPrivate: false,
       user: {
         name: artistName,
         avatar: track.coverUrl,

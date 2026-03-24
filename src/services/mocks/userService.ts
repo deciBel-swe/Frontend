@@ -166,10 +166,17 @@ export class MockUserService implements UserService {
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
-    const user = inMemoryUsers.find((u) => u.username === username);
+    const users = getMockUsersStore(); 
+    const user = users.find((u) => u.username === username);
     if (!user) {
       throw new Error('User not found');
     }
+    
+    const currentUserId = resolveCurrentMockUserId();
+    if (user.privacySettings.isPrivate && user.id !== currentUserId) {
+      throw new Error('User not found');
+    }
+
     return toUserPublic(user);
   }
 

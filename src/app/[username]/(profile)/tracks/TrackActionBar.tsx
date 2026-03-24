@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
-import type { TrackPreview } from '@/app/[username]/(profile)/tracks/ShareModal';
+import type { TrackPreviewData } from '@/app/[username]/(profile)/tracks/ShareModal';
 import {
   CheckIcon,
   CopyIcon,
@@ -10,6 +10,7 @@ import {
 } from '@/components/nav/TrackActionBar';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
+import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ export interface TrackActionItem {
 interface TrackActionBarProps {
   trackId: string;
   isPrivate: boolean;
-  track?: TrackPreview;
+  track?: TrackPreviewData;
   /** Extra action items to append after the default ones */
   extraActions?: TrackActionItem[];
 }
@@ -93,13 +94,16 @@ export function TrackActionBar({
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { secretUrl } = useSecretLink(isPrivate ? trackId : undefined);
+  const { visibility } = useTrackVisibility(Number(trackId));
+  const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
+
+  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
   const { metadata } = useTrackMetadata(
-    !isPrivate ? Number(trackId) : undefined
+    !resolvedIsPrivate ? Number(trackId) : undefined
   );
 
   const handleCopy = async () => {
-    const urlToCopy = isPrivate
+    const urlToCopy = resolvedIsPrivate
       ? (secretUrl ?? '')
       : (metadata?.trackUrl ?? '');
 
@@ -139,7 +143,7 @@ export function TrackActionBar({
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}
-        isPrivate={isPrivate}
+        isPrivate={resolvedIsPrivate}
         track={track}
       />
     </>
