@@ -15,7 +15,7 @@ const ProfileHeader = ({ username }: ProfileHeaderProps) => {
       <div className="absolute top-1/2 left-10 -translate-y-1/2 flex items-center gap-4">
         <ProfileAvatar avatarUrl={data?.profile.avatarUrl} />
         <div className="flex flex-col gap-1 items-start">
-          <span className="text-xl font-bold text-white bg-black">
+          <span className="text-xl font-bold text-white bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-md">
             {username}
           </span>
           <span className="text-xl font-bold text-gray-400 bg-black">
