@@ -8,6 +8,7 @@ import {
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
+import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
 import { IconButton } from '@/components/buttons/IconButton';
 
@@ -18,17 +19,20 @@ interface MidBarProps {
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-
-  const isOwnProfile = 'mockuser' === username; // dummy check
+  // const [isHydrated, setIsHydrated] = useState(false);
+  const { user: myUser } = useUserMe();
+  // const countries = useGetCountry();
 
   // shared button classes
   const buttonBase =
     'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
     'transition-all duration-150 shrink-0';
 
+  //const isOwnProfile = isHydrated && myUser?.username === username;
+  // there is problem in it I will just use dummy name for testing
+  const isOwnProfile = myUser?.username === username;
   return (
     <div className="w-full flex items-center justify-between mt-3">
-
       {/* NAV */}
       <ProfileNav username={username} />
 
@@ -78,7 +82,6 @@ const MidBar = ({ username }: MidBarProps) => {
             </span>
           </IconButton>
         )}
-
       </div>
 
       <EditProfileModal open={isEditOpen} onClose={() => setIsEditOpen(false)} />
