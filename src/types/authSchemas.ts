@@ -14,8 +14,23 @@ const MAX_USERNAME_LENGTH = 30;
  * @constant {string}
  */
 const MINIMUM_AGE_MESSAGE =
-  "Sorry, but you don't meet SoundCloud's minimum age requirements";
+  "Sorry, but you don't meet DeciBel's minimum age requirements";
 
+//array months used in date fix below (probably not the best way for the fix but let's see)
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 /**
  * Zod schema for user registration validation
  *
@@ -42,7 +57,7 @@ export const registrationSchema = z
       .string()
       .trim()
       .max(MAX_EMAIL_LENGTH, 'Email is too long.')
-      .email('Enter a valid email address.'),
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid email address.'),
     password: z
       .string()
       .max(
@@ -75,6 +90,37 @@ export const registrationSchema = z
     gender: z.string().min(1, 'Gender is required.'),
   })
   .superRefine((values, ctx) => {
+    if (values.month && values.day && values.year) {
+      //not sure if this is the best way for this fix but will try it for now
+      const year = Number(values.year);
+      const day = Number(values.day);
+      const mIdx = months.indexOf(values.month);
+
+      if (mIdx !== -1 && !Number.isNaN(year) && !Number.isNaN(day)) {
+        // Validate max days in month (Handles Leap Years dynamically)
+        const daysInMonth = new Date(year, mIdx + 1, 0).getDate();
+        if (day > daysInMonth) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['day'],
+            message: `Invalid date. ${values.month} only has ${daysInMonth} days.`,
+          });
+        }
+
+        // Prevent future birthdates
+        const inputDate = new Date(year, mIdx, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // normalize time to midnight
+        if (inputDate > today) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['year'],
+            message: 'Date of birth cannot be in the future.',
+          });
+        }
+      }
+    }
+    //the date fix ends here
     if (!values.year) return;
 
     const year = Number(values.year);
@@ -141,7 +187,7 @@ export const signInSchema = z.object({
     .string()
     .trim()
     .max(MAX_EMAIL_LENGTH, 'Email is too long.')
-    .email('Enter a valid email address.'),
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid email address.'),
   password: z
     .string()
     .trim()

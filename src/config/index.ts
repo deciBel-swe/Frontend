@@ -79,16 +79,15 @@ export const config: AppConfig = {
 
   // API Configuration
   api: {
-    baseURL: getEnv('NEXT_PUBLIC_API_URL', 'http://localhost:5000/api/v1'),
-    wsURL: getEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:5000'),
-    appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
-    useMock: getBoolEnv('NEXT_PUBLIC_USE_MOCK', true),
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
+    wsURL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:5000',
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    useMock: process.env.NEXT_PUBLIC_USE_MOCK === 'true',
   },
   urls: {
-    domainName: getEnv(
-      'NEXT_PUBLIC_TRACK_BASE_URL',
-      getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000')
-    ),
+    domainName: process.env.NEXT_PUBLIC_TRACK_BASE_URL || 
+                process.env.NEXT_PUBLIC_APP_URL || 
+                'http://localhost:3000',
   },
   // Pagination
   pagination: {

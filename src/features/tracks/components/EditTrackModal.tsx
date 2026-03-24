@@ -8,6 +8,7 @@ import { trackService } from '@/services';
 import { useQueryClient } from '@tanstack/react-query';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { toTrackSlug } from '@/types/uploadSchema';
+import { validateImageFile } from '@/utils/fileValidation';
 import Button from '@/components/buttons/Button';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 
@@ -32,17 +33,20 @@ export default function EditTrackModal({
 }: EditTrackModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [activeTab, setActiveTab] = useState<EditTab>('basic');
   const [title, setTitle] = useState(track.title);
   const [artist, setArtist] = useState(track.artist);
   const [trackLinkSuffix, setTrackLinkSuffix] = useState(
-    toTrackSlug(track.title)
+    toTrackSlug('')
   );
   const [trackLinkEdited, setTrackLinkEdited] = useState(false);
   const [genre, setGenre] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [descriptionTouched, setDescriptionTouched] = useState(false);
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [privacyTouched, setPrivacyTouched] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
@@ -70,12 +74,14 @@ export default function EditTrackModal({
       setActiveTab('basic');
       setTitle(track.title);
       setArtist(track.artist);
-      setTrackLinkSuffix(toTrackSlug(track.title));
+      setTrackLinkSuffix('');
       setTrackLinkEdited(false);
       setGenre('');
       setTags([]);
       setDescription('');
       setDescriptionTouched(false);
+      setReleaseDate(todayIsoDate);
+      setReleaseDateError('');
       setPrivacy('public');
       setPrivacyTouched(false);
       setArtworkPreview(track.cover ?? null);
@@ -100,10 +106,22 @@ export default function EditTrackModal({
 
         setTitle(data.title);
         setArtist(artistName);
-        setTrackLinkSuffix(toTrackSlug(data.title));
+        const trackUrl = data.trackUrl ?? '';
+        const trackUrlPath = trackUrl
+          ? new URL(trackUrl, normalizedDomainName).pathname
+          : '';
+        const trackUrlSegments = trackUrlPath.split('/').filter(Boolean);
+        const trackUrlSuffix =
+          trackUrlSegments.length > 0
+            ? trackUrlSegments[trackUrlSegments.length - 1]
+            : '';
+        setTrackLinkSuffix(
+          trackUrlSuffix ? toTrackSlug(trackUrlSuffix) : toTrackSlug(data.title)
+        );
         setGenre(data.genre ?? '');
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
+        setReleaseDate(data.releaseDate?.trim() || todayIsoDate);
         setArtworkPreview(data.coverUrl ?? null);
         setArtworkRemoved(false);
       } catch (err) {
@@ -130,19 +148,25 @@ export default function EditTrackModal({
     setTrackLinkSuffix(toTrackSlug(title));
   }, [title, trackLinkEdited]);
 
-  const handleArtwork = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Artwork must be an image file');
-      return;
-    }
+  const handleArtwork = async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Artwork must be a valid image file.');
+        return;
+      }
 
-    setArtworkFile(file);
-    setArtworkRemoved(false);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setArtworkPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+      setArtworkFile(file);
+      setArtworkRemoved(false);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setArtworkPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Artwork validation failed:', err);
+      alert('Unable to read artwork file. Please try another image.');
+    }
   };
 
   const removeArtwork = () => {
@@ -162,7 +186,16 @@ export default function EditTrackModal({
       setSaveError('Title is required.');
       return;
     }
+    if (!releaseDate) {
+      setReleaseDateError('Release date is required.');
+      return;
+    }
+    if (releaseDate > todayIsoDate) {
+      setReleaseDateError('Release date cannot be in the future.');
+      return;
+    }
     setSaveError('');
+    setReleaseDateError('');
     setIsSaving(true);
 
     try {
@@ -195,6 +228,9 @@ export default function EditTrackModal({
       if (descriptionTouched) {
         formData.append('description', description.trim());
       }
+
+      formData.append('trackLinkSuffix', trackLinkSuffix);
+      formData.append('releaseDate', releaseDate);
 
       if (privacyTouched) {
         formData.append('isPrivate', String(privacy === 'private'));
@@ -320,6 +356,16 @@ export default function EditTrackModal({
                     setDescriptionTouched(true);
                     setDescription(next);
                   }}
+                  releaseDate={releaseDate}
+                  releaseDateError={releaseDateError}
+                  onReleaseDateChange={(nextDate) => {
+                    setReleaseDate(nextDate);
+                    if (releaseDateError) {
+                      setReleaseDateError('');
+                    }
+                  }}
+                  releaseDateMax={todayIsoDate}
+                  showReleaseDate
                   privacy={privacy}
                   onPrivacyChange={(next) => {
                     setPrivacyTouched(true);

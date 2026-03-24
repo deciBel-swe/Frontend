@@ -17,6 +17,7 @@ import type {
 } from '@/types/user';
 import type { SelectTextOption } from '@/components/FormFields';
 import { validateLinks } from '@/utils/forValidation';
+import { validateImageFile } from '@/utils/fileValidation';
 import { userService } from '@/services';
 
 type UseEditProfileFormOptions = {
@@ -182,18 +183,29 @@ export const useEditProfileForm = ({
     [links]
   );
 
-  const handleImageSelect = useCallback((file: File) => {
-    setSelectedImage(file);
+  const handleImageSelect = useCallback(async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Profile image must be a valid image file.');
+        return;
+      }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatarPreviewUrl(
-        typeof reader.result === 'string' ? reader.result : null
-      );
-    };
-    reader.readAsDataURL(file);
+      setSelectedImage(file);
 
-    setFormValues((prev) => ({ ...prev, avatar: file }));
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAvatarPreviewUrl(
+          typeof reader.result === 'string' ? reader.result : null
+        );
+      };
+      reader.readAsDataURL(file);
+
+      setFormValues((prev) => ({ ...prev, avatar: file }));
+    } catch (err) {
+      console.error('Profile image validation failed:', err);
+      alert('Unable to read profile image. Please try another image.');
+    }
   }, []);
 
   const handleImageRemove = useCallback(() => {

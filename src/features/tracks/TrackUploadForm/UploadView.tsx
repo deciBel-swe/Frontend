@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks';
 import { config } from '@/config';
 import { trackService } from '@/services';
 import { generateWaveform } from '@/utils/generateWaveform';
+import { validateAudioFile, validateImageFile } from '@/utils/fileValidation';
 import UploadDropzone from '@/features/tracks/TrackUploadForm/FormFields/UploadDropzone';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess';
@@ -34,6 +35,7 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 
 export default function UploadView() {
   const { user } = useAuth();
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [titleError, setTitleError] = useState<string>('');
@@ -52,6 +54,8 @@ export default function UploadView() {
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -140,6 +144,7 @@ export default function UploadView() {
       genre,
       tags,
       description,
+      releaseDate,
       privacy,
     });
 
@@ -148,12 +153,14 @@ export default function UploadView() {
       setTitleError(fieldErrors.title?.[0] ?? '');
       setTrackLinkError(fieldErrors.trackLinkSuffix?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setTrackLinkError('');
     setGenreError('');
+    setReleaseDateError('');
 
     const formData = new FormData();
 
@@ -167,7 +174,7 @@ export default function UploadView() {
     formData.append('trackLinkSuffix', trackLinkSuffix);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
-    formData.append('releaseDate', new Date().toISOString().slice(0, 10));
+    formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
     }
@@ -223,26 +230,34 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
+    setReleaseDate(todayIsoDate);
+    setReleaseDateError('');
     setPrivacy('public');
     setArtworkFile(null);
     setArtworkPreview(null);
     setGeneratedWaveform([]);
   };
 
-  const handleArtwork = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Artwork must be an image file');
-      return;
+  const handleArtwork = async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Artwork must be a valid image file.');
+        return;
+      }
+
+      setArtworkFile(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setArtworkPreview(reader.result as string);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Artwork validation failed:', err);
+      alert('Unable to read artwork file. Please try another image.');
     }
-
-    setArtworkFile(file);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setArtworkPreview(reader.result as string);
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const removeArtwork = () => {
@@ -250,7 +265,7 @@ export default function UploadView() {
     setArtworkPreview(null);
   };
 
-  const handleAudio = (file: File) => {
+  const handleAudio = async (file: File) => {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (
       !ALLOWED_TYPES.includes(file.type) &&
@@ -272,17 +287,37 @@ export default function UploadView() {
       );
       setAudioFile(null);
       setShowForm(false);
-    } else {
-      setError('');
-      setAudioFile(file);
-      setShowForm(true);
-      console.log(
-        'Valid file:',
-        file.name,
-        (file.size / (1024 * 1024)).toFixed(2),
-        'MB'
-      );
+      return;
     }
+
+    try {
+      const validation = await validateAudioFile(file);
+      if (!validation.ok) {
+        setError(
+          validation.reason ??
+            'File content does not match a supported audio format.'
+        );
+        setAudioFile(null);
+        setShowForm(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Audio validation failed:', err);
+      setError('Unable to read audio file. Please try another file.');
+      setAudioFile(null);
+      setShowForm(false);
+      return;
+    }
+
+    setError('');
+    setAudioFile(file);
+    setShowForm(true);
+    console.log(
+      'Valid file:',
+      file.name,
+      (file.size / (1024 * 1024)).toFixed(2),
+      'MB'
+    );
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -294,7 +329,9 @@ export default function UploadView() {
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer.files?.[0];
-    if (file) handleAudio(file);
+    if (file) {
+      void handleAudio(file);
+    }
   };
 
   if (uploadComplete && uploadedTrackUrl) {
@@ -355,6 +392,16 @@ export default function UploadView() {
         onTagsChange={setTags}
         description={description}
         onDescriptionChange={setDescription}
+        releaseDate={releaseDate}
+        releaseDateError={releaseDateError}
+        onReleaseDateChange={(nextDate) => {
+          setReleaseDate(nextDate);
+          if (releaseDateError) {
+            setReleaseDateError('');
+          }
+        }}
+        releaseDateMax={todayIsoDate}
+        showReleaseDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />
@@ -366,7 +413,9 @@ export default function UploadView() {
       error={error}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onFileSelected={handleAudio}
+      onFileSelected={(file) => {
+        void handleAudio(file);
+      }}
     />
   );
 }
