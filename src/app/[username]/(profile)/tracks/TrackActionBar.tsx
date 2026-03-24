@@ -140,6 +140,7 @@ export function TrackActionBar({
       </div>
 
       <ShareModal
+        variant="track"
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}

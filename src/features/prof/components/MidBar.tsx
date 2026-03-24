@@ -11,6 +11,7 @@ import ProfileNav from './ProfileNav';
 import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
 import { IconButton } from '@/components/buttons/IconButton';
+import { ProfilePreview, ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
 
 interface MidBarProps {
   username: string;
@@ -18,6 +19,7 @@ interface MidBarProps {
 
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   // const [isHydrated, setIsHydrated] = useState(false);
   const { user: myUser } = useUserMe();
@@ -31,6 +33,11 @@ const MidBar = ({ username }: MidBarProps) => {
   //const isOwnProfile = isHydrated && myUser?.username === username;
   // there is problem in it I will just use dummy name for testing
   const isOwnProfile = myUser?.username === username;
+
+  const profileUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/${username}` 
+    : '';
+    
   return (
     <div className="w-full flex items-center justify-between mt-3">
       {/* NAV */}
@@ -56,9 +63,9 @@ const MidBar = ({ username }: MidBarProps) => {
           </IconButton>
         )}
 
-        <IconButton aria-label="share">
+        <IconButton aria-label="share" onClick={() => setIsShareOpen(true)}>
           <span className={`${buttonBase} bg-bg-subtle dark:bg-gray-800 text-text-muted dark:text-text-secondary`}>
-            <ShareIcon /> {/* inherits text-gray-500 */}
+            <ShareIcon />
             <span className="hidden sm:inline">share</span>
           </span>
         </IconButton>
@@ -85,6 +92,19 @@ const MidBar = ({ username }: MidBarProps) => {
       </div>
 
       <EditProfileModal open={isEditOpen} onClose={() => setIsEditOpen(false)} />
+        <ShareModal
+        variant="profile"
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        profileUrl={profileUrl}
+        preview={
+          <ProfilePreview 
+            displayName={username} 
+            username={username} 
+            // avatarUrl={myUser?.avatarUrl} // Pass avatar if available in your user hook
+          />
+        }
+      />
     </div>
   );
 };

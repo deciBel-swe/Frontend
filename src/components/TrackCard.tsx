@@ -212,6 +212,7 @@ export default function TrackCard({
       </div>
 
       <ShareModal
+        variant="track"
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}
