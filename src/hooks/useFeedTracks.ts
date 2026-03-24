@@ -96,7 +96,7 @@ export function useFeedTracks() {
       isPrivate: false,
       user: {
         name: artistName,
-        avatar: track.coverUrl,
+        avatar: '/images/default_song_image.png', //use this until API provides it
       },
       postedText: 'posted a track' as const,
       timeAgo: '',

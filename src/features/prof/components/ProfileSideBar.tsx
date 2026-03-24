@@ -1,39 +1,21 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+//import React, { useEffect, useState } from 'react';
 import { SocialList } from './SocialList';
 import StatsGroup from './StatsGroup';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 import ListOfArtistCards from '@/components/sidebar/ListOfArtistCards';
 import ListOfTrackRows from '@/components/sidebar/ListOfTrackRows';
-import { MockTrackService } from '@/services/mocks/trackService';
+import { useUserTracks } from '@/hooks/useUserTracks';
 
 interface ProfileSideBarProps {
   username: string;
 }
-
-const trackService = new MockTrackService();
-
+//rely on the useUserTracks hook instead of the past custom hook
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   const { data } = usePublicUser(username);
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [tracks, setTracks] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchTracks = async () => {
-      if (!data?.id) return;
-
-      const userTracks = await trackService.getUserTracks(data.id);
-
-      const filtered = userTracks.filter(
-        (track) => track.artist.username === username
-      );
-
-      setTracks(filtered);
-    };
-
-    fetchTracks();
-  }, [data?.id, username]);
+  const { tracks } = useUserTracks({ userId: data?.id, username });
 
   const historyData = tracks.map((track) => ({
     image: track.coverUrl,

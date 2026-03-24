@@ -1,5 +1,6 @@
 'use client';
 
+import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -16,7 +17,6 @@ import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
-import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 
@@ -62,31 +62,17 @@ export default function TrackCard({
   // ── Share modal state
   const [isShareOpen, setIsShareOpen] = useState(false);
 
-  // ── Copy link state
-  const [copied, setCopied] = useState(false);
-
   // ── Fetch correct URL based on privacy
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
-  const { metadata } = useTrackMetadata(
-    !resolvedIsPrivate ? Number(trackId) : undefined
-  );
 
-  /**
-   * Copies the correct URL to clipboard:
-   * - Private track → secret link (only accessible to people with the link)
-   * - Public track  → public trackUrl
-   */
-  const handleCopy = async () => {
-    const urlToCopy = resolvedIsPrivate
-      ? (secretUrl ?? '')
-      : (metadata?.trackUrl ?? '');
-
-    if (!urlToCopy) return;
-
-    await navigator.clipboard.writeText(urlToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // ── Use the centralized copy hook (bypasses useTrackMetadata entirely)
+  const { copied, handleCopy } = useCopyTrackLink({
+    trackId,
+    isPrivate: resolvedIsPrivate,
+    secretUrl,
+    artistName: track.artist,
+    trackTitle: track.title,
+  });
 
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
