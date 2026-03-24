@@ -4,31 +4,24 @@ import Button from '@/components/buttons/Button';
 const mockPlaylists = [
   {
     id: 1,
-    title: 'GOOD B1TCH DEMO.mp3',
-    artist: 'LM KAYLA',
+    title: 'The Beauty of Existence',
+    artist: 'Muhammad Al Muqit',
     image:
-      'https://i1.sndcdn.com/artworks-Vzgdk0yrLFwhqxtg-T3ftYA-t500x500.jpg',
+      'https://i1.sndcdn.com/artworks-000523960650-2nc5nm-t500x500.jpg',
   },
   {
     id: 2,
-    title: 'Double Vision - Flex Juke',
+    title: 'A Flower',
     artist: 'Double Vision',
     image:
-      'https://i1.sndcdn.com/artworks-w1BjpoUnYWzgHoEj-dKbI9A-t500x500.jpg',
+      'https://i1.sndcdn.com/artworks-000184761485-dzknun-t500x500.jpg',
   },
   {
     id: 3,
-    title: 'Your Loving Arms',
-    artist: 'Phase Two',
+    title: 'Al-Aqsa',
+    artist: 'Palestine',
     image:
-      'https://i1.sndcdn.com/artworks-ZvTOS9eK9xf1d37S-jDf2Ew-t500x500.jpg',
-  },
-  {
-    id: 4,
-    title: 'Numba 1 DJ',
-    artist: 'AMY101',
-    image:
-      'https://i1.sndcdn.com/artworks-fNxVStvNE7txxeyJ-MAA8Qw-t500x500.jpg',
+      'https://i1.sndcdn.com/artworks-000034240364-u9zoa8-t500x500.jpg',
   },
 ];
 
