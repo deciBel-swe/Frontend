@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
-import { ShareModal } from '@/app/[username]/tracks/ShareModal';
+import { ShareModal } from '@/app/[username]/(profile)/tracks/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackMetadata } from '@/hooks/useTrackMetaData';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
