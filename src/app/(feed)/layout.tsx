@@ -65,7 +65,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* PAGE CONTAINER */}
       <div className="w-full max-w-[1200px] flex gap-8 py-6">
         {/* ================= MAIN FEED ================= */}
-        <main className="flex-1 flex flex-col gap-6">{children}</main>
+        <main className="flex-1 flex flex-col">{children}</main>
 
         {/* ================= SIDEBAR ================= */}
         <div className="hidden lg:block xl:w-[340px] shrink-0 ">

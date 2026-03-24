@@ -79,16 +79,20 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay" onClick={onClose}>
-      <div className="relative w-225 max-w-[95vw] max-h-[90vh] rounded bg-surface-default text-text-primary border border-border-default overflow-auto" onClick={(e) => e.stopPropagation()}>
-        <Button
-          aria-label="Close"
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* BACKDROP (ONLY THIS closes modal) */}
+    <div
+      className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm"
+      onClick={onClose}
+    />
+      <div className="relative rounded bg-white dark:bg-black border border-white/10">
+        {/* CLOSE BUTTON */} 
+        <button
           onClick={onClose}
-          variant="ghost"
-          className="absolute right-4 top-4"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+          // classname must be top-4, but due to header
+          className="fixed top-15 right-4 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
+          <X size={20} />
+        </button>
 
         <div className="px-6 py-4 border-b border-border-default text-[17px] font-bold">
           Edit your Profile

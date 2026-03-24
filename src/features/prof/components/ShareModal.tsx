@@ -375,12 +375,18 @@ export function ShareModal(props: ShareModalProps) {
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-surface-overlay" onClick={props.onClose} />
+       {/* MODAL WRAPPER */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+      className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm"
+      onClick={props.onClose}
+    />
+      <div className="relative w-full max-w-md bg-white dark:bg-black border border-white/10 rounded-lg shadow-2xl overflow-hidden">
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-md bg-bg-base border border-border-default rounded-lg shadow-2xl overflow-hidden">
+        {/* HEADER (optional but now consistent with your system) */}
+        <div className="px-5 py-4 border-b border-border-default text-sm font-semibold">
+          Share Track
+        </div>
           {/* Tabs */}
           <div className="border-b border-border-default">
             <nav className="flex">
@@ -408,7 +414,7 @@ export function ShareModal(props: ShareModalProps) {
           </div>
 
           {/* Content */}
-          <div className="p-5">
+          <div className="p-5 space-y-4">
             {resolvedPreview}
             {shareContent}
           </div>

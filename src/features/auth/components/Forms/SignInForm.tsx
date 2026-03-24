@@ -75,9 +75,7 @@ const SignInForm: FC<SignInFormProps> = ({ onSuccess }) => {
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="text-left">
             <h1
-              className="text-3xl font-bold mb-1"
-              style={{ fontFamily: 'var(--font-sans)' }}
-            >
+              className="text-3xl font-bold mb-1">
               Sign in to your account
             </h1>
             <p>Mock accounts</p>
