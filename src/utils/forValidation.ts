@@ -14,10 +14,14 @@ const SUPPORT_PLATFORM_DOMAINS = {
 export const isValidUrlOrEmail = (value: string): boolean => {
   const trimmed = value.trim();
 
-  // Guard 1: Block XSS / malicious protocols immediately
+  // Block XSS / malicious protocols immediately
   if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
 
-  // Guard 2: Stricter Email Check (Requires a TLD like .com)
+  //Block double-pasted protocols (e.g., https://...https://...)
+  const httpCount = (trimmed.match(/https?:\/\//gi) || []).length;
+  if (httpCount > 1) return false;
+
+  //Email Check (Requires a TLD like .com)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
   if (emailRegex.test(trimmed)) return true;
   if (
@@ -26,7 +30,6 @@ export const isValidUrlOrEmail = (value: string): boolean => {
   )
     return true;
 
-  // Guard 3: URL Check
   const urlToTest = /^https?:\/\//i.test(trimmed)
     ? trimmed
     : `https://${trimmed}`;
@@ -34,9 +37,10 @@ export const isValidUrlOrEmail = (value: string): boolean => {
   try {
     const parsed = new URL(urlToTest);
 
-    //Enforce a dot in the hostname to prevent sth like "https://justaword"
+    // Enforce a dot in the hostname to prevent sth like "https://justaword"
     if (!parsed.hostname.includes('.')) return false;
 
+    // Guard against protocol-less double pastes (e.g., paypal.me/userpaypal.me)
     if (parsed.pathname.includes(parsed.hostname)) return false;
 
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -49,6 +53,9 @@ export const isSupportedPlatformUrl = (value: string): boolean => {
   const trimmed = value.trim();
 
   if (/^(javascript|data|vbscript):/i.test(trimmed)) return false;
+
+  const httpCount = (trimmed.match(/https?:\/\//gi) || []).length;
+  if (httpCount > 1) return false;
 
   try {
     const urlToTest = /^https?:\/\//i.test(trimmed)
