@@ -75,6 +75,11 @@ const LEGACY_TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
 const MOCK_SYSTEM_STORAGE_KEY = 'decibel_mock_system_state_v1';
 const MAX_PERSISTED_DATA_URL_LENGTH = 100_000;
 
+type PersistOptions = {
+  stripWaveformData?: boolean;
+  stripLargeImages?: boolean;
+};
+
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 const normalizeUsername = (username: string): string =>
   username.trim().toLowerCase();
@@ -457,15 +462,17 @@ const compactImageForPersistence = (
 
 const compactTrackForPersistence = (
   track: MockTrackRecord,
-  options?: { stripWaveformData?: boolean }
+  options?: PersistOptions
 ): MockTrackRecord => {
-  const coverImageDataUrl = isOversizedDataUrl(track.coverImageDataUrl)
-    ? undefined
+  const stripLargeImages = options?.stripLargeImages ?? false;
+  const coverImageDataUrl = stripLargeImages
+    ? isOversizedDataUrl(track.coverImageDataUrl)
+      ? undefined
+      : track.coverImageDataUrl
     : track.coverImageDataUrl;
-  const coverUrl = compactImageForPersistence(
-    track.coverUrl,
-    getFallbackCoverUrl(track.id)
-  );
+  const coverUrl = stripLargeImages
+    ? compactImageForPersistence(track.coverUrl, getFallbackCoverUrl(track.id))
+    : track.coverUrl;
 
   return {
     ...track,
@@ -475,17 +482,28 @@ const compactTrackForPersistence = (
   };
 };
 
-const serializeUser = (user: MockUserRecord): PersistedMockUserRecord => ({
-  ...user,
-  profile: {
-    ...user.profile,
-    profilePic: compactImageForPersistence(user.profile.profilePic),
-    coverPic: compactImageForPersistence(user.profile.coverPic),
-  },
-  followers: [...user.followers],
-  following: [...user.following],
-  blocked: [...user.blocked],
-});
+const serializeUser = (
+  user: MockUserRecord,
+  options?: PersistOptions
+): PersistedMockUserRecord => {
+  const stripLargeImages = options?.stripLargeImages ?? false;
+
+  return {
+    ...user,
+    profile: {
+      ...user.profile,
+      profilePic: stripLargeImages
+        ? compactImageForPersistence(user.profile.profilePic)
+        : user.profile.profilePic,
+      coverPic: stripLargeImages
+        ? compactImageForPersistence(user.profile.coverPic)
+        : user.profile.coverPic,
+    },
+    followers: [...user.followers],
+    following: [...user.following],
+    blocked: [...user.blocked],
+  };
+};
 
 const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
@@ -496,10 +514,10 @@ const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
 
 const toPersistedState = (
   current: MockSystemState,
-  options?: { stripWaveformData?: boolean }
+  options?: PersistOptions
 ): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
-  users: current.users.map(serializeUser),
+  users: current.users.map((user) => serializeUser(user, options)),
   tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
   emailVerification: current.emailVerification,
 });
@@ -592,7 +610,10 @@ export const persistMockSystemState = (): void => {
     // Fallback payload strips the largest regenerated fields.
     try {
       const fallbackPayload = JSON.stringify(
-        toPersistedState(state, { stripWaveformData: true })
+        toPersistedState(state, {
+          stripWaveformData: true,
+          stripLargeImages: true,
+        })
       );
       window.localStorage.setItem(MOCK_SYSTEM_STORAGE_KEY, fallbackPayload);
     } catch {
