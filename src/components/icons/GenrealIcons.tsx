@@ -102,3 +102,15 @@ export const MessageIcon: FC = () => (
     <path d="M8 12h5" />
   </svg>
 );
+
+export const UserIcon:FC=() =>(
+  <svg 
+    width="11" 
+    height="11" 
+    viewBox="0 0 16 16" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M1.5 14.5C1.5 11.5 4.5 9.5 8 9.5C11.5 9.5 14.5 11.5 14.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
