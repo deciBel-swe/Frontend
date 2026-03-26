@@ -68,7 +68,7 @@ export default function TrackCard({
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
 
   // ── Use the centralized copy hook (bypasses useTrackMetadata entirely)
-  const { copied, handleCopy } = useCopyTrackLink({
+  const { handleCopy } = useCopyTrackLink({
     trackId,
     isPrivate: resolvedIsPrivate,
     secretUrl,

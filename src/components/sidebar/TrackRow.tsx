@@ -4,12 +4,10 @@ import Link from 'next/link';
 import {
   Play,
   Heart,
-  MoreHorizontal,
   MessageCircle,
   Repeat,
 } from 'lucide-react';
 import React from 'react';
-import Button from '@/components/buttons/Button';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 import TrackActions from '@/components/TrackActions'
 

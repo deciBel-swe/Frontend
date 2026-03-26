@@ -24,7 +24,7 @@ type EditTrackModalProps = {
 };
 
 type EditTab = 'basic' | 'metadata' | 'permissions' | 'advanced';
-
+const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
 export default function EditTrackModal({
   open,
   onClose,
@@ -59,7 +59,7 @@ export default function EditTrackModal({
   // const [isLoadingMeta, setIsLoadingMeta] = useState(false);
   const [metaError, setMetaError] = useState('');
 
-  const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
+  // const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
   const trackLinkPrefix = useMemo(() => {
     const username = user?.username ?? artist ?? track.artist ?? 'user';
     return `${normalizedDomainName}/${username}`;
@@ -141,7 +141,7 @@ export default function EditTrackModal({
     return () => {
       isCancelled = true;
     };
-  }, [open, track.cover, track.artist, track.title, trackId]);
+  }, [open, track.cover, track.artist, track.title, trackId, todayIsoDate]);
 
   useEffect(() => {
     if (trackLinkEdited) return;
