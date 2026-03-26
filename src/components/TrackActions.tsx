@@ -7,7 +7,8 @@ import Button from '@/components/buttons/Button';
 type TrackActionsProps = {
   size?: number;
   className?: string;
-
+  variant?: 'ghost' | 'secondary' | 'primary'| 'premium';
+  
   // Show/hide buttons
   showLike?: boolean;
   showRepost?: boolean;
@@ -28,6 +29,7 @@ type TrackActionsProps = {
 export default function TrackActions({
   size = 16,
   className = '',
+  variant = 'ghost',
   showLike = true,
   showRepost = true,
   showShare = true,
@@ -44,32 +46,32 @@ export default function TrackActions({
   return (
     <div className={`flex gap-1 ${className}`}>
       {showLike && (
-        <Button variant="ghost" aria-label="Like" onClick={onLike}>
+        <Button variant={variant} aria-label="Like" onClick={onLike}>
           <Heart size={size} />
         </Button>
       )}
       {showRepost && (
-        <Button variant="ghost" aria-label="Repost" onClick={onRepost}>
+        <Button variant={variant} aria-label="Repost" onClick={onRepost}>
           <Repeat2 size={size} />
         </Button>
       )}
       {showShare && (
-        <Button variant="ghost" aria-label="Share" onClick={onShare}>
+        <Button variant={variant} aria-label="Share" onClick={onShare}>
           <Share2 size={size} />
         </Button>
       )}
       {showCopy && (
-        <Button variant="ghost" aria-label="Copy link" onClick={onCopy}>
+        <Button variant={variant} aria-label="Copy link" onClick={onCopy}>
           <Copy size={size} />
         </Button>
       )}
       {showEdit && onEdit && (
-        <Button variant="ghost" aria-label="Edit" onClick={onEdit}>
+        <Button variant={variant} aria-label="Edit" onClick={onEdit}>
         <Pencil size={size} />
         </Button>
       )}
       {showMore && (
-        <Button variant="ghost" aria-label="More" onClick={onMore}>
+        <Button variant={variant} aria-label="More" onClick={onMore}>
           <MoreHorizontal size={size} />
         </Button>
       )}

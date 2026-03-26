@@ -76,29 +76,18 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats, onLike
           <div className="flex-1" />
 
           {/* RIGHT: ACTION BUTTONS */}
-          <div className="hidden group-hover:flex items-center gap-2">
+ 
               <TrackActions
               size={18}
               showRepost={false}
               showShare={false}
               showCopy={false}
+              variant='secondary'
+              className='hidden group-hover:flex items-center gap-2'
               onLike={onLike}
               onMore={onMore}
             />
-            {/* <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <Heart size={18} />
-            </Button>
 
-            <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <MoreHorizontal size={18} />
-            </Button> */}
-          </div>
         </div>
         {/* STATS */}
         <div className="flex items-center gap-3 text-xs mt-1">
