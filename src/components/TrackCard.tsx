@@ -20,6 +20,7 @@ import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import CompactTrackList from '@/components/CompactTrackList'
+import TrackActions from '@/components/TrackActions'
 
 type TrackCardProps = {
   trackId: string;
@@ -280,53 +281,16 @@ export default function TrackCard({
   ]}
 />
 )}
-          {/* 3. ACTIONS */}
-          <div className="flex items-center gap-1 h-12">
-            <Button variant="ghost" aria-label="Like" title="Like">
-              <Heart size={16} />
-            </Button>
-
-            <Button variant="ghost" aria-label="Repost" title="Repost">
-              <Repeat2 size={16} />
-            </Button>
-
-            <Button
-              variant="ghost"
-              aria-label="Share"
-              title="Share"
-              onClick={() => setIsShareOpen(true)}
-            >
-              <Share2 size={16} />
-            </Button>
-
-            <Button
-              variant="ghost"
-              aria-label={copied ? 'Copied!' : 'Copy link'}
-              title={copied ? 'Copied!' : 'Copy link'}
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <Check size={16} className="text-status-success" />
-              ) : (
-                <Copy size={16} />
-              )}
-            </Button>
-
-            {showEditButton ? (
-              <Button
-                variant="ghost"
-                aria-label="Edit"
-                title="Edit"
-                onClick={() => setEditOpen(true)}
-              >
-                <Pencil size={16} />
-              </Button>
-            ) : null}
-
-            <Button variant="ghost" aria-label="More" title="More">
-              <MoreHorizontal size={16} />
-            </Button>
-          </div>
+         <TrackActions
+        size={16}                
+        showEdit={showEditButton}  
+        onEdit={() => setEditOpen(true)} 
+        onLike={() => console.log('Liked', track.id)}
+        onRepost={() => console.log('Reposted', track.id)}
+        onShare={() => setIsShareOpen(true)}
+        onCopy={handleCopy}
+        onMore={() => console.log('More options', track.id)}
+        />
         </div>
 
         {/* DURATION */}

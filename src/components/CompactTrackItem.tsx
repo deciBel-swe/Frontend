@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Heart, Repeat2, Share2, Copy, MoreHorizontal } from 'lucide-react';
-import Button from '@/components/buttons/Button';
 import { Track } from './CompactTrackList';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 import { Play } from 'lucide-react';
+import TrackActions from '@/components/TrackActions'
 
 type CompactTrackItemProps = {
   track: Track;
@@ -53,13 +52,12 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
 
         {/* Action buttons */}
         {hovered && (
-          <div className="trackItem__actions flex gap-1 absolute right-2 top-1/2 -translate-y-1/2 bg-transparent">
-            <Button variant="ghost" aria-label="Like"><Heart size={14} /></Button>
-            <Button variant="ghost" aria-label="Repost"><Repeat2 size={14} /></Button>
-            <Button variant="ghost" aria-label="Share"><Share2 size={14} /></Button>
-            <Button variant="ghost" aria-label="Copy link"><Copy size={14} /></Button>
-            <Button variant="ghost" aria-label="More"><MoreHorizontal size={14} /></Button>
-          </div>
+        <TrackActions
+         size={14}
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            onLike={() => console.log('Liked track', track.id)}
+            onCopy={() => console.log('Copy link', track.id)}
+         />
         )}
       </div>
     </li>
