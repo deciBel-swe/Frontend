@@ -32,6 +32,9 @@ type TrackCardProps = {
   timeAgo?: string;
   showEditButton?: boolean;
 
+    // New prop to conditionally show the track list
+  showTrackList?: boolean;
+
   track: {
     id: number;
     artist: string;
@@ -52,6 +55,7 @@ export default function TrackCard({
   showEditButton = true,
   track,
   waveform,
+  showTrackList = false,
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
@@ -152,6 +156,7 @@ export default function TrackCard({
           </div>
 
           {/* 2a. Track list */}
+          {showTrackList && (
 <CompactTrackList
   tracks={[
     {
@@ -274,7 +279,7 @@ export default function TrackCard({
     },
   ]}
 />
-
+)}
           {/* 3. ACTIONS */}
           <div className="flex items-center gap-1 h-12">
             <Button variant="ghost" aria-label="Like" title="Like">
