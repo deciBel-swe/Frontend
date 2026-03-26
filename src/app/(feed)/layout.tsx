@@ -61,17 +61,22 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
   // return <>{children}</>;
   return (
-    <div className="w-full flex justify-center">
-      {/* PAGE CONTAINER */}
-      <div className="w-full max-w-[1200px] flex gap-8 py-6">
-        {/* ================= MAIN FEED ================= */}
-        <main className="flex-1 flex flex-col">{children}</main>
-
-        {/* ================= SIDEBAR ================= */}
-        <div className="hidden lg:block xl:w-[340px] shrink-0 ">
-          <Sidebar History_header='Listening history' Artist_header='Artists you should follow' artists={artists} history={history} />
-        </div>
-      </div>
+   <div className="w-full">
+  <div className="flex w-full gap-6">
+    {/* MAIN */}
+  <div className="flex-1 min-w-0 flex flex-col pt-6">
+    {children}
+  </div>
+  {/* SIDEBAR */}
+  <aside className="hidden lg:block w-[340px] flex-shrink-0 flex flex-col pt-6">
+    <Sidebar
+      History_header="Listening history"
+      Artist_header="Artists you should follow"
+      artists={artists}
+      history={history}
+    />
+    </aside>
+  </div>
     </div>
   );
 }
