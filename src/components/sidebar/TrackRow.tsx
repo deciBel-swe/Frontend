@@ -11,6 +11,7 @@ import {
 import React from 'react';
 import Button from '@/components/buttons/Button';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import TrackActions from '@/components/TrackActions'
 
 interface TrackStats {
   plays: string;
@@ -24,9 +25,13 @@ interface TrackRowProps {
   artist: string;
   title: string;
   stats: TrackStats;
+
+  // Optional callbacks for the actions
+  onLike?: () => void;
+  onMore?: () => void;
 }
 
-const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
+const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats, onLike, onMore }) => {
   const artistSlug = encodeURIComponent(artist);
   const songSlug = encodeURIComponent(title);
 
@@ -72,7 +77,15 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
 
           {/* RIGHT: ACTION BUTTONS */}
           <div className="hidden group-hover:flex items-center gap-2">
-            <Button
+              <TrackActions
+              size={18}
+              showRepost={false}
+              showShare={false}
+              showCopy={false}
+              onLike={onLike}
+              onMore={onMore}
+            />
+            {/* <Button
               className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
               variant="secondary"
             >
@@ -84,7 +97,7 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
               variant="secondary"
             >
               <MoreHorizontal size={18} />
-            </Button>
+            </Button> */}
           </div>
         </div>
         {/* STATS */}
