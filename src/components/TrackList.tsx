@@ -10,6 +10,8 @@ type TrackListProps = {
 
   // NEW prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
+
+  
 };
 
 const parseWaveform = (value: string | undefined): number[] => {

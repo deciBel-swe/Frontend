@@ -3,7 +3,7 @@
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play } from 'lucide-react';
+import { Play, MessageCircle } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
@@ -35,6 +35,8 @@ type TrackCardProps = {
     title: string;
     cover: string;
     duration: string;
+    plays?: number;        // optional number of plays
+    comments?: number;     // optional number of messages/comments
   };
 
   waveform: number[];
@@ -281,18 +283,40 @@ export default function TrackCard({
   ]}
 />
 )}
-         <TrackActions
-        size={16}                
-        showEdit={showEditButton}  
-        onEdit={() => setEditOpen(true)} 
-        onLike={() => console.log('Liked', track.id)}
-        onRepost={() => console.log('Reposted', track.id)}
-        onShare={() => setIsShareOpen(true)}
-        onCopy={handleCopy}
-        onMore={() => console.log('More options', track.id)}
-        />
-        </div>
+        <div className="flex items-center w-full">
+  {/* LEFT: actions */}
+  <TrackActions
+    size={16}
+    showEdit={showEditButton}
+    onEdit={() => setEditOpen(true)}
+    onLike={() => console.log('Liked', track.id)}
+    onRepost={() => console.log('Reposted', track.id)}
+    onShare={() => setIsShareOpen(true)}
+    onCopy={handleCopy}
+    onMore={() => console.log('More options', track.id)}
+  />
 
+{/* RIGHT: stats */}
+<div className="ml-auto flex items-center gap-4 text-xs text-text-muted font-semibold">
+  {track.plays && (
+    <div className="flex items-center gap-1">
+      <Play size={14} />
+      <span>{track.plays}</span>
+    </div>
+  )}
+
+  {track.comments && (
+    <Link
+      href={`/${userSlug}/${trackSlug}/comments`}
+      className="flex items-center gap-1 hover:underline"
+    >
+      <MessageCircle size={14} />
+      <span>{track.comments}</span>
+    </Link>
+  )}
+</div>
+</div>
+</div>
         {/* DURATION */}
         <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
