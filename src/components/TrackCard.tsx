@@ -3,16 +3,7 @@
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-  Heart,
-  Repeat2,
-  Share2,
-  MoreHorizontal,
-  Copy,
-  Pencil,
-  Play,
-  Check,
-} from 'lucide-react';
+import { Play } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
@@ -25,6 +16,8 @@ import TrackActions from '@/components/TrackActions'
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
+  timeAgoText?: string; // ex: "3 years ago"
+  
   user: {
     name: string;
     avatar: string;
@@ -57,6 +50,7 @@ export default function TrackCard({
   track,
   waveform,
   showTrackList = false,
+  timeAgoText = '',
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
@@ -130,21 +124,27 @@ export default function TrackCard({
               />
             </Button>
 
-            <div className="flex flex-col">
-              <Link
-                href={`/${userSlug}`}
-                className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
-              >
-                {track.artist}
-              </Link>
+<div className="flex flex-col w-full">
+  <div className="flex items-center gap-2">
+    <Link
+      href={`/${userSlug}`}
+      className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
+    >
+      {track.artist}
+    </Link>
 
-              <Link
-                href={`/${userSlug}/${trackSlug}`}
-                className="text-text-primary font-semibold inline-block hover:opacity-40"
-              >
-                {track.title}
-              </Link>
-            </div>
+    {timeAgoText && (
+      <p className="ml-auto text-xs text-text-muted">{timeAgoText} years ago</p>
+    )}
+  </div>
+
+  <Link
+    href={`/${userSlug}/${trackSlug}`}
+    className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
+  >
+    {track.title}
+  </Link>
+</div>
           </div>
 
           {/* 2. WAVEFORM */}
