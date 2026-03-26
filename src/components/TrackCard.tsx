@@ -107,7 +107,7 @@ export default function TrackCard({
         </Link>
 
         {/* RIGHT COLUMN */}
-        <div className="flex flex-col flex-1 gap-2">
+        <div className="flex flex-col flex-1 gap-2 min-w-0">
           {/* 1. NAME + PLAY */}
           <div className="flex items-center gap-3 h-12 px-2">
             <Button
@@ -142,7 +142,7 @@ export default function TrackCard({
           </div>
 
           {/* 2. WAVEFORM */}
-          <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0">
+          <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0 overflow-hidden">
             <Waveform
               data={waveform}
               height={90}
