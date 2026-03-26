@@ -6,7 +6,7 @@ export default function LayoutContainer({
 }) {
   return (
     <div className="w-full flex justify-center">
-      <div className="w-full max-w-6xl px-4">{children}</div>
+      <div className="w-full max-w-6xl ">{children}</div>
     </div>
   );
 }
