@@ -19,6 +19,7 @@ import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
+import CompactTrackList from '@/components/CompactTrackList'
 
 type TrackCardProps = {
   trackId: string;
@@ -150,8 +151,132 @@ export default function TrackCard({
             />
           </div>
 
+          {/* 2a. Track list */}
+<CompactTrackList
+  tracks={[
+    {
+      id: 1,
+      title: 'No Promises',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-000244807472-dvac3y-t120x120.jpg',
+      plays: '39.7M',
+    },
+    {
+      id: 2,
+      title: 'Undefeated (feat. 21 Savage)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-000244805227-4pqktm-t120x120.jpg',
+      plays: '15.5M',
+    },
+    {
+      id: 3,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 4,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 5,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 6,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+            {
+      id: 7,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 8,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 9,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+            {
+      id: 10,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 11,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 12,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+            {
+      id: 13,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 14,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+        {
+      id: 15,
+      title: 'Drowning (feat. Kodak Black)',
+      artist: 'A Boogie Wit Da Hoodie',
+      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+      plays: 'Unavailable',
+      available: false,
+    },
+  ]}
+/>
+
           {/* 3. ACTIONS */}
-          <div className="flex items-center gap-1 h-12 px-2">
+          <div className="flex items-center gap-1 h-12">
             <Button variant="ghost" aria-label="Like" title="Like">
               <Heart size={16} />
             </Button>
