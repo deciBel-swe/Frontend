@@ -5,6 +5,8 @@ import type {
   AddPlaylistTrackRequest,
   PlaylistEmbedResponse,
   PlaylistResponse,
+  PlaylistSecretLinkRegenerateResponse,
+  PlaylistSecretLinkResponse,
   PlaylistUpdateResponse,
   ReorderPlaylistTracksRequest,
   UpdatePlaylistRequest,
@@ -18,6 +20,9 @@ import type {
 export interface PlaylistService {
   /** Create a playlist (POST /playlists). */
   createPlaylist(payload: CreatePlaylistRequest): Promise<PlaylistResponse>;
+
+  /** Get a playlist with tracks (GET /playlists/:playlistId). */
+  getPlaylist(playlistId: number): Promise<PlaylistResponse>;
 
   /** Update a playlist (PATCH /playlists/:playlistId). */
   updatePlaylist(
@@ -48,6 +53,19 @@ export interface PlaylistService {
 
   /** Get embed HTML snippet for a playlist (GET /playlists/:playlistId/embed). */
   getPlaylistEmbed(playlistId: number): Promise<PlaylistEmbedResponse>;
+
+  /** Get playlist secret link (GET /playlists/:playlistId/secret-link). */
+  getPlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkResponse>;
+
+  /** Regenerate playlist secret link (POST /playlists/:playlistId/secret-link/regenerate). */
+  regeneratePlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkRegenerateResponse>;
+
+  /** Get playlist via secret token (GET /playlists/token/:token). */
+  getPlaylistByToken(token: string): Promise<PlaylistResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -56,6 +74,10 @@ export class RealPlaylistService implements PlaylistService {
     payload: CreatePlaylistRequest
   ): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, { payload });
+  }
+
+  async getPlaylist(playlistId: number): Promise<PlaylistResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_BY_ID(playlistId));
   }
 
   async updatePlaylist(
@@ -100,5 +122,21 @@ export class RealPlaylistService implements PlaylistService {
     playlistId: number
   ): Promise<PlaylistEmbedResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_EMBED(playlistId));
+  }
+
+  async getPlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_SECRET_LINK(playlistId));
+  }
+
+  async regeneratePlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkRegenerateResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_SECRET_LINK_REGENERATE(playlistId));
+  }
+
+  async getPlaylistByToken(token: string): Promise<PlaylistResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_BY_TOKEN(token));
   }
 }

@@ -97,6 +97,31 @@ export type PlaylistEmbedResponse = z.infer<
 >;
 
 // ================================
+// Playlist Secret Link
+// ================================
+
+/** DTO returned by GET /playlists/:playlistId/secret-link */
+export const playlistSecretLinkResponseSchema = z
+  .object({
+    SecretLink: z.string().trim().min(1),
+  })
+  .passthrough();
+export type PlaylistSecretLinkResponse = z.infer<
+  typeof playlistSecretLinkResponseSchema
+>;
+
+/** DTO returned by POST /playlists/:playlistId/secret-link/regenerate */
+export const playlistSecretLinkRegenerateResponseSchema = z
+  .object({
+    secretUrl: z.string().trim().min(1),
+    expiresAt: z.string().trim().min(1),
+  })
+  .passthrough();
+export type PlaylistSecretLinkRegenerateResponse = z.infer<
+  typeof playlistSecretLinkRegenerateResponseSchema
+>;
+
+// ================================
 // Playlist Tracks
 // ================================
 

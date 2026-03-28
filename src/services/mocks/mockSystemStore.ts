@@ -87,6 +87,8 @@ export type MockPlaylistRecord = {
     durationSeconds: number;
     trackUrl: string;
   }>;
+  secretLink?: string;
+  secretLinkExpiresAt?: string;
 };
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';

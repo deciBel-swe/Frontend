@@ -4,6 +4,8 @@ import type {
   AddPlaylistTrackRequest,
   PlaylistEmbedResponse,
   PlaylistResponse,
+  PlaylistSecretLinkRegenerateResponse,
+  PlaylistSecretLinkResponse,
   PlaylistUpdateResponse,
   ReorderPlaylistTracksRequest,
   UpdatePlaylistRequest,
@@ -19,6 +21,11 @@ const MOCK_DELAY_MS = 220;
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const createSecretToken = (): string =>
+  Math.random().toString(36).slice(2, 10);
+
+const toIsoDate = (date: Date): string => date.toISOString();
 
 const getNextPlaylistId = (): number => {
   const users = getMockUsersStore();
@@ -71,6 +78,33 @@ export class MockPlaylistService implements PlaylistService {
       isLiked: false,
       owner: { id: owner.id, username: owner.username },
       tracks: [],
+    };
+  }
+
+  async getPlaylist(playlistId: number): Promise<PlaylistResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const owner =
+      users.find((user) =>
+        user.playlists.some((playlist) => playlist.id === playlistId)
+      ) ?? users[0];
+
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist || !owner) {
+      throw new Error('Playlist not found');
+    }
+
+    return {
+      id: playlist.id,
+      title: playlist.title,
+      type: playlist.type,
+      isLiked: playlist.isLiked,
+      owner: { id: owner.id, username: owner.username },
+      tracks: playlist.tracks,
     };
   }
 
@@ -288,5 +322,92 @@ export class MockPlaylistService implements PlaylistService {
       'width="100%" height="400" frameborder="0" allow="autoplay"></iframe>';
 
     return { embedCode };
+  }
+
+  async getPlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const owner =
+      users.find((user) =>
+        user.playlists.some((playlist) => playlist.id === playlistId)
+      ) ?? users[0];
+
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist || !owner) {
+      throw new Error('Playlist not found');
+    }
+
+    if (!playlist.secretLink) {
+      playlist.secretLink = createSecretToken();
+      playlist.secretLinkExpiresAt = toIsoDate(
+        new Date(Date.now() + 1000 * 60 * 60 * 24)
+      );
+      persistMockSystemState();
+    }
+
+    return { SecretLink: playlist.secretLink };
+  }
+
+  async regeneratePlaylistSecretLink(
+    playlistId: number
+  ): Promise<PlaylistSecretLinkRegenerateResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const owner =
+      users.find((user) =>
+        user.playlists.some((playlist) => playlist.id === playlistId)
+      ) ?? users[0];
+
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist || !owner) {
+      throw new Error('Playlist not found');
+    }
+
+    playlist.secretLink = createSecretToken();
+    playlist.secretLinkExpiresAt = toIsoDate(
+      new Date(Date.now() + 1000 * 60 * 60 * 24)
+    );
+    persistMockSystemState();
+
+    return {
+      secretUrl: `/playlists/token/${playlist.secretLink}`,
+      expiresAt: playlist.secretLinkExpiresAt,
+    };
+  }
+
+  async getPlaylistByToken(token: string): Promise<PlaylistResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const owner = users.find((user) =>
+      user.playlists.some((playlist) => playlist.secretLink === token)
+    );
+
+    const playlist = owner?.playlists.find(
+      (item) => item.secretLink === token
+    );
+
+    if (!playlist || !owner) {
+      throw new Error('Playlist not found');
+    }
+
+    return {
+      id: playlist.id,
+      title: playlist.title,
+      type: playlist.type,
+      isLiked: playlist.isLiked,
+      owner: { id: owner.id, username: owner.username },
+      tracks: playlist.tracks,
+    };
   }
 }

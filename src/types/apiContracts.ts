@@ -60,6 +60,8 @@ import {
   addPlaylistTrackRequestSchema,
   playlistUpdateResponseSchema,
   playlistEmbedResponseSchema,
+  playlistSecretLinkResponseSchema,
+  playlistSecretLinkRegenerateResponseSchema,
   reorderPlaylistTracksRequestSchema,
   updatePlaylistRequestSchema,
   playlistResponseSchema,
@@ -318,6 +320,13 @@ export const API_CONTRACTS = {
     responseSchema: playlistResponseSchema,
   }),
 
+  PLAYLISTS_BY_ID: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.BY_ID(playlistId),
+      responseSchema: playlistResponseSchema,
+    }),
+
   PLAYLISTS_UPDATE: (playlistId: number) =>
     defineContract<
       z.infer<typeof updatePlaylistRequestSchema>,
@@ -370,6 +379,30 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.PLAYLISTS.EMBED(playlistId),
       responseSchema: playlistEmbedResponseSchema,
+    }),
+
+  PLAYLISTS_SECRET_LINK: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistSecretLinkResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.SECRET_LINK(playlistId),
+      responseSchema: playlistSecretLinkResponseSchema,
+    }),
+
+  PLAYLISTS_SECRET_LINK_REGENERATE: (playlistId: number) =>
+    defineContract<
+      void,
+      z.infer<typeof playlistSecretLinkRegenerateResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.PLAYLISTS.SECRET_LINK_REGENERATE(playlistId),
+      responseSchema: playlistSecretLinkRegenerateResponseSchema,
+    }),
+
+  PLAYLISTS_BY_TOKEN: (token: string) =>
+    defineContract<void, z.infer<typeof playlistResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.TOKEN(token),
+      responseSchema: playlistResponseSchema,
     }),
 
   TRACKS_UPLOAD: defineContract<

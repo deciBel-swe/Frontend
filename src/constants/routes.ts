@@ -154,6 +154,7 @@ export const API_ENDPOINTS = {
   },
   PLAYLISTS: {
     CREATE: '/playlists',
+    BY_ID: (playlistId: number) => `/playlists/${playlistId}`,
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
     DELETE: (playlistId: number) => `/playlists/${playlistId}`,
     TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
@@ -162,6 +163,11 @@ export const API_ENDPOINTS = {
     REORDER_TRACKS: (playlistId: number) =>
       `/playlists/${playlistId}/tracks/reorder`,
     EMBED: (playlistId: number) => `/playlists/${playlistId}/embed`,
+    SECRET_LINK: (playlistId: number) =>
+      `/playlists/${playlistId}/secret-link`,
+    SECRET_LINK_REGENERATE: (playlistId: number) =>
+      `/playlists/${playlistId}/secret-link/regenerate`,
+    TOKEN: (token: string) => `/playlists/token/${token}`,
   },
   GENRES: '/genres',
   COMMENTS: {
