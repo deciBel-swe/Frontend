@@ -155,6 +155,12 @@ export const API_ENDPOINTS = {
   PLAYLISTS: {
     CREATE: '/playlists',
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
+    DELETE: (playlistId: number) => `/playlists/${playlistId}`,
+    TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
+    TRACK: (playlistId: number, trackId: number) =>
+      `/playlists/${playlistId}/tracks/${trackId}`,
+    REORDER_TRACKS: (playlistId: number) =>
+      `/playlists/${playlistId}/tracks/reorder`,
   },
   GENRES: '/genres',
   COMMENTS: {

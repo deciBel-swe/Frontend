@@ -57,7 +57,9 @@ import {
 } from './user';
 import {
   createPlaylistRequestSchema,
+  addPlaylistTrackRequestSchema,
   playlistUpdateResponseSchema,
+  reorderPlaylistTracksRequestSchema,
   updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
@@ -323,6 +325,42 @@ export const API_CONTRACTS = {
       method: 'PATCH',
       url: API_ENDPOINTS.PLAYLISTS.UPDATE(playlistId),
       requestSchema: updatePlaylistRequestSchema,
+      responseSchema: playlistUpdateResponseSchema,
+    }),
+
+  PLAYLISTS_DELETE: (playlistId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.PLAYLISTS.DELETE(playlistId),
+      responseSchema: z.undefined(),
+    }),
+
+  PLAYLISTS_ADD_TRACK: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof addPlaylistTrackRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
+      requestSchema: addPlaylistTrackRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+
+  PLAYLISTS_REMOVE_TRACK: (playlistId: number, trackId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.PLAYLISTS.TRACK(playlistId, trackId),
+      responseSchema: z.undefined(),
+    }),
+
+  PLAYLISTS_REORDER_TRACKS: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof reorderPlaylistTracksRequestSchema>,
+      z.infer<typeof playlistUpdateResponseSchema>
+    >({
+      method: 'PATCH',
+      url: API_ENDPOINTS.PLAYLISTS.REORDER_TRACKS(playlistId),
+      requestSchema: reorderPlaylistTracksRequestSchema,
       responseSchema: playlistUpdateResponseSchema,
     }),
 

@@ -81,3 +81,23 @@ export const playlistUpdateResponseSchema = z
 export type PlaylistUpdateResponse = z.infer<
   typeof playlistUpdateResponseSchema
 >;
+
+// ================================
+// Playlist Tracks
+// ================================
+
+/** DTO sent to POST /playlists/:playlistId/tracks */
+export const addPlaylistTrackRequestSchema = z.object({
+  trackId: z.number().int().nonnegative(),
+});
+export type AddPlaylistTrackRequest = z.infer<
+  typeof addPlaylistTrackRequestSchema
+>;
+
+/** DTO sent to PATCH /playlists/:playlistId/tracks/reorder */
+export const reorderPlaylistTracksRequestSchema = z.object({
+  trackIds: z.array(z.number().int().nonnegative()).min(1),
+});
+export type ReorderPlaylistTracksRequest = z.infer<
+  typeof reorderPlaylistTracksRequestSchema
+>;
