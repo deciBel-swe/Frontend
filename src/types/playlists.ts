@@ -83,6 +83,20 @@ export type PlaylistUpdateResponse = z.infer<
 >;
 
 // ================================
+// Playlist Embed
+// ================================
+
+/** DTO returned by GET /playlists/:playlistId/embed */
+export const playlistEmbedResponseSchema = z
+  .object({
+    embedCode: z.string().optional(),
+  })
+  .passthrough();
+export type PlaylistEmbedResponse = z.infer<
+  typeof playlistEmbedResponseSchema
+>;
+
+// ================================
 // Playlist Tracks
 // ================================
 

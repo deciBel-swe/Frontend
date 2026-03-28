@@ -2,6 +2,7 @@ import type { PlaylistService } from '@/services/api/playlistService';
 import type {
   CreatePlaylistRequest,
   AddPlaylistTrackRequest,
+  PlaylistEmbedResponse,
   PlaylistResponse,
   PlaylistUpdateResponse,
   ReorderPlaylistTracksRequest,
@@ -261,5 +262,31 @@ export class MockPlaylistService implements PlaylistService {
       owner: { id: owner.id, username: owner.username },
       tracks: playlist.tracks,
     };
+  }
+
+  async getPlaylistEmbed(
+    playlistId: number
+  ): Promise<PlaylistEmbedResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const owner =
+      users.find((user) =>
+        user.playlists.some((playlist) => playlist.id === playlistId)
+      ) ?? users[0];
+
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist || !owner) {
+      throw new Error('Playlist not found');
+    }
+  
+    const embedCode =
+      `<iframe src="/playlists/${playlistId}" ` +
+      'width="100%" height="400" frameborder="0" allow="autoplay"></iframe>';
+
+    return { embedCode };
   }
 }

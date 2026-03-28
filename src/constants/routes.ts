@@ -161,6 +161,7 @@ export const API_ENDPOINTS = {
       `/playlists/${playlistId}/tracks/${trackId}`,
     REORDER_TRACKS: (playlistId: number) =>
       `/playlists/${playlistId}/tracks/reorder`,
+    EMBED: (playlistId: number) => `/playlists/${playlistId}/embed`,
   },
   GENRES: '/genres',
   COMMENTS: {

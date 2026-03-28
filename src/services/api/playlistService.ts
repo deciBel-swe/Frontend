@@ -3,6 +3,7 @@ import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   CreatePlaylistRequest,
   AddPlaylistTrackRequest,
+  PlaylistEmbedResponse,
   PlaylistResponse,
   PlaylistUpdateResponse,
   ReorderPlaylistTracksRequest,
@@ -44,6 +45,9 @@ export interface PlaylistService {
     playlistId: number,
     payload: ReorderPlaylistTracksRequest
   ): Promise<PlaylistUpdateResponse>;
+
+  /** Get embed HTML snippet for a playlist (GET /playlists/:playlistId/embed). */
+  getPlaylistEmbed(playlistId: number): Promise<PlaylistEmbedResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -90,5 +94,11 @@ export class RealPlaylistService implements PlaylistService {
     return apiRequest(API_CONTRACTS.PLAYLISTS_REORDER_TRACKS(playlistId), {
       payload,
     });
+  }
+
+  async getPlaylistEmbed(
+    playlistId: number
+  ): Promise<PlaylistEmbedResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_EMBED(playlistId));
   }
 }

@@ -59,6 +59,7 @@ import {
   createPlaylistRequestSchema,
   addPlaylistTrackRequestSchema,
   playlistUpdateResponseSchema,
+  playlistEmbedResponseSchema,
   reorderPlaylistTracksRequestSchema,
   updatePlaylistRequestSchema,
   playlistResponseSchema,
@@ -362,6 +363,13 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.PLAYLISTS.REORDER_TRACKS(playlistId),
       requestSchema: reorderPlaylistTracksRequestSchema,
       responseSchema: playlistUpdateResponseSchema,
+    }),
+
+  PLAYLISTS_EMBED: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistEmbedResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.EMBED(playlistId),
+      responseSchema: playlistEmbedResponseSchema,
     }),
 
   TRACKS_UPLOAD: defineContract<
