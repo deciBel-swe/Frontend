@@ -19,6 +19,10 @@ import type { TrackService } from '@/services/api/trackService';
 import { RealTrackService } from '@/services/api/trackService';
 import { MockTrackService } from '@/services/mocks/trackService';
 
+import type { PlaylistService } from '@/services/api/playlistService';
+import { RealPlaylistService } from '@/services/api/playlistService';
+import { MockPlaylistService } from '@/services/mocks/playlistService';
+
 import type { CountryService } from './api/countryService';
 import { RealCountryService } from './api/countryService';
 import { MockCountryService } from './mocks/countryService';
@@ -35,6 +39,15 @@ const resolveTrackService = (): TrackService => {
 };
 
 export const trackService = resolveTrackService();
+
+const resolvePlaylistService = (): PlaylistService => {
+  if (config.api.useMock) {
+    return new MockPlaylistService();
+  }
+  return new RealPlaylistService();
+};
+
+export const playlistService = resolvePlaylistService();
 
 // --- Auth Service ---
 const resolveAuthService = (): AuthService => {

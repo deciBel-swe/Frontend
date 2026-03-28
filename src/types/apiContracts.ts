@@ -55,6 +55,12 @@ import {
   userPublicSchema,
   usersSuggestedResponseSchema,
 } from './user';
+import {
+  createPlaylistRequestSchema,
+  playlistUpdateResponseSchema,
+  updatePlaylistRequestSchema,
+  playlistResponseSchema,
+} from './playlists';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -298,6 +304,28 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.USERS.BY_USERNAME(username),
       responseSchema: userPublicSchema,
     }),
+
+  PLAYLISTS_CREATE: defineContract<
+    z.infer<typeof createPlaylistRequestSchema>,
+    z.infer<typeof playlistResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.PLAYLISTS.CREATE,
+    requestSchema: createPlaylistRequestSchema,
+    responseSchema: playlistResponseSchema,
+  }),
+
+  PLAYLISTS_UPDATE: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof updatePlaylistRequestSchema>,
+      z.infer<typeof playlistUpdateResponseSchema>
+    >({
+      method: 'PATCH',
+      url: API_ENDPOINTS.PLAYLISTS.UPDATE(playlistId),
+      requestSchema: updatePlaylistRequestSchema,
+      responseSchema: playlistUpdateResponseSchema,
+    }),
+
   TRACKS_UPLOAD: defineContract<
     FormData,
     z.infer<typeof uploadTrackResponseSchema>

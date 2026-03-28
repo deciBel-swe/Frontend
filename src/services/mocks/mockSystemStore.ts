@@ -1,4 +1,5 @@
 import type { LoginUserDTO } from '@/types';
+import type { PlaylistType } from '@/types/playlists';
 
 type MockRole = 'LISTENER' | 'ARTIST' | 'OTHER';
 type MockTier = 'FREE' | 'ARTIST' | 'ARTIST_PRO' | 'LISTENER' | 'OTHER';
@@ -41,7 +42,7 @@ export type MockUserRecord = {
   followers: Set<number>;
   following: Set<number>;
   blocked: Set<number>;
-  playlists: Array<{ id: number; title: string }>;
+  playlists: MockPlaylistRecord[];
   tracks: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
   additionalEmails: string[];
@@ -66,6 +67,26 @@ export type MockTrackRecord = {
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
+};
+
+export type MockPlaylistRecord = {
+  id: number;
+  title: string;
+  description?: string;
+  type: PlaylistType;
+  isPrivate: boolean;
+  CoverArt?: string;
+  isLiked: boolean;
+  owner: {
+    id: number;
+    username: string;
+  };
+  tracks: Array<{
+    trackId: number;
+    title: string;
+    durationSeconds: number;
+    trackUrl: string;
+  }>;
 };
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
@@ -222,8 +243,28 @@ const seedUsers = (): MockUserRecord[] => [
     following: new Set([2]),
     blocked: new Set(),
     playlists: [
-      { id: 1001, title: 'Late Night Mix' },
-      { id: 1002, title: 'Studio Drafts' },
+      {
+        id: 1001,
+        title: 'Late Night Mix',
+        description: 'After-hours loops and neon moods.',
+        type: 'PLAYLIST',
+        isPrivate: false,
+        CoverArt: '',
+        isLiked: false,
+        owner: { id: 1, username: 'mockuser' },
+        tracks: [],
+      },
+      {
+        id: 1002,
+        title: 'Studio Drafts',
+        description: 'Work-in-progress sketches.',
+        type: 'ALBUM',
+        isPrivate: true,
+        CoverArt: '',
+        isLiked: false,
+        owner: { id: 1, username: 'mockuser' },
+        tracks: [],
+      },
     ],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
@@ -265,7 +306,19 @@ const seedUsers = (): MockUserRecord[] => [
     followers: new Set([1]),
     following: new Set([1]),
     blocked: new Set(),
-    playlists: [{ id: 1003, title: 'Study Session' }],
+    playlists: [
+      {
+        id: 1003,
+        title: 'Study Session',
+        description: 'Low-key focus tracks.',
+        type: 'PLAYLIST',
+        isPrivate: false,
+        CoverArt: '',
+        isLiked: false,
+        owner: { id: 2, username: 'listenertwo' },
+        tracks: [],
+      },
+    ],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
     additionalEmails: [],
@@ -298,7 +351,19 @@ const seedUsers = (): MockUserRecord[] => [
     followers: new Set(),
     following: new Set(),
     blocked: new Set(),
-    playlists: [{ id: 1004, title: 'Warehouse Cuts' }],
+    playlists: [
+      {
+        id: 1004,
+        title: 'Warehouse Cuts',
+        description: 'Peak hour energy.',
+        type: 'EP',
+        isPrivate: false,
+        CoverArt: '',
+        isLiked: false,
+        owner: { id: 3, username: 'beatpilot' },
+        tracks: [],
+      },
+    ],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     history: [{ id: 305, title: 'Peak Hour' }],
     additionalEmails: [],

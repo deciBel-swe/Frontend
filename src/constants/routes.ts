@@ -152,6 +152,10 @@ export const API_ENDPOINTS = {
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
   },
+  PLAYLISTS: {
+    CREATE: '/playlists',
+    UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
+  },
   GENRES: '/genres',
   COMMENTS: {
     REPORT: (commentId: number) => `/comments/${commentId}/report`,
