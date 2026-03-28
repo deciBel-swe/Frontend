@@ -151,6 +151,7 @@ export const API_ENDPOINTS = {
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
+    COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
   },
   PLAYLISTS: {
     CREATE: '/playlists',
@@ -172,6 +173,8 @@ export const API_ENDPOINTS = {
   GENRES: '/genres',
   COMMENTS: {
     REPORT: (commentId: number) => `/comments/${commentId}/report`,
+    REPLIES: (commentId: number) => `/comments/${commentId}/replies`,
+    DELETE: (commentId: number) => `/api/comments/${commentId}`,// change when api isn't there following api dogs
   },
   ADMIN: {
     REPORTS: '/admin/reports',

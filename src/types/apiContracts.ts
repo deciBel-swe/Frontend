@@ -56,6 +56,12 @@ import {
   usersSuggestedResponseSchema,
 } from './user';
 import {
+  createCommentRequestSchema,
+  commentSchema,
+  paginatedCommentsResponseSchema,
+  paginatedRepliesResponseSchema,
+} from './comments';
+import {
   createPlaylistRequestSchema,
   addPlaylistTrackRequestSchema,
   playlistUpdateResponseSchema,
@@ -403,6 +409,38 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.PLAYLISTS.TOKEN(token),
       responseSchema: playlistResponseSchema,
+    }),
+
+  TRACKS_COMMENTS_LIST: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedCommentsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.COMMENTS(trackId),
+      responseSchema: paginatedCommentsResponseSchema,
+    }),
+
+  TRACKS_COMMENTS_CREATE: (trackId: number) =>
+    defineContract<
+      z.infer<typeof createCommentRequestSchema>,
+      z.infer<typeof commentSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.COMMENTS(trackId),
+      requestSchema: createCommentRequestSchema,
+      responseSchema: commentSchema,
+    }),
+
+  COMMENTS_REPLIES_LIST: (commentId: number) =>
+    defineContract<void, z.infer<typeof paginatedRepliesResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.COMMENTS.REPLIES(commentId),
+      responseSchema: paginatedRepliesResponseSchema,
+    }),
+
+  COMMENTS_DELETE: (commentId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.COMMENTS.DELETE(commentId),
+      responseSchema: z.undefined(),
     }),
 
   TRACKS_UPLOAD: defineContract<

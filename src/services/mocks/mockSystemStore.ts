@@ -91,6 +91,20 @@ export type MockPlaylistRecord = {
   secretLinkExpiresAt?: string;
 };
 
+export type MockCommentRecord = {
+  id: number;
+  trackId: number;
+  parentCommentId?: number;
+  user: {
+    id: number;
+    username: string;
+    avatarUrl: string;
+  };
+  body: string;
+  timestampSeconds?: number;
+  createdAt: string;
+};
+
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
 const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
 const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
@@ -467,10 +481,38 @@ const seedTracks = (): MockTrackRecord[] => [
   },
 ];
 
+const seedComments = (): MockCommentRecord[] => [
+  {
+    id: 1001,
+    trackId: 101,
+    user: {
+      id: 2,
+      username: 'listenertwo',
+      avatarUrl: 'https://picsum.photos/seed/listener/400/400',
+    },
+    body: 'Love the atmosphere here.',
+    timestampSeconds: 42,
+    createdAt: '2026-03-01T12:30:00.000Z',
+  },
+  {
+    id: 1002,
+    trackId: 101,
+    user: {
+      id: 1,
+      username: 'mockuser',
+      avatarUrl: 'https://i.ibb.co/SD1pMkyy/GRgo-Ocga-YAIm6-TF.jpg',
+    },
+    body: 'Thanks! Glad you vibe with it.',
+    parentCommentId: 1001,
+    createdAt: '2026-03-01T12:45:00.000Z',
+  },
+];
+
 type MockSystemState = {
   authAccountsByEmail: Map<string, MockAuthAccount>;
   users: MockUserRecord[];
   tracks: MockTrackRecord[];
+  comments: MockCommentRecord[];
   emailVerification: Record<
     string,
     { email: string; token: string; verified: boolean }
@@ -490,6 +532,7 @@ type PersistedMockSystemState = {
   authAccounts: MockAuthAccount[];
   users: PersistedMockUserRecord[];
   tracks: MockTrackRecord[];
+  comments: MockCommentRecord[];
   emailVerification: Record<
     string,
     { email: string; token: string; verified: boolean }
@@ -586,6 +629,7 @@ const toPersistedState = (
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
   tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
+  comments: current.comments ?? [],
   emailVerification: current.emailVerification,
 });
 
@@ -601,6 +645,7 @@ const toRuntimeState = (persisted: PersistedMockSystemState): MockSystemState =>
     authAccountsByEmail,
     users: (persisted.users ?? []).map(deserializeUser),
     tracks: persisted.tracks ?? [],
+    comments: persisted.comments ?? [],
     emailVerification: persisted.emailVerification ?? {},
   };
 };
@@ -622,6 +667,7 @@ const readPersistedState = (): MockSystemState | null => {
       !Array.isArray(parsed.authAccounts) ||
       !Array.isArray(parsed.users) ||
       !Array.isArray(parsed.tracks) ||
+      !Array.isArray(parsed.comments) ||
       typeof parsed.emailVerification !== 'object' ||
       parsed.emailVerification === null
     ) {
@@ -827,6 +873,30 @@ const syncTracksWithCredentialUsers = (): void => {
   current.tracks.splice(0, current.tracks.length, ...syncedTracks);
 };
 
+const syncCommentsWithCredentialUsers = (): void => {
+  const current = getMockSystemState();
+  syncUserProfilesWithCredentials();
+
+  const usersById = new Map(current.users.map((user) => [user.id, user]));
+  const syncedComments = current.comments.map((comment) => {
+    const owner = usersById.get(comment.user.id);
+    if (!owner) {
+      return comment;
+    }
+
+    return {
+      ...comment,
+      user: {
+        ...comment.user,
+        username: owner.username,
+        avatarUrl: owner.profile.profilePic,
+      },
+    };
+  });
+
+  current.comments.splice(0, current.comments.length, ...syncedComments);
+};
+
 export const getMockSystemState = (): MockSystemState => {
   if (state) {
     return state;
@@ -844,12 +914,14 @@ export const getMockSystemState = (): MockSystemState => {
       authAccountsByEmail,
       users: seedUsers(),
       tracks: seedTracks(),
+      comments: seedComments(),
       emailVerification: {},
     };
   }
 
   syncUserProfilesWithCredentials();
   syncTracksWithCredentialUsers();
+  syncCommentsWithCredentialUsers();
 
   persistMockSystemState();
   return state;
@@ -868,6 +940,10 @@ export const getMockUsersStore = (): MockUserRecord[] => {
 
 export const getMockTracksStore = (): MockTrackRecord[] => {
   return getMockSystemState().tracks;
+};
+
+export const getMockCommentsStore = (): MockCommentRecord[] => {
+  return getMockSystemState().comments;
 };
 
 export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {

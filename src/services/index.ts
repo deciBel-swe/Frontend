@@ -31,6 +31,10 @@ import type { UserService } from './api/userService';
 import { RealUserService } from './api/userService';
 import { MockUserService } from './mocks/userService';
 
+import type { CommentService } from './api/commentService';
+import { RealCommentService } from './api/commentService';
+import { MockCommentService } from './mocks/commentService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -86,3 +90,12 @@ const resolveUserService = (): UserService => {
 };
 
 export const userService = resolveUserService();
+
+const resolveCommentService = (): CommentService => {
+  if (config.api.useMock) {
+    return new MockCommentService();
+  }
+  return new RealCommentService();
+};
+
+export const commentService = resolveCommentService();
