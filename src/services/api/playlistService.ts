@@ -5,6 +5,7 @@ import type {
   AddPlaylistTrackRequest,
   PlaylistEmbedResponse,
   PlaylistResponse,
+  PlaylistLikeResponse,
   PlaylistSecretLinkRegenerateResponse,
   PlaylistSecretLinkResponse,
   PlaylistUpdateResponse,
@@ -66,6 +67,12 @@ export interface PlaylistService {
 
   /** Get playlist via secret token (GET /playlists/token/:token). */
   getPlaylistByToken(token: string): Promise<PlaylistResponse>;
+
+  /** Like a playlist (POST /tracks/:playlistId/like). */
+  likePlaylist(playlistId: number): Promise<PlaylistLikeResponse>;
+
+  /** Unlike a playlist (DELETE /tracks/:playlistId/like). */
+  unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -138,5 +145,13 @@ export class RealPlaylistService implements PlaylistService {
 
   async getPlaylistByToken(token: string): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_BY_TOKEN(token));
+  }
+
+  async likePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_LIKE(playlistId));
+  }
+
+  async unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_UNLIKE(playlistId));
   }
 }

@@ -4,6 +4,7 @@ import type {
   AddPlaylistTrackRequest,
   PlaylistEmbedResponse,
   PlaylistResponse,
+  PlaylistLikeResponse,
   PlaylistSecretLinkRegenerateResponse,
   PlaylistSecretLinkResponse,
   PlaylistUpdateResponse,
@@ -409,5 +410,68 @@ export class MockPlaylistService implements PlaylistService {
       owner: { id: owner.id, username: owner.username },
       tracks: playlist.tracks,
     };
+  }
+
+  async likePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const currentUserId = resolveCurrentMockUserId();
+    const currentUser = users.find((user) => user.id === currentUserId);
+
+    if (!currentUser) {
+      throw new Error('Current user not found');
+    }
+
+    const owner = users.find((user) =>
+      user.playlists.some((playlist) => playlist.id === playlistId)
+    );
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist) {
+      throw new Error('Playlist not found');
+    }
+
+    if (!currentUser.likedPlaylists.includes(playlistId)) {
+      currentUser.likedPlaylists.push(playlistId);
+    }
+
+    playlist.isLiked = true;
+    persistMockSystemState();
+
+    return { message: 'Playlist liked', isLiked: true };
+  }
+
+  async unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const currentUserId = resolveCurrentMockUserId();
+    const currentUser = users.find((user) => user.id === currentUserId);
+
+    if (!currentUser) {
+      throw new Error('Current user not found');
+    }
+
+    const owner = users.find((user) =>
+      user.playlists.some((playlist) => playlist.id === playlistId)
+    );
+    const playlist = owner?.playlists.find(
+      (item) => item.id === playlistId
+    );
+
+    if (!playlist) {
+      throw new Error('Playlist not found');
+    }
+
+    currentUser.likedPlaylists = currentUser.likedPlaylists.filter(
+      (id) => id !== playlistId
+    );
+    playlist.isLiked = false;
+    persistMockSystemState();
+
+    return { message: 'Playlist unliked', isLiked: false };
   }
 }

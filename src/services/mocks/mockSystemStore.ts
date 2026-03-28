@@ -43,6 +43,7 @@ export type MockUserRecord = {
   following: Set<number>;
   blocked: Set<number>;
   playlists: MockPlaylistRecord[];
+  likedPlaylists: number[];
   tracks: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
   additionalEmails: string[];
@@ -282,6 +283,7 @@ const seedUsers = (): MockUserRecord[] => [
         tracks: [],
       },
     ],
+    likedPlaylists: [1003],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
@@ -335,6 +337,7 @@ const seedUsers = (): MockUserRecord[] => [
         tracks: [],
       },
     ],
+    likedPlaylists: [1001, 1002],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
     additionalEmails: [],
@@ -380,6 +383,7 @@ const seedUsers = (): MockUserRecord[] => [
         tracks: [],
       },
     ],
+    likedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     history: [{ id: 305, title: 'Peak Hour' }],
     additionalEmails: [],
@@ -799,6 +803,7 @@ const createDefaultUserFromAccount = (
   following: new Set(),
   blocked: new Set(),
   playlists: [],
+  likedPlaylists: [],
   tracks: [],
   history: [],
   additionalEmails: [],

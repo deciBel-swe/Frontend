@@ -122,6 +122,34 @@ export type PlaylistSecretLinkRegenerateResponse = z.infer<
 >;
 
 // ================================
+// Playlist Likes
+// ================================
+
+export const playlistLikeResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    isLiked: z.boolean(),
+  })
+  .passthrough();
+export type PlaylistLikeResponse = z.infer<typeof playlistLikeResponseSchema>;
+
+// ================================
+// Playlist Pagination
+// ================================
+
+export const paginatedPlaylistsResponseSchema = z.object({
+  content: z.array(playlistResponseSchema),
+  pageNumber: z.number().int().nonnegative(),
+  pageSize: z.number().int().nonnegative(),
+  totalElements: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+  isLast: z.boolean(),
+});
+export type PaginatedPlaylistsResponse = z.infer<
+  typeof paginatedPlaylistsResponseSchema
+>;
+
+// ================================
 // Playlist Tracks
 // ================================
 
