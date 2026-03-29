@@ -31,7 +31,6 @@
 // }
 'use client';
 import { Suspense } from 'react';
-import { TrackView } from '@/app/[username]/(profile)/tracks/TrackView';
 import TrackList from '@/components/TrackList';
 import { useParams } from 'next/navigation';
 
@@ -43,17 +42,11 @@ const TrackListFallback = () => (
   </>
 );
 
-const TrackViewFallback = () => (
-  <div className="bg-surface-default rounded-lg h-20 animate-pulse" />
-);
 
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   return (
-    <div className="px-8 py-8 max-w-3xl">
-      <Suspense fallback={<TrackViewFallback />}>
-        <TrackView trackId="1" />
-      </Suspense>
+    <div className="py-8 max-w-3xl">
 
       <Suspense fallback={<TrackListFallback />}>
         <TrackList username={username} />

@@ -4,13 +4,12 @@ import Link from 'next/link';
 import {
   Play,
   Heart,
-  MoreHorizontal,
   MessageCircle,
   Repeat,
 } from 'lucide-react';
 import React from 'react';
-import Button from '@/components/buttons/Button';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import TrackActions from '@/components/TrackActions'
 
 interface TrackStats {
   plays: string;
@@ -24,9 +23,13 @@ interface TrackRowProps {
   artist: string;
   title: string;
   stats: TrackStats;
+
+  // Optional callbacks for the actions
+  onLike?: () => void;
+  onMore?: () => void;
 }
 
-const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
+const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats, onLike, onMore }) => {
   const artistSlug = encodeURIComponent(artist);
   const songSlug = encodeURIComponent(title);
 
@@ -71,21 +74,18 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
           <div className="flex-1" />
 
           {/* RIGHT: ACTION BUTTONS */}
-          <div className="hidden group-hover:flex items-center gap-2">
-            <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <Heart size={18} />
-            </Button>
+ 
+              <TrackActions
+              size={18}
+              showRepost={false}
+              showShare={false}
+              showCopy={false}
+              variant='secondary'
+              className='hidden group-hover:flex items-center gap-2'
+              onLike={onLike}
+              onMore={onMore}
+            />
 
-            <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <MoreHorizontal size={18} />
-            </Button>
-          </div>
         </div>
         {/* STATS */}
         <div className="flex items-center gap-3 text-xs mt-1">
