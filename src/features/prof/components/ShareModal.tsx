@@ -385,7 +385,7 @@ export function ShareModal(props: ShareModalProps) {
 
         {/* HEADER (optional but now consistent with your system) */}
         <div className="px-5 py-4 border-b border-border-default text-sm font-semibold">
-          Share Track
+          Share 
         </div>
           {/* Tabs */}
           <div className="border-b border-border-default">
