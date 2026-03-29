@@ -7,7 +7,6 @@ type TrackListProps = {
   userId?: number;
   username?: string;
   artistAvatar?: string;
-
   // NEW prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
 
@@ -93,6 +92,7 @@ export default function TrackList({
               title: track.title,
               cover: track.coverUrl,
               duration: '',
+              createdAt: track.releaseDate,
             }}
             waveform={parseWaveform(track.waveformData)}
           />

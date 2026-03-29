@@ -12,11 +12,11 @@ import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
+import TimeAgo from '@/components/TimeAgo';
 
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
-  timeAgoText?: string; // ex: "3 years ago"
   
   user: {
     name: string;
@@ -37,6 +37,7 @@ type TrackCardProps = {
     duration: string;
     plays?: number;        // optional number of plays
     comments?: number;     // optional number of messages/comments
+    createdAt: string; // ISO date
   };
 
   waveform: number[];
@@ -52,7 +53,6 @@ export default function TrackCard({
   track,
   waveform,
   showTrackList = false,
-  timeAgoText = '',
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
@@ -135,9 +135,9 @@ export default function TrackCard({
       {track.artist}
     </Link>
 
-    {timeAgoText && (
-      <p className="ml-auto text-xs text-text-muted">{timeAgoText} </p>
-    )}
+    <div className="ml-auto text-xs text-text-muted text-[11px]">
+        <TimeAgo date={track.createdAt} />
+    </div>
   </div>
 
   <Link
