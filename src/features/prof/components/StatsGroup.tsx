@@ -6,7 +6,6 @@ interface StateItemProps {
   countTracks: number;
   countFollowers: number;
   countFollowing: number;
-  username: string;
 }
 
 //this components displays three ocunter for tracks and follower and following and string text of choice and color
