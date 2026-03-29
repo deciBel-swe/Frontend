@@ -3,8 +3,6 @@ import { useState } from 'react';
 import {
   ShareIcon,
   EditIcon,
-  FollowIcon,
-  FollowingIcon,
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
@@ -15,6 +13,7 @@ import {
   ProfilePreview,
   ShareModal,
 } from '@/features/prof/components/ShareModal';
+import FollowButton from '@/components/buttons/FollowButton';
 
 interface MidBarProps {
   username: string;
@@ -23,7 +22,6 @@ interface MidBarProps {
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
   // const [isHydrated, setIsHydrated] = useState(false);
   const { user: myUser } = useUserMe();
   // const countries = useGetCountry();
@@ -80,23 +78,7 @@ const MidBar = ({ username }: MidBarProps) => {
         </IconButton>
 
         {!isOwnProfile && (
-          <IconButton
-            aria-label={isFollowing ? 'Following' : 'Follow'}
-            onClick={() => setIsFollowing((p) => !p)}
-          >
-            <span
-              className={`${buttonBase} ${
-                isFollowing
-                  ? 'bg-black text-white dark:bg-white dark:text-black'
-                  : 'bg-black text-white dark:bg-white dark:text-black'
-              }`}
-            >
-              {isFollowing ? <FollowingIcon /> : <FollowIcon />}
-              <span className="hidden sm:inline">
-                {isFollowing ? 'Following' : 'Follow'}
-              </span>
-            </span>
-          </IconButton>
+          <FollowButton/>
         )}
       </div>
 
