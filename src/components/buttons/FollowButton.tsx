@@ -2,8 +2,17 @@
 import { useState } from "react";
 import { IconButton } from "@/components/buttons/IconButton";
 import { FollowIcon, FollowingIcon } from "@/components/icons/GenrealIcons";
- 
-export default function FollowButton() {
+
+const SIZE_CONFIGS = {
+  sm: 'px-2 py-1 text-xs gap-1',
+  md: 'px-2.5 py-1.5 text-sm gap-1.5',
+  lg: 'px-3 py-2 text-base gap-2'
+};
+
+interface FollowButtonProps {
+  size?: keyof typeof SIZE_CONFIGS;
+}
+export default function FollowButton({ size = 'lg' }: FollowButtonProps) {
 
 const [isFollowing, setIsFollowing] = useState(false);
 const buttonBase =
@@ -16,7 +25,7 @@ const buttonBase =
                             onClick={() => setIsFollowing((p) => !p)}
                         >
                             <span
-                            className={`${buttonBase} ${
+                            className={`${buttonBase} ${SIZE_CONFIGS[size]} ${
                                 isFollowing
                                 ? 'bg-black text-white dark:bg-white dark:text-black'
                                 : 'bg-black text-white dark:bg-white dark:text-black'

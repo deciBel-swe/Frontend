@@ -10,7 +10,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "1",
     username: "mockuser1",
-    displayName: "user 1",
     followerCount: 562_000,
     isVerified: true,
     isFollowing: true,
@@ -19,7 +18,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "2",
     username: "mockuser2",
-    displayName: "user 2",
     followerCount: 1_080_000,
     isVerified: true,
     isFollowing: true,
@@ -28,7 +26,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "3",
     username: "mockuser3",
-    displayName: "user 3",
     followerCount: 3_620_000,
     isVerified: true,
     isFollowing: true,
@@ -37,7 +34,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
     {
     id: "4",
     username: "mockuser4",
-    displayName: "user 4",
     followerCount: 4_620_000,
     isVerified: false,
     isFollowing: true,
@@ -46,7 +42,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "5",
     username: "mockuser5",
-    displayName: "user 5",
     followerCount: 3_000_000,
     isVerified: true,
     isFollowing: true,
@@ -55,7 +50,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "6",
     username: "mockuser6",
-    displayName: "user 6",
     followerCount: 3_800_000,
     isVerified: false,
     isFollowing: true,
@@ -64,7 +58,6 @@ const MOCK_FOLLOWING: UserCardData[] = [
   {
     id: "7",
     username: "mockuser7",
-    displayName: "user 7",
     followerCount: 3_100_00,
     isVerified: false,
     isFollowing: true,
@@ -95,7 +88,6 @@ export default function Page({
   const filtered = filterValue
     ? users.filter(
         (u) =>
-          u.displayName.toLowerCase().includes(filterValue.toLowerCase()) ||
           u.username.toLowerCase().includes(filterValue.toLowerCase())
       )
     : users;

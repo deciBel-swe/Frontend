@@ -6,7 +6,6 @@ import  {UserIcon}  from "@/components/icons/GenrealIcons";
 export interface UserCardData {
   id: string;
   username: string;
-  displayName: string;
   avatarSrc?: string;
   followerCount: number;
   isVerified?: boolean;
@@ -17,6 +16,7 @@ interface UserCardProps {
   user: UserCardData;
   onFollowToggle?: (userId: string) => void;
   showFollowButton?: boolean;
+  isOwnProfile?: boolean;
   className?: string;
 }
 
@@ -31,26 +31,26 @@ function formatCount(n: number): string {
  */
 export default function UserCard({
   user,
-  onFollowToggle,
-  showFollowButton = false,
+  // onFollowToggle,
+  // showFollowButton = false,
   className = "",
 }: UserCardProps) {
   return (
-    <div className={`flex flex-col items-center gap-2 w-40 text-center ${className}`}>
+    <div className={`group flex flex-col items-center gap-2 w-40 text-center ${className}`}>
       {/* Avatar */}
       <a
         href={`/${user.username}`}
         className="block no-underline"
-        aria-label={`Visit ${user.displayName}'s profile`}
+        aria-label={`Visit ${user.username}'s profile`}
       >
-        <AvatarImage src={user.avatarSrc} alt={user.displayName} size={140} shape="circle" />
+        <AvatarImage src={user.avatarSrc} alt={user.username} size={140} shape="circle" />
       </a>
 
       {/* Name + verified */}
       <a href={`/${user.username}`} className="no-underline">
         <span className="flex items-center gap-1 justify-center flex-wrap">
           <span className="text-xs font-bold text-text-primary leading-snug break-words">
-            {user.displayName}
+            {user.username}
           </span>
           {user.isVerified && <VerifiedBadge size={13} />}
         </span>
@@ -63,9 +63,12 @@ export default function UserCard({
       </span>
 
       {/* Follow button */}
-      {showFollowButton && onFollowToggle && (
-        <FollowButton/>
-      )}
+    
+       <div className="h-8 flex items-center">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <FollowButton size="sm"/>
+        </div>
+      </div>
     </div>
   );
 }
