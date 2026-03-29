@@ -13,6 +13,7 @@ import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
 import TimeAgo from '@/components/TimeAgo';
+import CommentInput from './Comment';
 
 type TrackCardProps = {
   trackId: string;
@@ -23,7 +24,7 @@ type TrackCardProps = {
     avatar: string;
   };
   postedText?: string;
-  timeAgo?: string;
+  // timeAgo?: string;
   showEditButton?: boolean;
 
     // New prop to conditionally show the track list
@@ -38,8 +39,9 @@ type TrackCardProps = {
     plays?: number;        // optional number of plays
     comments?: number;     // optional number of messages/comments
     createdAt: string; // ISO date
+    genre?: string;
   };
-
+  showComments?: boolean;
   waveform: number[];
 };
 
@@ -48,7 +50,8 @@ export default function TrackCard({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  timeAgo = '',
+  // timeAgo = '',
+  showComments= true,
   showEditButton = true,
   track,
   waveform,
@@ -76,6 +79,10 @@ export default function TrackCard({
     trackTitle: track.title,
   });
 
+    const handleCommentPost = (comment: string) => {
+    console.log('New comment:', comment);
+    // You can also call your API to save the comment here
+  };
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
@@ -91,7 +98,7 @@ export default function TrackCard({
           <span className="text-text-primary font-medium hover:opacity-40">
             <Link href={`/${userSlug}`}>{user.name}</Link>
           </span>{' '}
-          {postedText} <span>{timeAgo}</span>
+          {postedText}
         </div>
       </div>
 
@@ -283,6 +290,10 @@ export default function TrackCard({
   ]}
 />
 )}
+{showComments && (
+  <CommentInput user={user} onPost={handleCommentPost} />
+)}
+
         <div className="flex items-center w-full">
   {/* LEFT: actions */}
   <TrackActions

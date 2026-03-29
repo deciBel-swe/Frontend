@@ -9,8 +9,6 @@ type TrackListProps = {
   artistAvatar?: string;
   // NEW prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
-
-  
 };
 
 const parseWaveform = (value: string | undefined): number[] => {
@@ -84,7 +82,7 @@ export default function TrackList({
               avatar: artistAvatar || track.coverUrl, //if artist avatar missing use that of track
             }}
             postedText="posted a track"
-            timeAgo=""
+            // timeAgo=""
             showTrackList={showTrackList}
             track={{
               id: track.id,
