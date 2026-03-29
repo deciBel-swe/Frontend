@@ -136,7 +136,7 @@ export default function TrackCard({
     </Link>
 
     {timeAgoText && (
-      <p className="ml-auto text-xs text-text-muted">{timeAgoText} years ago</p>
+      <p className="ml-auto text-xs text-text-muted">{timeAgoText} </p>
     )}
   </div>
 
