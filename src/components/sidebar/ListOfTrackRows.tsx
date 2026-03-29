@@ -20,14 +20,14 @@ export default function ARTIST ({ history, History_header, headerUrl }: ListOfTr
   return (
             /* ================= ARTISTS ================= */
       <section>
-        <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
-          <Link href={headerUrl} className="text-sm font-semibold text-gray-400">
+        <div className="flex justify-between items-center border-b border-border-default pb-2">
+          <Link href={headerUrl} className="text-sm font-semibold text-text-muted">
             {History_header}
           </Link>
 
           <Link
             href="/you/history"
-            className="text-xs text-gray-400 hover:text-white transition"
+            className="text-xs text-text-muted hover:text-text-primary transition"
           >
             View all
           </Link>

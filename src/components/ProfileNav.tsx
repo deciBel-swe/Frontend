@@ -20,7 +20,7 @@ export default function ProfileNav({ username }: ProfileNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-[#121212] w-full">
+    <nav className="bg-bg-base w-full">
       <div className="flex items-center gap-8">
         {getNavItems(username).map((item) => {
           const isActive = pathname === item.href;
@@ -38,7 +38,7 @@ export default function ProfileNav({ username }: ProfileNavProps) {
                   ${
                     isActive
                       ? 'text-black dark:text-white'
-                      : 'text-[#999] group-hover:text-black dark:text-[#bbb] dark:group-hover:text-white'
+                      : 'text-text-muted group-hover:text-black dark:text-text-secondary dark:group-hover:text-white'
                   }
                 `}
               >
