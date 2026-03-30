@@ -250,4 +250,22 @@ describe('MockTrackService', () => {
       message: 'Track unliked successfully',
     });
   });
+
+  it('repostTrack adds repost for current user and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const repostPromise = service.repostTrack(101);
+    await advance(1200);
+    const response = await repostPromise;
+
+    expect(response).toEqual({
+      isReposted: true,
+      message: 'Track reposted successfully',
+    });
+  });
 });

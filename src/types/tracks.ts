@@ -167,3 +167,14 @@ export const likeResponseSchema = z
   })
   .passthrough();
 export type likeResponse = z.infer<typeof likeResponseSchema>;
+
+/**
+ * RepostResponse
+ */
+export const repostResponseSchema = z
+  .object({
+    isReposted: z.boolean(),
+    message: z.string(),
+  })
+  .passthrough();
+export type repostResponse = z.infer<typeof repostResponseSchema>;

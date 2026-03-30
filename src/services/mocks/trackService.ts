@@ -9,6 +9,7 @@ import type {
   TrackVisibility,
   UpdateTrackVisibilityDto,
   likeResponse,
+  repostResponse,
 } from '@/types/tracks';
 import {
   getMockTracksStore,
@@ -617,6 +618,43 @@ export class MockTrackService implements TrackService {
         resolve({
           isLiked: false,
           message: 'Track unliked successfully',
+        });
+      }, 1000);
+    });
+  }
+  async repostTrack(trackId: number): Promise<repostResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        if (!currentUserId) {
+          reject(new Error('User not authenticated'));
+          return;
+        }
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        const usersStore = getMockUsersStore();
+        const user = usersStore.find((item) => item.id === currentUserId);
+        if (!user) {
+          reject(new Error('User not found'));
+          return;
+        }
+        if (user.reposts.some((repost) => repost.id === trackId)) {
+          reject(new Error('Track already reposted by user'));
+          return;
+        }
+        user.reposts.push({
+          id: trackId,
+          title: track.title,
+          genre: track.genre,
+        });
+        persistMockSystemState();
+        resolve({
+          isReposted: true,
+          message: 'Track reposted successfully',
         });
       }, 1000);
     });

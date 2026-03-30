@@ -29,6 +29,7 @@ import {
 import {
   likeResponseSchema,
   paginationRepostUserSchema,
+  repostResponseSchema,
   secretTokenResponseSchema,
   trackDetailsResponseSchema,
   trackUpdateResponseSchema,
@@ -355,7 +356,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
     }),
-  //TRACK_REPOST: (trackId: number) =>
+  TRACK_REPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
   TRACK_REPOST_USERS: (trackId: number) =>
     defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
       method: 'GET',

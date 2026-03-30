@@ -210,7 +210,7 @@ describe('RealTrackService', () => {
 
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.TRACK_REPOSTS(201),
+      API_CONTRACTS.TRACK_REPOST_USERS(201),
       {
         params: {
           page: 0,
@@ -233,6 +233,22 @@ describe('RealTrackService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.TRACK_UNLIKE(106)
+    );
+  });
+
+  it('calls TRACK_REPOST and returns repost response payload', async () => {
+    const response = {
+      isReposted: true,
+      message: 'Track reposted successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.repostTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_REPOST(106)
     );
   });
 });

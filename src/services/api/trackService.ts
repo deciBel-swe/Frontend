@@ -11,6 +11,7 @@ import type {
   UpdateTrackVisibilityDto,
   likeResponse,
   paginationRepostUser,
+  repostResponse,
 } from '@/types/tracks';
 
 interface PaginationParams {
@@ -87,6 +88,8 @@ export interface TrackService {
 
   /** Unlike a track (POST /tracks/:trackId/unlike) */
   unlikeTrack(trackId: number): Promise<likeResponse>;
+
+  repostTrack(trackId: number): Promise<repostResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -234,4 +237,8 @@ export class RealTrackService implements TrackService {
   async unlikeTrack(trackId: number): Promise<likeResponse> {
     return apiRequest(API_CONTRACTS.TRACK_UNLIKE(trackId));
   }
+
+  repostTrack = async (trackId: number): Promise<repostResponse> => {
+    return apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
+  };
 }
