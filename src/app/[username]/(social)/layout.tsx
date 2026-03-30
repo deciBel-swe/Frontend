@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import PageTabsLayout from '@/components/ui/PageTabsLayout';
-import SocialPageHeader from '@/components/ui/social/SocialPageHeader';
+import SocialPageHeader, { ListType } from '@/components/ui/social/SocialPageHeader';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 
 const getTabs = (username: string) => [
@@ -16,7 +16,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: profileData } = usePublicUser(username);
 
-  const listType = pathname.endsWith('/followers') ? 'followers' : 'following';
+  const listType: ListType =
+    pathname.endsWith('/followers') ? 'followers' :
+    pathname.endsWith('/likes')     ? 'likes'     :
+    'following';
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
