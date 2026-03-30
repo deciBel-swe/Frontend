@@ -8,6 +8,7 @@ import type {
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
+  likeResponse,
 } from '@/types/tracks';
 import {
   getMockTracksStore,
@@ -316,6 +317,7 @@ export class MockTrackService implements TrackService {
             isPrivate,
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
+            likes: new Set(),
           };
 
           const updated = [uploaded, ...tracks];
@@ -538,7 +540,7 @@ export class MockTrackService implements TrackService {
     return track;
   }
 
-  getRepostUsers(
+  async getRepostUsers(
     trackId: number,
     params?: PaginationParams
   ): Promise<paginationRepostUser> {
@@ -575,6 +577,27 @@ export class MockTrackService implements TrackService {
           pageSize,
           totalElements,
           totalPages,
+        });
+      }, 1000);
+    });
+  }
+  async likeTrack(trackId: number): Promise<likeResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+
+        track.likes.add(currentUserId);
+        persistMockSystemState();
+
+        resolve({
+          isLiked: true,
+          message: 'Track liked successfully',
         });
       }, 1000);
     });

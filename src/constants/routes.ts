@@ -153,6 +153,7 @@ export const API_ENDPOINTS = {
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
     REPOSTS: (trackId: number) => `/tracks/${trackId}/reposters`,
+    LIKE: (trackId: number) => `/tracks/${trackId}/like`,
   },
   GENRES: '/genres',
   COMMENTS: {

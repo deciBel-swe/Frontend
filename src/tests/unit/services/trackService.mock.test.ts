@@ -199,4 +199,33 @@ describe('MockTrackService', () => {
     expect(match?.isFollowing).toBe(true);
     expect(match?.tier).toBe('FREE');
   });
+
+  it('likeTrack adds current user like and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const likePromise = service.likeTrack(106);
+    await advance(1200);
+    const response = await likePromise;
+
+    expect(response).toEqual({
+      isLiked: true,
+      message: 'Track liked successfully',
+    });
+
+    const repostUsersPromise = service.getRepostUsers(203, {
+      page: 0,
+      size: 10,
+    });
+    await advance(1200);
+    await repostUsersPromise;
+
+    const persistedRaw = storage.get(TRACKS_KEY);
+    expect(persistedRaw).toBeTruthy();
+    expect(persistedRaw).toContain('106');
+  });
 });

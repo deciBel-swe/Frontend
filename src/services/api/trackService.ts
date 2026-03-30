@@ -9,6 +9,7 @@ import type {
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
+  likeResponse,
   paginationRepostUser,
 } from '@/types/tracks';
 
@@ -80,6 +81,9 @@ export interface TrackService {
     trackId: number,
     params?: PaginationParams
   ): Promise<paginationRepostUser>;
+
+  /** Like a track (POST /tracks/:trackId/like) */
+  likeTrack(trackId: number): Promise<likeResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -218,5 +222,9 @@ export class RealTrackService implements TrackService {
     return apiRequest(API_CONTRACTS.TRACK_REPOSTS(trackId), {
       params: toQueryParams(params),
     });
+  }
+
+  async likeTrack(trackId: number): Promise<likeResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_LIKE(trackId));
   }
 }

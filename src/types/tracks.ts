@@ -156,3 +156,14 @@ export const paginationRepostUserSchema = z
   })
   .passthrough();
 export type paginationRepostUser = z.infer<typeof paginationRepostUserSchema>;
+
+/**
+ * LikeResponse
+ */
+export const likeResponseSchema = z
+  .object({
+    isLiked: z.boolean(),
+    message: z.string(),
+  })
+  .passthrough();
+export type likeResponse = z.infer<typeof likeResponseSchema>;

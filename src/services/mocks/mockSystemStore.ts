@@ -67,6 +67,7 @@ export type MockTrackRecord = {
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
+  likes: Set<number>;
 };
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
@@ -324,6 +325,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 214,
+    likes: new Set([2, 3]),
   },
   {
     id: 102,
@@ -340,6 +342,7 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 182,
     secretLink: 'c8n2x3ya',
+    likes: new Set([1]),
   },
   {
     id: 103,
@@ -355,6 +358,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 256,
+    likes: new Set([1, 2]),
   },
   {
     id: 104,
@@ -371,6 +375,7 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 301,
     secretLink: 'f4m0qt9b',
+    likes: new Set([2]),
   },
   {
     id: 105,
@@ -386,6 +391,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 199,
+    likes: new Set([1, 3]),
   },
   {
     id: 106,
@@ -401,6 +407,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 238,
+    likes: new Set(),
   },
 ];
 
