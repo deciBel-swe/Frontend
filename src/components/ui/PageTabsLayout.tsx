@@ -17,17 +17,17 @@ interface PageTabsLayoutProps {
 }
 
 export default function PageTabsLayout({ title, tabs, children, size="md" }: PageTabsLayoutProps) {
-  const textSize = size === 'sm' ? 'text-[14px]' : 'text-[20px]';
+  const textSize = size === 'sm' ? 'text-[14px] sm:text-[16px]' : 'text-[16px] sm:text-[20px]';
   const pathname = usePathname();
 
   return (
     <div>
-      <div className=" pt-3 pb-3">
+      <div className="pt-3 pb-3">
         {title && (
           <h1 className="text font-extrabold text-text-primary mb-6">{title}</h1>
         )}
 
-        <nav className="flex items-end">
+        <nav className="flex flex-wrap items-end gap-2">
           {tabs.map(({ label, href }, i) => {
             const isActive = pathname === href;
             return (
@@ -35,10 +35,8 @@ export default function PageTabsLayout({ title, tabs, children, size="md" }: Pag
                 key={href}
                 href={href}
                 className={[
-                  'relative pb-2 pt-2 pl-3 whitespace-nowrap',
-                  'transition-colors duration-150 no-underline',
+                  'relative pb-2 pt-2 pl-3 transition-colors duration-150 no-underline',
                   textSize,
-                  i === 0 ? 'pr-3' : 'px-3',
                   isActive
                     ? 'text-text-primary font-extrabold'
                     : 'text-text-muted hover:text-text-secondary font-extrabold',
