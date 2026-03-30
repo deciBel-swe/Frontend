@@ -3,6 +3,8 @@ import { usePublicUser } from "@/features/prof/hooks/usePublicUser";
 import { useParams } from "next/navigation";
 
 interface SocialPageHeaderProps {
+  profileUsername: string;
+  profileAvatarSrc?: string;
   listType: "following" | "followers";
   className?: string;
 }
