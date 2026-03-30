@@ -127,6 +127,7 @@ export const API_ENDPOINTS = {
     ME_IMAGES: '/users/me/images',
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
+    ME_REPOSTs: '/users/me/reposts',
     SUGGESTED: '/users/suggested',
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
@@ -151,6 +152,7 @@ export const API_ENDPOINTS = {
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
+    REPOSTS: (trackId: number) => `/tracks/${trackId}/reposters`,
   },
   GENRES: '/genres',
   COMMENTS: {

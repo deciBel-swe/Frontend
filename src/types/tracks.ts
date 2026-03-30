@@ -127,3 +127,32 @@ export const trackPreviewSchema = z.object({
   duration: z.string().optional(),
 });
 export type TrackPreview = z.infer<typeof trackPreviewSchema>;
+
+/**
+ * RepostUser
+ */
+export const repostUserSchema = z
+  .object({
+    avatarUrl: z.string().optional(),
+    id: z.number().optional(),
+    isFollowing: z.boolean().optional(),
+    tier: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+export type RepostUser = z.infer<typeof repostUserSchema>;
+
+/**
+ * RepostUsersReponse
+ */
+export const paginationRepostUserSchema = z
+  .object({
+    content: z.array(repostUserSchema).optional(),
+    isLast: z.boolean().optional(),
+    pageNumber: z.number().optional(),
+    pageSize: z.number().optional(),
+    totalElements: z.number().optional(),
+    totalPages: z.number().optional(),
+  })
+  .passthrough();
+export type paginationRepostUser = z.infer<typeof paginationRepostUserSchema>;

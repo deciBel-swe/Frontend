@@ -182,4 +182,41 @@ describe('RealTrackService', () => {
       })
     );
   });
+
+  it('fetches repost users via TRACK_REPOSTS and forwards pagination params', async () => {
+    const response = {
+      content: [
+        {
+          id: 2,
+          username: 'listenertwo',
+          avatarUrl: 'https://picsum.photos/seed/listener/400/400',
+          isFollowing: true,
+          tier: 'FREE',
+        },
+      ],
+      isLast: true,
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.getRepostUsers(201, {
+      page: 0,
+      size: 10,
+    });
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_REPOSTS(201),
+      {
+        params: {
+          page: 0,
+          size: 10,
+        },
+      }
+    );
+  });
 });

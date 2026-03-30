@@ -27,6 +27,7 @@ import {
   updatePrivacySettingsDtoSchema,
 } from './privacy';
 import {
+  paginationRepostUserSchema,
   secretTokenResponseSchema,
   trackDetailsResponseSchema,
   trackUpdateResponseSchema,
@@ -341,6 +342,12 @@ export const API_CONTRACTS = {
       method: 'POST',
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
+    }),
+  TRACK_REPOSTS: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.REPOSTS(trackId),
+      responseSchema: paginationRepostUserSchema,
     }),
 } as const;
 

@@ -2,6 +2,7 @@ import { config } from '@/config';
 import type { TrackService } from '@/services/api/trackService';
 import type { UploadTrackResponse } from '@/types';
 import type {
+  paginationRepostUser,
   SecretLink,
   TrackMetaData,
   TrackUpdateResponse,
@@ -16,6 +17,8 @@ import {
   resolveCurrentMockUserId,
   type MockTrackRecord,
 } from './mockSystemStore';
+import { PaginationParams } from '../api/userService';
+import { is } from 'zod/locales';
 
 const MOCK_DELAY_MS = 220;
 
@@ -367,8 +370,8 @@ export class MockTrackService implements TrackService {
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
     return readTracks()
-    .filter((track) => !track.isPrivate)
-    .map(toMetadata);
+      .filter((track) => !track.isPrivate)
+      .map(toMetadata);
   }
   async updateTrack(
     trackId: number,
@@ -389,10 +392,7 @@ export class MockTrackService implements TrackService {
       allowEmpty: true,
     });
     const releaseDate = getOptionalStringField(formData, 'releaseDate');
-    const trackLinkSuffix = getOptionalStringField(
-      formData,
-      'trackLinkSuffix'
-    );
+    const trackLinkSuffix = getOptionalStringField(formData, 'trackLinkSuffix');
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
@@ -410,10 +410,10 @@ export class MockTrackService implements TrackService {
 
     const nextCoverUrl = removeCover
       ? buildCoverUrl(trackId)
-      : coverImageDataUrl ?? current.coverUrl;
+      : (coverImageDataUrl ?? current.coverUrl);
     const nextCoverImageDataUrl = removeCover
       ? undefined
-      : coverImageDataUrl ?? current.coverImageDataUrl;
+      : (coverImageDataUrl ?? current.coverImageDataUrl);
 
     const nextArtistName = artistName ?? current.artist.username;
     const nextTrackUrl = trackLinkSuffix
@@ -425,7 +425,8 @@ export class MockTrackService implements TrackService {
       title: title ?? current.title,
       genre: genre ?? current.genre,
       tags: tags ?? current.tags,
-      description: description !== undefined ? description : current.description,
+      description:
+        description !== undefined ? description : current.description,
       releaseDate: releaseDate ?? current.releaseDate,
       artist: artistName
         ? { ...current.artist, username: artistName }
@@ -535,5 +536,47 @@ export class MockTrackService implements TrackService {
       throw new Error('Track not found');
     }
     return track;
+  }
+
+  getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const usersStore = getMockUsersStore();
+        const repostUsers = usersStore
+          .filter((user) =>
+            user.reposts.some((repost) => repost.id === trackId)
+          )
+          .map((user) => ({
+            id: user.id,
+            username: user.username,
+            avatarUrl: user.profile.profilePic,
+            isFollowing: user.followers.has(currentUserId),
+            tier: user.tier,
+          }));
+
+        const pageNumber = params?.page ?? 0;
+        const pageSize = params?.size ?? (repostUsers.length || 20);
+        const start = pageNumber * pageSize;
+        const end = start + pageSize;
+        const content = repostUsers.slice(start, end);
+        const totalElements = repostUsers.length;
+        const totalPages =
+          pageSize > 0 ? Math.ceil(totalElements / pageSize) : 0;
+        const isLast = pageNumber >= Math.max(0, totalPages - 1);
+
+        resolve({
+          content,
+          isLast,
+          pageNumber,
+          pageSize,
+          totalElements,
+          totalPages,
+        });
+      }, 1000);
+    });
   }
 }

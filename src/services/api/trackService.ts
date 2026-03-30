@@ -1,5 +1,5 @@
 import { config } from '@/config';
-import { apiRequest } from '@/hooks/useAPI';
+import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
 import type { UploadTrackResponse } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
@@ -9,8 +9,31 @@ import type {
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
+  paginationRepostUser,
 } from '@/types/tracks';
 
+interface PaginationParams {
+  page?: number;
+  size?: number;
+}
+
+const toQueryParams = (
+  params?: PaginationParams
+): ApiQueryParams | undefined => {
+  if (!params) {
+    return undefined;
+  }
+
+  const query: ApiQueryParams = {};
+  if (params.page !== undefined) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined) {
+    query.size = params.size;
+  }
+
+  return Object.keys(query).length > 0 ? query : undefined;
+};
 /**
  * Track service contract.
  *
@@ -33,7 +56,10 @@ export interface TrackService {
   /** Read all visible tracks for feed listing (GET /users/me/tracks) */
   getAllTracks(): Promise<TrackMetaData[]>;
   /** Update track metadata (PATCH /tracks/:trackId) */
-  updateTrack(trackId: number, formData: FormData): Promise<TrackUpdateResponse>;
+  updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -49,6 +75,11 @@ export interface TrackService {
 
   /** Rotate private sharing token (POST /tracks/:trackId/generate-token) */
   regenerateSecretLink(trackId: string): Promise<SecretLink>;
+
+  getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -178,5 +209,14 @@ export class RealTrackService implements TrackService {
       API_CONTRACTS.TRACKS_GENERATE_TOKEN(trackId)
     );
     return { secretLink: payload.secretToken };
+  }
+
+  async getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser> {
+    return apiRequest(API_CONTRACTS.TRACK_REPOSTS(trackId), {
+      params: toQueryParams(params),
+    });
   }
 }

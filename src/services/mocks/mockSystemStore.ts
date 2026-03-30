@@ -43,6 +43,7 @@ export type MockUserRecord = {
   blocked: Set<number>;
   playlists: Array<{ id: number; title: string }>;
   tracks: Array<{ id: number; title: string; genre: string }>;
+  reposts: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
   additionalEmails: string[];
 };
@@ -230,6 +231,7 @@ const seedUsers = (): MockUserRecord[] => [
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
       { id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' },
     ],
+    reposts: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     history: [
       { id: 301, title: 'Morning Focus' },
       { id: 302, title: 'Night Ride' },
@@ -267,6 +269,7 @@ const seedUsers = (): MockUserRecord[] => [
     blocked: new Set(),
     playlists: [{ id: 1003, title: 'Study Session' }],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
+    reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
     additionalEmails: [],
   },
@@ -300,6 +303,7 @@ const seedUsers = (): MockUserRecord[] => [
     blocked: new Set(),
     playlists: [{ id: 1004, title: 'Warehouse Cuts' }],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
+    reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     history: [{ id: 305, title: 'Peak Hour' }],
     additionalEmails: [],
   },
@@ -439,7 +443,9 @@ const isOversizedDataUrl = (value: string | undefined): boolean => {
     return false;
   }
 
-  return value.startsWith('data:') && value.length > MAX_PERSISTED_DATA_URL_LENGTH;
+  return (
+    value.startsWith('data:') && value.length > MAX_PERSISTED_DATA_URL_LENGTH
+  );
 };
 
 const getFallbackCoverUrl = (trackId: number): string =>
@@ -518,11 +524,15 @@ const toPersistedState = (
 ): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
-  tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
+  tracks: current.tracks.map((track) =>
+    compactTrackForPersistence(track, options)
+  ),
   emailVerification: current.emailVerification,
 });
 
-const toRuntimeState = (persisted: PersistedMockSystemState): MockSystemState => {
+const toRuntimeState = (
+  persisted: PersistedMockSystemState
+): MockSystemState => {
   const authAccountsByEmail = new Map<string, MockAuthAccount>(
     (persisted.authAccounts ?? []).map((account) => [
       normalizeEmail(account.email),
@@ -578,7 +588,9 @@ const syncLegacyTracksStorage = (): void => {
   try {
     window.localStorage.setItem(
       LEGACY_TRACKS_STORAGE_KEY,
-      toLegacyTracksPayload(state.tracks.map((track) => compactTrackForPersistence(track)))
+      toLegacyTracksPayload(
+        state.tracks.map((track) => compactTrackForPersistence(track))
+      )
     );
   } catch {
     // Best-effort compatibility key; ignore quota failures.
@@ -687,6 +699,7 @@ const createDefaultUserFromAccount = (
   blocked: new Set(),
   playlists: [],
   tracks: [],
+  reposts: [],
   history: [],
   additionalEmails: [],
 });
@@ -770,7 +783,10 @@ export const getMockSystemState = (): MockSystemState => {
     state = persisted;
   } else {
     const authAccountsByEmail = new Map<string, MockAuthAccount>(
-      seedAccounts.map((account) => [normalizeEmail(account.email), { ...account }])
+      seedAccounts.map((account) => [
+        normalizeEmail(account.email),
+        { ...account },
+      ])
     );
 
     state = {
