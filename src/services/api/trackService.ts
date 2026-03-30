@@ -89,7 +89,11 @@ export interface TrackService {
   /** Unlike a track (POST /tracks/:trackId/unlike) */
   unlikeTrack(trackId: number): Promise<likeResponse>;
 
+  /** Repost a track (POST /tracks/:trackId/repost) */
   repostTrack(trackId: number): Promise<repostResponse>;
+
+  /** Remove repost of a track (DELETE /tracks/:trackId/repost) */
+  unrepostTrack(trackId: number): Promise<repostResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -240,5 +244,9 @@ export class RealTrackService implements TrackService {
 
   repostTrack = async (trackId: number): Promise<repostResponse> => {
     return apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
+  };
+
+  unrepostTrack = async (trackId: number): Promise<repostResponse> => {
+    return apiRequest(API_CONTRACTS.TRACK_UNREPOST(trackId));
   };
 }

@@ -251,4 +251,20 @@ describe('RealTrackService', () => {
       API_CONTRACTS.TRACK_REPOST(106)
     );
   });
+
+  it('calls TRACK_UNREPOST and returns unrepost response payload', async () => {
+    const response = {
+      isReposted: false,
+      message: 'Track unreposted successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.unrepostTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_UNREPOST(106)
+    );
+  });
 });

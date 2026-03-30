@@ -659,4 +659,31 @@ export class MockTrackService implements TrackService {
       }, 1000);
     });
   }
+
+  async unrepostTrack(trackId: number): Promise<repostResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const usersStore = getMockUsersStore();
+        const user = usersStore.find((item) => item.id === currentUserId);
+        if (!user) {
+          reject(new Error('User not found'));
+          return;
+        }
+        const repostIndex = user.reposts.findIndex(
+          (repost) => repost.id === trackId
+        );
+        if (repostIndex < 0) {
+          reject(new Error('Track not reposted by user'));
+          return;
+        }
+        user.reposts.splice(repostIndex, 1);
+        persistMockSystemState();
+        resolve({
+          isReposted: false,
+          message: 'Track unreposted successfully',
+        });
+      }, 1000);
+    });
+  }
 }

@@ -268,4 +268,22 @@ describe('MockTrackService', () => {
       message: 'Track reposted successfully',
     });
   });
+
+  it('unrepostTrack removes repost for current user and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const unrepostPromise = service.unrepostTrack(204);
+    await advance(1200);
+    const response = await unrepostPromise;
+
+    expect(response).toEqual({
+      isReposted: false,
+      message: 'Track unreposted successfully',
+    });
+  });
 });

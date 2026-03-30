@@ -362,6 +362,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.TRACKS.REPOST(trackId),
       responseSchema: repostResponseSchema,
     }),
+  TRACK_UNREPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
   TRACK_REPOST_USERS: (trackId: number) =>
     defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
       method: 'GET',
