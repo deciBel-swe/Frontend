@@ -38,7 +38,7 @@ type TrackCardProps = {
     duration: string;
     plays?: number;        // optional number of plays
     comments?: number;     // optional number of messages/comments
-    createdAt: string; // ISO date
+    createdAt?: string; // ISO date
     genre?: string;
   };
   showComments?: boolean;
@@ -134,25 +134,59 @@ export default function TrackCard({
             </Button>
 
 <div className="flex flex-col w-full">
-  <div className="flex items-center gap-2">
-    <Link
-      href={`/${userSlug}`}
-      className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
-    >
-      {track.artist}
-    </Link>
+<div className="flex items-center gap-2">
+  <Link
+    href={`/${userSlug}`}
+    className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
+  >
+    {track.artist}
+  </Link>
 
-    <div className="ml-auto text-xs text-text-muted text-[11px]">
-        <TimeAgo date={track.createdAt} />
+  {(track.createdAt || track.genre) && (
+    <div className="ml-auto flex flex-col items-end gap-1">
+      {track.createdAt && (
+        <div className="text-xs text-text-muted text-[11px]">
+          <TimeAgo date={track.createdAt} />
+        </div>
+      )}
+
+      {track.genre && (
+        <Link
+          href={`/tags/${encodeURIComponent(track.genre)}`}
+          className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
+           text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 
+           hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors scale-105"
+        >
+          <span className="mr-1 font-semibold">#</span>
+          <span>{track.genre}</span>
+        </Link>
+      )}
     </div>
-  </div>
+  )}
+</div>
 
+
+<div className='flex w-full'>
   <Link
     href={`/${userSlug}/${trackSlug}`}
     className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
   >
     {track.title}
   </Link>
+{/* {track.genre && (
+  <div className="flex-shrink-0 ml-auto">
+    <Link
+      href={`/tags/${encodeURIComponent(track.genre)}`}
+      className="inline-flex items-center px-2 py-1 rounded-full cursor-pointer 
+                 text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 
+                 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+    >
+      <span className="mr-1 font-semibold">#</span>
+      <span>{track.genre}</span>
+    </Link>
+  </div>
+)} */}
+    </div>
 </div>
           </div>
 
