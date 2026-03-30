@@ -84,6 +84,9 @@ export interface TrackService {
 
   /** Like a track (POST /tracks/:trackId/like) */
   likeTrack(trackId: number): Promise<likeResponse>;
+
+  /** Unlike a track (POST /tracks/:trackId/unlike) */
+  unlikeTrack(trackId: number): Promise<likeResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -226,5 +229,9 @@ export class RealTrackService implements TrackService {
 
   async likeTrack(trackId: number): Promise<likeResponse> {
     return apiRequest(API_CONTRACTS.TRACK_LIKE(trackId));
+  }
+
+  async unlikeTrack(trackId: number): Promise<likeResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_UNLIKE(trackId));
   }
 }

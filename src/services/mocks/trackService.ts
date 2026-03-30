@@ -602,4 +602,23 @@ export class MockTrackService implements TrackService {
       }, 1000);
     });
   }
+  async unlikeTrack(trackId: number): Promise<likeResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        track.likes.delete(currentUserId);
+        persistMockSystemState();
+        resolve({
+          isLiked: false,
+          message: 'Track unliked successfully',
+        });
+      }, 1000);
+    });
+  }
 }

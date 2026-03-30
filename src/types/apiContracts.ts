@@ -314,6 +314,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.TRACKS.LIKE(trackId),
       responseSchema: likeResponseSchema,
     }),
+  TRACK_UNLIKE: (trackId: number) =>
+    defineContract<void, z.infer<typeof likeResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.LIKE(trackId),
+      responseSchema: likeResponseSchema,
+    }),
   TRACKS_BY_ID: (trackId: number) =>
     defineContract<void, z.infer<typeof trackDetailsResponseSchema>>({
       method: 'GET',

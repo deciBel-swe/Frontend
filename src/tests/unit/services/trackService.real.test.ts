@@ -219,4 +219,20 @@ describe('RealTrackService', () => {
       }
     );
   });
+
+  it('calls TRACK_UNLIKE and returns unlike response payload', async () => {
+    const response = {
+      isLiked: false,
+      message: 'Track unliked successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.unlikeTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_UNLIKE(106)
+    );
+  });
 });

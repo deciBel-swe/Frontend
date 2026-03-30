@@ -228,4 +228,26 @@ describe('MockTrackService', () => {
     expect(persistedRaw).toBeTruthy();
     expect(persistedRaw).toContain('106');
   });
+
+  it('unlikeTrack removes current user like and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const likePromise = service.likeTrack(106);
+    await advance(1200);
+    await likePromise;
+
+    const unlikePromise = service.unlikeTrack(106);
+    await advance(1200);
+    const response = await unlikePromise;
+
+    expect(response).toEqual({
+      isLiked: false,
+      message: 'Track unliked successfully',
+    });
+  });
 });
