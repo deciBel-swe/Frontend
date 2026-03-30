@@ -355,7 +355,8 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
     }),
-  TRACK_REPOSTS: (trackId: number) =>
+  //TRACK_REPOST: (trackId: number) =>
+  TRACK_REPOST_USERS: (trackId: number) =>
     defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.TRACKS.GET_REPOSTERS(trackId),

@@ -222,7 +222,7 @@ export class RealTrackService implements TrackService {
     trackId: number,
     params?: PaginationParams
   ): Promise<paginationRepostUser> {
-    return apiRequest(API_CONTRACTS.TRACK_REPOSTS(trackId), {
+    return apiRequest(API_CONTRACTS.TRACK_REPOST_USERS(trackId), {
       params: toQueryParams(params),
     });
   }
