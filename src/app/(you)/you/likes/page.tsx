@@ -45,7 +45,7 @@ export default function Page() {
     <section className="px-8 py-10">
       {/* HEADER */}
       <div className="flex items-center justify-between mb-8">
-        <h2 className="font-extrabold">
+        <h2 className="hidden sm:block font-extrabold">
           Hear the tracks you’ve liked:
         </h2>
 
@@ -55,7 +55,7 @@ export default function Page() {
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setView('grid')}
-              variant='secondary'
+              variant={view === 'grid' ? 'secondary' : 'ghost'}
               size="sm"
               className="w-10 h-9 p-0"
             >
@@ -64,7 +64,7 @@ export default function Page() {
 
             <Button
               onClick={() => setView('list')}
-              variant='secondary'
+              variant={view === 'list' ? 'secondary' : 'ghost'}
               size="sm"
               className="w-10 h-9 p-0"
             >
@@ -81,7 +81,7 @@ export default function Page() {
       {/* GRID */}
       <div
         className={`grid gap-8 ${
-          view === 'grid' ? 'grid-cols-6' : 'grid-cols-1'
+          view === 'grid' ? 'grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]' : 'grid-cols-1'
         }`}
       >
         {filteredItems.map((item) =>
