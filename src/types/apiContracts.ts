@@ -358,7 +358,7 @@ export const API_CONTRACTS = {
   TRACK_REPOSTS: (trackId: number) =>
     defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
       method: 'GET',
-      url: API_ENDPOINTS.TRACKS.REPOSTS(trackId),
+      url: API_ENDPOINTS.TRACKS.GET_REPOSTERS(trackId),
       responseSchema: paginationRepostUserSchema,
     }),
 } as const;
