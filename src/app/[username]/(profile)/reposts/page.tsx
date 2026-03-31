@@ -12,7 +12,7 @@ const MOCK_REPOSTED_TRACKS = [
   {
     trackId: '1',
     user: { name: 'user1', avatar: 'https://picsum.photos/seed/mert/200' },
-    postedText: 'reposted',
+    repostedBy: 'user1',
     timeAgoText: '4 days ago',
     track: {
       id: 1,
@@ -28,7 +28,7 @@ const MOCK_REPOSTED_TRACKS = [
   {
     trackId: '2',
     user: { name: 'user1', avatar: 'https://picsum.photos/seed/billie/200' },
-    postedText: 'reposted',
+    repostedBy: 'user1',
     timeAgoText: '2 weeks ago',
     track: {
       id: 2,
@@ -68,11 +68,12 @@ export default function Page({
               key={t.trackId}
               trackId={t.trackId}
               user={t.user}
-              postedText={t.postedText}
+              repostedBy={t.repostedBy}
               timeAgoText={t.timeAgoText}
               track={t.track}
               waveform={t.waveform}
               showEditButton={false}
+              showHeader={false}
             />
           ))}
         </div>

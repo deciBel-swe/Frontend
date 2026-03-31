@@ -3,7 +3,7 @@
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play, MessageCircle } from 'lucide-react';
+import { Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
@@ -26,7 +26,7 @@ type TrackCardProps = {
   postedText?: string;
   timeAgo?: string;
   showEditButton?: boolean;
-
+  repostedBy?: string;
   /** Show the inline comment input below the waveform */
   showCommentInput?: boolean;
   /** Current user's avatar for the comment input */
@@ -53,6 +53,7 @@ export default function TrackCard({
   isPrivate = false,
   user,
   postedText = 'posted a track',
+  repostedBy,
   timeAgo = '',
   showEditButton = true,
   track,
@@ -146,6 +147,18 @@ export default function TrackCard({
     >
       {track.artist}
     </Link>
+
+    {repostedBy && (
+      <>
+        <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
+          <Link
+            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+            className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
+          >
+            {repostedBy}
+          </Link>
+      </>
+    )}
 
     {timeAgoText && (
       <p className="ml-auto text-xs text-text-muted">{timeAgoText} </p>
