@@ -24,7 +24,7 @@ export default function PageTabsLayout({ title, tabs, children, size="md" }: Pag
     <div>
       <div className=" pt-3 pb-3">
         {title && (
-          <h1 className="text font-extrabold text-text-primary mb-6">{title}</h1>
+          <h1 className="text-3xl font-extrabold text-text-primary mt-6 mb-3">{title}</h1>
         )}
 
         <nav className="flex items-end">

@@ -15,8 +15,8 @@ type ListOfArtistCardsprops ={
 export default function ARTIST ({ artists, Artist_header, headerUrl }: ListOfArtistCardsprops) {
   return (
       <section>
-        <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
-          <Link href={headerUrl} className="text-sm font-semibold text-gray-400">
+        <div className="flex justify-between items-center border-b border-border-default pb-2">
+          <Link href={headerUrl} className="text-sm font-semibold text-text-muted">
             {Artist_header}
           </Link>
 
