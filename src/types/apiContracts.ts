@@ -380,6 +380,12 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.FEED,
     responseSchema: paginatedTrackFeedResponseSchema,
   }),
+  USERS_LIKED_TRACK: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.LIKE_TRACK(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
 } as const;
 
 /** Union of all contract keys for autocomplete and constrained lookups. */

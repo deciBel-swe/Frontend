@@ -236,6 +236,22 @@ describe('RealTrackService', () => {
     );
   });
 
+  it('calls TRACK_LIKE and returns like response payload', async () => {
+    const response = {
+      isLiked: true,
+      message: 'Track liked successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.likeTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_LIKE(106)
+    );
+  });
+
   it('calls TRACK_REPOST and returns repost response payload', async () => {
     const response = {
       isReposted: true,

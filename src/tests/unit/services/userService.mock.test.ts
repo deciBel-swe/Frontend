@@ -167,57 +167,86 @@ describe('MockUserService', () => {
     expect(me.username).toBe('session-user');
   });
   it('getPublicUserByUsername returns profile for public user', async () => {
-  const publicPromise = service.getPublicUserByUsername('mockartist');
-  await flush();
-  const profile = await publicPromise;
- 
-  expect(profile.username).toBe('mockartist');
-});
- 
-it('getPublicUserByUsername throws for non-existent username', async () => {
-  jest.useRealTimers();
-  
-  await expect(
-    service.getPublicUserByUsername('this-user-does-not-exist')
-  ).rejects.toThrow('User not found');
-});
+    const publicPromise = service.getPublicUserByUsername('mockartist');
+    await flush();
+    const profile = await publicPromise;
 
-it('getPublicUserByUsername throws for private profile when not the owner', async () => {
-  jest.useRealTimers();
-  
-  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
-  const users = getMockUsersStore();
-  const mockartist = users.find((u) => u.username === 'mockartist');
-  if (!mockartist) throw new Error('seed user mockartist not found');
+    expect(profile.username).toBe('mockartist');
+  });
 
-  mockartist.privacySettings.isPrivate = true;
+  it('getPublicUserByUsername throws for non-existent username', async () => {
+    jest.useRealTimers();
 
-  await expect(
-    service.getPublicUserByUsername('mockartist')
-  ).rejects.toThrow('User not found');
+    await expect(
+      service.getPublicUserByUsername('this-user-does-not-exist')
+    ).rejects.toThrow('User not found');
+  });
 
-  mockartist.privacySettings.isPrivate = false;
-});
+  it('getPublicUserByUsername throws for private profile when not the owner', async () => {
+    jest.useRealTimers();
 
-it('getPublicUserByUsername succeeds for private profile when IS the owner', async () => {
-  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
-  const users = getMockUsersStore();
-  const mockartist = users.find((u) => u.username === 'mockartist');
-  if (!mockartist) throw new Error('seed user mockartist not found');
+    const { getMockUsersStore } =
+      await import('@/services/mocks/mockSystemStore');
+    const users = getMockUsersStore();
+    const mockartist = users.find((u) => u.username === 'mockartist');
+    if (!mockartist) throw new Error('seed user mockartist not found');
 
-  mockartist.privacySettings.isPrivate = true;
+    mockartist.privacySettings.isPrivate = true;
 
-  // Simulate session as mockartist (id: 7)
-  localStorage.setItem('decibel_mock_user', JSON.stringify({ id: 7, username: 'mockartist' }));
+    await expect(service.getPublicUserByUsername('mockartist')).rejects.toThrow(
+      'User not found'
+    );
 
-  const fetchPromise = service.getPublicUserByUsername('mockartist');
-  await flush();
-  const profile = await fetchPromise;
+    mockartist.privacySettings.isPrivate = false;
+  });
 
-  expect(profile.username).toBe('mockartist');
+  it('getPublicUserByUsername succeeds for private profile when IS the owner', async () => {
+    const { getMockUsersStore } =
+      await import('@/services/mocks/mockSystemStore');
+    const users = getMockUsersStore();
+    const mockartist = users.find((u) => u.username === 'mockartist');
+    if (!mockartist) throw new Error('seed user mockartist not found');
 
-  // Cleanup
-  mockartist.privacySettings.isPrivate = false;
-  localStorage.removeItem('decibel_mock_user');
-});
+    mockartist.privacySettings.isPrivate = true;
+
+    // Simulate session as mockartist (id: 7)
+    localStorage.setItem(
+      'decibel_mock_user',
+      JSON.stringify({ id: 7, username: 'mockartist' })
+    );
+
+    const fetchPromise = service.getPublicUserByUsername('mockartist');
+    await flush();
+    const profile = await fetchPromise;
+
+    expect(profile.username).toBe('mockartist');
+
+    // Cleanup
+    mockartist.privacySettings.isPrivate = false;
+    localStorage.removeItem('decibel_mock_user');
+  });
+
+  it('getUsersLikedTrack returns paginated users who liked the track', async () => {
+    const { getMockTracksStore } =
+      await import('@/services/mocks/mockSystemStore');
+    const track = getMockTracksStore().find((t) => t.likes.size > 0);
+    if (!track) throw new Error('seed track with likes not found');
+
+    const likedUsersPromise = service.getUsersLikedTrack(track.id, {
+      page: 0,
+      size: 1,
+    });
+    await flush();
+    const likedUsers = await likedUsersPromise;
+
+    expect(likedUsers.pageNumber).toBe(0);
+    expect(likedUsers.pageSize).toBe(1);
+    expect(likedUsers.totalElements).toBe(track.likes.size);
+    expect(likedUsers.content.length).toBe(Math.min(1, track.likes.size));
+
+    const firstUserId = likedUsers.content[0]?.id;
+    if (typeof firstUserId === 'number') {
+      expect(track.likes.has(firstUserId)).toBe(true);
+    }
+  });
 });

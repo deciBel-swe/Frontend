@@ -138,6 +138,11 @@ export interface UserService {
   getBlockedUsers(
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
+
+  getUsersLikedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -283,6 +288,15 @@ export class RealUserService implements UserService {
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_BLOCKED, {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUsersLikedTrack(
+    trackid: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    return apiRequest(API_CONTRACTS.USERS_LIKED_TRACK(trackid), {
       params: toQueryParams(params),
     });
   }

@@ -1,5 +1,6 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
 import {
+  getMockTracksStore,
   getMockUsersStore,
   persistMockSystemState,
   resolveCurrentMockUserId,
@@ -107,9 +108,9 @@ const toUserPublic = (user: MockUserRecord): UserPublic => ({
     username: user.username,
     id: user.id,
     bio: user.profile.bio,
-   location: [user.profile.city, user.profile.country]
-  .filter(Boolean)
-  .join(', '),
+    location: [user.profile.city, user.profile.country]
+      .filter(Boolean)
+      .join(', '),
     avatarUrl: user.profile.profilePic,
     coverPhotoUrl: user.profile.coverPic,
     favoriteGenres: [...user.profile.favoriteGenres],
@@ -168,12 +169,12 @@ export class MockUserService implements UserService {
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
-    const users = getMockUsersStore(); 
+    const users = getMockUsersStore();
     const user = users.find((u) => u.username === username);
     if (!user) {
       throw new Error('User not found');
     }
-    
+
     const currentUserId = resolveCurrentMockUserId();
     if (user.privacySettings.isPrivate && user.id !== currentUserId) {
       throw new Error('User not found');
@@ -455,5 +456,22 @@ export class MockUserService implements UserService {
       .map((user) => toSearchUser(user, me));
 
     return paginate(blockedUsers, params);
+  }
+
+  async getUsersLikedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoLiked = [...track.likes]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoLiked, params);
   }
 }

@@ -75,4 +75,24 @@ describe('RealUserService', () => {
       {}
     );
   });
+
+  it('calls USERS_LIKED_TRACK with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUsersLikedTrack(22, { page: 0, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_LIKED_TRACK(22),
+      {
+        params: { page: 0, size: 10 },
+      }
+    );
+  });
 });

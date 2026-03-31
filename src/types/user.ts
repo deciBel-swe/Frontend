@@ -196,6 +196,20 @@ export const searchUserSchema = z
   .passthrough();
 export type SearchUser = z.infer<typeof searchUserSchema>;
 
+/**
+ * FollowerUser
+ */
+export const followerUserSchema = z
+  .object({
+    avatarUrl: z.string().optional(),
+    id: z.number().int().nonnegative().optional(),
+    isFollowing: z.boolean().optional(),
+    tier: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+export type FollowerUser = z.infer<typeof followerUserSchema>;
+
 export const searchPlaylistSchema = z
   .object({
     id: z.number().int().nonnegative(),
