@@ -3,28 +3,33 @@
 import TrackCard from '@/components/TrackCard';
 import { ShareIcon } from '@/components/icons/GenrealIcons';
 import { TrackCardSkeleton } from '@/components/ui/TrackCardSkeleton';
+import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+import { useParams } from 'next/navigation';
 
 // ── Mock waveform helper ──────────────────────────────────────
-const mockWave = (length = 60) =>
-  Array.from({ length }, () => Math.random() * 0.8 + 0.1);
-
+const FIXED_WAVE = [
+  0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,
+  0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,
+  0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,
+  0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,
+];
 // ── Mock data matching TrackCard's expected shape ─────────────
 const MOCK_LIKED_TRACKS = [
   {
     trackId: '1',
-    user: { name: 'BillieEilish', avatar: 'https://picsum.photos/seed/billie/200' },
+    user: { name: 'artist 1', avatar: 'https://picsum.photos/seed/billie/200' },
     postedText: 'posted a track',
     timeAgoText: '10 years ago',
     track: {
       id: 1,
-      artist: 'Billie Eilish',
+      artist: 'artist 1',
       title: 'Ocean Eyes',
       cover: 'https://picsum.photos/seed/ocean/400',
       duration: '3:20',
       plays: 73_300_000,
       comments: 27500,
     },
-    waveform: mockWave(),
+    waveform: FIXED_WAVE,
   },
   {
     trackId: '2',
@@ -40,7 +45,7 @@ const MOCK_LIKED_TRACKS = [
       plays: 3_320_000,
       comments: 235,
     },
-    waveform: mockWave(),
+    waveform: FIXED_WAVE,
   },
 ];
 
@@ -53,6 +58,10 @@ export default function Page({
   tracks = MOCK_LIKED_TRACKS,
   isLoading = false,
 }: LikesPageProps) {
+
+    const { username } = useParams<{ username: string }>();
+    const { data: profileData } = usePublicUser(username);
+
   return (
     <div>
       {/* ── Section row ── */}
@@ -61,17 +70,7 @@ export default function Page({
           Hear the tracks you have liked
         </p>
         <button
-          className="
-            flex items-center gap-1.5
-            px-3 py-1.5
-            border border-border-strong
-            rounded
-            text-xs font-semibold text-text-primary
-            bg-surface-default
-            hover:bg-surface-raised
-            transition-colors
-            cursor-pointer
-          "
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-border-strong rounded text-xs font-semibold text-text-primary bg-surface-default hover:bg-surface-raised transition-colors cursor-pointer"
         >
           <ShareIcon />
           Share
@@ -97,6 +96,9 @@ export default function Page({
               track={t.track}
               waveform={t.waveform}
               showEditButton={false}
+              showCommentInput={true}
+              currentUserAvatar={profileData?.profile.avatarUrl}
+              showHeader={false}
             />
           ))}
         </div>
