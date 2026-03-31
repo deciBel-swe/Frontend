@@ -55,9 +55,12 @@ export default function FeedPage() {
           isPrivate={item.isPrivate}
           user={item.user}
           postedText={item.postedText}
-          timeAgo={item.timeAgo}
+          // timeAgo={item.timeAgo}
           showEditButton={false}
-          track={item.track}
+          track={{
+            ...item.track,
+            genre: 'Electronic', // Add genre for testing
+          }}
           waveform={item.waveform}
         />
       ))}
