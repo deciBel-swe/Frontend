@@ -28,7 +28,7 @@ export default function PageTabsLayout({ title, tabs, children, size="md" }: Pag
         )}
 
         <nav className="flex flex-wrap items-end gap-2">
-          {tabs.map(({ label, href }, i) => {
+          {tabs.map(({ label, href }) => {
             const isActive = pathname === href;
             return (
               <Link

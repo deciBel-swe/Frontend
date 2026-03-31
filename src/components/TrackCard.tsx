@@ -154,8 +154,8 @@ export default function TrackCard({
         <Link
           href={`/tags/${encodeURIComponent(track.genre)}`}
           className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
-           text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 
-           hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors scale-105"
+           text-xs bg-interactive-default text-text-primary dark:bg-interactive-default dark:text-text-primary 
+           hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors scale-105"
         >
           <span className="mr-1 font-semibold">#</span>
           <span>{track.genre}</span>
