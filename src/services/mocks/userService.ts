@@ -2,9 +2,11 @@ import type { PaginationParams, UserService } from '@/services/api/userService';
 import {
   getMockTracksStore,
   getMockUsersStore,
+  getMockPlaylistsStore,
   persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
+  MockPlayListRecord,
   type MockUserRecord,
 } from './mockSystemStore';
 import type {
@@ -30,6 +32,7 @@ import type {
   UserPublic,
   UsersSuggestedResponse,
 } from '@/types/user';
+import { paginatedPlaylistResponse, PlaylistType } from '@/types/playlist';
 
 const MOCK_DELAY_MS = 120;
 
@@ -157,6 +160,19 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
     tracksCount: user.tracks.length,
   },
 });
+
+const toPlaylistType = (type: MockPlayListRecord['type']): PlaylistType => {
+  switch (type) {
+    case 'ALBUM':
+      return PlaylistType.Album;
+    case 'EP':
+      return PlaylistType.Ep;
+    case 'PLAYLIST':
+      return PlaylistType.Playlist;
+    case 'SINGLE':
+      return PlaylistType.Single;
+  }
+};
 
 export class MockUserService implements UserService {
   async getPublicUserById(userId: number): Promise<UserPublic> {
@@ -458,7 +474,7 @@ export class MockUserService implements UserService {
     return paginate(blockedUsers, params);
   }
 
-  async getUsersLikedTrack(
+  async getUsersWhoLikedTrack(
     trackId: number,
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse> {
@@ -473,5 +489,39 @@ export class MockUserService implements UserService {
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoLiked, params);
+  }
+
+  async getUsersLikedPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<paginatedPlaylistResponse> {
+    await delay();
+    const user = findUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const likedPlaylists = [...user.likedPlaylists]
+      .map((playlistId) =>
+        getMockPlaylistsStore().find((p) => p.id === playlistId.id)
+      )
+      .filter((playlist): playlist is MockPlayListRecord => Boolean(playlist))
+      .map((playlist) => ({
+        id: playlist.id,
+        title: playlist.title,
+        type: toPlaylistType(playlist.type),
+        isLiked: true,
+        owner: {
+          id: playlist.owner.id,
+          username: playlist.owner.username,
+        },
+        tracks: playlist.tracks.map((track) => ({
+          trackId: track.trackid,
+          title: track.title,
+          trackUrl: track.trackUrl,
+          durationSeconds: track.durationSeconds,
+        })),
+      }));
+
+    return paginate(likedPlaylists, params);
   }
 }

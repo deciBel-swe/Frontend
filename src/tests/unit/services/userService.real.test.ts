@@ -76,7 +76,7 @@ describe('RealUserService', () => {
     );
   });
 
-  it('calls USERS_LIKED_TRACK with query params', async () => {
+  it('calls USERS_WHO_LIKED_TRACK with query params', async () => {
     mockedApiRequest.mockResolvedValue({
       content: [],
       pageNumber: 0,
@@ -86,10 +86,10 @@ describe('RealUserService', () => {
       isLast: true,
     });
 
-    await service.getUsersLikedTrack(22, { page: 0, size: 10 });
+    await service.getUsersWhoLikedTrack(22, { page: 0, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_LIKED_TRACK(22),
+      API_CONTRACTS.USERS_WHO_LIKED_TRACK(22),
       {
         params: { page: 0, size: 10 },
       }

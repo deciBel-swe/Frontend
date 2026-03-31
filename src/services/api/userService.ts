@@ -24,6 +24,7 @@ import type {
   UserPublic,
   UsersSuggestedResponse,
 } from '@/types/user';
+import { paginatedPlaylistResponse } from '@/types/playlist';
 
 export interface PaginationParams {
   page?: number;
@@ -139,10 +140,15 @@ export interface UserService {
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
 
-  getUsersLikedTrack(
+  getUsersWhoLikedTrack(
     trackId: number,
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
+
+  getUsersLikedPlaylists(
+    userID: number,
+    params?: PaginationParams
+  ): Promise<paginatedPlaylistResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -292,11 +298,20 @@ export class RealUserService implements UserService {
     });
   }
 
-  async getUsersLikedTrack(
+  async getUsersWhoLikedTrack(
     trackid: number,
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse> {
-    return apiRequest(API_CONTRACTS.USERS_LIKED_TRACK(trackid), {
+    return apiRequest(API_CONTRACTS.USERS_WHO_LIKED_TRACK(trackid), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUsersLikedPlaylists(
+    trackid: number,
+    params?: PaginationParams
+  ): Promise<paginatedPlaylistResponse> {
+    return apiRequest(API_CONTRACTS.USERS_LIKED_PLAYLISTS(trackid), {
       params: toQueryParams(params),
     });
   }

@@ -137,7 +137,8 @@ export const API_ENDPOINTS = {
     FOLLOWERS: (userId: number) => `/users/${userId}/followers`,
     FOLLOWING: (userId: number) => `/users/${userId}/following`,
     BLOCK: (userId: number) => `/users/${userId}/block`,
-    LIKE_TRACK: (trackid: number) => `/tracks/${trackid}/like`,
+    WHO_LIKE_TRACK: (trackid: number) => `/tracks/${trackid}/like`, //users who like a track
+    LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
   },
   TRACKS: {
     UPLOAD: '/tracks/upload',

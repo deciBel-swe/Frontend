@@ -42,6 +42,7 @@ export type MockUserRecord = {
   following: Set<number>;
   blocked: Set<number>;
   playlists: Array<{ id: number; title: string }>;
+  likedPlaylists: Array<{ id: number; title: string }>;
   tracks: Array<{ id: number; title: string; genre: string }>;
   reposts: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
@@ -68,6 +69,23 @@ export type MockTrackRecord = {
   durationSeconds: number;
   secretLink?: string;
   likes: Set<number>;
+};
+
+export type MockPlayListRecord = {
+  id: number;
+  title: string;
+  type: 'ALBUM' | 'EP' | 'PLAYLIST' | 'SINGLE';
+  LikedBy: Set<number>;
+  owner: {
+    id: number;
+    username: string;
+  };
+  tracks: Array<{
+    trackid: number;
+    title: string;
+    trackUrl: string;
+    durationSeconds: number;
+  }>;
 };
 
 const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
@@ -227,6 +245,7 @@ const seedUsers = (): MockUserRecord[] => [
       { id: 1001, title: 'Late Night Mix' },
       { id: 1002, title: 'Studio Drafts' },
     ],
+    likedPlaylists: [],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
@@ -269,6 +288,7 @@ const seedUsers = (): MockUserRecord[] => [
     following: new Set([1]),
     blocked: new Set(),
     playlists: [{ id: 1003, title: 'Study Session' }],
+    likedPlaylists: [],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
@@ -303,6 +323,7 @@ const seedUsers = (): MockUserRecord[] => [
     following: new Set(),
     blocked: new Set(),
     playlists: [{ id: 1004, title: 'Warehouse Cuts' }],
+    likedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     history: [{ id: 305, title: 'Peak Hour' }],
@@ -415,6 +436,7 @@ type MockSystemState = {
   authAccountsByEmail: Map<string, MockAuthAccount>;
   users: MockUserRecord[];
   tracks: MockTrackRecord[];
+  playlists: MockPlayListRecord[];
   emailVerification: Record<
     string,
     { email: string; token: string; verified: boolean }
@@ -434,6 +456,7 @@ type PersistedMockSystemState = {
   authAccounts: MockAuthAccount[];
   users: PersistedMockUserRecord[];
   tracks: MockTrackRecord[];
+  playlists?: MockPlayListRecord[];
   emailVerification: Record<
     string,
     { email: string; token: string; verified: boolean }
@@ -520,6 +543,7 @@ const serializeUser = (
 
 const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
+  likedPlaylists: user.likedPlaylists ?? [],
   followers: new Set(user.followers ?? []),
   following: new Set(user.following ?? []),
   blocked: new Set(user.blocked ?? []),
@@ -534,6 +558,7 @@ const toPersistedState = (
   tracks: current.tracks.map((track) =>
     compactTrackForPersistence(track, options)
   ),
+  playlists: current.playlists,
   emailVerification: current.emailVerification,
 });
 
@@ -551,6 +576,7 @@ const toRuntimeState = (
     authAccountsByEmail,
     users: (persisted.users ?? []).map(deserializeUser),
     tracks: persisted.tracks ?? [],
+    playlists: persisted.playlists ?? [],
     emailVerification: persisted.emailVerification ?? {},
   };
 };
@@ -705,6 +731,7 @@ const createDefaultUserFromAccount = (
   following: new Set(),
   blocked: new Set(),
   playlists: [],
+  likedPlaylists: [],
   tracks: [],
   reposts: [],
   history: [],
@@ -800,6 +827,7 @@ export const getMockSystemState = (): MockSystemState => {
       authAccountsByEmail,
       users: seedUsers(),
       tracks: seedTracks(),
+      playlists: [],
       emailVerification: {},
     };
   }
@@ -808,6 +836,10 @@ export const getMockSystemState = (): MockSystemState => {
   syncTracksWithCredentialUsers();
 
   persistMockSystemState();
+  if (!state) {
+    throw new Error('Failed to initialize mock system state');
+  }
+
   return state;
 };
 
@@ -824,6 +856,10 @@ export const getMockUsersStore = (): MockUserRecord[] => {
 
 export const getMockTracksStore = (): MockTrackRecord[] => {
   return getMockSystemState().tracks;
+};
+
+export const getMockPlaylistsStore = (): MockPlayListRecord[] => {
+  return getMockSystemState().playlists;
 };
 
 export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {

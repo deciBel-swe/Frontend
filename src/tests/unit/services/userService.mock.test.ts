@@ -226,13 +226,13 @@ describe('MockUserService', () => {
     localStorage.removeItem('decibel_mock_user');
   });
 
-  it('getUsersLikedTrack returns paginated users who liked the track', async () => {
+  it('getUsersWhoLikedTrack returns paginated users who liked the track', async () => {
     const { getMockTracksStore } =
       await import('@/services/mocks/mockSystemStore');
     const track = getMockTracksStore().find((t) => t.likes.size > 0);
     if (!track) throw new Error('seed track with likes not found');
 
-    const likedUsersPromise = service.getUsersLikedTrack(track.id, {
+    const likedUsersPromise = service.getUsersWhoLikedTrack(track.id, {
       page: 0,
       size: 1,
     });
