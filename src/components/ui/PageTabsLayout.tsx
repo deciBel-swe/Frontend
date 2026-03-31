@@ -24,7 +24,7 @@ export default function PageTabsLayout({ title, tabs, children, size="md" }: Pag
     <div>
       <div className="pt-3 pb-3">
         {title && (
-          <h1 className="text-3xl font-extrabold text-text-primary mt-6 mb-3">{title}</h1>
+          <h1 className="text-3xl font-extrabold text-text-primary mt-6 mb-3 ">{title}</h1>
         )}
 
         <nav className="flex flex-wrap items-end gap-2">
@@ -35,7 +35,7 @@ export default function PageTabsLayout({ title, tabs, children, size="md" }: Pag
                 key={href}
                 href={href}
                 className={[
-                  'relative pb-2 pt-2 pl-3 transition-colors duration-150 no-underline',
+                  'relative pb-2 pt-2 pl-3 pr-3 transition-colors duration-150 no-underline',
                   textSize,
                   isActive
                     ? 'text-text-primary font-extrabold'
