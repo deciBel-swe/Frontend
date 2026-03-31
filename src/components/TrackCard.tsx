@@ -3,7 +3,7 @@
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play, MessageCircle } from 'lucide-react';
+import { Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
@@ -12,6 +12,7 @@ import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
+import CommentInput from './comments/CommentInput';
 
 type TrackCardProps = {
   trackId: string;
@@ -25,9 +26,14 @@ type TrackCardProps = {
   postedText?: string;
   timeAgo?: string;
   showEditButton?: boolean;
-
+  repostedBy?: string;
+  /** Show the inline comment input below the waveform */
+  showCommentInput?: boolean;
+  /** Current user's avatar for the comment input */
+  currentUserAvatar?: string;
     // New prop to conditionally show the track list
   showTrackList?: boolean;
+  showHeader?: boolean; 
 
   track: {
     id: number;
@@ -47,16 +53,21 @@ export default function TrackCard({
   isPrivate = false,
   user,
   postedText = 'posted a track',
+  repostedBy,
   timeAgo = '',
   showEditButton = true,
   track,
   waveform,
   showTrackList = false,
   timeAgoText = '',
+  showCommentInput = false,
+  currentUserAvatar,
+  showHeader = true,
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
+  const [commentValue, setCommentValue] = useState('');
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
@@ -79,21 +90,23 @@ export default function TrackCard({
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
-      <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-        <Link href={`/${userSlug}`}>
-          <img
-            src={user.avatar}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        </Link>
+      {showHeader && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
+          <Link href={`/${userSlug}`}>
+            <img
+              src={user.avatar}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          </Link>
 
-        <div>
-          <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/${userSlug}`}>{user.name}</Link>
-          </span>{' '}
-          {postedText} <span>{timeAgo}</span>
+          <div>
+            <span className="text-text-primary font-medium hover:opacity-40">
+              <Link href={`/${userSlug}`}>{user.name}</Link>
+            </span>{' '}
+            {postedText} <span>{timeAgo}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* MAIN ROW */}
       <div className="flex gap-2 sm:gap-3 md:gap-4 items-start min-w-0">
@@ -135,6 +148,18 @@ export default function TrackCard({
       {track.artist}
     </Link>
 
+    {repostedBy && (
+      <>
+        <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
+          <Link
+            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+            className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
+          >
+            {repostedBy}
+          </Link>
+      </>
+    )}
+
     {timeAgoText && (
       <p className="ml-auto text-xs text-text-muted">{timeAgoText} </p>
     )}
@@ -157,6 +182,19 @@ export default function TrackCard({
               barClassName="bg-text-muted hover:bg-brand-primary"
             />
           </div>
+
+          {/* 3. Inline comment input (shown on likes page) */}
+          {showCommentInput && (
+            <div className="px-1 sm:px-2">
+              <CommentInput
+                avatarUrl={currentUserAvatar}
+                value={commentValue}
+                onChange={setCommentValue}
+                onSubmit={() => setCommentValue('')}
+                placeholder="Write a comment…"
+              />
+            </div>
+          )}
 
           {/* 2a. Track list */}
           {showTrackList && (
