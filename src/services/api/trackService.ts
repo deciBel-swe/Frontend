@@ -14,7 +14,7 @@ import type {
   repostResponse,
 } from '@/types/tracks';
 
-interface PaginationParams {
+export interface PaginationParams {
   page?: number;
   size?: number;
 }
@@ -242,11 +242,11 @@ export class RealTrackService implements TrackService {
     return apiRequest(API_CONTRACTS.TRACK_UNLIKE(trackId));
   }
 
-  repostTrack = async (trackId: number): Promise<repostResponse> => {
+  async repostTrack(trackId: number): Promise<repostResponse> {
     return apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
-  };
+  }
 
-  unrepostTrack = async (trackId: number): Promise<repostResponse> => {
+  async unrepostTrack(trackId: number): Promise<repostResponse> {
     return apiRequest(API_CONTRACTS.TRACK_UNREPOST(trackId));
-  };
+  }
 }

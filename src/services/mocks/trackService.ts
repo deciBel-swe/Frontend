@@ -19,7 +19,7 @@ import {
   resolveCurrentMockUserId,
   type MockTrackRecord,
 } from './mockSystemStore';
-import { PaginationParams } from '../api/userService';
+import { PaginationParams } from '../api/trackService';
 import { is } from 'zod/locales';
 
 const MOCK_DELAY_MS = 220;

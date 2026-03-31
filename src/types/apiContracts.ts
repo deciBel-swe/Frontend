@@ -58,6 +58,7 @@ import {
   userPublicSchema,
   usersSuggestedResponseSchema,
 } from './user';
+import { paginatedTrackFeedResponseSchema } from './feed';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -374,6 +375,11 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.TRACKS.GET_REPOSTERS(trackId),
       responseSchema: paginationRepostUserSchema,
     }),
+  FEED: defineContract<void, z.infer<typeof paginatedTrackFeedResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.FEED,
+    responseSchema: paginatedTrackFeedResponseSchema,
+  }),
 } as const;
 
 /** Union of all contract keys for autocomplete and constrained lookups. */

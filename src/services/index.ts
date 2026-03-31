@@ -27,6 +27,10 @@ import type { UserService } from './api/userService';
 import { RealUserService } from './api/userService';
 import { MockUserService } from './mocks/userService';
 
+import { RealFeedService } from '@/services/api/feedService';
+import { MockFeedService } from './mocks/feedService';
+import { FeedService } from './api/feedService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -73,3 +77,12 @@ const resolveUserService = (): UserService => {
 };
 
 export const userService = resolveUserService();
+
+const resolveFeedService = (): FeedService => {
+  if (config.api.useMock) {
+    return new MockFeedService();
+  }
+  return new RealFeedService();
+};
+
+export const feedService = resolveFeedService();

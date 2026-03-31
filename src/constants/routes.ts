@@ -165,6 +165,7 @@ export const API_ENDPOINTS = {
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
     SUSPEND_USER: (userId: number) => `/admin/users/${userId}/suspend`,
   },
+  FEED: '/feed',
 } as const;
 /**
  * Helper function to build full API URL
