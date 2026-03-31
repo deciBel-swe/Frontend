@@ -68,6 +68,7 @@ export type MockTrackRecord = {
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
+  reposters: Set<number>;
   likes: Set<number>;
 };
 
@@ -346,6 +347,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 214,
+    reposters: new Set([2]),
     likes: new Set([2, 3]),
   },
   {
@@ -363,6 +365,7 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 182,
     secretLink: 'c8n2x3ya',
+    reposters: new Set(),
     likes: new Set([1]),
   },
   {
@@ -379,6 +382,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 256,
+    reposters: new Set([3]),
     likes: new Set([1, 2]),
   },
   {
@@ -396,6 +400,7 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 301,
     secretLink: 'f4m0qt9b',
+    reposters: new Set(),
     likes: new Set([2]),
   },
   {
@@ -412,6 +417,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 199,
+    reposters: new Set(),
     likes: new Set([1, 3]),
   },
   {
@@ -428,6 +434,7 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 238,
+    reposters: new Set(),
     likes: new Set(),
   },
 ];

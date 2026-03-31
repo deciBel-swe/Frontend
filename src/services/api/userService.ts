@@ -140,15 +140,23 @@ export interface UserService {
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
 
+  /** Get users who liked a track (GET /tracks/{trackId}/like). */
   getUsersWhoLikedTrack(
     trackId: number,
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
 
+  /** Get playlists liked by a user (GET /users/{userId}/liked-playlists). */
   getUsersLikedPlaylists(
     userID: number,
     params?: PaginationParams
   ): Promise<paginatedPlaylistResponse>;
+
+  /** Get users who reposted a track (GET /tracks/{trackId}/reposters). */
+  getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -312,6 +320,15 @@ export class RealUserService implements UserService {
     params?: PaginationParams
   ): Promise<paginatedPlaylistResponse> {
     return apiRequest(API_CONTRACTS.USERS_LIKED_PLAYLISTS(trackid), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    return apiRequest(API_CONTRACTS.USERS_WHO_REPOSTED(trackId), {
       params: toQueryParams(params),
     });
   }

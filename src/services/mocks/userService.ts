@@ -524,4 +524,21 @@ export class MockUserService implements UserService {
 
     return paginate(likedPlaylists, params);
   }
+
+  async getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoReposted = [...track.reposters]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoReposted, params);
+  }
 }

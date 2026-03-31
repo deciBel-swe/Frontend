@@ -319,6 +319,7 @@ export class MockTrackService implements TrackService {
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
             likes: new Set(),
+            reposters: new Set(),
           };
 
           const updated = [uploaded, ...tracks];
@@ -636,6 +637,7 @@ export class MockTrackService implements TrackService {
           reject(new Error('Track not found'));
           return;
         }
+        track.reposters.add(currentUserId);
         const usersStore = getMockUsersStore();
         const user = usersStore.find((item) => item.id === currentUserId);
         if (!user) {
