@@ -69,7 +69,7 @@ export default function Page({
               trackId={t.trackId}
               user={t.user}
               repostedBy={t.repostedBy}
-              timeAgoText={t.timeAgoText}
+              // timeAgoText={t.timeAgoText}
               track={t.track}
               waveform={t.waveform}
               showEditButton={false}
