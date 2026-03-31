@@ -28,6 +28,7 @@ import {
 } from './privacy';
 import {
   likeResponseSchema,
+  paginatedTrackResponseSchema,
   paginationRepostUserSchema,
   repostResponseSchema,
   secretTokenResponseSchema,
@@ -398,6 +399,12 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.USERS.WHO_REPOSTED(trackId),
       responseSchema: paginatedFollowersResponseSchema,
+    }),
+  ME_LIKED_TRACKS: () =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.ME_LIKED_TRACKS,
+      responseSchema: paginatedTrackResponseSchema,
     }),
 } as const;
 

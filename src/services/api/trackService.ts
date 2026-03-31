@@ -3,6 +3,7 @@ import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
 import type { UploadTrackResponse } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
+  paginatedTrackResponse,
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
@@ -94,6 +95,9 @@ export interface TrackService {
 
   /** Remove repost of a track (DELETE /tracks/:trackId/repost) */
   unrepostTrack(trackId: number): Promise<repostResponse>;
+
+  /** Get paginated list of tracks liked by a user (GET /users/:userId/liked-playlists) */
+  getMyLikedTracks(): Promise<paginatedTrackResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -248,5 +252,13 @@ export class RealTrackService implements TrackService {
 
   async unrepostTrack(trackId: number): Promise<repostResponse> {
     return apiRequest(API_CONTRACTS.TRACK_UNREPOST(trackId));
+  }
+
+  async getMyLikedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
+    return apiRequest(API_CONTRACTS.ME_LIKED_TRACKS(), {
+      params: toQueryParams(params),
+    });
   }
 }

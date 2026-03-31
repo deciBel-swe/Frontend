@@ -117,6 +117,7 @@ export const API_ENDPOINTS = {
   USERS: {
     ME: '/users/me',
     ME_TRACKS: '/users/me/tracks',
+    ME_LIKED_TRACKS: '/users/me/liked-tracks',
     ME_RESET_PASSWORD: '/users/me/reset-password',
     ME_ADD_EMAIL: '/users/me/add-new-email',
     ME_UPDATE_PRIMARY_EMAIL: '/users/me/update-email-primary',

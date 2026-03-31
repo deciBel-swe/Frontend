@@ -10,6 +10,7 @@ import type {
   UpdateTrackVisibilityDto,
   likeResponse,
   repostResponse,
+  paginatedTrackResponse,
 } from '@/types/tracks';
 import {
   getMockTracksStore,
@@ -593,6 +594,13 @@ export class MockTrackService implements TrackService {
           reject(new Error('Track not found'));
           return;
         }
+        getMockUsersStore()
+          .find((item) => item.id === currentUserId)
+          ?.likedTracks.push({
+            id: trackId,
+            title: track.title,
+            genre: track.genre,
+          });
 
         track.likes.add(currentUserId);
         persistMockSystemState();
@@ -613,6 +621,14 @@ export class MockTrackService implements TrackService {
         if (!track) {
           reject(new Error('Track not found'));
           return;
+        }
+        const user = getMockUsersStore().find(
+          (item) => item.id === currentUserId
+        );
+        if (user) {
+          user.likedTracks = user.likedTracks.filter(
+            (likedTrack) => likedTrack.id !== trackId
+          );
         }
         track.likes.delete(currentUserId);
         persistMockSystemState();
@@ -666,6 +682,12 @@ export class MockTrackService implements TrackService {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
         const usersStore = getMockUsersStore();
         const user = usersStore.find((item) => item.id === currentUserId);
         if (!user) {
@@ -680,10 +702,49 @@ export class MockTrackService implements TrackService {
           return;
         }
         user.reposts.splice(repostIndex, 1);
+        track.reposters.delete(currentUserId);
         persistMockSystemState();
         resolve({
           isReposted: false,
           message: 'Track unreposted successfully',
+        });
+      }, 1000);
+    });
+  }
+
+  async getMyLikedTracks(): Promise<paginatedTrackResponse> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const likedTracks = tracksStore.filter((track) =>
+          track.likes.has(currentUserId)
+        );
+        const content = likedTracks.map((track) => ({
+          artist: { ...track.artist },
+          coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+          description: track.description,
+          genre: track.genre,
+          id: track.id,
+          isLiked: true,
+          isReposted: track.reposters.has(currentUserId),
+          likeCount: track.likes.size,
+          playCount: 0, //since it is a mock, number won't matter that much
+          releaseDate: new Date(track.releaseDate),
+          repostCount: track.reposters.size,
+          tags: [...track.tags],
+          title: track.title,
+          trackUrl: track.trackUrl,
+          uploadDate: new Date(track.releaseDate),
+          waveformUrl: track.waveformUrl,
+        }));
+        resolve({
+          content,
+          isLast: true,
+          pageNumber: 0,
+          pageSize: content.length,
+          totalElements: content.length,
+          totalPages: 1,
         });
       }, 1000);
     });

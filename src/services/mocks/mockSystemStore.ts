@@ -44,6 +44,7 @@ export type MockUserRecord = {
   playlists: Array<{ id: number; title: string }>;
   likedPlaylists: Array<{ id: number; title: string }>;
   tracks: Array<{ id: number; title: string; genre: string }>;
+  likedTracks: Array<{ id: number; title: string; genre: string }>;
   reposts: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
   additionalEmails: string[];
@@ -247,6 +248,7 @@ const seedUsers = (): MockUserRecord[] => [
       { id: 1002, title: 'Studio Drafts' },
     ],
     likedPlaylists: [],
+    likedTracks: [],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
@@ -290,6 +292,7 @@ const seedUsers = (): MockUserRecord[] => [
     blocked: new Set(),
     playlists: [{ id: 1003, title: 'Study Session' }],
     likedPlaylists: [],
+    likedTracks: [],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
@@ -325,6 +328,7 @@ const seedUsers = (): MockUserRecord[] => [
     blocked: new Set(),
     playlists: [{ id: 1004, title: 'Warehouse Cuts' }],
     likedPlaylists: [],
+    likedTracks: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     history: [{ id: 305, title: 'Peak Hour' }],
@@ -739,6 +743,7 @@ const createDefaultUserFromAccount = (
   blocked: new Set(),
   playlists: [],
   likedPlaylists: [],
+  likedTracks: [],
   tracks: [],
   reposts: [],
   history: [],
