@@ -14,9 +14,7 @@ const ProfileBanner = async ({ params }: ProfileBannerProps) => {
         />
       ) : (
         <div
-          className="h-full w-full bg-gradient-to-br 
-          from-white via-gray-200 to-gray-400 
-          dark:from-black dark:via-gray-800 dark:to-gray-900"
+          className="h-full w-full bg-surface-raised"
         />
       )}
     </div>

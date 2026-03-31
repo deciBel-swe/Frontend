@@ -1,6 +1,5 @@
 "use client";
 
-import SocialPageHeader from "@/components/ui/social/SocialPageHeader";
 import UserGrid from "@/components/ui/social/UserGrid";
 import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
 // import { followerToUserCardData } from "@/types/follower";
@@ -72,14 +71,6 @@ export default function ProfileFollowingPage({
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
-
-      <SocialPageHeader
-        profileUsername={username}
-        profileAvatarSrc={profileData?.profile.avatarUrl}
-        listType="following"
-      />
-
-      {/*add ── Likes | Following | Followers tabs ── */}
 
       {/* ── Grid ── */}
       {isLoading ? (

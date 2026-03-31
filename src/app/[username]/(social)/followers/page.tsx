@@ -2,10 +2,8 @@
 
 import UserGrid from "@/components/ui/social/UserGrid";
 import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
-import SocialPageHeader from "@/components/ui/social/SocialPageHeader";
 import { UserCardData } from "@/components/ui/social/UserCard";
 import { useParams } from "next/navigation";
-import { usePublicUser } from "@/features/prof/hooks/usePublicUser";
 
 // ─── Mock data matching the API response shape ────────────────
 const MOCK_FOLLOWERS: UserCardData[] = [
@@ -47,19 +45,10 @@ export default function FollowersPage({
   onFollowToggle,
 }: FollowersPageProps) {
     const { username } = useParams<{ username: string }>();
-    const { data: profileData } = usePublicUser(username);
   
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
-      {/* ── "[X] Followers of Olivia Rodrigo" ── */}
-      <SocialPageHeader
-        profileUsername={username}
-        profileAvatarSrc={profileData?.profile.avatarUrl}
-        listType="followers"
-      />
-
-      {/*add ── Likes | Following | Followers tabs ── */}
 
       {/* ── Grid ── */}
       {isLoading ? (
