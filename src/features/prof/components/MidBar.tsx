@@ -27,9 +27,11 @@ const MidBar = ({ username }: MidBarProps) => {
   // const countries = useGetCountry();
 
   // shared button classes
-  const buttonBase =
-    'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
-    'transition-all duration-150 shrink-0';
+const buttonBase =
+  'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
+  'transition-all duration-150 shrink-0 ' +
+  'border border-border-strong text-text-secondary hover:text-text-primary ' +
+  'bg-transparent hover:bg-interactive-default';
 
   //const isOwnProfile = isHydrated && myUser?.username === username;
   // there is problem in it I will just use dummy name for testing
@@ -60,7 +62,7 @@ const MidBar = ({ username }: MidBarProps) => {
         {isOwnProfile && (
           <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>
             <span
-              className={`${buttonBase} bg-bg-subtle dark:bg-gray-800 text-text-muted dark:text-text-secondary`}
+              className={`${buttonBase} bg-bg-subtle text-text-muted dark:text-text-secondary`}
             >
               <EditIcon />
               <span className="hidden sm:inline">edit</span>
@@ -70,7 +72,7 @@ const MidBar = ({ username }: MidBarProps) => {
 
         <IconButton aria-label="share" onClick={() => setIsShareOpen(true)}>
           <span
-            className={`${buttonBase} bg-bg-subtle dark:bg-gray-800 text-text-muted dark:text-text-secondary`}
+            className={`${buttonBase} bg-bg-subtle text-text-muted dark:text-text-secondary`}
           >
             <ShareIcon />
             <span className="hidden sm:inline">share</span>
@@ -78,7 +80,7 @@ const MidBar = ({ username }: MidBarProps) => {
         </IconButton>
 
         {!isOwnProfile && (
-          <FollowButton/>
+          <FollowButton size='md'/>
         )}
       </div>
 

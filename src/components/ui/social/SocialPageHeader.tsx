@@ -2,18 +2,19 @@ import AvatarImage from "@/components/ui/AvatarImage";
 import { usePublicUser } from "@/features/prof/hooks/usePublicUser";
 import { useParams } from "next/navigation";
 
+export type ListType = "following" | "followers" | "likes";
+
 interface SocialPageHeaderProps {
   profileUsername: string;
   profileAvatarSrc?: string;
-  listType: "following" | "followers";
+  listType: ListType;
   className?: string;
 }
 
 /**
  * SocialPageHeader — renders the heading block at the top of
- * [username]/following and [username]/followers.
+ * [username]/following, [username]/followers and [username]/likes.
  *
- * Stateless. No hardcoded colors.
  */
 export default function SocialPageHeader({
   listType,
@@ -22,11 +23,11 @@ export default function SocialPageHeader({
     const { username } = useParams<{ username: string }>();
     const { data: profileData } = usePublicUser(username);
 
-  const heading =
-    listType === "followers"
-      ? `Followers of ${username}`
-      : `${username} is following`;
-
+const heading: Record<ListType, string> = {
+    likes:     `Likes by ${username}`,
+    following: `${username} is following`,
+    followers: `Followers of ${username}`,
+  };
 
 
   return (
@@ -40,7 +41,7 @@ export default function SocialPageHeader({
         />
       </a>
       <h1 className="text-2xl font-bold text-text-primary tracking-tight leading-tight m-0">
-        {heading}
+        {heading[listType]}
       </h1>
     </div>
   );

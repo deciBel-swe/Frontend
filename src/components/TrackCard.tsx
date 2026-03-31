@@ -3,7 +3,7 @@
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play, MessageCircle } from 'lucide-react';
+import { Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import { ShareModal } from '@/features/prof/components/ShareModal';
@@ -12,22 +12,28 @@ import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
+import TimeAgo from '@/components/TimeAgo';
+import CommentInput from './comments/CommentInput';
 
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
-  timeAgoText?: string; // ex: "3 years ago"
   
   user: {
     name: string;
     avatar: string;
   };
   postedText?: string;
-  timeAgo?: string;
+  // timeAgo?: string;
   showEditButton?: boolean;
-
+  repostedBy?: string;
+  /** Show the inline comment input below the waveform */
+  showCommentInput?: boolean;
+  /** Current user's avatar for the comment input */
+  currentUserAvatar?: string;
     // New prop to conditionally show the track list
   showTrackList?: boolean;
+  showHeader?: boolean; 
 
   track: {
     id: number;
@@ -37,8 +43,10 @@ type TrackCardProps = {
     duration: string;
     plays?: number;        // optional number of plays
     comments?: number;     // optional number of messages/comments
+    createdAt?: string; // ISO date
+    genre?: string;
   };
-
+  showComments?: boolean;
   waveform: number[];
 };
 
@@ -47,16 +55,25 @@ export default function TrackCard({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  timeAgo = '',
+  // timeAgo = '',
+
+  repostedBy,
+
   showEditButton = true,
   track,
   waveform,
   showTrackList = false,
-  timeAgoText = '',
+
+  // timeAgoText = '',
+  showCommentInput = false,
+  currentUserAvatar,
+  showHeader = true,
+
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
+  const [commentValue, setCommentValue] = useState('');
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
@@ -79,21 +96,23 @@ export default function TrackCard({
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
-      <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-        <Link href={`/${userSlug}`}>
-          <img
-            src={user.avatar}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        </Link>
+      {showHeader && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
+          <Link href={`/${userSlug}`}>
+            <img
+              src={user.avatar}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          </Link>
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
             <Link href={`/${userSlug}`}>{user.name}</Link>
           </span>{' '}
-          {postedText} <span>{timeAgo}</span>
+          {postedText}
         </div>
-      </div>
+        </div>
+      )}
 
       {/* MAIN ROW */}
       <div className="flex gap-2 sm:gap-3 md:gap-4 items-start min-w-0">
@@ -127,25 +146,70 @@ export default function TrackCard({
             </Button>
 
 <div className="flex flex-col w-full">
-  <div className="flex items-center gap-2">
-    <Link
-      href={`/${userSlug}`}
-      className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
-    >
-      {track.artist}
-    </Link>
-
-    {timeAgoText && (
-      <p className="ml-auto text-xs text-text-muted">{timeAgoText} </p>
+<div className="flex items-center gap-2">
+  <Link
+    href={`/${userSlug}`}
+    className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
+  >
+    {track.artist}
+  </Link>
+   {repostedBy && (
+      <>
+        <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
+          <Link
+            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+            className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
+          >
+            {repostedBy}
+          </Link>
+      </>
     )}
-  </div>
 
+  {(track.createdAt || track.genre) && (
+    <div className="ml-auto flex flex-col items-end gap-1">
+      {track.createdAt && (
+        <div className="text-xs text-text-muted text-[11px]">
+          <TimeAgo date={track.createdAt} />
+        </div>
+      )}
+
+      {track.genre && (
+        <Link
+          href={`/tags/${encodeURIComponent(track.genre)}`}
+          className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
+           text-xs bg-interactive-default text-text-primary dark:bg-interactive-default dark:text-text-primary 
+           hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors scale-105"
+        >
+          <span className="mr-1 font-semibold">#</span>
+          <span>{track.genre}</span>
+        </Link>
+      )}
+    </div>
+  )}
+</div>
+
+
+<div className='flex w-full'>
   <Link
     href={`/${userSlug}/${trackSlug}`}
     className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
   >
     {track.title}
   </Link>
+{/* {track.genre && (
+  <div className="flex-shrink-0 ml-auto">
+    <Link
+      href={`/tags/${encodeURIComponent(track.genre)}`}
+      className="inline-flex items-center px-2 py-1 rounded-full cursor-pointer 
+                 text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 
+                 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+    >
+      <span className="mr-1 font-semibold">#</span>
+      <span>{track.genre}</span>
+    </Link>
+  </div>
+)} */}
+    </div>
 </div>
           </div>
 
@@ -157,6 +221,19 @@ export default function TrackCard({
               barClassName="bg-text-muted hover:bg-brand-primary"
             />
           </div>
+
+          {/* 3. Inline comment input (shown on likes page) */}
+          {showCommentInput && (
+            <div className="px-1 sm:px-2">
+              <CommentInput
+                avatarUrl={currentUserAvatar}
+                value={commentValue}
+                onChange={setCommentValue}
+                onSubmit={() => setCommentValue('')}
+                placeholder="Write a comment…"
+              />
+            </div>
+          )}
 
           {/* 2a. Track list */}
           {showTrackList && (
@@ -283,6 +360,10 @@ export default function TrackCard({
   ]}
 />
 )}
+{/* {showComments && (
+  <CommentInput user={user} onPost={handleCommentPost} />
+)} */}
+
         <div className="flex items-center w-full">
   {/* LEFT: actions */}
   <TrackActions
