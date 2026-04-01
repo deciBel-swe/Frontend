@@ -96,7 +96,7 @@ export default function PlaylistBanner({
             {playlist.title}
             </span>
             {playlist.updatedAt && (
-            <span className="text-neutral-200 text-[11px] mt-0.5" suppressHydrationWarning>
+            <span className="text-neutral-200 text-xs mt-0.5" suppressHydrationWarning>
               Updated <TimeAgo date={playlist.updatedAt} />
             </span>
           )}
