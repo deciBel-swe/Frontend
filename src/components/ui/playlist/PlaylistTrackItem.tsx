@@ -123,7 +123,6 @@ export default function PlaylistTrackItem({
           <TrackActions
             size={13}
             showRepost={false}
-            showShare={false}
             showEdit={false}
             onLike={() => console.log('liked', track.trackId)}
             onCopy={() => console.log('copy', track.trackId)}
