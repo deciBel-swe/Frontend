@@ -1,8 +1,7 @@
 import { Playlist } from '@/components/ui/playlist/PlaylistTrackItem';
 
-export const MOCK_WAVEFORM: number[] = Array.from({ length: 100 }, (_, i) =>
-  Math.abs(Math.sin(i * 0.3) * Math.cos(i * 0.1))
-);
+export const mockWave = (length = 60) =>
+  Array.from({ length }, () => Math.random() * 0.8 + 0.1);
 
 export const MOCK_PLAYLIST: Playlist = {
  id: 1,

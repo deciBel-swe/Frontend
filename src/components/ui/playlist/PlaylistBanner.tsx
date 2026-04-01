@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Play, Pause } from 'lucide-react';
 import TimeAgo from '@/components/TimeAgo';
 import Waveform from '@/components/waveform/Waveform';
-import { MOCK_WAVEFORM } from '@/app/[username]/sets/[id]/mockdata';
+import { mockWave } from '@/app/[username]/sets/[id]/mockdata';
 
 type PlaylistTrack = {
   trackId: number;
@@ -54,7 +54,7 @@ export default function PlaylistBanner({
       {playingTrack && (
         <div className="absolute bottom-8 left-4 right-[220px] md:right-[300px] px-4 pb-2">
             <Waveform
-            data={MOCK_WAVEFORM}  // Replace with actual waveform data for the playing track
+            data={mockWave(50)}  // Replace with actual waveform data for the playing track
             height={70}
             barClassName="bg-neutral-0/40 hover:bg-brand-primary"
             />
