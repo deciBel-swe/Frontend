@@ -50,12 +50,6 @@ function PlayingBars() {
   );
 }
 
-function formatSeconds(s: number): string {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
 type PlaylistTrackItemProps = {
   track: PlaylistTrack;
   index: number;
@@ -81,7 +75,7 @@ export default function PlaylistTrackItem({
       className={`
         relative flex items-center gap-3 px-3 py-2 rounded cursor-pointer select-none transition-colors
         ${unavailable ? 'opacity-40 pointer-events-none' : ''}
-        ${isActive ? 'bg-brand-primary/5' : 'hover:bg-surface-raised'}
+        ${hovered ? 'hover:bg-surface-raised' : ''}
       `}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -93,32 +87,35 @@ export default function PlaylistTrackItem({
       </div>
 
       {/* Number */}
-      <span className="text-[11px] font-bold text-text-muted w-5 text-right flex-shrink-0">
+      <span className={`text-sm font-bold w-5 text-right flex-shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}>
         {index + 1}.
       </span>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex items-center gap-1 truncate">
         {track.artist && (
-          <Link
-            href={`/${artistSlug}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-[11px] text-text-muted font-semibold hover:opacity-60 block leading-tight truncate"
-          >
-            {track.artist}
-          </Link>
+            <>
+            <Link
+                href={`/${artistSlug}`}
+                onClick={(e) => e.stopPropagation()}
+                className={`text-sm font-semibold hover:opacity-60 shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}
+            >
+                {track.artist}
+            </Link>
+            <span className={isActive ? 'text-brand-primary' : 'text-text-muted'}>·</span>
+            </>
         )}
         <Link
-          href={`/${artistSlug}/${trackSlug}`}
-          onClick={(e) => e.stopPropagation()}
-          className="text-[13px] font-bold text-text-primary hover:opacity-60 block truncate"
+            href={`/${artistSlug}/${trackSlug}`}
+            onClick={(e) => e.stopPropagation()}
+            className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >
-          {track.title}
+            {track.title}
         </Link>
-      </div>
+        </div>
 
       {/* Right side: actions on hover, plays count otherwise */}
-      {hovered ? (
+      {hovered || isActive ? (
         <div onClick={(e) => e.stopPropagation()}>
           <TrackActions
             size={13}
@@ -129,7 +126,7 @@ export default function PlaylistTrackItem({
           />
         </div>
       ) : (
-        <div className="flex items-center gap-1 text-[11px] font-bold text-text-muted flex-shrink-0">
+        <div className="flex items-center gap-1 text-xs font-bold text-text-muted flex-shrink-0">
           {isActive && isPlaying ? (
             <PlayingBars />
           ) : (
@@ -140,11 +137,6 @@ export default function PlaylistTrackItem({
           )}
         </div>
       )}
-
-      {/* Duration */}
-      <span className="text-[11px] text-text-muted flex-shrink-0 w-9 text-right">
-        {formatSeconds(track.durationSeconds)}
-      </span>
     </li>
   );
 }
