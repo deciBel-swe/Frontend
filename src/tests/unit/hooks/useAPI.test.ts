@@ -5,16 +5,30 @@ import type { AxiosError, AxiosResponse } from 'axios';
 import { z } from 'zod';
 
 import type { ApiEndpointContract } from '@/types/apiContracts';
+import { API_CONTRACTS } from '@/types/apiContracts';
 import {
   ACCESS_TOKEN_STORAGE_KEY,
   attachJwtInterceptor,
   apiClient,
   apiRequest,
+  handleAuthRefreshOnUnauthorized,
   normalizeApiError,
   useAPI,
   useApiMutation,
   useApiQuery,
 } from '@/hooks/useAPI';
+
+jest.mock('@/services', () => ({
+  authService: {
+    refreshToken: jest.fn(),
+  },
+}));
+
+const mockedServices = jest.requireMock('@/services') as {
+  authService: {
+    refreshToken: jest.Mock;
+  };
+};
 
 const createWrapper = () => {
   const client = new QueryClient({
@@ -159,6 +173,70 @@ describe('attachJwtInterceptor', () => {
     expect(
       (requestConfig.headers as Record<string, string>).Authorization
     ).toBeUndefined();
+  });
+});
+
+describe('handleAuthRefreshOnUnauthorized', () => {
+  beforeEach(() => {
+    mockedServices.authService.refreshToken.mockReset();
+  });
+
+  it('refreshes token and retries original request once on 401', async () => {
+    mockedServices.authService.refreshToken.mockResolvedValue(undefined);
+    const retriedResponse = { data: { ok: true } };
+    const requestSpy = jest
+      .spyOn(apiClient, 'request')
+      .mockResolvedValue(retriedResponse as AxiosResponse);
+
+    const error = makeAxiosError(401, { message: 'expired' });
+    (error as AxiosError & { config?: unknown }).config = {
+      url: '/users/me',
+      method: 'GET',
+      headers: {},
+    };
+
+    await expect(handleAuthRefreshOnUnauthorized(error)).resolves.toEqual(
+      retriedResponse
+    );
+    expect(mockedServices.authService.refreshToken).toHaveBeenCalledTimes(1);
+    expect(requestSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (
+        (error as AxiosError & {
+          config?: { _retry?: boolean };
+        }).config as { _retry?: boolean }
+      )._retry
+    ).toBe(true);
+  });
+
+  it('rejects immediately for non-401 errors', async () => {
+    const error = makeAxiosError(500, { message: 'server error' });
+
+    await expect(handleAuthRefreshOnUnauthorized(error)).rejects.toBe(error);
+    expect(mockedServices.authService.refreshToken).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh again when request is already marked as retried', async () => {
+    const error = makeAxiosError(401, { message: 'expired' });
+    (error as AxiosError & { config?: unknown }).config = {
+      url: '/users/me',
+      _retry: true,
+    };
+
+    await expect(handleAuthRefreshOnUnauthorized(error)).rejects.toBe(error);
+    expect(mockedServices.authService.refreshToken).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh for refresh-token endpoint failures', async () => {
+    const error = makeAxiosError(401, { message: 'refresh denied' });
+    (error as AxiosError & { config?: unknown }).config = {
+      url: API_CONTRACTS.AUTH_REFRESH_TOKEN.url,
+      method: 'POST',
+      headers: {},
+    };
+
+    await expect(handleAuthRefreshOnUnauthorized(error)).rejects.toBe(error);
+    expect(mockedServices.authService.refreshToken).not.toHaveBeenCalled();
   });
 });
 
