@@ -268,15 +268,15 @@ export default function EditTrackModal({
       
 
       {/* MODAL WRAPPER */}
-      <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="fixed inset-0 z-200 flex items-start justify-center">
         {/* BACKDROP */}
       <div className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative w-full max-w-5xl bg-white dark:bg-black rounded-lg border border-white/10 shadow-2xl overflow-hidden">
+        <div className="relative w-full max-w-5xl bg-white dark:bg-black rounded-lg border border-white/10 shadow-2xl overflow-hidden mt-5">
 
           {/* CLOSE BUTTON (like EditProfileModal style) */}
           <button
             onClick={onClose}
-            className="fixed top-15 right-6 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
+            className="fixed top-6 right-6 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
             <X size={20} />
           </button>
 
