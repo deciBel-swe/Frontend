@@ -1,5 +1,4 @@
-import { API_ENDPOINTS } from '@/constants/routes';
-import { apiClient, apiRequest } from '@/hooks/useAPI';
+import {apiRequest } from '@/hooks/useAPI';
 import type {
   DeviceInfoDTO,
   LoginResponseDTO,
@@ -152,25 +151,17 @@ export class RealAuthService implements AuthService {
   }
 
   async resendVerification(email: string): Promise<{ success: boolean }> {
-    await apiClient.request({
-      baseURL: '',
-      method: 'POST',
-      url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
-      data: { email },
+    const response = await apiRequest(API_CONTRACTS.RESEND_VERIFICATION, {
+      payload: { email },
     });
-
-    return { success: true };
+    return response;
   }
 
   async verifyEmail(token: string): Promise<{ success: boolean }> {
-    await apiClient.request({
-      baseURL: '',
-      method: 'POST',
-      url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
-      data: { token },
+    const response = await apiRequest(API_CONTRACTS.VERIFY_EMAIL, {
+      payload: { token },
     });
-
-    return { success: true };
+    return response;
   }
 
   async requestEmailVerification(email: string): Promise<{ success: boolean }> {

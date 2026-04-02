@@ -21,6 +21,7 @@ import {
   registerLocalRequestDTOSchema,
   registerLocalResponseDTOSchema,
   refreshTokenResponseDTOSchema,
+  deviceInfoDTOSchema,
 } from './index';
 import {
   privacySettingsSchema,
@@ -145,7 +146,18 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.AUTH.LOGOUT_ALL,
     responseSchema: z.undefined(),
   }),
-
+  VERIFY_EMAIL: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
+    requestSchema: z.object({ token: z.string().trim().min(1) }),
+    responseSchema: z.object({ success: z.boolean() }),
+  }),
+  RESEND_VERIFICATION: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
+    requestSchema: z.object({ email: z.string().trim().email() }),
+    responseSchema: z.object({ success: z.boolean(), deviceInfo: deviceInfoDTOSchema }),
+  }),
   USERS_ME: defineContract({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME,
