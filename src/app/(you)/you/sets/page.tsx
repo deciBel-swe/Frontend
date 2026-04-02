@@ -1,7 +1,6 @@
 'use client';
 
 import PlaylistCard from '@/components/PlaylistCard';
-import TrackCard from '@/components/TrackCard';
 import { SearchBar } from '@/components/nav/SearchBar';
 import Button from '@/components/buttons/Button';
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -31,7 +30,6 @@ const mockPlaylists = [
 
 export default function Page() {
   const [selectedView, setSelectedView] = useState<'All' | 'Created' | 'Liked'>('All');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filterText, setFilterText] = useState('');
 
   const filteredItems = useMemo(() => {
@@ -130,32 +128,11 @@ export default function Page() {
       </div>
 
       {/* GRID */}
-      <div
-        className={`grid gap-8 ${
-          view === 'grid' ? 'grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]' : 'grid-cols-1'
-        }`}
-      >
+      <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
         {filteredItems.map((item) =>
-          view === 'grid' ? (
+           (
             <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
-          ) : (
-            <TrackCard
-              key={item.id}
-              trackId={String(item.id)}
-              user={{ name: item.artist, avatar: item.image }}
-              track={{
-                id: item.id,
-                artist: item.artist,
-                title: item.title,
-                cover: item.image,
-                duration: '2:45',
-                genre: 'Pop',
-              }}
-              waveform={[]}
-              showEditButton={false}
-              showComments={false}
-            />
-          )
+          ) 
         )}
 
         {/* EMPTY PLACEHOLDERS */}

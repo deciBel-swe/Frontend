@@ -45,7 +45,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({ items, onClose }) => (
           key={item.label}
           href={item.href}
           role="menuitem"
-          onClick={(e) => {
+          onClick={() => {
           if (item.onClick) item.onClick(); // call the custom onClick
           if (onClose) onClose();           // close the dropdown
           }}
