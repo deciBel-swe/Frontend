@@ -14,7 +14,8 @@ import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
 import TimeAgo from '@/components/TimeAgo';
 import CommentInput from './comments/CommentInput';
-
+import WaveformTimedComments from './WaveformTimedComments';
+import { parseDurationToSeconds } from '@/utils/parseDuration'
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
@@ -28,7 +29,7 @@ type TrackCardProps = {
   showEditButton?: boolean;
   repostedBy?: string;
   /** Show the inline comment input below the waveform */
-  showCommentInput?: boolean;
+  // showCommentInput?: boolean;
   /** Current user's avatar for the comment input */
   currentUserAvatar?: string;
     // New prop to conditionally show the track list
@@ -65,7 +66,7 @@ export default function TrackCard({
   showTrackList = false,
 
   // timeAgoText = '',
-  showCommentInput = false,
+  // showCommentInput = false,
   currentUserAvatar,
   showHeader = true,
 
@@ -92,9 +93,34 @@ export default function TrackCard({
     artistName: track.artist,
     trackTitle: track.title,
   });
+  {/* Inside your TrackCard component */}
 
+// State for showing comment input and its value
+const [showCommentInput, setShowCommentInput] = useState(false);
+const [pendingText, setPendingText] = useState('');
+const [pendingTimestamp, setPendingTimestamp] = useState<number | null>(null);
+const [timedComments, setTimedComments] = useState<any[]>([]);
+const [isWaveformHovered, setIsWaveformHovered] = useState(false);
+const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
+// Handler to submit a comment
+const handleCommentSubmit = () => {
+  if (!commentValue.trim()) return;
+
+  setTimedComments((prev) => [
+    ...prev,
+    {
+      id: crypto.randomUUID(),
+      timestamp: 0, // optional, or use hover/click position if needed
+      comment: commentValue,
+      user: { name: user.name, avatar: user.avatar },
+    },
+  ]);
+  setCommentValue('');
+  setShowCommentInput(false); // optional: hide after submit
+};
+const durationSeconds = parseDurationToSeconds(track.duration);
   return (
-    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full mb-3">
+    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
       {/* HEADER (soundContext) */}
       {showHeader && (
         <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
@@ -214,24 +240,95 @@ export default function TrackCard({
           </div>
 
           {/* 2. WAVEFORM */}
-          <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0 overflow-hidden">
+          {/* <div className="hidden sm:block px-1 sm:px-2 w-full min-w-0 overflow-hidden">
             <Waveform
               data={waveform}
               height={90}
               barClassName="bg-text-muted hover:bg-brand-primary"
             />
-          </div>
+          </div> */}
+          <div className="w-full relative">
+  <Waveform
+    data={waveform}
+    barClassName="bg-text-muted hover:bg-brand-primary"
+    currentTime={pendingTimestamp ?? 0}
+    durationSeconds={durationSeconds}
+      onWaveformClick={(percent) => {
+    
+      console.log('percent:', percent, 'duration:', durationSeconds, 'timestamp:', percent * durationSeconds);
+    setPendingTimestamp(percent * durationSeconds);
+    setShowCommentInput(true);
+  }}
+  />
+  <WaveformTimedComments
+  comments={timedComments} // only old comments
+  durationSeconds={durationSeconds}
+  currentUser={{ name: user.name, avatar: user.avatar }}
+  pendingTimestamp={null}   // nothing pending
+  pendingText=""             // nothing pending
+  setPendingText={() => {}} // noop
+  showCommentInput={false}  // old comments don't show input
+  onSubmit={() => {}}       // noop
+  showMarkers={true}        // show markers for old comments
+/>
+{waveformTimedCommentsVisible && (
+  <WaveformTimedComments
+    comments={[]}  // empty, we only want the new comment
+    durationSeconds={durationSeconds}
+    currentUser={{ name: user.name, avatar: user.avatar }}
+    pendingTimestamp={pendingTimestamp}
+    pendingText={pendingText}
+    setPendingText={setPendingText}
+    showCommentInput={true}  // show while typing
+    onSubmit={(text) => {
+      if (!text.trim()) return;
+
+      setTimedComments((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          timestamp: pendingTimestamp,
+          comment: text,
+          user: { name: user.name, avatar: user.avatar },
+        },
+      ]);
+      setPendingText('');
+      setPendingTimestamp(null);
+    }}
+    showMarkers={true}
+/>
+)}
+</div>
 
           {/* 3. Inline comment input (shown on likes page) */}
           {showCommentInput && (
             <div className="px-1 sm:px-2">
-              <CommentInput
-                avatarUrl={currentUserAvatar}
-                value={commentValue}
-                onChange={setCommentValue}
-                onSubmit={() => setCommentValue('')}
-                placeholder="Write a comment…"
-              />
+             <CommentInput
+               onFocus={() => {
+    if (pendingTimestamp !== null) setWaveformTimedCommentsVisible(true);
+  }}
+  avatarUrl={user.avatar}
+  value={pendingText}
+  onChange={setPendingText}
+  onSubmit={(text: string) => {
+    if (pendingTimestamp === null) return;
+    if (!text.trim()) return;
+
+    setTimedComments((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        timestamp: pendingTimestamp,
+        comment: text,
+        user: { name: user.name, avatar: user.avatar },
+      },
+    ]);
+
+    setPendingText('');
+    setPendingTimestamp(null);
+  }}
+  placeholder="Write a comment…"
+/>
             </div>
           )}
 
