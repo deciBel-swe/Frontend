@@ -116,6 +116,7 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     ME: '/users/me',
+    ME_PLAYLISTS: '/users/me/playlists',
     ME_TRACKS: '/users/me/tracks',
     ME_RESET_PASSWORD: '/users/me/reset-password',
     ME_ADD_EMAIL: '/users/me/add-new-email',
@@ -132,6 +133,8 @@ export const API_ENDPOINTS = {
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
     PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
+    LIKED_PLAYLISTS: (username: string) =>//this should be changed in backend should be userid not username
+      `/users/${username}/liked-playlists`,
     FOLLOW: (userId: number) => `/users/${userId}/follow`,
     FOLLOWERS: (userId: number) => `/users/${userId}/followers`,
     FOLLOWING: (userId: number) => `/users/${userId}/following`,
@@ -151,10 +154,31 @@ export const API_ENDPOINTS = {
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
+    COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
+  },
+  PLAYLISTS: {
+    CREATE: '/playlists',
+    BY_ID: (playlistId: number) => `/playlists/${playlistId}`,
+    UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
+    DELETE: (playlistId: number) => `/playlists/${playlistId}`,
+    LIKE: (playlistId: number) => `/playlists/${playlistId}/like`,//this should be changed in backend currently tracks/playlists/:id/like but should be playlists/:id/like
+    TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
+    TRACK: (playlistId: number, trackId: number) =>
+      `/playlists/${playlistId}/tracks/${trackId}`,
+    REORDER_TRACKS: (playlistId: number) =>
+      `/playlists/${playlistId}/tracks/reorder`,
+    EMBED: (playlistId: number) => `/playlists/${playlistId}/embed`,
+    SECRET_LINK: (playlistId: number) =>
+      `/playlists/${playlistId}/secret-link`,
+    SECRET_LINK_REGENERATE: (playlistId: number) =>
+      `/playlists/${playlistId}/secret-link/regenerate`,
+    TOKEN: (token: string) => `/playlists/token/${token}`,
   },
   GENRES: '/genres',
   COMMENTS: {
     REPORT: (commentId: number) => `/comments/${commentId}/report`,
+    REPLIES: (commentId: number) => `/comments/${commentId}/replies`,
+    DELETE: (commentId: number) => `/api/comments/${commentId}`,// change when api isn't there following api dogs
   },
   ADMIN: {
     REPORTS: '/admin/reports',

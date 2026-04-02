@@ -29,6 +29,10 @@ import type {
   UserPublic,
   UsersSuggestedResponse,
 } from '@/types/user';
+import type {
+  PaginatedPlaylistsResponse,
+  PlaylistResponse,
+} from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
 
@@ -343,6 +347,53 @@ export class MockUserService implements UserService {
     const pageSize = Math.max(1, params.size ?? 20);
     const start = pageNumber * pageSize;
     return user.playlists.slice(start, start + pageSize);
+  }
+
+  async getMePlaylists(
+    params?: PaginationParams
+  ): Promise<UserPlaylistsResponse> {
+    await delay();
+    const user = getCurrentUser();
+    if (!params) {
+      return [...user.playlists];
+    }
+
+    const pageNumber = Math.max(0, params.page ?? 0);
+    const pageSize = Math.max(1, params.size ?? 20);
+    const start = pageNumber * pageSize;
+    return user.playlists.slice(start, start + pageSize);
+  }
+
+  async getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const playlistsById = new Map<number, PlaylistResponse>();
+    for (const owner of inMemoryUsers) {
+      for (const playlist of owner.playlists) {
+        playlistsById.set(playlist.id, {
+          id: playlist.id,
+          title: playlist.title,
+          type: playlist.type,
+          isLiked: user.likedPlaylists.includes(playlist.id),
+          owner: { id: owner.id, username: owner.username },
+          tracks: playlist.tracks,
+        });
+      }
+    }
+
+    const liked = user.likedPlaylists
+      .map((id) => playlistsById.get(id))
+      .filter((item): item is PlaylistResponse => Boolean(item));
+
+    return paginate(liked, params);
   }
 
   async followUser(userId: number): Promise<FollowResponse> {
