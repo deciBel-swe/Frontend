@@ -189,7 +189,7 @@ const getSessionArtist = (): { id: number; username: string } | null => {
     return null;
   }
 
-  const raw = window.localStorage.getItem('decibel_mock_user');
+  const raw = window.localStorage.getItem('user');
   if (!raw) {
     return null;
   }

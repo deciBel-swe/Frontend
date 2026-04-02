@@ -20,7 +20,6 @@ import {
   loginResponseDTOSchema,
   registerLocalRequestDTOSchema,
   registerLocalResponseDTOSchema,
-  refreshTokenRequestDTOSchema,
   refreshTokenResponseDTOSchema,
 } from './index';
 import {
@@ -126,7 +125,6 @@ export const API_CONTRACTS = {
   AUTH_REFRESH_TOKEN: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REFRESH,
-    requestSchema: refreshTokenRequestDTOSchema,
     responseSchema: refreshTokenResponseDTOSchema,
   }),
 

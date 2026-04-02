@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { apiRequest } from '@/hooks/useAPI';
 import { RealTrackService } from '@/services/api/trackService';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import type { TrackDetailsResponse } from '@/types/tracks';
+import type { PaginatedTracksResponse, TrackDetailsResponse } from '@/types/tracks';
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
@@ -104,22 +104,25 @@ describe('RealTrackService', () => {
   });
 
   it('returns and filters user tracks by user id', async () => {
-    mockedApiRequest.mockResolvedValue([
+    mockedApiRequest.mockResolvedValue(
       {
-        id: 1,
-        title: 'Alice Track',
-        genre: 'House',
-        tags: ['dance'],
-        artist: { id: 10, username: 'alice' },
-      },
-      {
-        id: 2,
-        title: 'Bob Track',
-        genre: 'Lo-Fi',
-        tags: ['chill'],
-        artist: { id: 11, username: 'bob' },
-      },
-    ] as TrackDetailsResponse[]);
+        "content":[
+          {
+            id: 1,
+            title: 'Alice Track',
+            genre: 'House',
+            tags: ['dance'],
+            artist: { id: 10, username: 'alice' },
+          },
+          {
+            id: 2,
+            title: 'Bob Track',
+            genre: 'Lo-Fi',
+            tags: ['chill'],
+            artist: { id: 11, username: 'bob' },
+          },
+      ]
+  } as PaginatedTracksResponse);
 
     const onlyAlice = await service.getUserTracks(10);
     const onlyBob = await service.getUserTracks(11);

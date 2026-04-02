@@ -208,7 +208,7 @@ it('getPublicUserByUsername succeeds for private profile when IS the owner', asy
   mockartist.privacySettings.isPrivate = true;
 
   // Simulate session as mockartist (id: 7)
-  localStorage.setItem('decibel_mock_user', JSON.stringify({ id: 7, username: 'mockartist' }));
+  localStorage.setItem('user', JSON.stringify({ id: 7, username: 'mockartist' }));
 
   const fetchPromise = service.getPublicUserByUsername('mockartist');
   await flush();
@@ -218,6 +218,6 @@ it('getPublicUserByUsername succeeds for private profile when IS the owner', asy
 
   // Cleanup
   mockartist.privacySettings.isPrivate = false;
-  localStorage.removeItem('decibel_mock_user');
+  localStorage.removeItem('user');
 });
 });

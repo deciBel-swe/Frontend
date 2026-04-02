@@ -47,10 +47,9 @@ export interface AuthService {
   requestEmailVerification(email: string): Promise<{ success: boolean }>;
 }
 
-const USER_STORAGE_KEY = 'user';
-const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
-
+export const USER_STORAGE_KEY = 'user';
+export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
+export const AUTH_COOKIE = 'decibel_auth';
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
   if (typeof window === 'undefined') {
     return 'DESKTOP';
@@ -130,23 +129,13 @@ export class RealAuthService implements AuthService {
 
     return {
       accessToken: this.accessToken ?? storedAccessToken ?? '',
-      refreshToken:
-        localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
       user: JSON.parse(stored),
       expiresIn: 3600,
     };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
-    if (!refreshToken) {
-      throw new Error('No refresh token available. Please log in again.');
-    }
-
-    const response = await apiRequest(API_CONTRACTS.AUTH_REFRESH_TOKEN, {
-      payload: { refreshToken },
-    });
-
+    const response = await apiRequest(API_CONTRACTS.AUTH_REFRESH_TOKEN);
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     return response;
@@ -192,16 +181,13 @@ export class RealAuthService implements AuthService {
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
-
-    if (response.refreshToken) {
-      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, response.refreshToken);
-    }
+    document.cookie = `${AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
   }
 
   private clearSession(): void {
     this.accessToken = null;
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   }
 }

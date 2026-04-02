@@ -77,19 +77,11 @@ export type LoginUserDTO = z.infer<typeof loginUserDTOSchema>;
 /** Response from POST /auth/login/local and POST /auth/oauth/google */
 export const loginResponseDTOSchema = z.object({
   accessToken: z.string().trim().min(1),
-  refreshToken: z.string().trim().min(1).optional(),
   expiresIn: z.number().int().positive().optional(),
   user: loginUserDTOSchema,
 });
 export type LoginResponseDTO = z.infer<typeof loginResponseDTOSchema>;
 export type RegisterLocalResponseDTO = z.infer<typeof registerLocalResponseDTOSchema>;
-/** DTO sent to POST /auth/refreshtoken */
-export const refreshTokenRequestDTOSchema = z.object({
-  refreshToken: z.string().trim().min(1),
-});
-export type RefreshTokenRequestDTO = z.infer<
-  typeof refreshTokenRequestDTOSchema
->;
 
 /** Response from POST /auth/refreshtoken */
 export const refreshTokenResponseDTOSchema = z.object({
