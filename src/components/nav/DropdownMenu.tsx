@@ -22,6 +22,7 @@ export interface DropdownMenuItem {
   href: string;
   /** Optional icon rendered to the left of the label. Should be 16×16. */
   icon?: ReactNode;
+  onClick?: () => void;
 }
 
 export interface DropdownMenuProps {
@@ -44,7 +45,10 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({ items, onClose }) => (
           key={item.label}
           href={item.href}
           role="menuitem"
-          onClick={onClose}
+          onClick={(e) => {
+          if (item.onClick) item.onClick(); // call the custom onClick
+          if (onClose) onClose();           // close the dropdown
+          }}
           className="flex items-center gap-2.5 w-full px-3.5 py-3 font-extrabold no-underline text-[13px] text-text-primary hover:text-text-secondary/80 transition-colors duration-150 cursor-pointer"
         >
           {item.icon && (
