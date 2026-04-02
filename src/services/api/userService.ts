@@ -25,6 +25,7 @@ import type {
   UsersSuggestedResponse,
 } from '@/types/user';
 import { paginatedPlaylistResponse } from '@/types/playlist';
+import type { PaginatedPlaylistsResponse } from '@/types/playlists';
 
 export interface PaginationParams {
   page?: number;
@@ -110,6 +111,15 @@ export interface UserService {
     userId: number,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse>;
+
+  /** Get current user's playlists (GET /users/me/playlists). */
+  getMePlaylists(params?: PaginationParams): Promise<UserPlaylistsResponse>;
+
+  /** Get a user's liked playlists (GET /users/{username}/liked-playlists). */
+  getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse>;
 
   /** Follow a user (POST /users/{userId}/follow). */
   followUser(userId: number): Promise<FollowResponse>;
@@ -260,6 +270,23 @@ export class RealUserService implements UserService {
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     return apiRequest(API_CONTRACTS.USERS_PLAYLISTS(userId), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getMePlaylists(
+    params?: PaginationParams
+  ): Promise<UserPlaylistsResponse> {
+    return apiRequest(API_CONTRACTS.USERS_ME_PLAYLISTS, {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    return apiRequest(API_CONTRACTS.USERS_LIKED_PLAYLISTS(username), {
       params: toQueryParams(params),
     });
   }

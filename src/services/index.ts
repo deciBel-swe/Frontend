@@ -19,6 +19,10 @@ import type { TrackService } from '@/services/api/trackService';
 import { RealTrackService } from '@/services/api/trackService';
 import { MockTrackService } from '@/services/mocks/trackService';
 
+import type { PlaylistService } from '@/services/api/playlistService';
+import { RealPlaylistService } from '@/services/api/playlistService';
+import { MockPlaylistService } from '@/services/mocks/playlistService';
+
 import type { CountryService } from './api/countryService';
 import { RealCountryService } from './api/countryService';
 import { MockCountryService } from './mocks/countryService';
@@ -31,6 +35,10 @@ import { RealFeedService } from '@/services/api/feedService';
 import { MockFeedService } from './mocks/feedService';
 import { FeedService } from './api/feedService';
 
+import type { CommentService } from './api/commentService';
+import { RealCommentService } from './api/commentService';
+import { MockCommentService } from './mocks/commentService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -39,6 +47,15 @@ const resolveTrackService = (): TrackService => {
 };
 
 export const trackService = resolveTrackService();
+
+const resolvePlaylistService = (): PlaylistService => {
+  if (config.api.useMock) {
+    return new MockPlaylistService();
+  }
+  return new RealPlaylistService();
+};
+
+export const playlistService = resolvePlaylistService();
 
 // --- Auth Service ---
 const resolveAuthService = (): AuthService => {
@@ -86,3 +103,11 @@ const resolveFeedService = (): FeedService => {
 };
 
 export const feedService = resolveFeedService();
+const resolveCommentService = (): CommentService => {
+  if (config.api.useMock) {
+    return new MockCommentService();
+  }
+  return new RealCommentService();
+};
+
+export const commentService = resolveCommentService();
