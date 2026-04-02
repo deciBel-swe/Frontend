@@ -71,10 +71,11 @@ export const useSignInSubmit = ({
       try {
         await login(parsedValues.data.email, parsedValues.data.password);
         onSuccess?.();
-      } catch {
+      } catch(error){
         setSubmitError(
           'Sign in failed. Please check your credentials and try again.'
         );
+        throw error;
       }
     },
     [formValues, login, setFieldErrors, setSubmitError, onSuccess]

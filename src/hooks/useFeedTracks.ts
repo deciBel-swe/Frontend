@@ -67,7 +67,7 @@ export function useFeedTracks() {
     };
   }, [refreshIndex]);
 
-  const parseWaveform = (value: string | undefined): number[] => {
+  const parseWaveform = (value: string | null | undefined): number[] => {
     if (!value || value.trim().length === 0) {
       return [];
     }

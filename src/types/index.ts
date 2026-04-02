@@ -70,7 +70,7 @@ export const loginUserDTOSchema = z.object({
   username: z.string().trim().min(1),
   tier: userTierSchema,
   profileUrl: z.string().trim().min(1).optional(),
-  avatarUrl: z.string().trim().min(1).optional(),
+  avatarUrl: z.string().trim().min(1).optional().nullable(),
 });
 export type LoginUserDTO = z.infer<typeof loginUserDTOSchema>;
 

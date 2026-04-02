@@ -55,7 +55,7 @@ const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
 const DEFAULT_WAVEFORM_PATH = '/images/default-waveform.json';
 
 const toAbsoluteUrl = (
-  value: string | undefined,
+  value: string | null | undefined,
   fallbackPath: string
 ): string => {
   const base = config.api.appUrl;
@@ -124,7 +124,7 @@ export class RealTrackService implements TrackService {
 
   async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
-    const tracks = payload.map((track) =>
+    const tracks = payload.content.map((track) =>
       normalizeTrackMetadata(track.id, track)
     );
     return tracks.filter((track) => track.artist.id === userId);
@@ -132,7 +132,7 @@ export class RealTrackService implements TrackService {
 
   async getAllTracks(): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
-    return payload.map((track) => normalizeTrackMetadata(track.id, track));
+    return payload.content.map((track) => normalizeTrackMetadata(track.id, track));
   }
 
   async updateTrack(

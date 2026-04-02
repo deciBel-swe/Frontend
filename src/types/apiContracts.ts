@@ -33,6 +33,7 @@ import {
   trackUpdateResponseSchema,
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
+  paginatedTracksResponseSchema,
 } from './tracks';
 import {
   addNewEmailRequestSchema,
@@ -40,7 +41,6 @@ import {
   messageResponseSchema,
   paginatedFeedResponseSchema,
   paginatedFollowersResponseSchema,
-  paginatedTracksResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
   updateImagesJsonRequestSchema,
@@ -155,11 +155,11 @@ export const API_CONTRACTS = {
   }),
   USERS_ME_TRACKS: defineContract<
     void,
-    z.infer<typeof trackDetailsResponseSchema>[]
+    z.infer<typeof paginatedTracksResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_TRACKS,
-    responseSchema: z.array(trackDetailsResponseSchema),
+    responseSchema: paginatedTracksResponseSchema,
   }),
 
   USERS_ME_PLAYLISTS: defineContract<
