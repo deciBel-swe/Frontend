@@ -33,23 +33,19 @@
 import { Suspense } from 'react';
 import TrackList from '@/components/TrackList';
 import { useParams } from 'next/navigation';
-
-const TrackListFallback = () => (
-  <>
-    {Array.from({ length: 10 }).map((_, i) => (
-      <div key={i} className="bg-surface-default rounded-lg h-40 animate-pulse" />
-    ))}
-  </>
-);
-
+import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+import { TrackListFallBack } from '@/components/ui/TrackListFallBack';
 
 export default function Page() {
   const { username } = useParams<{ username: string }>();
+   const { data: profileData } = usePublicUser(username);
   return (
-    <div className="py-8 max-w-3xl">
+    <div className="max-w-3xl">
 
-      <Suspense fallback={<TrackListFallback />}>
-        <TrackList username={username} />
+      <Suspense fallback={<TrackListFallBack />}>
+        <TrackList username={username}
+        artistAvatar={profileData?.profile.avatarUrl}
+        />
       </Suspense>
     </div>
   );
