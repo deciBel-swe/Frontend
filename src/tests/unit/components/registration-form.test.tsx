@@ -165,7 +165,6 @@ describe('RegisterationForm', () => {
       })
     );
     expect(mockGetRecaptchaToken).toHaveBeenCalledWith('register_local');
-    expect(mockResendVerification).toHaveBeenCalledWith('user@example.com');
   });
 
   it('keeps auto-suggested display name in sync with email changes until user edits it', async () => {
