@@ -74,23 +74,6 @@ export type MockTrackRecord = {
   likes: Set<number>;
 };
 
-export type MockPlayListRecord = {
-  id: number;
-  title: string;
-  type: 'ALBUM' | 'EP' | 'PLAYLIST' | 'SINGLE';
-  LikedBy: Set<number>;
-  owner: {
-    id: number;
-    username: string;
-  };
-  tracks: Array<{
-    trackid: number;
-    title: string;
-    trackUrl: string;
-    durationSeconds: number;
-  }>;
-};
-
 export type MockPlaylistRecord = {
   id: number;
   title: string;

@@ -6,7 +6,7 @@ import {
   persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
-  MockPlayListRecord,
+  MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
 import type {
@@ -35,6 +35,7 @@ import type {
 import type {
   PaginatedPlaylistsResponse,
   PlaylistResponse,
+  PlaylistType,
 } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -164,17 +165,8 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
   },
 });
 
-const toPlaylistType = (type: MockPlayListRecord['type']): PlaylistType => {
-  switch (type) {
-    case 'ALBUM':
-      return PlaylistType.Album;
-    case 'EP':
-      return PlaylistType.Ep;
-    case 'PLAYLIST':
-      return PlaylistType.Playlist;
-    case 'SINGLE':
-      return PlaylistType.Single;
-  }
+const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
+  return type as PlaylistType;
 };
 
 export class MockUserService implements UserService {
@@ -544,7 +536,7 @@ export class MockUserService implements UserService {
   async getUsersLikedPlaylists(
     userId: number,
     params?: PaginationParams
-  ): Promise<paginatedPlaylistResponse> {
+  ): Promise<PaginatedPlaylistsResponse> {
     await delay();
     const user = findUser(userId);
     if (!user) {
@@ -552,9 +544,9 @@ export class MockUserService implements UserService {
     }
     const likedPlaylists = [...user.likedPlaylists]
       .map((playlistId) =>
-        getMockPlaylistsStore().find((p) => p.id === playlistId.id)
+        getMockPlaylistsStore().find((p) => p.id === playlistId)
       )
-      .filter((playlist): playlist is MockPlayListRecord => Boolean(playlist))
+      .filter((playlist): playlist is MockPlaylistRecord => Boolean(playlist))
       .map((playlist) => ({
         id: playlist.id,
         title: playlist.title,
@@ -564,8 +556,9 @@ export class MockUserService implements UserService {
           id: playlist.owner.id,
           username: playlist.owner.username,
         },
-        tracks: playlist.tracks.map((track) => ({
-          trackId: track.trackid,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tracks: playlist.tracks.map((track:any) => ({
+          trackId: track.trackId,
           title: track.title,
           trackUrl: track.trackUrl,
           durationSeconds: track.durationSeconds,
