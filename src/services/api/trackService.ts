@@ -1,16 +1,42 @@
 import { config } from '@/config';
-import { apiRequest } from '@/hooks/useAPI';
+import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
 import type { UploadTrackResponse } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
+  paginatedTrackResponse,
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
+  likeResponse,
+  paginationRepostUser,
+  repostResponse,
 } from '@/types/tracks';
 
+export interface PaginationParams {
+  page?: number;
+  size?: number;
+}
+
+const toQueryParams = (
+  params?: PaginationParams
+): ApiQueryParams | undefined => {
+  if (!params) {
+    return undefined;
+  }
+
+  const query: ApiQueryParams = {};
+  if (params.page !== undefined) {
+    query.page = params.page;
+  }
+  if (params.size !== undefined) {
+    query.size = params.size;
+  }
+
+  return Object.keys(query).length > 0 ? query : undefined;
+};
 /**
  * Track service contract.
  *
@@ -33,7 +59,10 @@ export interface TrackService {
   /** Read all visible tracks for feed listing (GET /users/me/tracks) */
   getAllTracks(): Promise<TrackMetaData[]>;
   /** Update track metadata (PATCH /tracks/:trackId) */
-  updateTrack(trackId: number, formData: FormData): Promise<TrackUpdateResponse>;
+  updateTrack(
+    trackId: number,
+    formData: FormData
+  ): Promise<TrackUpdateResponse>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -49,6 +78,26 @@ export interface TrackService {
 
   /** Rotate private sharing token (POST /tracks/:trackId/generate-token) */
   regenerateSecretLink(trackId: string): Promise<SecretLink>;
+
+  getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser>;
+
+  /** Like a track (POST /tracks/:trackId/like) */
+  likeTrack(trackId: number): Promise<likeResponse>;
+
+  /** Unlike a track (POST /tracks/:trackId/unlike) */
+  unlikeTrack(trackId: number): Promise<likeResponse>;
+
+  /** Repost a track (POST /tracks/:trackId/repost) */
+  repostTrack(trackId: number): Promise<repostResponse>;
+
+  /** Remove repost of a track (DELETE /tracks/:trackId/repost) */
+  unrepostTrack(trackId: number): Promise<repostResponse>;
+
+  /** Get paginated list of tracks liked by a user (GET /users/:userId/liked-playlists) */
+  getMyLikedTracks(): Promise<paginatedTrackResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -178,5 +227,38 @@ export class RealTrackService implements TrackService {
       API_CONTRACTS.TRACKS_GENERATE_TOKEN(trackId)
     );
     return { secretLink: payload.secretToken };
+  }
+
+  async getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser> {
+    return apiRequest(API_CONTRACTS.TRACK_REPOST_USERS(trackId), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async likeTrack(trackId: number): Promise<likeResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_LIKE(trackId));
+  }
+
+  async unlikeTrack(trackId: number): Promise<likeResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_UNLIKE(trackId));
+  }
+
+  async repostTrack(trackId: number): Promise<repostResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
+  }
+
+  async unrepostTrack(trackId: number): Promise<repostResponse> {
+    return apiRequest(API_CONTRACTS.TRACK_UNREPOST(trackId));
+  }
+
+  async getMyLikedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
+    return apiRequest(API_CONTRACTS.ME_LIKED_TRACKS(), {
+      params: toQueryParams(params),
+    });
   }
 }

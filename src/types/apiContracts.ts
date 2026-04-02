@@ -27,6 +27,10 @@ import {
   updatePrivacySettingsDtoSchema,
 } from './privacy';
 import {
+  likeResponseSchema,
+  paginatedTrackResponseSchema,
+  paginationRepostUserSchema,
+  repostResponseSchema,
   secretTokenResponseSchema,
   trackDetailsResponseSchema,
   trackUpdateResponseSchema,
@@ -55,6 +59,8 @@ import {
   userPublicSchema,
   usersSuggestedResponseSchema,
 } from './user';
+import { paginatedTrackFeedResponseSchema } from './feed';
+// import { paginatedPlaylistResponseSchema } from './playlist';
 import {
   createCommentRequestSchema,
   commentSchema,
@@ -483,7 +489,18 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.TRACKS.UPLOAD,
     responseSchema: uploadTrackResponseSchema,
   }),
-
+  TRACK_LIKE: (trackId: number) =>
+    defineContract<void, z.infer<typeof likeResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.LIKE(trackId),
+      responseSchema: likeResponseSchema,
+    }),
+  TRACK_UNLIKE: (trackId: number) =>
+    defineContract<void, z.infer<typeof likeResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.LIKE(trackId),
+      responseSchema: likeResponseSchema,
+    }),
   TRACKS_BY_ID: (trackId: number) =>
     defineContract<void, z.infer<typeof trackDetailsResponseSchema>>({
       method: 'GET',
@@ -518,6 +535,53 @@ export const API_CONTRACTS = {
       method: 'POST',
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
+    }),
+  TRACK_REPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
+  TRACK_UNREPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
+  TRACK_REPOST_USERS: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.GET_REPOSTERS(trackId),
+      responseSchema: paginationRepostUserSchema,
+    }),
+  FEED: defineContract<void, z.infer<typeof paginatedTrackFeedResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.FEED,
+    responseSchema: paginatedTrackFeedResponseSchema,
+  }),
+  USERS_WHO_LIKED_TRACK: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.WHO_LIKE_TRACK(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+  // USERS_LIKED_PLAYLISTS: (userId: number) =>
+  //   defineContract<void, z.infer<typeof paginatedPlaylistResponseSchema>>({
+  //     method: 'GET',
+  //     url: API_ENDPOINTS.USERS.LIKE_PLAYLISTS(userId),
+  //     responseSchema: paginatedPlaylistResponseSchema,
+  //   }),
+  USERS_WHO_REPOSTED: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.WHO_REPOSTED(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+  ME_LIKED_TRACKS: () =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.ME_LIKED_TRACKS,
+      responseSchema: paginatedTrackResponseSchema,
     }),
 } as const;
 
