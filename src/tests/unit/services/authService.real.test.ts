@@ -32,7 +32,6 @@ const user: LoginUserDTO = {
 
 const loginResponse: LoginResponseDTO = {
   accessToken: 'access-1',
-  refreshToken: 'refresh-1',
   expiresIn: 3600,
   user,
 };

@@ -72,17 +72,17 @@ export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
   genre: z.string().trim().optional().default('Unknown'),
-  description: z.string().optional().nullable(),
+  description: z.string().optional().default(''),
   releaseDate: z.string().trim().optional().nullable(),
   isPrivate: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional().default([]),
-  trackUrl: z.string().trim().min(1).optional().nullable(),
-  coverUrl: z.string().trim().min(1).optional().nullable(),
-  coverImage: z.string().trim().min(1).optional().nullable(),
-  waveformUrl: z.string().trim().min(1).optional().nullable(),
-  artist: trackArtistSchema.partial().optional().nullable(),
-  userId: z.number().int().nonnegative().optional().nullable(),
-  username: z.string().trim().min(1).optional().nullable(),
+  trackUrl: z.string().trim().min(1).optional(),
+  coverUrl: z.string().trim().min(1).optional(),
+  coverImage: z.string().trim().min(1).optional(),
+  waveformUrl: z.string().trim().min(1).optional(),
+  artist: trackArtistSchema.partial().optional(),
+  userId: z.number().int().nonnegative().optional(),
+  username: z.string().trim().min(1).optional(),
 });
 export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
 
@@ -118,7 +118,7 @@ export const trackMetadataSchema = z.object({
   trackUrl: z.string().url(),
   coverUrl: z.string().url(),
   waveformUrl: z.string().url(),
-  waveformData: z.string().optional().nullable(), //this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
+  waveformData: z.string().optional(), //this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
   genre: z.string(),
   tags: z.array(z.string()),
   description: z.string().optional().default(''),

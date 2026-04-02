@@ -50,13 +50,11 @@ const listenerUser: LoginUserDTO = {
 
 const artistSession: LoginResponseDTO = {
   accessToken: 'access.artist.mock',
-  refreshToken: 'refresh.artist.mock',
   user: artistUser,
 };
 
 const listenerSession: LoginResponseDTO = {
   accessToken: 'access.listener.mock',
-  refreshToken: 'refresh.listener.mock',
   user: listenerUser,
 };
 
