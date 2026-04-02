@@ -43,13 +43,13 @@ export default function UserCard({
         className="block no-underline"
         aria-label={`Visit ${user.username}'s profile`}
       >
-        <AvatarImage src={user.avatarSrc} alt={user.username} size={140} shape="circle" />
+        <AvatarImage src={user.avatarSrc} alt={user.username} size={160} shape="circle" />
       </a>
 
       {/* Name + verified */}
       <a href={`/${user.username}`} className="no-underline">
         <span className="flex items-center gap-1 justify-center flex-wrap">
-          <span className="text-xs font-bold text-text-primary leading-snug break-words">
+          <span className="text-sm font-bold text-text-primary leading-snug break-words">
             {user.username}
           </span>
           {user.isVerified && <VerifiedBadge size={13} />}
