@@ -24,6 +24,7 @@ import type {
   UserPublic,
   UsersSuggestedResponse,
 } from '@/types/user';
+// import { paginatedPlaylistResponse } from '@/types/playlist';
 import type { PaginatedPlaylistsResponse } from '@/types/playlists';
 
 export interface PaginationParams {
@@ -146,6 +147,24 @@ export interface UserService {
 
   /** Get blocked users list (GET /users/me/blocked). */
   getBlockedUsers(
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse>;
+
+  /** Get users who liked a track (GET /tracks/{trackId}/like). */
+  getUsersWhoLikedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse>;
+
+  // /** Get playlists liked by a user (GET /users/{userId}/liked-playlists). */
+  // getUsersLikedPlaylists(
+  //   userID: number,
+  //   params?: PaginationParams
+  // ): Promise<paginatedPlaylistResponse>;
+
+  /** Get users who reposted a track (GET /tracks/{trackId}/reposters). */
+  getUsersWhoRepostedTrack(
+    trackId: number,
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
 }
@@ -310,6 +329,33 @@ export class RealUserService implements UserService {
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_BLOCKED, {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUsersWhoLikedTrack(
+    trackid: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    return apiRequest(API_CONTRACTS.USERS_WHO_LIKED_TRACK(trackid), {
+      params: toQueryParams(params),
+    });
+  }
+
+  // async getUsersLikedPlaylists(
+  //   trackid: number,
+  //   params?: PaginationParams
+  // ): Promise<paginatedPlaylistResponse> {
+  //   return apiRequest(API_CONTRACTS.USERS_LIKED_PLAYLISTS(trackid), {
+  //     params: toQueryParams(params),
+  //   });
+  // }
+
+  async getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    return apiRequest(API_CONTRACTS.USERS_WHO_REPOSTED(trackId), {
       params: toQueryParams(params),
     });
   }

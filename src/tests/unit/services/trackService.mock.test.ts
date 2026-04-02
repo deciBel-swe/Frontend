@@ -77,7 +77,10 @@ describe('MockTrackService', () => {
     expect(persistedRaw).toContain('Service Upload Test');
 
     // Simulate logged-in session as user 7 so getUserTracks shows private tracks
-    storage.set('decibel_mock_user', JSON.stringify({ id: 7, username: 'service-tester' }));
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 7, username: 'service-tester' })
+    );
 
     const tracksPromise = service.getUserTracks(7);
     await advance(400);
@@ -148,27 +151,139 @@ describe('MockTrackService', () => {
     await missingTrackExpectation;
   });
   it('getAllTracks does not include private tracks', async () => {
-  const service = new MockTrackService();
- 
-  // seed track 102 is private (Cloud Room Sessions)
-  const allPromise = service.getAllTracks();
-  await advance(400);
-  const all = await allPromise;
- 
-  expect(all.every((track) => !(track as any).isPrivate)).toBe(true);
-  expect(all.find((t) => t.id === 102)).toBeUndefined();
-});
- 
-it('getUserTracks hides private tracks from non-owners', async () => {
-  const service = new MockTrackService();
- 
-  // No session set — resolveCurrentMockUserId returns a default that is not 7
-  // so the caller is treated as a visitor, not the owner
-  const tracksPromise = service.getUserTracks(7);
-  await advance(400);
-  const tracks = await tracksPromise;
- 
-  // seed track 102 (Cloud Room Sessions) belongs to user 7 and is private
-  expect(tracks.find((t) => t.id === 102)).toBeUndefined();
-});
+    const service = new MockTrackService();
+
+    // seed track 102 is private (Cloud Room Sessions)
+    const allPromise = service.getAllTracks();
+    await advance(400);
+    const all = await allPromise;
+
+    expect(all.every((track) => !(track as any).isPrivate)).toBe(true);
+    expect(all.find((t) => t.id === 102)).toBeUndefined();
+  });
+
+  it('getUserTracks hides private tracks from non-owners', async () => {
+    const service = new MockTrackService();
+
+    // No session set — resolveCurrentMockUserId returns a default that is not 7
+    // so the caller is treated as a visitor, not the owner
+    const tracksPromise = service.getUserTracks(7);
+    await advance(400);
+    const tracks = await tracksPromise;
+
+    // seed track 102 (Cloud Room Sessions) belongs to user 7 and is private
+    expect(tracks.find((t) => t.id === 102)).toBeUndefined();
+  });
+
+  it('getRepostUsers returns paginated repost users with follow state', async () => {
+    const service = new MockTrackService();
+
+    // Default current user id resolves to 1 in tests when no session is set.
+    // Track 201 is reposted by user 2 in seed data, and user 2 is followed by user 1.
+    const repostUsersPromise = service.getRepostUsers(201, {
+      page: 0,
+      size: 10,
+    });
+    await advance(1200);
+    const repostUsers = await repostUsersPromise;
+
+    expect(repostUsers.pageNumber).toBe(0);
+    expect(repostUsers.pageSize).toBe(10);
+    expect(repostUsers.totalElements).toBeGreaterThanOrEqual(1);
+    expect(repostUsers.totalPages).toBeGreaterThanOrEqual(1);
+    expect(Array.isArray(repostUsers.content)).toBe(true);
+
+    const match = repostUsers.content?.find((user) => user.id === 2);
+    expect(match).toBeTruthy();
+    expect(match?.username).toBe('listenertwo');
+    expect(match?.isFollowing).toBe(true);
+    expect(match?.tier).toBe('FREE');
+  });
+
+  it('likeTrack adds current user like and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const likePromise = service.likeTrack(106);
+    await advance(1200);
+    const response = await likePromise;
+
+    expect(response).toEqual({
+      isLiked: true,
+      message: 'Track liked successfully',
+    });
+
+    const repostUsersPromise = service.getRepostUsers(203, {
+      page: 0,
+      size: 10,
+    });
+    await advance(1200);
+    await repostUsersPromise;
+
+    const persistedRaw = storage.get(TRACKS_KEY);
+    expect(persistedRaw).toBeTruthy();
+    expect(persistedRaw).toContain('106');
+  });
+
+  it('unlikeTrack removes current user like and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const likePromise = service.likeTrack(106);
+    await advance(1200);
+    await likePromise;
+
+    const unlikePromise = service.unlikeTrack(106);
+    await advance(1200);
+    const response = await unlikePromise;
+
+    expect(response).toEqual({
+      isLiked: false,
+      message: 'Track unliked successfully',
+    });
+  });
+
+  it('repostTrack adds repost for current user and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const repostPromise = service.repostTrack(101);
+    await advance(1200);
+    const response = await repostPromise;
+
+    expect(response).toEqual({
+      isReposted: true,
+      message: 'Track reposted successfully',
+    });
+  });
+
+  it('unrepostTrack removes repost for current user and returns success response', async () => {
+    const service = new MockTrackService();
+
+    storage.set(
+      'decibel_mock_user',
+      JSON.stringify({ id: 1, username: 'mockuser' })
+    );
+
+    const unrepostPromise = service.unrepostTrack(204);
+    await advance(1200);
+    const response = await unrepostPromise;
+
+    expect(response).toEqual({
+      isReposted: false,
+      message: 'Track unreposted successfully',
+    });
+  });
 });

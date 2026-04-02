@@ -61,11 +61,20 @@ export type SecretLink = z.infer<typeof secretLinkSchema>;
 // ================================
 
 /** Artist info embedded in track metadata response */
-export const trackArtistSchema = z.object({
+export const trackArtistSchema = z
+  .object({
+    id: z.number().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+export type TrackArtist = z.infer<typeof trackArtistSchema>;
+
+/** Strict artist schema used by track metadata endpoint */
+export const trackMetadataArtistSchema = z.object({
   id: z.number(),
   username: z.string(),
 });
-export type TrackArtist = z.infer<typeof trackArtistSchema>;
+export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 
 /** Schema for GET /tracks/:trackId */
 export const trackDetailsResponseSchema = z.object({
@@ -80,7 +89,7 @@ export const trackDetailsResponseSchema = z.object({
   coverUrl: z.string().trim().min(1).optional(),
   coverImage: z.string().trim().min(1).optional(),
   waveformUrl: z.string().trim().min(1).optional(),
-  artist: trackArtistSchema.partial().optional(),
+  artist: trackArtistSchema.optional(),
   userId: z.number().int().nonnegative().optional(),
   username: z.string().trim().min(1).optional(),
 });
@@ -103,7 +112,7 @@ export type TrackUpdateResponse = z.infer<typeof trackUpdateResponseSchema>;
 export const trackMetadataSchema = z.object({
   id: z.number(),
   title: z.string(),
-  artist: trackArtistSchema,
+  artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
   coverUrl: z.string().url(),
   waveformUrl: z.string().url(),
@@ -114,6 +123,48 @@ export const trackMetadataSchema = z.object({
   releaseDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
+
+// ================================
+// Track List / Feed Responses
+// ================================
+
+/** Schema for track card/list payloads returned by paginated track endpoints */
+export const trackResponseSchema = z
+  .object({
+    artist: trackArtistSchema,
+    coverUrl: z.string().optional(),
+    description: z.string().optional(),
+    genre: z.string(),
+    id: z.number(),
+    isLiked: z.boolean(),
+    isReposted: z.boolean(),
+    likeCount: z.number(),
+    playCount: z.number(),
+    releaseDate: z.coerce.date(),
+    repostCount: z.number(),
+    tags: z.array(z.string()).optional(),
+    title: z.string(),
+    trackUrl: z.string(),
+    uploadDate: z.coerce.date().optional(),
+    waveformUrl: z.string(),
+  })
+  .passthrough();
+export type TrackResponse = z.infer<typeof trackResponseSchema>;
+
+/** Generic paginated response used by Apidog docs for track lists */
+export const paginatedTrackResponseSchema = z
+  .object({
+    content: z.array(trackResponseSchema).optional(),
+    isLast: z.boolean().optional(),
+    pageNumber: z.number().optional(),
+    pageSize: z.number().optional(),
+    totalElements: z.number().optional(),
+    totalPages: z.number().optional(),
+  })
+  .passthrough();
+export type paginatedTrackResponse = z.infer<
+  typeof paginatedTrackResponseSchema
+>;
 
 // ================================
 // Track Preview (UI only — not from API)
@@ -127,3 +178,54 @@ export const trackPreviewSchema = z.object({
   duration: z.string().optional(),
 });
 export type TrackPreview = z.infer<typeof trackPreviewSchema>;
+
+/**
+ * RepostUser
+ */
+export const repostUserSchema = z
+  .object({
+    avatarUrl: z.string().optional(),
+    id: z.number().optional(),
+    isFollowing: z.boolean().optional(),
+    tier: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+export type RepostUser = z.infer<typeof repostUserSchema>;
+
+/**
+ * RepostUsersReponse
+ */
+export const paginationRepostUserSchema = z
+  .object({
+    content: z.array(repostUserSchema).optional(),
+    isLast: z.boolean().optional(),
+    pageNumber: z.number().optional(),
+    pageSize: z.number().optional(),
+    totalElements: z.number().optional(),
+    totalPages: z.number().optional(),
+  })
+  .passthrough();
+export type paginationRepostUser = z.infer<typeof paginationRepostUserSchema>;
+
+/**
+ * LikeResponse
+ */
+export const likeResponseSchema = z
+  .object({
+    isLiked: z.boolean(),
+    message: z.string(),
+  })
+  .passthrough();
+export type likeResponse = z.infer<typeof likeResponseSchema>;
+
+/**
+ * RepostResponse
+ */
+export const repostResponseSchema = z
+  .object({
+    isReposted: z.boolean(),
+    message: z.string(),
+  })
+  .passthrough();
+export type repostResponse = z.infer<typeof repostResponseSchema>;

@@ -1,9 +1,12 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
 import {
+  getMockTracksStore,
   getMockUsersStore,
+  getMockPlaylistsStore,
   persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
+  MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
 import type {
@@ -32,6 +35,7 @@ import type {
 import type {
   PaginatedPlaylistsResponse,
   PlaylistResponse,
+  PlaylistType,
 } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -111,9 +115,9 @@ const toUserPublic = (user: MockUserRecord): UserPublic => ({
     username: user.username,
     id: user.id,
     bio: user.profile.bio,
-   location: [user.profile.city, user.profile.country]
-  .filter(Boolean)
-  .join(', '),
+    location: [user.profile.city, user.profile.country]
+      .filter(Boolean)
+      .join(', '),
     avatarUrl: user.profile.profilePic,
     coverPhotoUrl: user.profile.coverPic,
     favoriteGenres: [...user.profile.favoriteGenres],
@@ -161,6 +165,10 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
   },
 });
 
+const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
+  return type as PlaylistType;
+};
+
 export class MockUserService implements UserService {
   async getPublicUserById(userId: number): Promise<UserPublic> {
     await delay();
@@ -172,12 +180,12 @@ export class MockUserService implements UserService {
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
-    const users = getMockUsersStore(); 
+    const users = getMockUsersStore();
     const user = users.find((u) => u.username === username);
     if (!user) {
       throw new Error('User not found');
     }
-    
+
     const currentUserId = resolveCurrentMockUserId();
     if (user.privacySettings.isPrivate && user.id !== currentUserId) {
       throw new Error('User not found');
@@ -506,5 +514,74 @@ export class MockUserService implements UserService {
       .map((user) => toSearchUser(user, me));
 
     return paginate(blockedUsers, params);
+  }
+
+  async getUsersWhoLikedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoLiked = [...track.likes]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoLiked, params);
+  }
+
+  async getUsersLikedPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+    const user = findUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const likedPlaylists = [...user.likedPlaylists]
+      .map((playlistId) =>
+        getMockPlaylistsStore().find((p) => p.id === playlistId)
+      )
+      .filter((playlist): playlist is MockPlaylistRecord => Boolean(playlist))
+      .map((playlist) => ({
+        id: playlist.id,
+        title: playlist.title,
+        type: toPlaylistType(playlist.type),
+        isLiked: true,
+        owner: {
+          id: playlist.owner.id,
+          username: playlist.owner.username,
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tracks: playlist.tracks.map((track:any) => ({
+          trackId: track.trackId,
+          title: track.title,
+          trackUrl: track.trackUrl,
+          durationSeconds: track.durationSeconds,
+        })),
+      }));
+
+    return paginate(likedPlaylists, params);
+  }
+
+  async getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoReposted = [...track.reposters]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoReposted, params);
   }
 }

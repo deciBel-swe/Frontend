@@ -45,6 +45,8 @@ export type MockUserRecord = {
   playlists: MockPlaylistRecord[];
   likedPlaylists: number[];
   tracks: Array<{ id: number; title: string; genre: string }>;
+  likedTracks: Array<{ id: number; title: string; genre: string }>;
+  reposts: Array<{ id: number; title: string; genre: string }>;
   history: Array<{ id: number; title: string }>;
   additionalEmails: string[];
 };
@@ -68,6 +70,8 @@ export type MockTrackRecord = {
   isPrivate: boolean;
   durationSeconds: number;
   secretLink?: string;
+  reposters: Set<number>;
+  likes: Set<number>;
 };
 
 export type MockPlaylistRecord = {
@@ -289,6 +293,8 @@ const seedUsers = (): MockUserRecord[] => [
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
       { id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' },
     ],
+    likedTracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
+    reposts: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     history: [
       { id: 301, title: 'Morning Focus' },
       { id: 302, title: 'Night Ride' },
@@ -339,6 +345,8 @@ const seedUsers = (): MockUserRecord[] => [
     ],
     likedPlaylists: [1001, 1002],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
+    likedTracks: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
+    reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
     additionalEmails: [],
   },
@@ -385,6 +393,8 @@ const seedUsers = (): MockUserRecord[] => [
     ],
     likedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
+    likedTracks: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
+    reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     history: [{ id: 305, title: 'Peak Hour' }],
     additionalEmails: [],
   },
@@ -405,6 +415,8 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 214,
+    reposters: new Set([2]),
+    likes: new Set([2, 3]),
   },
   {
     id: 102,
@@ -421,6 +433,8 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 182,
     secretLink: 'c8n2x3ya',
+    reposters: new Set(),
+    likes: new Set([1]),
   },
   {
     id: 103,
@@ -436,6 +450,25 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 256,
+    reposters: new Set([3]),
+    likes: new Set([1, 2]),
+  },
+  {
+    id: 204,
+    title: 'Paper Lanterns',
+    artist: { id: 2, username: 'listenertwo' },
+    trackUrl: '/tracks/204',
+    coverUrl: 'https://picsum.photos/seed/decibel-cover-204/640/640',
+    waveformUrl: '/mock/waveforms/204.json',
+    waveformData:
+      '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
+    genre: 'Lo-Fi',
+    tags: ['study', 'late-night'],
+    releaseDate: '2025-10-25',
+    isPrivate: false,
+    durationSeconds: 204,
+    reposters: new Set([1]),
+    likes: new Set([1]),
   },
   {
     id: 104,
@@ -452,6 +485,8 @@ const seedTracks = (): MockTrackRecord[] => [
     isPrivate: true,
     durationSeconds: 301,
     secretLink: 'f4m0qt9b',
+    reposters: new Set(),
+    likes: new Set([2]),
   },
   {
     id: 105,
@@ -467,6 +502,8 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 199,
+    reposters: new Set(),
+    likes: new Set([1, 3]),
   },
   {
     id: 106,
@@ -482,35 +519,12 @@ const seedTracks = (): MockTrackRecord[] => [
     releaseDate: '2025-10-25',
     isPrivate: false,
     durationSeconds: 238,
+    reposters: new Set(),
+    likes: new Set(),
   },
 ];
 
-const seedComments = (): MockCommentRecord[] => [
-  {
-    id: 1001,
-    trackId: 101,
-    user: {
-      id: 2,
-      username: 'listenertwo',
-      avatarUrl: 'https://picsum.photos/seed/listener/400/400',
-    },
-    body: 'Love the atmosphere here.',
-    timestampSeconds: 42,
-    createdAt: '2026-03-01T12:30:00.000Z',
-  },
-  {
-    id: 1002,
-    trackId: 101,
-    user: {
-      id: 1,
-      username: 'mockuser',
-      avatarUrl: 'https://i.ibb.co/SD1pMkyy/GRgo-Ocga-YAIm6-TF.jpg',
-    },
-    body: 'Thanks! Glad you vibe with it.',
-    parentCommentId: 1001,
-    createdAt: '2026-03-01T12:45:00.000Z',
-  },
-];
+const seedComments = (): MockCommentRecord[] => [];
 
 type MockSystemState = {
   authAccountsByEmail: Map<string, MockAuthAccount>;
@@ -553,7 +567,9 @@ const isOversizedDataUrl = (value: string | undefined): boolean => {
     return false;
   }
 
-  return value.startsWith('data:') && value.length > MAX_PERSISTED_DATA_URL_LENGTH;
+  return (
+    value.startsWith('data:') && value.length > MAX_PERSISTED_DATA_URL_LENGTH
+  );
 };
 
 const getFallbackCoverUrl = (trackId: number): string =>
@@ -621,6 +637,7 @@ const serializeUser = (
 
 const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
+  likedPlaylists: user.likedPlaylists ?? [],
   followers: new Set(user.followers ?? []),
   following: new Set(user.following ?? []),
   blocked: new Set(user.blocked ?? []),
@@ -632,12 +649,16 @@ const toPersistedState = (
 ): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
-  tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
-  comments: current.comments ?? [],
+  tracks: current.tracks.map((track) =>
+    compactTrackForPersistence(track, options)
+  ),
+  comments: current.comments,
   emailVerification: current.emailVerification,
 });
 
-const toRuntimeState = (persisted: PersistedMockSystemState): MockSystemState => {
+const toRuntimeState = (
+  persisted: PersistedMockSystemState
+): MockSystemState => {
   const authAccountsByEmail = new Map<string, MockAuthAccount>(
     (persisted.authAccounts ?? []).map((account) => [
       normalizeEmail(account.email),
@@ -695,7 +716,9 @@ const syncLegacyTracksStorage = (): void => {
   try {
     window.localStorage.setItem(
       LEGACY_TRACKS_STORAGE_KEY,
-      toLegacyTracksPayload(state.tracks.map((track) => compactTrackForPersistence(track)))
+      toLegacyTracksPayload(
+        state.tracks.map((track) => compactTrackForPersistence(track))
+      )
     );
   } catch {
     // Best-effort compatibility key; ignore quota failures.
@@ -804,7 +827,9 @@ const createDefaultUserFromAccount = (
   blocked: new Set(),
   playlists: [],
   likedPlaylists: [],
+  likedTracks: [],
   tracks: [],
+  reposts: [],
   history: [],
   additionalEmails: [],
 });
@@ -912,7 +937,10 @@ export const getMockSystemState = (): MockSystemState => {
     state = persisted;
   } else {
     const authAccountsByEmail = new Map<string, MockAuthAccount>(
-      seedAccounts.map((account) => [normalizeEmail(account.email), { ...account }])
+      seedAccounts.map((account) => [
+        normalizeEmail(account.email),
+        { ...account },
+      ])
     );
 
     state = {
@@ -929,6 +957,10 @@ export const getMockSystemState = (): MockSystemState => {
   syncCommentsWithCredentialUsers();
 
   persistMockSystemState();
+  if (!state) {
+    throw new Error('Failed to initialize mock system state');
+  }
+
   return state;
 };
 
@@ -949,6 +981,10 @@ export const getMockTracksStore = (): MockTrackRecord[] => {
 
 export const getMockCommentsStore = (): MockCommentRecord[] => {
   return getMockSystemState().comments;
+};
+
+export const getMockPlaylistsStore = (): MockPlaylistRecord[] => {
+  return getMockSystemState().users.flatMap((user) => user.playlists);
 };
 
 export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {
