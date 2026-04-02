@@ -155,8 +155,8 @@ export const API_CONTRACTS = {
   RESEND_VERIFICATION: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
-    requestSchema: z.object({ email: z.string().trim().email() }),
-    responseSchema: z.object({ success: z.boolean(), deviceInfo: deviceInfoDTOSchema }),
+    requestSchema: z.object({ email: z.string().trim().email() , deviceInfo: deviceInfoDTOSchema }),
+    responseSchema: z.object({ success: z.boolean()}),
   }),
   USERS_ME: defineContract({
     method: 'GET',

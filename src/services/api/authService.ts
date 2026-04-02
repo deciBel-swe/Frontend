@@ -152,7 +152,7 @@ export class RealAuthService implements AuthService {
 
   async resendVerification(email: string): Promise<{ success: boolean }> {
     const response = await apiRequest(API_CONTRACTS.RESEND_VERIFICATION, {
-      payload: { email },
+      payload: { email ,deviceInfo: buildDeviceInfo()},
     });
     return response;
   }
