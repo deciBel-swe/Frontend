@@ -2,11 +2,15 @@ import { config } from '@/config';
 import type { TrackService } from '@/services/api/trackService';
 import type { UploadTrackResponse } from '@/types';
 import type {
+  paginationRepostUser,
   SecretLink,
   TrackMetaData,
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
+  likeResponse,
+  repostResponse,
+  paginatedTrackResponse,
 } from '@/types/tracks';
 import {
   getMockTracksStore,
@@ -16,6 +20,7 @@ import {
   resolveCurrentMockUserId,
   type MockTrackRecord,
 } from './mockSystemStore';
+import { PaginationParams } from '../api/trackService';
 
 const MOCK_DELAY_MS = 220;
 
@@ -336,6 +341,8 @@ export class MockTrackService implements TrackService {
             isPrivate,
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
+            likes: new Set(),
+            reposters: new Set(),
           };
 
           const updated = [uploaded, ...tracks];
@@ -390,8 +397,8 @@ export class MockTrackService implements TrackService {
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
     return readTracks()
-    .filter((track) => !track.isPrivate)
-    .map(toMetadata);
+      .filter((track) => !track.isPrivate)
+      .map(toMetadata);
   }
   async updateTrack(
     trackId: number,
@@ -412,10 +419,7 @@ export class MockTrackService implements TrackService {
       allowEmpty: true,
     });
     const releaseDate = getOptionalStringField(formData, 'releaseDate');
-    const trackLinkSuffix = getOptionalStringField(
-      formData,
-      'trackLinkSuffix'
-    );
+    const trackLinkSuffix = getOptionalStringField(formData, 'trackLinkSuffix');
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
@@ -433,10 +437,10 @@ export class MockTrackService implements TrackService {
 
     const nextCoverUrl = removeCover
       ? buildCoverUrl(trackId)
-      : coverImageDataUrl ?? current.coverUrl;
+      : (coverImageDataUrl ?? current.coverUrl);
     const nextCoverImageDataUrl = removeCover
       ? undefined
-      : coverImageDataUrl ?? current.coverImageDataUrl;
+      : (coverImageDataUrl ?? current.coverImageDataUrl);
 
     const nextArtistName = artistName ?? current.artist.username;
     const nextTrackUrl = trackLinkSuffix
@@ -448,7 +452,8 @@ export class MockTrackService implements TrackService {
       title: title ?? current.title,
       genre: genre ?? current.genre,
       tags: tags ?? current.tags,
-      description: description !== undefined ? description : current.description,
+      description:
+        description !== undefined ? description : current.description,
       releaseDate: releaseDate ?? current.releaseDate,
       artist: artistName
         ? { ...current.artist, username: artistName }
@@ -558,5 +563,212 @@ export class MockTrackService implements TrackService {
       throw new Error('Track not found');
     }
     return track;
+  }
+
+  async getRepostUsers(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<paginationRepostUser> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const usersStore = getMockUsersStore();
+        const repostUsers = usersStore
+          .filter((user) =>
+            user.reposts.some((repost) => repost.id === trackId)
+          )
+          .map((user) => ({
+            id: user.id,
+            username: user.username,
+            avatarUrl: user.profile.profilePic,
+            isFollowing: user.followers.has(currentUserId),
+            tier: user.tier,
+          }));
+
+        const pageNumber = params?.page ?? 0;
+        const pageSize = params?.size ?? (repostUsers.length || 20);
+        const start = pageNumber * pageSize;
+        const end = start + pageSize;
+        const content = repostUsers.slice(start, end);
+        const totalElements = repostUsers.length;
+        const totalPages =
+          pageSize > 0 ? Math.ceil(totalElements / pageSize) : 0;
+        const isLast = pageNumber >= Math.max(0, totalPages - 1);
+
+        resolve({
+          content,
+          isLast,
+          pageNumber,
+          pageSize,
+          totalElements,
+          totalPages,
+        });
+      }, 1000);
+    });
+  }
+  async likeTrack(trackId: number): Promise<likeResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        getMockUsersStore()
+          .find((item) => item.id === currentUserId)
+          ?.likedTracks.push({
+            id: trackId,
+            title: track.title,
+            genre: track.genre,
+          });
+
+        track.likes.add(currentUserId);
+        persistMockSystemState();
+
+        resolve({
+          isLiked: true,
+          message: 'Track liked successfully',
+        });
+      }, 1000);
+    });
+  }
+  async unlikeTrack(trackId: number): Promise<likeResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        const user = getMockUsersStore().find(
+          (item) => item.id === currentUserId
+        );
+        if (user) {
+          user.likedTracks = user.likedTracks.filter(
+            (likedTrack) => likedTrack.id !== trackId
+          );
+        }
+        track.likes.delete(currentUserId);
+        persistMockSystemState();
+        resolve({
+          isLiked: false,
+          message: 'Track unliked successfully',
+        });
+      }, 1000);
+    });
+  }
+  async repostTrack(trackId: number): Promise<repostResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        if (!currentUserId) {
+          reject(new Error('User not authenticated'));
+          return;
+        }
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        track.reposters.add(currentUserId);
+        const usersStore = getMockUsersStore();
+        const user = usersStore.find((item) => item.id === currentUserId);
+        if (!user) {
+          reject(new Error('User not found'));
+          return;
+        }
+        if (user.reposts.some((repost) => repost.id === trackId)) {
+          reject(new Error('Track already reposted by user'));
+          return;
+        }
+        user.reposts.push({
+          id: trackId,
+          title: track.title,
+          genre: track.genre,
+        });
+        persistMockSystemState();
+        resolve({
+          isReposted: true,
+          message: 'Track reposted successfully',
+        });
+      }, 1000);
+    });
+  }
+
+  async unrepostTrack(trackId: number): Promise<repostResponse> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const track = tracksStore.find((item) => item.id === trackId);
+        if (!track) {
+          reject(new Error('Track not found'));
+          return;
+        }
+        const usersStore = getMockUsersStore();
+        const user = usersStore.find((item) => item.id === currentUserId);
+        if (!user) {
+          reject(new Error('User not found'));
+          return;
+        }
+        const repostIndex = user.reposts.findIndex(
+          (repost) => repost.id === trackId
+        );
+        if (repostIndex < 0) {
+          reject(new Error('Track not reposted by user'));
+          return;
+        }
+        user.reposts.splice(repostIndex, 1);
+        track.reposters.delete(currentUserId);
+        persistMockSystemState();
+        resolve({
+          isReposted: false,
+          message: 'Track unreposted successfully',
+        });
+      }, 1000);
+    });
+  }
+
+  async getMyLikedTracks(): Promise<paginatedTrackResponse> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const likedTracks = tracksStore.filter((track) =>
+          track.likes.has(currentUserId)
+        );
+        const content = likedTracks.map((track) => ({
+          artist: { ...track.artist },
+          coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+          description: track.description,
+          genre: track.genre,
+          id: track.id,
+          isLiked: true,
+          isReposted: track.reposters.has(currentUserId),
+          likeCount: track.likes.size,
+          playCount: 0, //since it is a mock, number won't matter that much
+          releaseDate: new Date(track.releaseDate),
+          repostCount: track.reposters.size,
+          tags: [...track.tags],
+          title: track.title,
+          trackUrl: track.trackUrl,
+          uploadDate: new Date(track.releaseDate),
+          waveformUrl: track.waveformUrl,
+        }));
+        resolve({
+          content,
+          isLast: true,
+          pageNumber: 0,
+          pageSize: content.length,
+          totalElements: content.length,
+          totalPages: 1,
+        });
+      }, 1000);
+    });
   }
 }

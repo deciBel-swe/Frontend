@@ -118,6 +118,7 @@ export const API_ENDPOINTS = {
     ME: '/users/me',
     ME_PLAYLISTS: '/users/me/playlists',
     ME_TRACKS: '/users/me/tracks',
+    ME_LIKED_TRACKS: '/users/me/liked-tracks',
     ME_RESET_PASSWORD: '/users/me/reset-password',
     ME_ADD_EMAIL: '/users/me/add-new-email',
     ME_UPDATE_PRIMARY_EMAIL: '/users/me/update-email-primary',
@@ -128,17 +129,22 @@ export const API_ENDPOINTS = {
     ME_IMAGES: '/users/me/images',
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
+    ME_REPOSTs: '/users/me/reposts',
     SUGGESTED: '/users/suggested',
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
     PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
-    LIKED_PLAYLISTS: (username: string) =>//this should be changed in backend should be userid not username
-      `/users/${username}/liked-playlists`,
+    LIKED_PLAYLISTS: (
+      username: string //this should be changed in backend should be userid not username
+    ) => `/users/${username}/liked-playlists`,
     FOLLOW: (userId: number) => `/users/${userId}/follow`,
     FOLLOWERS: (userId: number) => `/users/${userId}/followers`,
     FOLLOWING: (userId: number) => `/users/${userId}/following`,
     BLOCK: (userId: number) => `/users/${userId}/block`,
+    WHO_LIKE_TRACK: (trackid: number) => `/tracks/${trackid}/like`, //users who like a track
+    LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
+    WHO_REPOSTED: (trackId: number) => `/tracks/${trackId}/reposters`, //users who reposted a track
   },
   TRACKS: {
     UPLOAD: '/tracks/upload',
@@ -154,6 +160,9 @@ export const API_ENDPOINTS = {
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
+    GET_REPOSTERS: (trackId: number) => `/tracks/${trackId}/reposters`,
+    REPOST: (trackId: number) => `/tracks/${trackId}/repost`,
+    LIKE: (trackId: number) => `/tracks/${trackId}/like`,
     COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
   },
   PLAYLISTS: {
@@ -161,15 +170,14 @@ export const API_ENDPOINTS = {
     BY_ID: (playlistId: number) => `/playlists/${playlistId}`,
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
     DELETE: (playlistId: number) => `/playlists/${playlistId}`,
-    LIKE: (playlistId: number) => `/playlists/${playlistId}/like`,//this should be changed in backend currently tracks/playlists/:id/like but should be playlists/:id/like
+    LIKE: (playlistId: number) => `/playlists/${playlistId}/like`, //this should be changed in backend currently tracks/playlists/:id/like but should be playlists/:id/like
     TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
     TRACK: (playlistId: number, trackId: number) =>
       `/playlists/${playlistId}/tracks/${trackId}`,
     REORDER_TRACKS: (playlistId: number) =>
       `/playlists/${playlistId}/tracks/reorder`,
     EMBED: (playlistId: number) => `/playlists/${playlistId}/embed`,
-    SECRET_LINK: (playlistId: number) =>
-      `/playlists/${playlistId}/secret-link`,
+    SECRET_LINK: (playlistId: number) => `/playlists/${playlistId}/secret-link`,
     SECRET_LINK_REGENERATE: (playlistId: number) =>
       `/playlists/${playlistId}/secret-link/regenerate`,
     TOKEN: (token: string) => `/playlists/token/${token}`,
@@ -178,13 +186,14 @@ export const API_ENDPOINTS = {
   COMMENTS: {
     REPORT: (commentId: number) => `/comments/${commentId}/report`,
     REPLIES: (commentId: number) => `/comments/${commentId}/replies`,
-    DELETE: (commentId: number) => `/api/comments/${commentId}`,// change when api isn't there following api dogs
+    DELETE: (commentId: number) => `/api/comments/${commentId}`, // change when api isn't there following api dogs
   },
   ADMIN: {
     REPORTS: '/admin/reports',
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
     SUSPEND_USER: (userId: number) => `/admin/users/${userId}/suspend`,
   },
+  FEED: '/feed',
 } as const;
 /**
  * Helper function to build full API URL

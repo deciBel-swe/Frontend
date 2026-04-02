@@ -225,4 +225,105 @@ describe('RealTrackService', () => {
       })
     );
   });
+
+  it('fetches repost users via TRACK_REPOSTS and forwards pagination params', async () => {
+    const response = {
+      content: [
+        {
+          id: 2,
+          username: 'listenertwo',
+          avatarUrl: 'https://picsum.photos/seed/listener/400/400',
+          isFollowing: true,
+          tier: 'FREE',
+        },
+      ],
+      isLast: true,
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.getRepostUsers(201, {
+      page: 0,
+      size: 10,
+    });
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_REPOST_USERS(201),
+      {
+        params: {
+          page: 0,
+          size: 10,
+        },
+      }
+    );
+  });
+
+  it('calls TRACK_UNLIKE and returns unlike response payload', async () => {
+    const response = {
+      isLiked: false,
+      message: 'Track unliked successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.unlikeTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_UNLIKE(106)
+    );
+  });
+
+  it('calls TRACK_LIKE and returns like response payload', async () => {
+    const response = {
+      isLiked: true,
+      message: 'Track liked successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.likeTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_LIKE(106)
+    );
+  });
+
+  it('calls TRACK_REPOST and returns repost response payload', async () => {
+    const response = {
+      isReposted: true,
+      message: 'Track reposted successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.repostTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_REPOST(106)
+    );
+  });
+
+  it('calls TRACK_UNREPOST and returns unrepost response payload', async () => {
+    const response = {
+      isReposted: false,
+      message: 'Track unreposted successfully',
+    };
+
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.unrepostTrack(106);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACK_UNREPOST(106)
+    );
+  });
 });
