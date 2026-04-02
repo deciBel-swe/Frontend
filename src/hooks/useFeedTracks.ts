@@ -7,9 +7,7 @@ import { trackService } from '@/services';
  * Fetches all tracks from the track service and maps them into the shape
  * expected by <TrackCard />.
  *
- * Waveform data is derived deterministically per track id until the real
- * waveform endpoint is wired up — at that point, replace `generateWaveform`
- * with a fetch to `track.waveformUrl`.
+ * Waveform data is hydrated by the track service from waveformUrl payloads.
  *
  * @example
  * const { feedTracks, isLoading, isError } = useFeedTracks();
@@ -43,9 +41,9 @@ export function useFeedTracks() {
     const fetchTracks = async () => {
       setIsLoading(true);
       setIsError(false);
-
       try {
         const data = await trackService.getAllTracks();
+        console.log('Fetched tracks:', data);
         if (!isCancelled) {
           setTracks(data);
         }
@@ -67,26 +65,6 @@ export function useFeedTracks() {
     };
   }, [refreshIndex]);
 
-  const parseWaveform = (value: string | null | undefined): number[] => {
-    if (!value || value.trim().length === 0) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(value);
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-
-      return parsed
-        .map((entry) => Number(entry))
-        .filter((entry) => Number.isFinite(entry))
-        .map((entry) => Math.max(0, Math.min(1, entry)));
-    } catch {
-      return [];
-    }
-  };
-
   const feedTracks = tracks.map((track) => {
     const artistName =
       typeof track.artist === 'string' ? track.artist : track.artist.username;
@@ -107,7 +85,7 @@ export function useFeedTracks() {
         cover: track.coverUrl,
         duration: '',
       },
-      waveform: parseWaveform(track.waveformData),
+      waveform: track.waveformData ?? [],
     };
   });
 
