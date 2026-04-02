@@ -14,7 +14,7 @@ import CompactTrackList from '@/components/CompactTrackList'
 import TrackActions from '@/components/TrackActions'
 import TimeAgo from '@/components/TimeAgo';
 import CommentInput from './comments/CommentInput';
-import WaveformTimedComments from './WaveformTimedComments';
+import WaveformTimedComments, { TimedComment } from './WaveformTimedComments';
 import { parseDurationToSeconds } from '@/utils/parseDuration'
 type TrackCardProps = {
   trackId: string;
@@ -67,14 +67,12 @@ export default function TrackCard({
 
   // timeAgoText = '',
   // showCommentInput = false,
-  currentUserAvatar,
   showHeader = true,
 
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
-  const [commentValue, setCommentValue] = useState('');
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
@@ -99,25 +97,8 @@ export default function TrackCard({
 const [showCommentInput, setShowCommentInput] = useState(false);
 const [pendingText, setPendingText] = useState('');
 const [pendingTimestamp, setPendingTimestamp] = useState<number | null>(null);
-const [timedComments, setTimedComments] = useState<any[]>([]);
-const [isWaveformHovered, setIsWaveformHovered] = useState(false);
+const [timedComments, setTimedComments] = useState<TimedComment[]>([]);
 const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
-// Handler to submit a comment
-const handleCommentSubmit = () => {
-  if (!commentValue.trim()) return;
-
-  setTimedComments((prev) => [
-    ...prev,
-    {
-      id: crypto.randomUUID(),
-      timestamp: 0, // optional, or use hover/click position if needed
-      comment: commentValue,
-      user: { name: user.name, avatar: user.avatar },
-    },
-  ]);
-  setCommentValue('');
-  setShowCommentInput(false); // optional: hide after submit
-};
 const durationSeconds = parseDurationToSeconds(track.duration);
   return (
     <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
@@ -281,20 +262,22 @@ const durationSeconds = parseDurationToSeconds(track.duration);
     setPendingText={setPendingText}
     showCommentInput={true}  // show while typing
     onSubmit={(text) => {
-      if (!text.trim()) return;
+  if (pendingTimestamp === null) return;
+  if (!text.trim()) return;
 
-      setTimedComments((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          timestamp: pendingTimestamp,
-          comment: text,
-          user: { name: user.name, avatar: user.avatar },
-        },
-      ]);
-      setPendingText('');
-      setPendingTimestamp(null);
-    }}
+  setTimedComments((prev) => [
+    ...prev,
+    {
+      id: crypto.randomUUID(),
+      timestamp: pendingTimestamp, // now it's guaranteed number
+      comment: text,
+      user: { name: user.name, avatar: user.avatar },
+    },
+  ]);
+
+  setPendingText('');
+  setPendingTimestamp(null);
+}}
     showMarkers={true}
 />
 )}

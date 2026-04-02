@@ -28,10 +28,6 @@ export default function WaveformTimedComments({
   currentUser,
   pendingTimestamp,
   pendingText,
-  setPendingText,
-  showCommentInput,
-  onSubmit,
-  showMarkers,
 }: Props) {
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
   const [latestCommentId, setLatestCommentId] = useState<string | null>(null);
