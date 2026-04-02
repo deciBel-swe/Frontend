@@ -59,6 +59,7 @@ export default function FeedPage() {
           showEditButton={false}
           track={{
             ...item.track,
+            duration: '2:41', // Add duration for testing
             genre: 'Electronic', // Add genre for testing
           }}
           waveform={item.waveform}
