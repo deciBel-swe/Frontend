@@ -80,12 +80,14 @@ function SquareSkeleton() {
  */
 export default function LibraryOverview() {
  const [playlistFilter, setPlaylistFilter] = useState('all');
+//  const userSlug = artist.toLowerCase().replace(/\s+/g, '');
+//  const trackSlug = title.toLowerCase().replace(/\s+/g, '-');
   return (
     <div className="px-8 py-8">
       {/* Recently played */}
       <LibrarySection title="Recently played">
         {recentlyPlayed.map((item) => (
-          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
+          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image}/>
         ))}
         <SquareSkeleton/>
       </LibrarySection>
@@ -97,7 +99,7 @@ export default function LibraryOverview() {
         ctaHref="/discover"
       >
         {likes.map((item) => (
-          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
+          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} username={item.artist}/>
         ))}
         {Array.from({ length: 3 }).map((_, i) => (
           <SquareSkeleton key={`likes-skeleton-${i}`} />
@@ -116,7 +118,7 @@ export default function LibraryOverview() {
         }
       >
         {playlists.map((item) => (
-          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
+          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} username={item.artist} sets={true} />
         ))}
         {Array.from({ length: 3 }).map((_, i) => (
           <SquareSkeleton key={`playlists-skeleton-${i}`} />
@@ -130,7 +132,7 @@ export default function LibraryOverview() {
         ctaHref="/discover"
       >
         {albums.map((item) => (
-          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
+          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image}/>
         ))}
         {Array.from({ length: 3 }).map((_, i) => (
           <SquareSkeleton key={`albums-skeleton-${i}`} />
@@ -144,7 +146,7 @@ export default function LibraryOverview() {
         ctaHref="/discover"
       >
         {likedStations.map((item) => (
-          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
+          <PlaylistCard key={item.id} title={item.title} coverUrl={item.image}/>
         ))}
       </LibrarySection>
 

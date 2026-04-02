@@ -39,7 +39,7 @@ export default function UserCard({
     <div className={`group flex flex-col items-center gap-2 w-40 text-center ${className}`}>
       {/* Avatar */}
       <a
-        href={`/${user.username}`}
+        href={`/${user.username.toLowerCase().replace(/\s+/g, '')}`}
         className="block no-underline"
         aria-label={`Visit ${user.username}'s profile`}
       >
@@ -47,7 +47,7 @@ export default function UserCard({
       </a>
 
       {/* Name + verified */}
-      <a href={`/${user.username}`} className="no-underline">
+      <a href={`/${user.username.toLowerCase().replace(/\s+/g, '')}`} className="no-underline">
         <span className="flex items-center gap-1 justify-center flex-wrap">
           <span className="text-xs font-bold text-text-primary leading-snug break-words">
             {user.username}
