@@ -62,6 +62,52 @@ describe('RealUserService', () => {
     );
   });
 
+  it('calls USERS_ME_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue([{ id: 1, title: 'Focus Mix' }]);
+
+    await service.getMePlaylists({ page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_ME_PLAYLISTS,
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
+  it('calls USERS_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue([{ id: 2, title: 'Public Set' }]);
+
+    await service.getUserPlaylists(11, { page: 1, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_PLAYLISTS(11),
+      {
+        params: { page: 1, size: 10 },
+      }
+    );
+  });
+
+  it('calls USERS_LIKED_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 5,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserLikedPlaylists('mockartist', { page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_LIKED_PLAYLISTS('mockartist'),
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
   it('calls USERS_FOLLOW', async () => {
     mockedApiRequest.mockResolvedValue({
       message: 'Now following',

@@ -115,6 +115,33 @@ describe('MockUserService', () => {
     expect(tracks.totalElements).toBeGreaterThanOrEqual(2);
   });
 
+  it('returns playlists for current and public users', async () => {
+    const mePlaylistsPromise = service.getMePlaylists({ page: 0, size: 2 });
+    await flush();
+    const mePlaylists = await mePlaylistsPromise;
+    expect(mePlaylists.length).toBeGreaterThan(0);
+
+    const publicPlaylistsPromise = service.getUserPlaylists(1, {
+      page: 0,
+      size: 2,
+    });
+    await flush();
+    const publicPlaylists = await publicPlaylistsPromise;
+    expect(publicPlaylists.length).toBeGreaterThan(0);
+  });
+
+  it('returns liked playlists for a user', async () => {
+    const likedPromise = service.getUserLikedPlaylists('listenertwo', {
+      page: 0,
+      size: 5,
+    });
+    await flush();
+    const liked = await likedPromise;
+
+    expect(liked.content.length).toBeGreaterThan(0);
+    expect(liked.pageSize).toBe(5);
+  });
+
   it('updates account security and tier data', async () => {
     const addEmailPromise = service.addNewEmail({
       newEmail: 'new@mail.com',
