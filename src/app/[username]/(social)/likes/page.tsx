@@ -78,7 +78,7 @@ export default function Page({
           tracks={tracks}
           isLoading={isLoading}
           showEditButton={false}
-          showCommentInput={true}
+          // showCommentInput={true}
           currentUserAvatar={profileData?.profile.avatarUrl}
           showHeader={false}
         />

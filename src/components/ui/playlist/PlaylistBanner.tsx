@@ -55,7 +55,7 @@ export default function PlaylistBanner({
         <div className="absolute bottom-8 left-4 right-[220px] md:right-[300px] px-4 pb-2">
             <Waveform
             data={mockWave(50)}  // Replace with actual waveform data for the playing track
-            height={70}
+            // height={70}
             barClassName="bg-neutral-0/40 hover:bg-brand-primary"
             />
         </div>
