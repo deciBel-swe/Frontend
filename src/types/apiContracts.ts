@@ -150,13 +150,16 @@ export const API_CONTRACTS = {
     method: 'POST',
     url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
     requestSchema: z.object({ token: z.string().trim().min(1) }),
-    responseSchema: z.object({ success: z.boolean() }),
+    responseSchema: z.object({ message: z.string().trim().min(1) }),
   }),
   RESEND_VERIFICATION: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
     requestSchema: z.object({ email: z.string().trim().email() , deviceInfo: deviceInfoDTOSchema }),
-    responseSchema: z.object({ success: z.boolean()}),
+    responseSchema: z.object({ 
+      message: z.string().trim().min(1),
+      coolDown: z.number().int().nonnegative().optional().nullable(),
+    }),
   }),
   USERS_ME: defineContract({
     method: 'GET',

@@ -336,7 +336,7 @@ export class MockAuthService implements AuthService {
   // Email verification methods
   // ================================
 
-  async resendVerification(email: string): Promise<{ success: boolean }> {
+  async resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }> {
     await delay();
 
     const token = crypto.randomUUID();
@@ -350,24 +350,24 @@ export class MockAuthService implements AuthService {
     updateMockAuthEmailVerification(email, true);
     persistMockSystemState();
 
-    return { success: true };
+    return { message: 'Verification email sent.', coolDown: 60 };
   }
 
-  async verifyEmail(token: string): Promise<{ success: boolean }> {
+  async verifyEmail(token: string): Promise<{ message: string }> {
     await delay();
 
     const entry = mockEmailVerification[token];
     if (!entry) {
-      return { success: false };
+      return { message: 'Invalid or expired verification token.' };
     }
 
     entry.verified = true;
     updateMockAuthEmailVerification(entry.email, true);
     persistMockSystemState();
-    return { success: true };
+    return { message: 'Email verified successfully.' };
   }
 
-  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ message: string }> {
     return this.resendVerification(email);
   }
 

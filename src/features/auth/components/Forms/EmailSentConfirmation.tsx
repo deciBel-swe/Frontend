@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, {useState } from 'react';
 import { authService } from '@/services';
 
 /**
@@ -43,34 +43,12 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (!token) {
-      return;
-    }
-
-    authService
-      .verifyEmail(token)
-      .then((result) => {
-        if (result.success) {
-          setMessage('Email verified successfully!');
-        } else {
-          setMessage('Verification link is invalid or expired.');
-        }
-      })
-      .catch(() => {
-        setMessage('Failed to verify email.');
-      });
-  }, []);
-
   const handleResend = async () => {
     setLoading(true);
     setMessage('');
     try {
-      await authService.resendVerification(email);
-      setMessage('Verification email sent!');
+      const result = await authService.resendVerification(email);
+      setMessage(result.message);
     } catch (err) {
       console.error(err);
       setMessage('Failed to send verification email');

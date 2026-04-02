@@ -40,22 +40,15 @@ export default function VerifyEmailPage() {
 			return;
 		}
 
-		authService
-			.verifyEmail(token)
-			.then((result) => {
-				if (result.success) {
-					setStatus('success');
-					setMessage('Your email has been verified successfully.');
-					return;
-				}
+		const message = authService.verifyEmail(token);
+		message.then((res) => {
+			setStatus('success');
+			setMessage(res.message);
+		}).catch(() => {
+			setStatus('error');
+			setMessage('We could not verify your email right now. Please try again.');
+		});
 
-				setStatus('error');
-				setMessage('Verification link is invalid or expired.');
-			})
-			.catch(() => {
-				setStatus('error');
-				setMessage('We could not verify your email right now. Please try again.');
-			});
 	}, []);
 
 	return (

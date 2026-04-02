@@ -37,13 +37,13 @@ export interface AuthService {
   logoutAll(): Promise<void>;
 
   /** Resend email verification message (POST /auth/resend-verification). */
-  resendVerification(email: string): Promise<{ success: boolean }>;
+  resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }>;
 
   /** Verify email token (POST /auth/verify-email). */
-  verifyEmail(token: string): Promise<{ success: boolean }>;
+  verifyEmail(token: string): Promise<{ message: string }>;
 
   /** Backward-compatible alias for resendVerification. */
-  requestEmailVerification(email: string): Promise<{ success: boolean }>;
+  requestEmailVerification(email: string): Promise<{ message: string }>;
 }
 
 export const USER_STORAGE_KEY = 'user';
@@ -150,21 +150,21 @@ export class RealAuthService implements AuthService {
     this.clearSession();
   }
 
-  async resendVerification(email: string): Promise<{ success: boolean }> {
+  async resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }> {
     const response = await apiRequest(API_CONTRACTS.RESEND_VERIFICATION, {
       payload: { email ,deviceInfo: buildDeviceInfo()},
     });
     return response;
   }
 
-  async verifyEmail(token: string): Promise<{ success: boolean }> {
+  async verifyEmail(token: string): Promise<{ message: string }> {
     const response = await apiRequest(API_CONTRACTS.VERIFY_EMAIL, {
       payload: { token },
     });
     return response;
   }
 
-  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ message: string }> {
     return this.resendVerification(email);
   }
 
