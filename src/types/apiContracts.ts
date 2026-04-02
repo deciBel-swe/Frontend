@@ -60,7 +60,7 @@ import {
   usersSuggestedResponseSchema,
 } from './user';
 import { paginatedTrackFeedResponseSchema } from './feed';
-import { paginatedPlaylistResponseSchema } from './playlist';
+// import { paginatedPlaylistResponseSchema } from './playlist';
 import {
   createCommentRequestSchema,
   commentSchema,
@@ -565,12 +565,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.USERS.WHO_LIKE_TRACK(trackId),
       responseSchema: paginatedFollowersResponseSchema,
     }),
-  USERS_LIKED_PLAYLISTS: (userId: number) =>
-    defineContract<void, z.infer<typeof paginatedPlaylistResponseSchema>>({
-      method: 'GET',
-      url: API_ENDPOINTS.USERS.LIKE_PLAYLISTS(userId),
-      responseSchema: paginatedPlaylistResponseSchema,
-    }),
+  // USERS_LIKED_PLAYLISTS: (userId: number) =>
+  //   defineContract<void, z.infer<typeof paginatedPlaylistResponseSchema>>({
+  //     method: 'GET',
+  //     url: API_ENDPOINTS.USERS.LIKE_PLAYLISTS(userId),
+  //     responseSchema: paginatedPlaylistResponseSchema,
+  //   }),
   USERS_WHO_REPOSTED: (trackId: number) =>
     defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
       method: 'GET',

@@ -113,28 +113,6 @@ export type MockPlaylistRecord = {
   secretLinkExpiresAt?: string;
 };
 
-export type MockPlaylistRecord = {
-  id: number;
-  title: string;
-  description?: string;
-  type: PlaylistType;
-  isPrivate: boolean;
-  CoverArt?: string;
-  isLiked: boolean;
-  owner: {
-    id: number;
-    username: string;
-  };
-  tracks: Array<{
-    trackId: number;
-    title: string;
-    durationSeconds: number;
-    trackUrl: string;
-  }>;
-  secretLink?: string;
-  secretLinkExpiresAt?: string;
-};
-
 export type MockCommentRecord = {
   id: number;
   trackId: number;
@@ -332,6 +310,7 @@ const seedUsers = (): MockUserRecord[] => [
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
       { id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' },
     ],
+    likedTracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     reposts: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     history: [
       { id: 301, title: 'Morning Focus' },
@@ -383,6 +362,7 @@ const seedUsers = (): MockUserRecord[] => [
     ],
     likedPlaylists: [1001, 1002],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
+    likedTracks: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     history: [{ id: 304, title: 'Dawn Drifts' }],
     additionalEmails: [],
@@ -430,6 +410,7 @@ const seedUsers = (): MockUserRecord[] => [
     ],
     likedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
+    likedTracks: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     history: [{ id: 305, title: 'Peak Hour' }],
     additionalEmails: [],
@@ -490,6 +471,23 @@ const seedTracks = (): MockTrackRecord[] => [
     likes: new Set([1, 2]),
   },
   {
+    id: 204,
+    title: 'Paper Lanterns',
+    artist: { id: 2, username: 'listenertwo' },
+    trackUrl: '/tracks/204',
+    coverUrl: 'https://picsum.photos/seed/decibel-cover-204/640/640',
+    waveformUrl: '/mock/waveforms/204.json',
+    waveformData:
+      '[0.05,0.12,0.08,0.2,0.3,0.55,0.9,0.6,0.35,0.2,0.1,0.05,0.08,0.12,0.18,0.3,0.45,0.7,0.85,0.5,0.25,0.15,0.08,0.06,0.1,0.16,0.28,0.42,0.6,0.78,0.92,0.7,0.48,0.33,0.22,0.14,0.09,0.05,0.08,0.14,0.22,0.36,0.52,0.68,0.8,0.62,0.4,0.26,0.18,0.12,0.08,0.06,0.09,0.15,0.24,0.38,0.55,0.73,0.88,0.66,0.44,0.3,0.2,0.13,0.08]',
+    genre: 'Lo-Fi',
+    tags: ['study', 'late-night'],
+    releaseDate: '2025-10-25',
+    isPrivate: false,
+    durationSeconds: 204,
+    reposters: new Set([1]),
+    likes: new Set([1]),
+  },
+  {
     id: 104,
     title: 'Quiet Transit',
     artist: { id: 9, username: 'nightlistener' },
@@ -542,6 +540,8 @@ const seedTracks = (): MockTrackRecord[] => [
     likes: new Set(),
   },
 ];
+
+const seedComments = (): MockCommentRecord[] => [];
 
 type MockSystemState = {
   authAccountsByEmail: Map<string, MockAuthAccount>;
@@ -669,6 +669,7 @@ const toPersistedState = (
   tracks: current.tracks.map((track) =>
     compactTrackForPersistence(track, options)
   ),
+  comments: current.comments,
   emailVerification: current.emailVerification,
 });
 
@@ -999,8 +1000,8 @@ export const getMockCommentsStore = (): MockCommentRecord[] => {
   return getMockSystemState().comments;
 };
 
-export const getMockPlaylistsStore = (): MockPlayListRecord[] => {
-  return getMockSystemState().playlists;
+export const getMockPlaylistsStore = (): MockPlaylistRecord[] => {
+  return getMockSystemState().users.flatMap((user) => user.playlists);
 };
 
 export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {

@@ -1,4 +1,3 @@
-import { config } from '@/config';
 import { PaginatedTrackFeedResponse } from '@/types/feed';
 import { FeedService, PaginationParams } from '../api/feedService';
 import {
