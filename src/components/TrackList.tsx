@@ -38,26 +38,6 @@ type TrackListProps = {
   showHeader?: boolean;
 };
 
-const parseWaveform = (value: string | undefined): number[] => {
-  if (!value || value.trim().length === 0) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .map((entry) => Number(entry))
-      .filter((entry) => Number.isFinite(entry))
-      .map((entry) => Math.max(0, Math.min(1, entry)));
-  } catch {
-    return [];
-  }
-};
-
 export default function TrackList({
   userId,
   username,
@@ -121,7 +101,7 @@ export default function TrackList({
         duration: '',
         createdAt: track.releaseDate,
       },
-      waveform: parseWaveform(track.waveformData),
+      waveform: track.waveformData ?? [],
     };
   });
 

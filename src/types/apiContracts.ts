@@ -19,7 +19,7 @@ import {
   loginLocalRequestDTOSchema,
   loginResponseDTOSchema,
   registerLocalRequestDTOSchema,
-  refreshTokenRequestDTOSchema,
+  registerLocalResponseDTOSchema,
   refreshTokenResponseDTOSchema,
 } from './index';
 import {
@@ -36,6 +36,7 @@ import {
   trackUpdateResponseSchema,
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
+  paginatedTracksResponseSchema,
 } from './tracks';
 import {
   addNewEmailRequestSchema,
@@ -43,7 +44,6 @@ import {
   messageResponseSchema,
   paginatedFeedResponseSchema,
   paginatedFollowersResponseSchema,
-  paginatedTracksResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
   updateImagesJsonRequestSchema,
@@ -118,7 +118,7 @@ export const API_CONTRACTS = {
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REGISTER_LOCAL,
     requestSchema: registerLocalRequestDTOSchema,
-    responseSchema: z.string().min(1),
+    responseSchema: registerLocalResponseDTOSchema,
   }),
 
   AUTH_OAUTH_GOOGLE: defineContract({
@@ -131,7 +131,6 @@ export const API_CONTRACTS = {
   AUTH_REFRESH_TOKEN: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REFRESH,
-    requestSchema: refreshTokenRequestDTOSchema,
     responseSchema: refreshTokenResponseDTOSchema,
   }),
 
@@ -160,11 +159,11 @@ export const API_CONTRACTS = {
   }),
   USERS_ME_TRACKS: defineContract<
     void,
-    z.infer<typeof trackDetailsResponseSchema>[]
+    z.infer<typeof paginatedTracksResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_TRACKS,
-    responseSchema: z.array(trackDetailsResponseSchema),
+    responseSchema: paginatedTracksResponseSchema,
   }),
 
   USERS_ME_PLAYLISTS: defineContract<

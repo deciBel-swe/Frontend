@@ -46,6 +46,29 @@ const cloneTrack = (track: MockTrackRecord): MockTrackRecord => ({
   tags: [...track.tags],
 });
 
+const parseWaveformPayload = (value: unknown): number[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => Number(entry))
+      .filter((entry) => Number.isFinite(entry))
+      .map((entry) => Math.max(0, Math.min(1, entry)));
+  }
+
+  if (typeof value === 'string') {
+    if (value.trim().length === 0) {
+      return [];
+    }
+
+    try {
+      return parseWaveformPayload(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+};
+
 const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   id: track.id,
   title: track.title,
@@ -53,7 +76,7 @@ const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
   trackUrl: track.trackUrl,
   coverUrl: track.coverImageDataUrl ?? track.coverUrl,
   waveformUrl: track.waveformUrl,
-  waveformData: track.waveformData,
+  waveformData: parseWaveformPayload(track.waveformData),
   genre: track.genre,
   tags: [...track.tags],
   description: track.description ?? '',
@@ -194,7 +217,7 @@ const getSessionArtist = (): { id: number; username: string } | null => {
     return null;
   }
 
-  const raw = window.localStorage.getItem('decibel_mock_user');
+  const raw = window.localStorage.getItem('user');
   if (!raw) {
     return null;
   }

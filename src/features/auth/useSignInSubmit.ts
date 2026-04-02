@@ -71,7 +71,7 @@ export const useSignInSubmit = ({
       try {
         await login(parsedValues.data.email, parsedValues.data.password);
         onSuccess?.();
-      } catch {
+      } catch{
         setSubmitError(
           'Sign in failed. Please check your credentials and try again.'
         );

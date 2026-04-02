@@ -131,7 +131,6 @@ describe('AuthService contract parity', () => {
   it('returns schema-valid login responses for both RealAuthService and MockAuthService', async () => {
     mockedApiRequest.mockResolvedValueOnce({
       accessToken: 'real-access-token',
-      refreshToken: 'real-refresh-token',
       expiresIn: 3600,
       user: realUser,
     });
@@ -150,6 +149,11 @@ describe('AuthService contract parity', () => {
         payload: {
           email: 'service@test.dev',
           password: expect.stringMatching(/^[a-f0-9]{64}$/),
+          deviceInfo: expect.objectContaining({
+            deviceType: expect.any(String),
+            fingerPrint: expect.any(String),
+            deviceName: expect.any(String),
+          }),
         },
       }
     );

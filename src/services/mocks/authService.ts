@@ -7,6 +7,7 @@ import type {
   LoginResponseDTO,
   LoginUserDTO,
   RefreshTokenResponseDTO,
+  RegisterLocalResponseDTO,
 } from '@/types';
 
 import {
@@ -20,17 +21,17 @@ import {
   persistMockSystemState,
 } from './mockSystemStore';
 import { sha256Hex } from '@/utils/sha256';
-
+import {
+  ACCESS_TOKEN_STORAGE_KEY as ACCESS_TOKEN_KEY,
+  USER_STORAGE_KEY as USER_KEY,  
+  AUTH_COOKIE,
+} from '../api/authService';
 // ================================
 // Mock data
 // ================================
-
-const MOCK_DELAY_MS = 300;
-const ACCESS_TOKEN_KEY = 'decibel_access_token';
 const REFRESH_TOKEN_KEY = 'decibel_refresh_token';
-const USER_KEY = 'decibel_mock_user';
+const MOCK_DELAY_MS = 300;
 /** Cookie name read by middleware to gate protected routes. */
-const AUTH_COOKIE = 'decibel_auth';
 
 /** Simulates a network round-trip */
 const delay = (ms = MOCK_DELAY_MS) =>
@@ -170,7 +171,7 @@ const extractGoogleIdentity = (
 // ================================
 
 export class MockAuthService implements AuthService {
-  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
     await delay();
 
     createMockAuthAccount({
@@ -182,7 +183,7 @@ export class MockAuthService implements AuthService {
       tier: 'FREE',
     });
 
-    return 'User Generated successfully';
+    return { message: 'User Generated successfully' };
   }
 
   async getSession(): Promise<LoginResponseDTO | null> {
@@ -203,11 +204,11 @@ export class MockAuthService implements AuthService {
     // middleware redirect loop back to /signin.
     const remainingMs = decoded.exp - Date.now();
     const remainingSec = Math.floor(remainingMs / 1000);
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${remainingSec}; SameSite=Lax`;
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${remainingSec}; SameSite=Lax`;
 
     const expiresIn = remainingSec;
     const user: LoginUserDTO = JSON.parse(raw);
-    return { accessToken, expiresIn, refreshToken, user };
+    return { accessToken, expiresIn, user };
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -233,9 +234,9 @@ export class MockAuthService implements AuthService {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
 
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
-    return { accessToken, expiresIn, refreshToken, user };
+    return { accessToken, expiresIn, user };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
@@ -286,7 +287,7 @@ export class MockAuthService implements AuthService {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
     // --- MOBILE INTEGRATION START ---
   // Check the browser URL for a redirect parameter (e.g., ?redirect_uri=soundcloud-clone://callback)
@@ -328,7 +329,7 @@ export class MockAuthService implements AuthService {
 //   }
 // }
 
-    return { accessToken, expiresIn, refreshToken, user };
+    return { accessToken, expiresIn, user };
   }
 
   // ================================

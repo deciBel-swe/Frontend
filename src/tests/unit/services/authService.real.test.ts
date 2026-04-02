@@ -32,7 +32,6 @@ const user: LoginUserDTO = {
 
 const loginResponse: LoginResponseDTO = {
   accessToken: 'access-1',
-  refreshToken: 'refresh-1',
   expiresIn: 3600,
   user,
 };
@@ -86,13 +85,17 @@ describe('RealAuthService', () => {
         payload: {
           email: 'service@test.dev',
           password: MOCKED_PASSWORD_HASH,
+          deviceInfo: expect.objectContaining({
+            deviceType: 'DESKTOP',
+            fingerPrint: expect.any(String),
+            deviceName: expect.any(String),
+          }),
         },
       }
     );
 
     expect(storage.get(USER_STORAGE_KEY)).toBe(JSON.stringify(user));
     expect(storage.get(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-1');
-    expect(storage.get(REFRESH_TOKEN_STORAGE_KEY)).toBe('refresh-1');
   });
 
   it('logs in with Google and sends device info payload', async () => {
@@ -127,47 +130,8 @@ describe('RealAuthService', () => {
     await expect(service.getSession()).resolves.toBeNull();
   });
 
-  it('refreshes access token and exposes it through getSession', async () => {
-    storage.set(REFRESH_TOKEN_STORAGE_KEY, 'refresh-xyz');
-    storage.set(USER_STORAGE_KEY, JSON.stringify(user));
-
-    mockedApiRequest.mockResolvedValue({
-      accessToken: 'access-refreshed',
-      expiresIn: 3600,
-    });
-
-    const service = new RealAuthService();
-    const refreshed = await service.refreshToken();
-
-    expect(refreshed).toEqual({
-      accessToken: 'access-refreshed',
-      expiresIn: 3600,
-    });
-
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.AUTH_REFRESH_TOKEN,
-      {
-        payload: { refreshToken: 'refresh-xyz' },
-      }
-    );
-
-    const session = await service.getSession();
-    expect(session?.accessToken).toBe('access-refreshed');
-    expect(storage.get(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-refreshed');
-    expect(session?.refreshToken).toBe('refresh-xyz');
-    expect(session?.user).toEqual(user);
-  });
-
-  it('throws when refreshing without a refresh token', async () => {
-    const service = new RealAuthService();
-
-    await expect(service.refreshToken()).rejects.toThrow(
-      'No refresh token available. Please log in again.'
-    );
-  });
 
   it('logs out and clears persisted session keys', async () => {
-    storage.set(REFRESH_TOKEN_STORAGE_KEY, 'refresh-xyz');
     storage.set(USER_STORAGE_KEY, JSON.stringify(user));
 
     mockedApiRequest.mockResolvedValue(undefined);
@@ -177,7 +141,6 @@ describe('RealAuthService', () => {
 
     expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.AUTH_LOGOUT);
     expect(storage.has(ACCESS_TOKEN_STORAGE_KEY)).toBe(false);
-    expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
   });
 
@@ -194,7 +157,6 @@ describe('RealAuthService', () => {
       API_CONTRACTS.AUTH_LOGOUT_ALL
     );
     expect(storage.has(ACCESS_TOKEN_STORAGE_KEY)).toBe(false);
-    expect(storage.has(REFRESH_TOKEN_STORAGE_KEY)).toBe(false);
     expect(storage.has(USER_STORAGE_KEY)).toBe(false);
   });
 });

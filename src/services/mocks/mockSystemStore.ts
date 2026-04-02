@@ -110,9 +110,8 @@ export type MockCommentRecord = {
   createdAt: string;
 };
 
-const AUTH_USER_STORAGE_KEY = 'decibel_mock_user';
+const AUTH_USER_STORAGE_KEY = 'user';
 const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 const LEGACY_TRACKS_STORAGE_KEY = 'decibel_mock_tracks';
 const MOCK_SYSTEM_STORAGE_KEY = 'decibel_mock_system_state_v1';
 const MAX_PERSISTED_DATA_URL_LENGTH = 100_000;
@@ -775,7 +774,6 @@ export const flushMockLocalStorage = (): void => {
     LEGACY_TRACKS_STORAGE_KEY,
     AUTH_USER_STORAGE_KEY,
     ACCESS_TOKEN_STORAGE_KEY,
-    REFRESH_TOKEN_STORAGE_KEY,
   ];
 
   for (const key of keys) {

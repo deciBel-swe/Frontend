@@ -81,19 +81,31 @@ export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
   genre: z.string().trim().optional().default('Unknown'),
-  description: z.string().optional(),
-  releaseDate: z.string().trim().optional(),
+  description: z.string().optional().default('').nullable(),
+  releaseDate: z.string().trim().optional().nullable(),
   isPrivate: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional().default([]),
-  trackUrl: z.string().trim().min(1).optional(),
-  coverUrl: z.string().trim().min(1).optional(),
-  coverImage: z.string().trim().min(1).optional(),
-  waveformUrl: z.string().trim().min(1).optional(),
-  artist: trackArtistSchema.optional(),
+  trackUrl: z.string().trim().min(1).optional().nullable(),
+  coverUrl: z.string().trim().min(1).optional().nullable(),
+  coverImage: z.string().trim().min(1).optional().nullable(),
+  waveformUrl: z.string().trim().min(1).optional().nullable(),
+  waveformData: z.union([z.string(), z.array(z.number())]).optional(),
+  artist: trackArtistSchema.partial().optional(),
   userId: z.number().int().nonnegative().optional(),
   username: z.string().trim().min(1).optional(),
 });
 export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
+
+export const paginatedTracksResponseSchema = z.object({
+  content: z.array(trackDetailsResponseSchema),
+  pageNumber: z.number().int().nonnegative(),
+  pageSize: z.number().int().nonnegative(),
+  totalElements: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+  isLast: z.boolean(),
+});
+export type PaginatedTracksResponse = z.infer<typeof paginatedTracksResponseSchema>;
+
 
 /** Schema for PATCH /tracks/:trackId */
 export const trackUpdateResponseSchema = z.object({
@@ -116,7 +128,7 @@ export const trackMetadataSchema = z.object({
   trackUrl: z.string().url(),
   coverUrl: z.string().url(),
   waveformUrl: z.string().url(),
-  waveformData: z.string().optional(), //this should be deleted after the wavefrom data URL is properly integrated and the frontend can fetch it directly from the API instead of relying on embedded data.
+  waveformData: z.array(z.number()).optional(),
   genre: z.string(),
   tags: z.array(z.string()),
   description: z.string().optional().default(''),
@@ -174,8 +186,8 @@ export type paginatedTrackResponse = z.infer<
 export const trackPreviewSchema = z.object({
   title: z.string(),
   artist: z.string(),
-  coverUrl: z.string().url().optional(),
-  duration: z.string().optional(),
+  coverUrl: z.string().url().optional().nullable(),
+  duration: z.string().optional().nullable(),
 });
 export type TrackPreview = z.infer<typeof trackPreviewSchema>;
 

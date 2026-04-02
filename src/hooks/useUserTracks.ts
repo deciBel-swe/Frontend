@@ -64,7 +64,7 @@ export function useUserTracks(params: UseUserTracksParams) {
         if (!isCancelled) {
           setTracks(data);
         }
-      } catch {
+      } catch{
         if (!isCancelled) {
           setIsError(true);
         }

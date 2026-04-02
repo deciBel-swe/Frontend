@@ -35,6 +35,7 @@ import { useMemo } from 'react';
 import { z } from 'zod';
 
 import { config } from '@/config';
+import { API_CONTRACTS } from '@/types/apiContracts';
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import { apiErrorDTOSchema, type ApiErrorDTO } from '@/types';
 
@@ -169,12 +170,13 @@ export const attachJwtInterceptor = (
     ) {
       return requestConfig;
     }
-
+    
     (
       requestConfig.headers as {
         set: (name: string, value: string) => void;
       }
     ).set('Authorization', `Bearer ${token}`);
+    console.log('Attached JWT token to request via Headers instance');
     return requestConfig;
   }
 
@@ -199,6 +201,67 @@ export const attachJwtInterceptor = (
 };
 
 apiClient.interceptors.request.use(attachJwtInterceptor);
+
+type RetryableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+};
+
+let refreshTokenRequest: Promise<void> | null = null;
+
+const shouldHandleUnauthorized = (error: AxiosError): boolean => {
+  const status = error.response?.status;
+  const requestConfig = error.config as RetryableRequestConfig | undefined;
+
+  if (!requestConfig) {
+    return false;
+  }
+
+  if (requestConfig._retry) {
+    return false;
+  }
+
+  if (status !== 401) {
+    return false;
+  }
+
+  return requestConfig.url !== API_CONTRACTS.AUTH_REFRESH_TOKEN.url;
+};
+
+const refreshSessionToken = async (): Promise<void> => {
+  if (!refreshTokenRequest) {
+    refreshTokenRequest = (async () => {
+      const { authService } = await import('@/services');
+      await authService.refreshToken();
+    })().finally(() => {
+      refreshTokenRequest = null;
+    });
+  }
+
+  await refreshTokenRequest;
+};
+
+export const handleAuthRefreshOnUnauthorized = async (
+  error: unknown
+): Promise<unknown> => {
+  if (!axios.isAxiosError(error) || !shouldHandleUnauthorized(error)) {
+    return Promise.reject(error);
+  }
+
+  const requestConfig = error.config as RetryableRequestConfig;
+  requestConfig._retry = true;
+
+  try {
+    await refreshSessionToken();
+    return apiClient.request(requestConfig);
+  } catch {
+    return Promise.reject(error);
+  }
+};
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  handleAuthRefreshOnUnauthorized
+);
 
 const formatZodIssues = (error: z.ZodError): string => {
   return error.issues

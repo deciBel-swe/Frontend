@@ -20,7 +20,7 @@ describe('useFeedTracks (Data Transformation)', () => {
         title: 'Test Track',
         artist: { username: 'mockartist' },
         coverUrl: 'https://real-track-cover.jpg',
-        waveformData: '[]',
+        waveformData: [],
       },
     ]);
 

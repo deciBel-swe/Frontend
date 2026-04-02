@@ -104,7 +104,7 @@ const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
 const DEFAULT_WAVEFORM_PATH = '/images/default-waveform.json';
 
 const toAbsoluteUrl = (
-  value: string | undefined,
+  value: string | null | undefined,
   fallbackPath: string
 ): string => {
   const base = config.api.appUrl;
@@ -138,10 +138,72 @@ const normalizeTrackMetadata = (
       DEFAULT_COVER_PATH
     ),
     waveformUrl: toAbsoluteUrl(payload.waveformUrl, DEFAULT_WAVEFORM_PATH),
+    waveformData: [],
     genre: payload.genre,
     tags: payload.tags,
     description: payload.description ?? '',
     releaseDate: payload.releaseDate ?? '',
+  };
+};
+
+const parseWaveformPayload = (value: unknown): number[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => Number(entry))
+      .filter((entry) => Number.isFinite(entry))
+      .map((entry) => Math.max(0, Math.min(1, entry)));
+  }
+
+  if (typeof value === 'string') {
+    if (value.trim().length === 0) {
+      return [];
+    }
+
+    try {
+      return parseWaveformPayload(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+};
+
+const fetchWaveformData = async (waveformUrl: string): Promise<number[]> => {
+  if (typeof fetch !== 'function') {
+    return [];
+  }
+
+  try {
+    const response = await fetch(waveformUrl);
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = (await response.json()) as unknown;
+    return parseWaveformPayload(payload);
+  } catch {
+    return [];
+  }
+};
+
+const hydrateWaveformData = async (
+  metadata: TrackMetaData,
+  payload: TrackDetailsResponse
+): Promise<TrackMetaData> => {
+  const embeddedWaveform = parseWaveformPayload(payload.waveformData);
+  if (embeddedWaveform.length > 0) {
+    return {
+      ...metadata,
+      waveformData: embeddedWaveform,
+    };
+  }
+
+  const downloadedWaveform = await fetchWaveformData(metadata.waveformUrl);
+
+  return {
+    ...metadata,
+    waveformData: downloadedWaveform,
   };
 };
 
@@ -168,20 +230,29 @@ export class RealTrackService implements TrackService {
 
   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
     const payload = await apiRequest(API_CONTRACTS.TRACKS_BY_ID(trackId));
-    return normalizeTrackMetadata(trackId, payload);
+    const normalized = normalizeTrackMetadata(trackId, payload);
+    return hydrateWaveformData(normalized, payload);
   }
 
   async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
-    const tracks = payload.map((track) =>
-      normalizeTrackMetadata(track.id, track)
+    const tracks = await Promise.all(
+      payload.content.map(async (track) => {
+        const normalized = normalizeTrackMetadata(track.id, track);
+        return hydrateWaveformData(normalized, track);
+      })
     );
     return tracks.filter((track) => track.artist.id === userId);
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
-    return payload.map((track) => normalizeTrackMetadata(track.id, track));
+    return Promise.all(
+      payload.content.map(async (track) => {
+        const normalized = normalizeTrackMetadata(track.id, track);
+        return hydrateWaveformData(normalized, track);
+      })
+    );
   }
 
   async updateTrack(
