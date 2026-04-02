@@ -3,21 +3,60 @@
 import TrackCard from '@/components/TrackCard';
 import { useUserTracks } from '@/hooks/useUserTracks';
 
+export type TrackListItem = {
+  trackId: string;
+  user: { name: string; avatar: string };
+  postedText?: string;
+  repostedBy?: string;
+  track: {
+    id: number;
+    artist: string;
+    title: string;
+    cover: string;
+    duration: string;
+    plays?: number;
+    comments?: number;
+    createdAt?: string;
+    genre?: string;
+    durationSeconds?: number;
+  };
+  waveform: number[];
+};
+
 type TrackListProps = {
   userId?: number;
   username?: string;
   artistAvatar?: string;
-  // NEW prop to control showing CompactTrackList inside each TrackCard
+  //prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
+  //optional external tracks (likes / reposts pages)
+  tracks?: TrackListItem[];
+  isLoading?: boolean;
+  showEditButton?: boolean;
+  showCommentInput?: boolean;
+  currentUserAvatar?: string;
+  showHeader?: boolean;
 };
 
 export default function TrackList({
   userId,
   username,
   artistAvatar,
-  showTrackList = false, 
+  showTrackList = false,
+
+  tracks: externalTracks,
+  isLoading: externalLoading = false,
+  showEditButton = true,
+  showCommentInput = false,
+  currentUserAvatar,
+  showHeader = true,
 }: TrackListProps) {
-  const { tracks, isLoading, isError } = useUserTracks({ userId, username });
+  // Only fetch when no external tracks are supplied
+  const { tracks: fetchedTracks, isLoading: fetchLoading, isError } = useUserTracks(
+    externalTracks === undefined ? { userId, username } : { userId: undefined, username: undefined }
+  );
+
+  const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
 
   if (isLoading) {
     return (
@@ -32,7 +71,7 @@ export default function TrackList({
     );
   }
 
-  if (isError) {
+  if (externalTracks === undefined && isError) {
     return (
       <p className="text-text-muted text-sm">
         Failed to load tracks. Please try again later.
@@ -40,42 +79,56 @@ export default function TrackList({
     );
   }
 
-  if (tracks.length === 0) {
+  // ── Normalise fetched tracks into TrackListItem shape ─────────
+  const items: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
+    const artistName =
+      typeof track.artist === 'string'
+        ? track.artist
+        : track.artist.username;
+
+    return {
+      trackId: String(track.id),
+      user: {
+        name: artistName,
+        avatar: artistAvatar || track.coverUrl,
+      },
+      postedText: 'posted a track',
+      track: {
+        id: track.id,
+        artist: artistName,
+        title: track.title,
+        cover: track.coverUrl,
+        duration: '',
+        createdAt: track.releaseDate,
+      },
+      waveform: track.waveformData ?? [],
+    };
+  });
+
+  if (items.length === 0) {
     return <p className="text-text-muted text-sm">No tracks published yet.</p>;
   }
 
   return (
     <>
-      {tracks.map((track) => {
-        const artistName =
-          typeof track.artist === 'string'
-            ? track.artist
-            : track.artist.username;
+      {items.map((item) => (
+        <TrackCard
+          key={item.trackId}
+          trackId={item.trackId}
+          isPrivate={false}
+          user={item.user}
+          postedText={item.postedText}
+          repostedBy={item.repostedBy}
+          showTrackList={showTrackList}
+          track={item.track}
+          waveform={item.waveform}
 
-        return (
-          <TrackCard
-            key={track.id}
-            trackId={String(track.id)}
-            isPrivate={false}
-            user={{
-              name: artistName,
-              avatar: artistAvatar || track.coverUrl, //if artist avatar missing use that of track
-            }}
-            postedText="posted a track"
-            // timeAgo=""
-            showTrackList={showTrackList}
-            track={{
-              id: track.id,
-              artist: artistName,
-              title: track.title,
-              cover: track.coverUrl,
-              duration: '',
-              createdAt: track.releaseDate,
-            }}
-            waveform={track.waveformData ?? []}
-          />
-        );
-      })}
+          showEditButton={showEditButton}
+          showCommentInput={showCommentInput}
+          currentUserAvatar={currentUserAvatar}
+          showHeader={showHeader}
+        />
+      ))}
     </>
   );
 }
