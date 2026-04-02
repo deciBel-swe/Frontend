@@ -19,6 +19,7 @@ import {
   loginLocalRequestDTOSchema,
   loginResponseDTOSchema,
   registerLocalRequestDTOSchema,
+  registerLocalResponseDTOSchema,
   refreshTokenRequestDTOSchema,
   refreshTokenResponseDTOSchema,
 } from './index';
@@ -112,7 +113,7 @@ export const API_CONTRACTS = {
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REGISTER_LOCAL,
     requestSchema: registerLocalRequestDTOSchema,
-    responseSchema: z.string().min(1),
+    responseSchema: registerLocalResponseDTOSchema,
   }),
 
   AUTH_OAUTH_GOOGLE: defineContract({

@@ -5,6 +5,7 @@ import type {
   LoginResponseDTO,
   RegisterLocalRequestDTO,
   RefreshTokenResponseDTO,
+  RegisterLocalResponseDTO,
 } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import { sha256Hex } from '@/utils/sha256';
@@ -19,7 +20,7 @@ export interface AuthService {
   login(email: string, password: string): Promise<LoginResponseDTO>;
 
   /** Register a local account (POST /auth/register/local). */
-  registerLocal(payload: RegisterLocalPayload): Promise<string>;
+  registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO>;
 
   // NEW: Handle the Google OAuth code exchange
   loginWithGoogle(code: string): Promise<LoginResponseDTO>;
@@ -90,14 +91,14 @@ export class RealAuthService implements AuthService {
     const hashedPassword = await sha256Hex(password);
 
     const response = await apiRequest(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
-      payload: { email, password: hashedPassword },
+      payload: { email, password: hashedPassword, deviceInfo: buildDeviceInfo() },
     });
 
     this.persistSession(response);
     return response;
   }
 
-  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
     const hashedPassword = await sha256Hex(payload.password);
 
     return apiRequest(API_CONTRACTS.AUTH_REGISTER_LOCAL, {

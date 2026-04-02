@@ -7,6 +7,7 @@ import type {
   LoginResponseDTO,
   LoginUserDTO,
   RefreshTokenResponseDTO,
+  RegisterLocalResponseDTO,
 } from '@/types';
 
 import {
@@ -170,7 +171,7 @@ const extractGoogleIdentity = (
 // ================================
 
 export class MockAuthService implements AuthService {
-  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
     await delay();
 
     createMockAuthAccount({
@@ -182,7 +183,7 @@ export class MockAuthService implements AuthService {
       tier: 'FREE',
     });
 
-    return 'User Generated successfully';
+    return { message: 'User Generated successfully' };
   }
 
   async getSession(): Promise<LoginResponseDTO | null> {

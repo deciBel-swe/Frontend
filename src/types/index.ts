@@ -19,13 +19,6 @@ export type UserTier = z.infer<typeof userTierSchema>;
 // Auth
 // ================================
 
-/** DTO sent to POST /auth/login/local */
-export const loginLocalRequestDTOSchema = z.object({
-  email: z.string().trim().email(),
-  password: z.string().min(1),
-});
-export type LoginLocalRequestDTO = z.infer<typeof loginLocalRequestDTOSchema>;
-
 /** Device metadata sent to OAuth exchange endpoints. */
 export const deviceInfoDTOSchema = z.object({
   deviceType: z.enum(['DESKTOP', 'MOBILE', 'TABLET']),
@@ -33,6 +26,14 @@ export const deviceInfoDTOSchema = z.object({
   deviceName: z.string().trim().min(1),
 });
 export type DeviceInfoDTO = z.infer<typeof deviceInfoDTOSchema>;
+
+/** DTO sent to POST /auth/login/local */
+export const loginLocalRequestDTOSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(1),
+  deviceInfo: deviceInfoDTOSchema,
+});
+export type LoginLocalRequestDTO = z.infer<typeof loginLocalRequestDTOSchema>;
 
 /** DTO sent to POST /auth/register/local */
 export const registerLocalRequestDTOSchema = z.object({
@@ -46,6 +47,12 @@ export const registerLocalRequestDTOSchema = z.object({
   captchaToken: z.string().trim().min(1),
   deviceInfo: deviceInfoDTOSchema,
 });
+
+/** Response from POST /auth/register/local */
+export const registerLocalResponseDTOSchema = z.object({
+  message: z.string().trim().min(1),
+});
+
 export type RegisterLocalRequestDTO = z.infer<
   typeof registerLocalRequestDTOSchema
 >;
@@ -75,7 +82,7 @@ export const loginResponseDTOSchema = z.object({
   user: loginUserDTOSchema,
 });
 export type LoginResponseDTO = z.infer<typeof loginResponseDTOSchema>;
-
+export type RegisterLocalResponseDTO = z.infer<typeof registerLocalResponseDTOSchema>;
 /** DTO sent to POST /auth/refreshtoken */
 export const refreshTokenRequestDTOSchema = z.object({
   refreshToken: z.string().trim().min(1),
