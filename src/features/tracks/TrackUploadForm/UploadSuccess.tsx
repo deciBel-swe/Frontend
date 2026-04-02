@@ -12,7 +12,7 @@ interface UploadSuccessProps {
 export default function UploadSuccess({
   uploadedTrackUrl,
   generatedWaveform,
-  waveformHeight,
+  // waveformHeight,
   onReset,
 }: UploadSuccessProps) {
   return (
