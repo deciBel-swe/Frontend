@@ -144,7 +144,7 @@ export default function TrackList({
           waveform={item.waveform}
 
           showEditButton={showEditButton}
-          showCommentInput={showCommentInput}
+          // showCommentInput={showCommentInput}
           currentUserAvatar={currentUserAvatar}
           showHeader={showHeader}
         />
