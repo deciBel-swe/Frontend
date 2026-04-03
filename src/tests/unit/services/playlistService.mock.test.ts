@@ -3,7 +3,7 @@ type MockPlaylistServiceCtor =
 
 const MOCK_PLAYLIST_SYSTEM_KEY = 'decibel_mock_system_state_v1';
 
-const advanceTimer = async (ms = 400) => {
+const advance = async (ms = 400) => {
   await jest.advanceTimersByTimeAsync(ms);
 };
 
@@ -105,8 +105,11 @@ describe('MockPlaylistService', () => {
     await deletePromise;
 
     const missingPromise = service.getPlaylist(created.id);
+    const missingExpectation = expect(missingPromise).rejects.toThrow(
+      'Playlist not found'
+    );
     await advance();
-    await expect(missingPromise).rejects.toThrow('Playlist not found');
+    await missingExpectation;
   });
 
   it('handles secret links and token access', async () => {

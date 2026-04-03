@@ -3,7 +3,7 @@ type MockCommentServiceCtor =
 
 const MOCK_SYSTEM_KEY = 'decibel_mock_system_state_v1';
 
-const advanceTime = async (ms = 400) => {
+const advance = async (ms = 400) => {
   await jest.advanceTimersByTimeAsync(ms);
 };
 

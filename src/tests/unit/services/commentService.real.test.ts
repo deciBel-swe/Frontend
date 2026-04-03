@@ -81,7 +81,10 @@ describe('RealCommentService', () => {
     await service.deleteComment(1001);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.COMMENTS_DELETE(1001)
+      expect.objectContaining({
+        method: 'DELETE',
+        url: '/api/comments/1001',
+      })
     );
   });
 });

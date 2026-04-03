@@ -83,7 +83,7 @@ describe('RealPlaylistService', () => {
     await service.deletePlaylist(91);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_DELETE(91)
+      expect.objectContaining({ method: 'DELETE', url: '/playlists/91' })
     );
   });
 
@@ -154,15 +154,18 @@ describe('RealPlaylistService', () => {
     await service.addTrackToPlaylist(5, payload);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_ADD_TRACK(5),
+      expect.objectContaining({ method: 'POST', url: '/playlists/5/tracks' }),
       { payload }
     );
 
     mockedApiRequest.mockResolvedValue(undefined);
     await service.removeTrackFromPlaylist(5, 101);
 
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_REMOVE_TRACK(5, 101)
+    expect(mockedApiRequest).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        method: 'DELETE',
+        url: '/playlists/5/tracks/101',
+      })
     );
   });
 
