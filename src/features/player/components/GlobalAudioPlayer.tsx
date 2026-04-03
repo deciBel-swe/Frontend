@@ -326,6 +326,8 @@ export default function GlobalAudioPlayer({
 
     if (Math.abs(audio.currentTime - currentTime) > 0.05) {
       applySeek(currentTime);
+      console.log(`Applied seek to ${currentTime} for track ${currentTrack.title}`);
+      console.log(`Audio currentTime is now ${audio.currentTime}`);
     }
   }, [currentTime, currentTrack]);
 

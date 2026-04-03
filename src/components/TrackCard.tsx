@@ -120,6 +120,7 @@ export default function TrackCard({
 
   const playerQueue = usePlayerStore((state) => state.queue);
   const currentPlayerTrack = usePlayerStore((state) => state.currentTrack);
+  const playerCurrentTime = usePlayerStore((state) => state.currentTime);
   const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
@@ -138,6 +139,13 @@ export default function TrackCard({
 
   // Prefer playback-provided duration; fall back to local duration string parsing.
   const effectiveDurationSeconds = playback?.durationSeconds ?? durationSeconds;
+  const isCurrentPlaybackTrack = currentPlayerTrack?.id === playback?.id;
+  const playbackDurationFallback = isCurrentPlaybackTrack ? playerDuration : 0;
+  const waveformDurationSeconds =
+    effectiveDurationSeconds > 0 ? effectiveDurationSeconds : playbackDurationFallback;
+  const waveformCurrentTime = isCurrentPlaybackTrack
+    ? playerCurrentTime
+    : (pendingTimestamp ?? 0);
 
   /**
    * Queue-aware play handler.
@@ -168,10 +176,7 @@ export default function TrackCard({
       return;
     }
 
-    const fallbackDuration =
-      currentPlayerTrack?.id === playback?.id ? playerDuration : 0;
-    const seekDuration =
-      effectiveDurationSeconds > 0 ? effectiveDurationSeconds : fallbackDuration;
+    const seekDuration = waveformDurationSeconds;
 
     if (seekDuration <= 0) {
       return;
@@ -326,13 +331,13 @@ export default function TrackCard({
   <Waveform
     data={waveform}
     barClassName={isBlocked ? 'bg-text-muted' : 'bg-text-muted hover:bg-brand-primary'}
-    currentTime={pendingTimestamp ?? 0}
-    durationSeconds={effectiveDurationSeconds}
+    currentTime={waveformCurrentTime}
+    durationSeconds={waveformDurationSeconds}
       onWaveformClick={handleWaveformClick}
   />
   <WaveformTimedComments
   comments={timedComments} // only old comments
-  durationSeconds={effectiveDurationSeconds}
+  durationSeconds={waveformDurationSeconds}
   currentUser={{ name: user.name, avatar: user.avatar }}
   pendingTimestamp={null}   // nothing pending
   pendingText=""             // nothing pending
@@ -344,7 +349,7 @@ export default function TrackCard({
 {waveformTimedCommentsVisible && (
   <WaveformTimedComments
     comments={[]}  // empty, we only want the new comment
-    durationSeconds={effectiveDurationSeconds}
+    durationSeconds={waveformDurationSeconds}
     currentUser={{ name: user.name, avatar: user.avatar }}
     pendingTimestamp={pendingTimestamp}
     pendingText={pendingText}
