@@ -4,7 +4,6 @@ import PlayerControls from "./PlayerControls";
 import Timeline from "./Timeline";
 import VolumeControl from "./VolumeControl";
 import SoundBadge from "./SoundBadge";
-import QueuePanel from "./QueuePanel";
 import PlaybackModes from "./PlaybackModes";
 import SocialActions from "./SocialActions";
 
