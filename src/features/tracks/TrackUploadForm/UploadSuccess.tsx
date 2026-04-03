@@ -12,7 +12,7 @@ interface UploadSuccessProps {
 export default function UploadSuccess({
   uploadedTrackUrl,
   generatedWaveform,
-  waveformHeight,
+  // waveformHeight,
   onReset,
 }: UploadSuccessProps) {
   return (
@@ -27,7 +27,9 @@ export default function UploadSuccess({
           </p>
           {generatedWaveform.length > 0 && (
             <div className="mt-6 w-full">
-              <Waveform data={generatedWaveform} height={waveformHeight} />
+              <Waveform data={generatedWaveform} 
+              // height={waveformHeight}
+               />
             </div>
           )}
         </div>

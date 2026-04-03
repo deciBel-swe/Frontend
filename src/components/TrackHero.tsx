@@ -113,7 +113,7 @@ export default function TrackHero({
           <div className="w-full min-w-0">
             <Waveform
               data={waveform}
-              height={80}
+              // height={80}
               barClassName="bg-text-muted hover:bg-brand-primary"
             />
             <div className="flex justify-end mt-1">

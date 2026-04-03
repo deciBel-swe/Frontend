@@ -33,7 +33,7 @@ type TrackListProps = {
   tracks?: TrackListItem[];
   isLoading?: boolean;
   showEditButton?: boolean;
-  showCommentInput?: boolean;
+  // showCommentInput?: boolean;
   currentUserAvatar?: string;
   showHeader?: boolean;
 };
@@ -47,7 +47,7 @@ export default function TrackList({
   tracks: externalTracks,
   isLoading: externalLoading = false,
   showEditButton = true,
-  showCommentInput = false,
+  // showCommentInput = false,
   currentUserAvatar,
   showHeader = true,
 }: TrackListProps) {
@@ -124,7 +124,7 @@ export default function TrackList({
           waveform={item.waveform}
 
           showEditButton={showEditButton}
-          showCommentInput={showCommentInput}
+          // showCommentInput={showCommentInput}
           currentUserAvatar={currentUserAvatar}
           showHeader={showHeader}
         />

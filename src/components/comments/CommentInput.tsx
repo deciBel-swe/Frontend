@@ -7,9 +7,11 @@ type CommentInputProps = {
   avatarUrl?: string;
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  // onSubmit: () => void;
+  onSubmit: (text: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  onFocus?: () => void;
 };
 
 export default function CommentInput({
@@ -19,11 +21,12 @@ export default function CommentInput({
   onSubmit,
   placeholder = 'Write a comment…',
   disabled = false,
+  onFocus,
 }: CommentInputProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && value.trim()) {
       e.preventDefault();
-      onSubmit();
+      onSubmit(value);
     }
   };
 
@@ -48,13 +51,14 @@ export default function CommentInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
+        onFocus={onFocus}
         className="flex-1 bg-transparent border-0 border-b border-border-default focus:border-brand-primary outline-none text-sm text-text-primary placeholder:text-text-muted py-1.5 transition-colors"
       />
 
       {/* Submit */}
       <Button
         variant="ghost"
-        onClick={onSubmit}
+        onClick={() => onSubmit(value)}
         disabled={disabled || !value.trim()}
         aria-label="Post comment"
         className="text-text-muted hover:text-brand-primary disabled:opacity-30 p-1"
