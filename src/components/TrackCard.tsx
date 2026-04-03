@@ -1,9 +1,10 @@
 'use client';
 
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
+import { useTrackCard } from '@/hooks/useTrackCard';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Play, MessageCircle, Repeat2 } from 'lucide-react';
+import { Heart, Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
 import type { TrackCardPlaybackData } from '@/features/player/components/playerComponent.contracts';
@@ -20,9 +21,7 @@ import CompactTrackList from '@/components/CompactTrackList';
 import TrackActions from '@/components/TrackActions';
 import TimeAgo from '@/components/TimeAgo';
 import CommentInput from '@/components/comments/CommentInput';
-import WaveformTimedComments, {
-  TimedComment,
-} from '@/components/WaveformTimedComments';
+import WaveformTimedComments from '@/components/WaveformTimedComments';
 import { parseDurationToSeconds } from '@/utils/parseDuration';
 
 /**
@@ -66,6 +65,10 @@ type TrackCardProps = {
     comments?: number;     // optional number of messages/comments
     createdAt?: string; // ISO date
     genre?: string;
+    isLiked?: boolean;
+    isReposted?: boolean;
+    likeCount?: number;
+    repostCount?: number;
   };
   playback?: TrackCardPlaybackData;
   queueTracks?: PlayerTrack[];
@@ -97,7 +100,7 @@ export default function TrackCard({
 
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
-  const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
+  // const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
 
   const { visibility } = useTrackVisibility(Number(trackId));
@@ -127,14 +130,33 @@ export default function TrackCard({
   const pausePlayback = usePlayerStore((state) => state.pause);
   const seek = usePlayerStore((state) => state.seek);
 
-  // Existing comment/waveform UI local state retained from original card behavior.
-  const [showCommentInput, setShowCommentInput] = useState(false);
-  const [pendingText, setPendingText] = useState('');
-  const [pendingTimestamp, setPendingTimestamp] = useState<number | null>(null);
-  const [timedComments, setTimedComments] = useState<TimedComment[]>([]);
-  const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
   const durationSeconds = parseDurationToSeconds(track.duration);
   const cardTrackId = playback?.id ?? track.id;
+
+  const {
+    timedComments,
+    pendingText,
+    pendingTimestamp,
+    showCommentInput,
+    waveformTimedCommentsVisible,
+    likeCount,
+    repostCount,
+    isLiked,
+    isReposted,
+    setPendingText,
+    selectTimestamp,
+    onCommentInputFocus,
+    clearPendingCommentSelection,
+    submitTimedComment,
+    onLike,
+    onRepost,
+  } = useTrackCard({
+    trackId: Number(cardTrackId),
+    initialIsLiked: track.isLiked,
+    initialIsReposted: track.isReposted,
+    initialLikeCount: track.likeCount,
+    initialRepostCount: track.repostCount,
+  });
 
   // BLOCKED tracks disable interaction and dim card presentation.
   const isBlocked = playback?.access === 'BLOCKED';
@@ -177,10 +199,8 @@ export default function TrackCard({
     }
 
     // When another track becomes active, reset local seek/comment UI state.
-    setPendingTimestamp(null);
-    setShowCommentInput(false);
-    setWaveformTimedCommentsVisible(false);
-  }, [isCurrentPlaybackTrack]);
+    clearPendingCommentSelection();
+  }, [clearPendingCommentSelection, isCurrentPlaybackTrack]);
 
   const waveformDurationSeconds = knownDurationSeconds;
   const waveformCurrentTime = isCurrentPlaybackTrack
@@ -256,8 +276,7 @@ export default function TrackCard({
       seek(timestamp);
     }
 
-    setPendingTimestamp(timestamp);
-    setShowCommentInput(true);
+    selectTimestamp(timestamp);
   };
 
   return (
@@ -285,8 +304,8 @@ export default function TrackCard({
       <div className="flex gap-2 sm:gap-3 md:gap-4 items-start min-w-0">
         {/* LEFT IMAGE */}
         <Link
-          href={`/${userSlug}/${trackSlug}`}
-          className="w-24 sm:w-28 md:w-36 aspect-square flex-shrink-0 -mt-1"
+          href={`/${userSlug}/${track.id}`}
+          className="w-24 sm:w-28 md:w-36 aspect-square shrink-0 -mt-1"
         >
           <img
             src={track.cover}
@@ -324,7 +343,7 @@ export default function TrackCard({
                 </span>
               ) : (
                 <Play
-                  className="relative z-10 w-6 h-6 translate-x-[1px] text-neutral-1000 hover:opacity-40"
+                  className="relative z-10 w-6 h-6 translate-x-px text-neutral-1000 hover:opacity-40"
                   fill="currentColor"
                 />
               )}
@@ -376,7 +395,7 @@ export default function TrackCard({
 
 <div className='flex w-full'>
   <Link
-    href={`/${userSlug}/${trackSlug}`}
+    href={`/${userSlug}/${track.id}`}
     className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
   >
     {track.title}
@@ -435,22 +454,8 @@ export default function TrackCard({
     setPendingText={setPendingText}
     showCommentInput={true}  // show while typing
     onSubmit={(text) => {
-  if (pendingTimestamp === null) return;
-  if (!text.trim()) return;
-
-  setTimedComments((prev) => [
-    ...prev,
-    {
-      id: crypto.randomUUID(),
-      timestamp: pendingTimestamp, // now it's guaranteed number
-      comment: text,
-      user: { name: user.name, avatar: user.avatar },
-    },
-  ]);
-
-  setPendingText('');
-  setPendingTimestamp(null);
-}}
+      void submitTimedComment(text);
+    }}
     showMarkers={true}
 />
 )}
@@ -460,28 +465,12 @@ export default function TrackCard({
           {showCommentInput && (
             <div className="px-1 sm:px-2">
              <CommentInput
-               onFocus={() => {
-    if (pendingTimestamp !== null) setWaveformTimedCommentsVisible(true);
-  }}
+               onFocus={onCommentInputFocus}
   avatarUrl={user.avatar}
   value={pendingText}
   onChange={setPendingText}
   onSubmit={(text: string) => {
-    if (pendingTimestamp === null) return;
-    if (!text.trim()) return;
-
-    setTimedComments((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        timestamp: pendingTimestamp,
-        comment: text,
-        user: { name: user.name, avatar: user.avatar },
-      },
-    ]);
-
-    setPendingText('');
-    setPendingTimestamp(null);
+    void submitTimedComment(text);
   }}
   placeholder="Write a comment…"
 />
@@ -622,9 +611,15 @@ export default function TrackCard({
   <TrackActions
     size={16}
     showEdit={showEditButton}
+    isLiked={isLiked}
+    isReposted={isReposted}
     onEdit={() => setEditOpen(true)}
-    onLike={() => console.log('Liked', track.id)}
-    onRepost={() => console.log('Reposted', track.id)}
+    onLike={() => {
+      void onLike();
+    }}
+    onRepost={() => {
+      void onRepost();
+    }}
     onShare={() => setIsShareOpen(true)}
     onCopy={handleCopy}
     onMore={() => console.log('More options', track.id)}
@@ -632,6 +627,16 @@ export default function TrackCard({
 
 {/* RIGHT: stats */}
 <div className="ml-auto flex items-center gap-4 text-xs text-text-muted font-semibold">
+  <div className="flex items-center gap-1">
+    <Heart size={14} />
+    <span>{likeCount}</span>
+  </div>
+
+  <div className="flex items-center gap-1">
+    <Repeat2 size={14} />
+    <span>{repostCount}</span>
+  </div>
+
   {track.plays && (
     <div className="flex items-center gap-1">
       <Play size={14} />
@@ -641,7 +646,7 @@ export default function TrackCard({
 
   {track.comments && (
     <Link
-      href={`/${userSlug}/${trackSlug}/comments`}
+      href={`/${userSlug}/${track.id}/comments`}
       className="flex items-center gap-1 hover:underline"
     >
       <MessageCircle size={14} />

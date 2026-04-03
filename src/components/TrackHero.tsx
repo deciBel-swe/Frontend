@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { Play, Pause } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
+import WaveformTimedComments, {
+  type TimedComment,
+} from '@/components/WaveformTimedComments';
 
 type Tag = string;
 
@@ -16,10 +19,15 @@ type TrackHeroProps = {
   tags: Tag[];
   waveformUrl: string;  // JSON string "[0.1, 0.4, ...]"
   duration: string;
+  currentUserAvatar?: string;
+  currentUserName?: string;
+  waveformComments?: TimedComment[];
+  waveformCurrentTime?: number;
+  waveformDurationSeconds?: number;
+  pendingTimestamp?: number | null;
   isPlaying?: boolean;
-  progress?: number;
   onPlayPause?: () => void;
-  onSeek?: (progress: number) => void;
+  onWaveformSeek?: (progress: number) => void;
 };
 
 function parseWaveform(value: string | undefined): number[] {
@@ -45,8 +53,15 @@ export default function TrackHero({
   tags,
   waveformUrl,
   duration,
+  currentUserAvatar,
+  currentUserName,
+  waveformComments = [],
+  waveformCurrentTime = 0,
+  waveformDurationSeconds = 1,
+  pendingTimestamp = null,
   isPlaying = false,
   onPlayPause,
+  onWaveformSeek,
 }: TrackHeroProps) {
   const waveform = parseWaveform(waveformUrl);
 
@@ -69,12 +84,12 @@ export default function TrackHero({
               variant="ghost"
               onClick={onPlayPause}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="flex-shrink-0 w-14 h-14 rounded-full bg-brand-primary hover:bg-brand-primary-hover text-white flex items-center justify-center p-0"
+              className="shrink-0 w-14 h-14 rounded-full bg-brand-primary hover:bg-brand-primary-hover text-white flex items-center justify-center p-0"
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6" fill="currentColor" />
               ) : (
-                <Play className="w-6 h-6 translate-x-[1px]" fill="currentColor" />
+                <Play className="w-6 h-6 translate-x-px" fill="currentColor" />
               )}
             </Button>
 
@@ -87,7 +102,7 @@ export default function TrackHero({
                 >
                   {artistName}
                 </Link>
-                <span className="flex-shrink-0 text-xs">{timeAgo}</span>
+                <span className="shrink-0 text-xs">{timeAgo}</span>
               </div>
 
               <h1 className="text-lg sm:text-xl font-bold text-text-primary leading-tight truncate">
@@ -111,11 +126,30 @@ export default function TrackHero({
 
           {/* Waveform */}
           <div className="w-full min-w-0">
-            <Waveform
-              data={waveform}
-              // height={80}
-              barClassName="bg-text-muted hover:bg-brand-primary"
-            />
+            <div className="w-full relative">
+              <Waveform
+                data={waveform}
+                barClassName="bg-text-muted hover:bg-brand-primary"
+                currentTime={waveformCurrentTime}
+                durationSeconds={waveformDurationSeconds}
+                onWaveformClick={onWaveformSeek}
+              />
+              <WaveformTimedComments
+                comments={waveformComments}
+                durationSeconds={waveformDurationSeconds}
+                currentUser={{
+                  name: currentUserName ?? 'You',
+                  avatar: currentUserAvatar ?? '/images/default_song_image.png',
+                }}
+                pendingTimestamp={pendingTimestamp}
+                pendingText=""
+                setPendingText={() => {}}
+                showCommentInput={false}
+                onSubmit={() => {}}
+                showMarkers={true}
+              />
+            </div>
+
             <div className="flex justify-end mt-1">
               <span className="text-xs font-mono text-text-muted bg-neutral-900/60 px-1.5 py-0.5 rounded">
                 {duration}
@@ -125,7 +159,7 @@ export default function TrackHero({
         </div>
 
         {/* ── RIGHT: Cover art ──────────────────────────────── */}
-        <div className="flex-shrink-0 w-full md:w-52 lg:w-64 aspect-square md:aspect-auto">
+        <div className="shrink-0 w-full md:w-52 lg:w-64 aspect-square md:aspect-auto">
           <img
             src={coverUrl}
             alt={`${title} cover art`}

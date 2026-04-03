@@ -8,6 +8,8 @@ type TrackActionsProps = {
   size?: number;
   className?: string;
   variant?: 'ghost' | 'secondary' | 'primary'| 'premium';
+  isLiked?: boolean;
+  isReposted?: boolean;
   
   // Show/hide buttons
   showLike?: boolean;
@@ -30,6 +32,8 @@ export default function TrackActions({
   size = 16,
   className = '',
   variant = 'ghost',
+  isLiked = false,
+  isReposted = false,
   showLike = true,
   showRepost = true,
   showShare = true,
@@ -46,12 +50,24 @@ export default function TrackActions({
   return (
     <div className={`flex gap-1 ${className}`}>
       {showLike && (
-        <Button variant={variant} aria-label="Like" onClick={onLike}>
-          <Heart size={size} />
+        <Button
+          variant={isLiked? 'ghost_highlight' : variant}
+          aria-label="Like"
+          aria-pressed={isLiked}
+          onClick={onLike}
+          className={isLiked ? 'text-brand-primary bg-brand-primary/10' : ''}
+        >
+          <Heart size={size} fill={isLiked ? 'currentColor' : 'none'} />
         </Button>
       )}
       {showRepost && (
-        <Button variant={variant} aria-label="Repost" onClick={onRepost}>
+        <Button
+          variant={isReposted ? 'ghost_highlight' : variant}
+          aria-label="Repost"
+          aria-pressed={isReposted}
+          onClick={onRepost}
+          className={isReposted ? 'text-brand-primary bg-brand-primary/10' : ''}
+        >
           <Repeat2 size={size} />
         </Button>
       )}

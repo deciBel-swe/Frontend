@@ -109,6 +109,12 @@ export const trackDetailsResponseSchema = z.object({
   userId: z.number().int().nonnegative().optional(),
   username: z.string().trim().min(1).optional(),
   access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
+  isLiked: z.boolean().optional(),
+  isReposted: z.boolean().optional(),
+  likeCount: z.number().int().nonnegative().optional(),
+  repostCount: z.number().int().nonnegative().optional(),
+  playCount: z.number().int().nonnegative().optional(),
+  uploadDate: z.string().trim().optional().nullable(),
 });
 export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
 
@@ -151,6 +157,12 @@ export const trackMetadataSchema = z.object({
   tags: z.array(z.string()),
   description: z.string().optional().default(''),
   releaseDate: z.string().optional().default(''),
+  isLiked: z.boolean().optional(),
+  isReposted: z.boolean().optional(),
+  likeCount: z.number().int().nonnegative().optional(),
+  repostCount: z.number().int().nonnegative().optional(),
+  playCount: z.number().int().nonnegative().optional(),
+  uploadDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
 
@@ -163,7 +175,7 @@ export const trackResponseSchema = z
   .object({
     artist: trackArtistSchema,
     coverUrl: trackImageWithDefault,
-    description: z.string().optional(),
+    description: z.string().nullable().optional(),
     genre: z.string(),
     id: z.number(),
     isLiked: z.boolean(),

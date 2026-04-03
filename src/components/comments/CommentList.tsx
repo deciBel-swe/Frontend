@@ -2,13 +2,19 @@ import CommentItem, { type Comment } from '@/components/comments/CommentItem';
 
 type CommentListProps = {
   comments: Comment[];
-  onLikeComment?: (id: string | number) => void;
+  onReplyComment?: (commentId: string | number, text: string) => Promise<void>;
+  currentUserAvatar?: string;
+  isReplySubmitting?: boolean;
+  replyingToCommentId?: string | number | null;
   isLoading?: boolean;
 };
 
 export default function CommentList({
   comments,
-  onLikeComment,
+  onReplyComment,
+  currentUserAvatar,
+  isReplySubmitting = false,
+  replyingToCommentId = null,
   isLoading = false,
 }: CommentListProps) {
   if (isLoading) {
@@ -16,7 +22,7 @@ export default function CommentList({
       <div className="flex flex-col gap-3 pt-2">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex items-start gap-3 py-3">
-            <div className="w-9 h-9 rounded-full bg-interactive-default animate-pulse flex-shrink-0" />
+            <div className="w-9 h-9 rounded-full bg-interactive-default animate-pulse shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="h-3 bg-interactive-default rounded animate-pulse w-32" />
               <div className="h-3 bg-interactive-default rounded animate-pulse w-full" />
@@ -42,7 +48,10 @@ export default function CommentList({
         <CommentItem
           key={comment.id}
           comment={comment}
-          onLike={onLikeComment}
+          onReply={onReplyComment}
+          currentUserAvatar={currentUserAvatar}
+          isReplySubmitting={isReplySubmitting}
+          isReplyingThisComment={replyingToCommentId === comment.id}
         />
       ))}
     </div>

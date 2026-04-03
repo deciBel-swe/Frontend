@@ -35,11 +35,11 @@ export type Playlist = {
 
 function PlayingBars() {
   return (
-    <span className="inline-flex items-end gap-[2px] h-4" aria-label="Now playing">
+    <span className="inline-flex items-end gap-0.5 h-4" aria-label="Now playing">
       {[0, 150, 300].map((delay) => (
         <span
           key={delay}
-          className="w-[3px] bg-brand-primary rounded-[1px]"
+          className="w-0.75 bg-brand-primary rounded-[1px]"
           style={{ animation: `playingBar 0.6s ease ${delay}ms infinite alternate` }}
         />
       ))}
@@ -67,7 +67,6 @@ export default function PlaylistTrackItem({
 }: PlaylistTrackItemProps) {
   const [hovered, setHovered] = useState(false);
   const artistSlug = (track.artist ?? '').toLowerCase().replace(/\s+/g, '-');
-  const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const unavailable = track.available === false;
 
   return (
@@ -82,12 +81,12 @@ export default function PlaylistTrackItem({
       onClick={onPlay}
     >
       {/* Cover */}
-      <div className="flex-shrink-0 w-8 h-8">
+      <div className="shrink-0 w-8 h-8">
         <HoverPlayImage image={track.coverUrl ?? ''} alt={track.title} />
       </div>
 
       {/* Number */}
-      <span className={`text-sm font-bold w-5 text-right flex-shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}>
+      <span className={`text-sm font-bold w-5 text-right shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}>
         {index + 1}.
       </span>
 
@@ -106,7 +105,7 @@ export default function PlaylistTrackItem({
             </>
         )}
         <Link
-            href={`/${artistSlug}/${trackSlug}`}
+          href={`/${artistSlug}/${track.trackId}`}
             onClick={(e) => e.stopPropagation()}
             className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >
@@ -126,7 +125,7 @@ export default function PlaylistTrackItem({
           />
         </div>
       ) : (
-        <div className="flex items-center gap-1 text-xs font-bold text-text-muted flex-shrink-0">
+        <div className="flex items-center gap-1 text-xs font-bold text-text-muted shrink-0">
           {isActive && isPlaying ? (
             <PlayingBars />
           ) : (

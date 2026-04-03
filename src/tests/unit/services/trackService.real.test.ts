@@ -3,6 +3,8 @@ import { apiRequest } from '@/hooks/useAPI';
 import { RealTrackService } from '@/services/api/trackService';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { PaginatedTracksResponse, TrackDetailsResponse } from '@/types/tracks';
+import { upload } from '@testing-library/user-event/dist/cjs/utility/upload.js';
+import { is } from 'zod/locales';
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
@@ -89,6 +91,13 @@ describe('RealTrackService', () => {
       waveformUrl: 'waveforms/42.json',
       userId: 7,
       username: 'alice',
+      isLiked: false,
+      isReposted: false,  
+      likeCount: 0,
+      repostCount: 0,
+      playCount: 0,
+      uploadDate: '',
+
       description: '',
       isPrivate: false,
     };
@@ -115,6 +124,12 @@ describe('RealTrackService', () => {
       waveformData: [0.1, 0.5, 1, 0],
       genre: 'Electronic',
       tags: ['night'],
+      isLiked: false,
+      isReposted: false,  
+      likeCount: 0,
+      repostCount: 0,
+      playCount: 0,
+      uploadDate: '',
       description: '',
       releaseDate: '',
     });

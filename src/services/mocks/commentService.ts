@@ -81,7 +81,37 @@ export class MockCommentService implements CommentService {
 
     return paginate(comments, params);
   }
+  async replyToComment(commentId: number, payload: CreateCommentRequest): Promise<Comment> {
+    await delay();
 
+    const parentComment = inMemoryComments.find((comment) => comment.id === commentId);
+    if (!parentComment) {
+      throw new Error('Parent comment not found');
+    }
+
+    const currentUser = resolveCurrentUser();
+    const createdAt = new Date().toISOString();
+
+    const record: MockCommentRecord = {
+      id: nextCommentId(),
+      trackId: parentComment.trackId,
+      parentCommentId: parentComment.id,
+      user: {
+        id: currentUser.id,
+        username: currentUser.username,
+        avatarUrl: currentUser.profile.profilePic,
+      },
+      body: payload.body,
+      timestampSeconds: payload.timestampSeconds,
+      createdAt,
+    };
+
+    inMemoryComments.push(record);
+    persistMockSystemState();
+
+    return toCommentResponse(record);
+
+  }
   async addTrackComment(
     trackId: number,
     payload: CreateCommentRequest
@@ -122,6 +152,7 @@ export class MockCommentService implements CommentService {
         id: comment.id,
         user: { ...comment.user },
         body: comment.body,
+        timestampSeconds: comment.timestampSeconds ?? 0,
         createdAt: comment.createdAt,
       }));
 

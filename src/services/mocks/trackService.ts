@@ -80,6 +80,17 @@ const parseWaveformPayload = (value: unknown): number[] => {
 };
 
 const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
+  ...(function () {
+    const currentUserId = resolveCurrentMockUserId();
+    return {
+      isLiked: track.likes.has(currentUserId),
+      isReposted: track.reposters.has(currentUserId),
+      likeCount: track.likes.size,
+      repostCount: track.reposters.size,
+      playCount: 0,
+      uploadDate: track.releaseDate,
+    };
+  })(),
   id: track.id,
   title: track.title,
   artist: { ...track.artist },
@@ -761,6 +772,45 @@ export class MockTrackService implements TrackService {
           uploadDate: new Date(track.releaseDate),
           waveformUrl: track.waveformUrl,
         }));
+        resolve({
+          content,
+          isLast: true,
+          pageNumber: 0,
+          pageSize: content.length,
+          totalElements: content.length,
+          totalPages: 1,
+        });
+      }, 1000);
+    });
+  }
+
+  async getMyRepostedTracks(): Promise<paginatedTrackResponse> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentUserId = resolveCurrentMockUserId();
+        const tracksStore = getMockTracksStore();
+        const repostedTracks = tracksStore.filter((track) =>
+          track.reposters.has(currentUserId)
+        );
+        const content = repostedTracks.map((track) => ({
+          artist: { ...track.artist },
+          coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+          description: track.description,
+          genre: track.genre,
+          id: track.id,
+          isLiked: track.likes.has(currentUserId),
+          isReposted: true,
+          likeCount: track.likes.size,
+          playCount: 0,
+          releaseDate: new Date(track.releaseDate),
+          repostCount: track.reposters.size,
+          tags: [...track.tags],
+          title: track.title,
+          trackUrl: track.trackUrl,
+          uploadDate: new Date(track.releaseDate),
+          waveformUrl: track.waveformUrl,
+        }));
+
         resolve({
           content,
           isLast: true,
