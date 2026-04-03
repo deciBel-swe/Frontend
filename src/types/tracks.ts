@@ -108,6 +108,7 @@ export const trackDetailsResponseSchema = z.object({
   artist: trackArtistSchema.partial().optional(),
   userId: z.number().int().nonnegative().optional(),
   username: z.string().trim().min(1).optional(),
+  access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
 });
 export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
 
@@ -142,6 +143,7 @@ export const trackMetadataSchema = z.object({
   artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
   durationSeconds: z.number().int().nonnegative().optional(),
+  access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
   coverUrl: trackImageWithDefault,
   waveformUrl: z.string().url(),
   waveformData: z.array(z.number()).optional(),

@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
+import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { trackService } from '@/services';
+
+const toPlaybackAccess = (
+  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
+): PlaybackAccess => {
+  if (access === 'BLOCKED' || access === 'PREVIEW') {
+    return 'BLOCKED';
+  }
+  return 'PLAYABLE';
+};
 
 /**
  * useFeedTracks
@@ -68,7 +78,9 @@ export function useFeedTracks() {
 
   // Canonical queue payload for current feed snapshot.
   const queueTracks = tracks.map((track) =>
-    playerTrackMappers.fromTrackMetaData(track, { access: 'PLAYABLE' })
+    playerTrackMappers.fromTrackMetaData(track, {
+      access: toPlaybackAccess(track.access),
+    })
   );
 
   // Quick lookup for mapping feed rows to playback items.

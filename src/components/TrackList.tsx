@@ -12,6 +12,15 @@ import { useUserTracks } from '@/hooks/useUserTracks';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { formatDuration } from '@/utils/formatDuration';
 
+const toPlaybackAccess = (
+  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
+): PlaybackAccess => {
+  if (access === 'BLOCKED' || access === 'PREVIEW') {
+    return 'BLOCKED';
+  }
+  return 'PLAYABLE';
+};
+
 export type TrackListItem = {
   trackId: string;
   user: { name: string; avatar: string };
@@ -105,7 +114,7 @@ export default function TrackList({
         durationSeconds,
       },
       trackUrl: track.trackUrl,
-      access: 'PLAYABLE',
+      access: toPlaybackAccess(track.access),
       waveform: track.waveformData ?? [],
     };
   });
