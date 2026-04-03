@@ -22,6 +22,7 @@ export const PLAYER_INITIAL_STATE: Pick<
   | 'volume'
   | 'queue'
   | 'currentIndex'
+  | 'blockedTrackId'
 > = {
   currentTrack: null,
   isPlaying: false,
@@ -30,4 +31,5 @@ export const PLAYER_INITIAL_STATE: Pick<
   volume: 1,
   queue: [],
   currentIndex: -1,
+  blockedTrackId: null,
 };

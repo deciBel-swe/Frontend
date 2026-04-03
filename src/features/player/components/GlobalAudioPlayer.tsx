@@ -16,10 +16,10 @@
  * - Store contains pure state/actions only.
  * - This component owns imperative side effects and browser audio API usage.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import PlayerBar from '@/components/player/PlayerBar';
 import type { GlobalAudioPlayerProps } from '@/features/player/components/playerComponent.contracts';
-import PlayerUI from '@/features/player/components/PlayerUI';
 import {
   addToRecentlyPlayed,
   userCompletedTrack,
@@ -53,18 +53,20 @@ export default function GlobalAudioPlayer({
   const duration = usePlayerStore((state) => state.duration);
   const volume = usePlayerStore((state) => state.volume);
   const queue = usePlayerStore((state) => state.queue);
-  const queueLength = usePlayerStore((state) => state.queue.length);
   const currentIndex = usePlayerStore((state) => state.currentIndex);
   const togglePlay = usePlayerStore((state) => state.togglePlay);
-  const previousTrack = usePlayerStore((state) => state.previousTrack);
   const requestSeek = usePlayerStore((state) => state.seek);
   const setVolume = usePlayerStore((state) => state.setVolume);
   const setCurrentTime = usePlayerStore((state) => state.setCurrentTime);
   const setDuration = usePlayerStore((state) => state.setDuration);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const removeFromQueue = usePlayerStore((state) => state.removeFromQueue);
-  const nextTrack = usePlayerStore((state) => state.nextTrack);
   const pause = usePlayerStore((state) => state.pause);
+
+  // Queue panel visibility state exposed by the merged PlayerBar API.
+  const [queueVisible, setQueueVisible] = useState(false);
+  const [shuffleActive, setShuffleActive] = useState(false);
+  const [repeatActive, setRepeatActive] = useState(false);
 
   const canPlayCurrentTrack = useMemo(() => {
     return (
@@ -111,16 +113,171 @@ export default function GlobalAudioPlayer({
   };
 
   /**
-   * Public seek entrypoint used by PlayerUI.
+   * Public seek entrypoint used by the merged PlayerBar timeline.
    * 1) Update store for UI state.
    * 2) Try to apply to audio element immediately.
    * 3) Keep pending seek if media is not yet seekable.
    */
   const handleSeek = (time: number) => {
+    if (!currentTrack || !canPlayCurrentTrack) {
+      return;
+    }
+
     pendingSeekRef.current = time;
     requestSeek(time);
     applySeek(time);
   };
+
+  const handlePlay = () => {
+    if (isPlaying) {
+      return;
+    }
+
+    if (!currentTrack) {
+      if (queue.length === 0) {
+        return;
+      }
+
+      const startIndex = currentIndex >= 0 ? currentIndex : 0;
+      const startTrack = queue[startIndex];
+      if (startTrack) {
+        playTrack(startTrack);
+      }
+      return;
+    }
+
+    togglePlay();
+  };
+
+  const handlePause = () => {
+    pause();
+  };
+
+  const selectTrackById = useCallback(
+    (trackId: number) => {
+      const targetTrack = queue.find((item) => item.id === trackId);
+      if (!targetTrack) {
+        return;
+      }
+
+      playTrack(targetTrack);
+    },
+    [playTrack, queue]
+  );
+
+  const findPlayableIndex = useCallback(
+    (startIndex: number, step: 1 | -1, wrap: boolean): number => {
+      if (queue.length === 0) {
+        return -1;
+      }
+
+      let cursor = startIndex;
+      for (let checked = 0; checked < queue.length; checked += 1) {
+        cursor += step;
+
+        if (wrap) {
+          cursor = (cursor + queue.length) % queue.length;
+        } else if (cursor < 0 || cursor >= queue.length) {
+          return -1;
+        }
+
+        const candidate = queue[cursor];
+        if (candidate.access === 'PLAYABLE' && candidate.trackUrl.trim().length > 0) {
+          return cursor;
+        }
+      }
+
+      return -1;
+    },
+    [queue]
+  );
+
+  const handleNextTrack = useCallback(() => {
+    if (queue.length === 0) {
+      pause();
+      return;
+    }
+
+    if (shuffleActive) {
+      const playableTracks = queue.filter(
+        (item) => item.access === 'PLAYABLE' && item.trackUrl.trim().length > 0
+      );
+
+      if (playableTracks.length === 0) {
+        pause();
+        return;
+      }
+
+      const nonCurrentTracks = currentTrack
+        ? playableTracks.filter((item) => item.id !== currentTrack.id)
+        : playableTracks;
+      const pool = nonCurrentTracks.length > 0 ? nonCurrentTracks : playableTracks;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      playTrack(pool[randomIndex]);
+      return;
+    }
+
+    const effectiveIndex = currentIndex >= 0
+      ? currentIndex
+      : currentTrack
+        ? queue.findIndex((item) => item.id === currentTrack.id)
+        : -1;
+
+    const nextPlayableIndex = findPlayableIndex(
+      effectiveIndex,
+      1,
+      repeatActive
+    );
+
+    if (nextPlayableIndex < 0) {
+      pause();
+      return;
+    }
+
+    playTrack(queue[nextPlayableIndex]);
+  }, [currentIndex, currentTrack, findPlayableIndex, pause, playTrack, queue, repeatActive, shuffleActive]);
+
+  const handlePreviousTrack = useCallback(() => {
+    if (queue.length === 0) {
+      return;
+    }
+
+    if (shuffleActive) {
+      const playableTracks = queue.filter(
+        (item) => item.access === 'PLAYABLE' && item.trackUrl.trim().length > 0
+      );
+
+      if (playableTracks.length === 0) {
+        return;
+      }
+
+      const nonCurrentTracks = currentTrack
+        ? playableTracks.filter((item) => item.id !== currentTrack.id)
+        : playableTracks;
+      const pool = nonCurrentTracks.length > 0 ? nonCurrentTracks : playableTracks;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      playTrack(pool[randomIndex]);
+      return;
+    }
+
+    const effectiveIndex = currentIndex >= 0
+      ? currentIndex
+      : currentTrack
+        ? queue.findIndex((item) => item.id === currentTrack.id)
+        : -1;
+
+    const previousPlayableIndex = findPlayableIndex(
+      effectiveIndex,
+      -1,
+      repeatActive
+    );
+
+    if (previousPlayableIndex < 0) {
+      return;
+    }
+
+    playTrack(queue[previousPlayableIndex]);
+  }, [currentIndex, currentTrack, findPlayableIndex, playTrack, queue, repeatActive, shuffleActive]);
 
   useEffect(() => {
     // Sync selected track source into the single audio element.
@@ -266,12 +423,7 @@ export default function GlobalAudioPlayer({
         return;
       }
 
-      if (queueLength === 0 || currentIndex < 0 || currentIndex >= queueLength - 1) {
-        pause();
-        return;
-      }
-
-      nextTrack();
+      handleNextTrack();
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -283,7 +435,7 @@ export default function GlobalAudioPlayer({
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [autoAdvanceOnEnd, currentIndex, currentTrack, duration, nextTrack, pause, queueLength, setCurrentTime, setDuration]);
+  }, [autoAdvanceOnEnd, currentTrack, duration, handleNextTrack, pause, setCurrentTime, setDuration]);
 
   useEffect(() => {
     // Reset time and pending-seek state when active track identity changes.
@@ -304,21 +456,35 @@ export default function GlobalAudioPlayer({
   return (
     <>
       <audio ref={audioRef} preload="metadata" style={{ display: 'none' }} />
-      <PlayerUI
-        queue={queue}
-        currentIndex={currentIndex}
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        currentTime={currentTime}
+      <PlayerBar
+        track={currentTrack?.title ?? 'Nothing playing'}
+        artist={currentTrack?.artistName ?? 'Unknown artist'}
+        artwork={currentTrack?.coverUrl ?? '/images/default_song_image.png'}
         duration={duration}
+        currentTime={currentTime}
+        isPlaying={isPlaying}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onNext={handleNextTrack}
+        onPrev={handlePreviousTrack}
+        onScrub={handleSeek}
         volume={volume}
-        onPreviousTrack={previousTrack}
-        onNextTrack={nextTrack}
-        onQueueItemClick={playTrack}
-        onRemoveQueueItem={removeFromQueue}
-        onTogglePlay={togglePlay}
-        onSeek={handleSeek}
-        onSetVolume={setVolume}
+        onVolumeChange={setVolume}
+        queue={{
+          visible: queueVisible,
+          items: queue.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.artistName,
+          })),
+        }}
+        onQueueSelect={selectTrackById}
+        onQueueRemove={removeFromQueue}
+        onQueueToggle={() => setQueueVisible((previous) => !previous)}
+        shuffleActive={shuffleActive}
+        repeatActive={repeatActive}
+        onToggleShuffle={() => setShuffleActive((previous) => !previous)}
+        onToggleRepeat={() => setRepeatActive((previous) => !previous)}
       />
     </>
   );

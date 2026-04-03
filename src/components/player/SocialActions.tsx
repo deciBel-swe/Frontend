@@ -2,7 +2,15 @@
 import { useState } from "react";
 import { Heart, UserPlus, ListMusic } from "lucide-react";
 
-export default function FilledSocialActions() {
+interface SocialActionsProps {
+  queueVisible: boolean;
+  onQueueToggle: () => void;
+}
+
+export default function FilledSocialActions({
+  queueVisible,
+  onQueueToggle,
+}: SocialActionsProps) {
   const [isLiked, setIsLiked] = useState(true); // Default to liked for demonstration
 
   return (
@@ -31,9 +39,20 @@ export default function FilledSocialActions() {
 
       {/* Solid ListMusic Button */}
       <div className="relative group flex justify-center">
-        <button className="text-white hover:text-orange-500 transition-colors duration-200 active:scale-95">
+        <button
+          onClick={onQueueToggle}
+          title="Queue"
+          className={`transition-colors duration-200 active:scale-95 ${
+            queueVisible ? "text-orange-500" : "text-white hover:text-orange-500"
+          }`}
+        >
           {/* Using strokeWidth and fill to approximate the solid look */}
-          <ListMusic size={15} strokeWidth={3} fill="currentColor" className="hover:text-neutral-400 text-white cursor-pointer" />
+          <ListMusic
+            size={15}
+            strokeWidth={3}
+            fill="currentColor"
+            className="hover:text-neutral-400 cursor-pointer"
+          />
         </button>
       </div>
 

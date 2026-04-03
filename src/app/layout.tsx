@@ -7,7 +7,6 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
 import type { Metadata } from 'next';
-import PlayerBarWrapper from "@/components/player/PlayerBarWrapper";
 import './globals.css';
 
 /**
@@ -93,7 +92,6 @@ export default function RootLayout({
                     <GlobalAudioPlayer />
                   </QueryProvider>
                 </div>
-                <PlayerBarWrapper />
               </div>
             </Suspense>
           </AuthProvider>
