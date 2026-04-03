@@ -7,20 +7,34 @@
 
 /**
  * Called when a user starts playback for a track.
+ *
+ * TODO: replace with real analytics/service call.
+ *
+ * @param trackId Numeric track identifier from the canonical playback model.
  */
-export function userPlayedTrack(trackId: number): void {console.log(`User played track ${trackId}`);}
+export function userPlayedTrack(trackId: number): void {}
 
 /**
  * Called once when playback reaches >= 90% for a track.
+ *
+ * TODO: replace with real analytics/service call.
+ *
+ * @param trackId Numeric track identifier from the canonical playback model.
  */
-export function userCompletedTrack(trackId: number): void {console.log(`User completed track ${trackId}`);}
+export function userCompletedTrack(trackId: number): void {}
 
 /**
  * Called when a track starts to keep recently played in sync.
+ *
+ * TODO: replace with real persistence/service call.
+ *
+ * @param trackId Numeric track identifier from the canonical playback model.
  */
-export function addToRecentlyPlayed(trackId: number): void {console.log(`Adding track to recently played: ${trackId}`);}
+export function addToRecentlyPlayed(trackId: number): void {}
 
 /**
  * Placeholder for reading listening history.
+ *
+ * TODO: replace with real retrieval call returning typed history payload.
  */
-export function getListeningHistory(): void {console.log('Fetching listening history');}
+export function getListeningHistory(): void {}

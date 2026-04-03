@@ -105,6 +105,7 @@ export interface PlayerActions {
   setQueue: (tracks: PlayerTrack[], startIndex?: number, source?: QueueSource) => void;
   addToQueue: (track: PlayerTrack) => void;
   addPlaylistToQueue: (tracks: PlayerTrack[]) => void;
+  removeFromQueue: (trackId: number) => void;
   nextTrack: () => void;
   previousTrack: () => void;
 

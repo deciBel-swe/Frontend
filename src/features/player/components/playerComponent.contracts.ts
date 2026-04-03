@@ -32,11 +32,17 @@ export interface AudioControllerContext {
  * Dummy PlayerUI contract.
  */
 export interface PlayerUiProps {
+  queue: PlayerTrack[];
+  currentIndex: number;
   currentTrack: PlayerTrack | null;
   isPlaying: boolean;
   currentTime: number;
   duration: number;
   volume: number;
+  onPreviousTrack: () => void;
+  onNextTrack: () => void;
+  onQueueItemClick: (track: PlayerTrack) => void;
+  onRemoveQueueItem: (trackId: number) => void;
   onTogglePlay: () => void;
   onSeek: (time: number) => void;
   onSetVolume: (volume: number) => void;
