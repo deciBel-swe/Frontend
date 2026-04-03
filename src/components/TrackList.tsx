@@ -1,6 +1,13 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import TrackCard from '@/components/TrackCard';
+import type {
+  PlaybackAccess,
+  PlayerTrack,
+} from '@/features/player/contracts/playerContracts';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { useUserTracks } from '@/hooks/useUserTracks';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 
@@ -21,6 +28,9 @@ export type TrackListItem = {
     genre?: string;
     durationSeconds?: number;
   };
+  trackUrl?: string;
+  access?: PlaybackAccess;
+  playback?: PlayerTrack;
   waveform: number[];
 };
 
@@ -87,7 +97,7 @@ export default function TrackList({
     );
   }
 
-  // ── Normalise fetched tracks into TrackListItem shape ─────────
+  // Normalize fetched service DTOs into TrackCard + playback mapping shape.
   const items: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
     const artistName =
       typeof track.artist === 'string'
@@ -109,9 +119,38 @@ export default function TrackList({
         duration: '',
         createdAt: track.releaseDate,
       },
+      trackUrl: track.trackUrl,
+      access: 'PLAYABLE',
       waveform: track.waveformData ?? [],
     };
   });
+
+  const queueTracks = useMemo(
+    // Build canonical queue payload once per list snapshot.
+    () =>
+      items
+        .map((item) => {
+          if (item.playback) {
+            return item.playback;
+          }
+
+          if (!item.trackUrl) {
+            return null;
+          }
+
+          return playerTrackMappers.fromAdapterInput({
+            id: item.track.id,
+            title: item.track.title,
+            trackUrl: item.trackUrl,
+            artist: item.track.artist,
+            coverUrl: item.track.cover,
+            waveformData: item.waveform,
+            durationSeconds: item.track.durationSeconds,
+          }, { access: item.access ?? 'PLAYABLE' });
+        })
+        .filter((item): item is PlayerTrack => item !== null),
+    [items]
+  );
 
   if (items.length === 0) {
     return <p className="text-text-muted text-sm">No tracks published yet.</p>;
@@ -119,7 +158,26 @@ export default function TrackList({
 
   return (
     <>
-      {items.map((item) => (
+      {items.map((item) => {
+        // Resolve per-item canonical playback track for card integration.
+        const playback = item.playback ?? (
+          item.trackUrl
+            ? playerTrackMappers.fromAdapterInput(
+                {
+                  id: item.track.id,
+                  title: item.track.title,
+                  trackUrl: item.trackUrl,
+                  artist: item.track.artist,
+                  coverUrl: item.track.cover,
+                  waveformData: item.waveform,
+                  durationSeconds: item.track.durationSeconds,
+                },
+                { access: item.access ?? 'PLAYABLE' }
+              )
+            : undefined
+        );
+
+        return (
         <TrackCard
           key={item.trackId}
           trackId={item.trackId}
@@ -130,13 +188,17 @@ export default function TrackList({
           showTrackList={showTrackList}
           track={item.track}
           waveform={item.waveform}
+          playback={playback}
+          queueTracks={queueTracks}
+          queueSource="profile-tracks"
 
           showEditButton={resolvedShowEditButton}
           // showCommentInput={showCommentInput}
           currentUserAvatar={currentUserAvatar}
           showHeader={showHeader}
         />
-      ))}
+        );
+      })}
     </>
   );
 }

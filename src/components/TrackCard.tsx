@@ -6,16 +6,36 @@ import Link from 'next/link';
 import { Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
+import type { TrackCardPlaybackData } from '@/features/player/components/playerComponent.contracts';
+import type {
+  PlayerTrack,
+  QueueSource,
+} from '@/features/player/contracts/playerContracts';
+import { usePlayerStore } from '@/features/player/store/playerStore';
 import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
-import CompactTrackList from '@/components/CompactTrackList'
-import TrackActions from '@/components/TrackActions'
+import CompactTrackList from '@/components/CompactTrackList';
+import TrackActions from '@/components/TrackActions';
 import TimeAgo from '@/components/TimeAgo';
-import CommentInput from './comments/CommentInput';
-import WaveformTimedComments, { TimedComment } from './WaveformTimedComments';
-import { parseDurationToSeconds } from '@/utils/parseDuration'
+import CommentInput from '@/components/comments/CommentInput';
+import WaveformTimedComments, {
+  TimedComment,
+} from '@/components/WaveformTimedComments';
+import { parseDurationToSeconds } from '@/utils/parseDuration';
+
+/**
+ * Shallow queue identity check used to avoid resetting queue on every track click.
+ */
+const isSameQueue = (currentQueue: PlayerTrack[], incomingQueue: PlayerTrack[]): boolean => {
+  if (currentQueue.length !== incomingQueue.length) {
+    return false;
+  }
+
+  return currentQueue.every((track, index) => track.id === incomingQueue[index]?.id);
+};
+
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
@@ -47,6 +67,9 @@ type TrackCardProps = {
     createdAt?: string; // ISO date
     genre?: string;
   };
+  playback?: TrackCardPlaybackData;
+  queueTracks?: PlayerTrack[];
+  queueSource?: QueueSource;
   showComments?: boolean;
   waveform: number[];
 };
@@ -64,6 +87,9 @@ export default function TrackCard({
   track,
   waveform,
   showTrackList = false,
+  playback,
+  queueTracks,
+  queueSource,
 
   // timeAgoText = '',
   // showCommentInput = false,
@@ -91,17 +117,82 @@ export default function TrackCard({
     artistName: track.artist,
     trackTitle: track.title,
   });
-  {/* Inside your TrackCard component */}
 
-// State for showing comment input and its value
-const [showCommentInput, setShowCommentInput] = useState(false);
-const [pendingText, setPendingText] = useState('');
-const [pendingTimestamp, setPendingTimestamp] = useState<number | null>(null);
-const [timedComments, setTimedComments] = useState<TimedComment[]>([]);
-const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
-const durationSeconds = parseDurationToSeconds(track.duration);
+  const playerQueue = usePlayerStore((state) => state.queue);
+  const currentPlayerTrack = usePlayerStore((state) => state.currentTrack);
+  const playerDuration = usePlayerStore((state) => state.duration);
+  const setQueue = usePlayerStore((state) => state.setQueue);
+  const playTrack = usePlayerStore((state) => state.playTrack);
+  const seek = usePlayerStore((state) => state.seek);
+
+  // Existing comment/waveform UI local state retained from original card behavior.
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [pendingText, setPendingText] = useState('');
+  const [pendingTimestamp, setPendingTimestamp] = useState<number | null>(null);
+  const [timedComments, setTimedComments] = useState<TimedComment[]>([]);
+  const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
+  const durationSeconds = parseDurationToSeconds(track.duration);
+
+  // BLOCKED tracks disable interaction and dim card presentation.
+  const isBlocked = playback?.access === 'BLOCKED';
+
+  // Prefer playback-provided duration; fall back to local duration string parsing.
+  const effectiveDurationSeconds = playback?.durationSeconds ?? durationSeconds;
+
+  /**
+   * Queue-aware play handler.
+   * - sets queue when context queue differs
+   * - starts playback for selected card track
+   */
+  const handlePlayFromCard = () => {
+    if (!playback || isBlocked) {
+      return;
+    }
+
+    if (queueTracks && queueTracks.length > 0) {
+      const startIndex = queueTracks.findIndex((item) => item.id === playback.id);
+      if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
+        setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
+      }
+    }
+
+    playTrack(playback);
+  };
+
+  /**
+   * Seek from waveform interaction.
+   * Falls back to global player duration when card-level duration is missing.
+   */
+  const handleWaveformClick = (percent: number) => {
+    if (isBlocked) {
+      return;
+    }
+
+    const fallbackDuration =
+      currentPlayerTrack?.id === playback?.id ? playerDuration : 0;
+    const seekDuration =
+      effectiveDurationSeconds > 0 ? effectiveDurationSeconds : fallbackDuration;
+
+    if (seekDuration <= 0) {
+      return;
+    }
+
+    const timestamp = percent * seekDuration;
+
+    if (playback) {
+      if (currentPlayerTrack?.id !== playback.id) {
+        handlePlayFromCard();
+      }
+
+      seek(timestamp);
+    }
+
+    setPendingTimestamp(timestamp);
+    setShowCommentInput(true);
+  };
+
   return (
-    <div className="bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3">
+    <div className={`bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3 ${isBlocked ? 'opacity-60' : ''}`}>
       {/* HEADER (soundContext) */}
       {showHeader && (
         <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
@@ -140,6 +231,9 @@ const durationSeconds = parseDurationToSeconds(track.duration);
           <div className="flex items-center gap-3 h-12 px-2">
             <Button
               variant="ghost"
+              onClick={handlePlayFromCard}
+              disabled={isBlocked || !playback}
+              aria-label={isBlocked ? 'Playback blocked' : 'Play track'}
               className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full p-0 flex items-center justify-center group overflow-hidden"
             >
               {/* overlay */}
@@ -231,19 +325,14 @@ const durationSeconds = parseDurationToSeconds(track.duration);
           <div className="w-full relative">
   <Waveform
     data={waveform}
-    barClassName="bg-text-muted hover:bg-brand-primary"
+    barClassName={isBlocked ? 'bg-text-muted' : 'bg-text-muted hover:bg-brand-primary'}
     currentTime={pendingTimestamp ?? 0}
-    durationSeconds={durationSeconds}
-      onWaveformClick={(percent) => {
-    
-      console.log('percent:', percent, 'duration:', durationSeconds, 'timestamp:', percent * durationSeconds);
-    setPendingTimestamp(percent * durationSeconds);
-    setShowCommentInput(true);
-  }}
+    durationSeconds={effectiveDurationSeconds}
+      onWaveformClick={handleWaveformClick}
   />
   <WaveformTimedComments
   comments={timedComments} // only old comments
-  durationSeconds={durationSeconds}
+  durationSeconds={effectiveDurationSeconds}
   currentUser={{ name: user.name, avatar: user.avatar }}
   pendingTimestamp={null}   // nothing pending
   pendingText=""             // nothing pending
@@ -255,7 +344,7 @@ const durationSeconds = parseDurationToSeconds(track.duration);
 {waveformTimedCommentsVisible && (
   <WaveformTimedComments
     comments={[]}  // empty, we only want the new comment
-    durationSeconds={durationSeconds}
+    durationSeconds={effectiveDurationSeconds}
     currentUser={{ name: user.name, avatar: user.avatar }}
     pendingTimestamp={pendingTimestamp}
     pendingText={pendingText}

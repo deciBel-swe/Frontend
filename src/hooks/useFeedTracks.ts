@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { trackService } from '@/services';
 
 /**
@@ -65,6 +66,15 @@ export function useFeedTracks() {
     };
   }, [refreshIndex]);
 
+  // Canonical queue payload for current feed snapshot.
+  const queueTracks = tracks.map((track) =>
+    playerTrackMappers.fromTrackMetaData(track, { access: 'PLAYABLE' })
+  );
+
+  // Quick lookup for mapping feed rows to playback items.
+  const queueMap = new Map(queueTracks.map((track) => [track.id, track]));
+
+  // Map service DTOs into existing TrackCard presentation shape plus playback hooks.
   const feedTracks = tracks.map((track) => {
     const artistName =
       typeof track.artist === 'string' ? track.artist : track.artist.username;
@@ -86,6 +96,8 @@ export function useFeedTracks() {
         duration: '',
       },
       waveform: track.waveformData ?? [],
+      playback: queueMap.get(track.id),
+      queueTracks,
     };
   });
 
