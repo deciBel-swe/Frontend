@@ -133,6 +133,9 @@ const normalizeTrackMetadata = (
       username: artistUsername,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
+    ...(payload.durationSeconds !== undefined && payload.durationSeconds !== null
+      ? { durationSeconds: payload.durationSeconds }
+      : {}),
     coverUrl: toAbsoluteUrl(
       payload.coverUrl ?? payload.coverImage,
       DEFAULT_COVER_PATH

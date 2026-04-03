@@ -10,6 +10,7 @@ import type {
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { useUserTracks } from '@/hooks/useUserTracks';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { formatDuration } from '@/utils/formatDuration';
 
 export type TrackListItem = {
   trackId: string;
@@ -103,6 +104,10 @@ export default function TrackList({
       typeof track.artist === 'string'
         ? track.artist
         : track.artist.username;
+    const durationSeconds =
+      typeof track.durationSeconds === 'number' && track.durationSeconds > 0
+        ? track.durationSeconds
+        : undefined;
 
     return {
       trackId: String(track.id),
@@ -116,8 +121,9 @@ export default function TrackList({
         artist: artistName,
         title: track.title,
         cover: track.coverUrl,
-        duration: '',
+        duration: durationSeconds ? formatDuration(durationSeconds) : '',
         createdAt: track.releaseDate,
+        durationSeconds,
       },
       trackUrl: track.trackUrl,
       access: 'PLAYABLE',

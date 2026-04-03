@@ -1,7 +1,7 @@
 'use client';
 
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
@@ -119,11 +119,12 @@ export default function TrackCard({
   });
 
   const playerQueue = usePlayerStore((state) => state.queue);
-  const currentPlayerTrack = usePlayerStore((state) => state.currentTrack);
+  const currentPlayerTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
   const playerCurrentTime = usePlayerStore((state) => state.currentTime);
   const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
+  const pausePlayback = usePlayerStore((state) => state.pause);
   const seek = usePlayerStore((state) => state.seek);
 
   // Existing comment/waveform UI local state retained from original card behavior.
@@ -133,19 +134,58 @@ export default function TrackCard({
   const [timedComments, setTimedComments] = useState<TimedComment[]>([]);
   const [waveformTimedCommentsVisible, setWaveformTimedCommentsVisible] = useState(false);
   const durationSeconds = parseDurationToSeconds(track.duration);
+  const cardTrackId = playback?.id ?? track.id;
 
   // BLOCKED tracks disable interaction and dim card presentation.
   const isBlocked = playback?.access === 'BLOCKED';
 
   // Prefer playback-provided duration; fall back to local duration string parsing.
-  const effectiveDurationSeconds = playback?.durationSeconds ?? durationSeconds;
-  const isCurrentPlaybackTrack = currentPlayerTrack?.id === playback?.id;
-  const playbackDurationFallback = isCurrentPlaybackTrack ? playerDuration : 0;
-  const waveformDurationSeconds =
-    effectiveDurationSeconds > 0 ? effectiveDurationSeconds : playbackDurationFallback;
+  const metadataDurationSeconds = playback?.durationSeconds ?? durationSeconds;
+  const [knownDurationSeconds, setKnownDurationSeconds] = useState(
+    metadataDurationSeconds > 0 ? metadataDurationSeconds : 0
+  );
+
+  useEffect(() => {
+    if (metadataDurationSeconds > 0) {
+      setKnownDurationSeconds((previous) =>
+        Math.abs(previous - metadataDurationSeconds) > 0.01
+          ? metadataDurationSeconds
+          : previous
+      );
+    }
+  }, [metadataDurationSeconds]);
+
+  const isCurrentPlaybackTrack = usePlayerStore(
+    (state) => Number(state.currentTrack?.id ?? -1) === Number(cardTrackId)
+  );
+  const isCurrentTrackPlaying = usePlayerStore(
+    (state) =>
+      Number(state.currentTrack?.id ?? -1) === Number(cardTrackId) && state.isPlaying
+  );
+
+  useEffect(() => {
+    if (isCurrentPlaybackTrack && playerDuration > 0) {
+      setKnownDurationSeconds((previous) =>
+        Math.abs(previous - playerDuration) > 0.01 ? playerDuration : previous
+      );
+    }
+  }, [isCurrentPlaybackTrack, playerDuration]);
+
+  useEffect(() => {
+    if (isCurrentPlaybackTrack) {
+      return;
+    }
+
+    // When another track becomes active, reset local seek/comment UI state.
+    setPendingTimestamp(null);
+    setShowCommentInput(false);
+    setWaveformTimedCommentsVisible(false);
+  }, [isCurrentPlaybackTrack]);
+
+  const waveformDurationSeconds = knownDurationSeconds;
   const waveformCurrentTime = isCurrentPlaybackTrack
     ? playerCurrentTime
-    : (pendingTimestamp ?? 0);
+    : 0;
 
   /**
    * Queue-aware play handler.
@@ -154,6 +194,17 @@ export default function TrackCard({
    */
   const handlePlayFromCard = () => {
     if (!playback || isBlocked) {
+      return;
+    }
+
+    const isSameTrack = Number(currentPlayerTrackId) === Number(playback.id);
+    if (isSameTrack) {
+      if (isCurrentTrackPlaying) {
+        pausePlayback();
+        return;
+      }
+
+      playTrack(playback);
       return;
     }
 
@@ -176,6 +227,23 @@ export default function TrackCard({
       return;
     }
 
+    if (playback) {
+      const isSameTrack = Number(currentPlayerTrackId) === Number(playback.id);
+
+      if (!isSameTrack) {
+        if (queueTracks && queueTracks.length > 0) {
+          const startIndex = queueTracks.findIndex((item) => item.id === playback.id);
+          if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
+            setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
+          }
+        }
+
+        playTrack(playback);
+      } else if (!isCurrentTrackPlaying) {
+        playTrack(playback);
+      }
+    }
+
     const seekDuration = waveformDurationSeconds;
 
     if (seekDuration <= 0) {
@@ -185,10 +253,6 @@ export default function TrackCard({
     const timestamp = percent * seekDuration;
 
     if (playback) {
-      if (currentPlayerTrack?.id !== playback.id) {
-        handlePlayFromCard();
-      }
-
       seek(timestamp);
     }
 
@@ -238,17 +302,32 @@ export default function TrackCard({
               variant="ghost"
               onClick={handlePlayFromCard}
               disabled={isBlocked || !playback}
-              aria-label={isBlocked ? 'Playback blocked' : 'Play track'}
+              aria-label={
+                isBlocked
+                  ? 'Playback blocked'
+                  : isCurrentTrackPlaying
+                    ? 'Pause track'
+                    : 'Play track'
+              }
               className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full p-0 flex items-center justify-center group overflow-hidden"
             >
               {/* overlay */}
               <div className="absolute inset-0 bg-neutral-0 opacity-100 transition" />
 
-              {/* play icon */}
-              <Play
-                className="w-6 h-6 translate-x-[1px] text-neutral-1000 hover:opacity-40"
-                fill="currentColor"
-              />
+              {isCurrentTrackPlaying ? (
+                <span
+                  aria-hidden="true"
+                  className="relative z-10 inline-flex items-center gap-1"
+                >
+                  <span className="h-6 w-1.5 rounded-sm bg-neutral-1000" />
+                  <span className="h-6 w-1.5 rounded-sm bg-neutral-1000" />
+                </span>
+              ) : (
+                <Play
+                  className="relative z-10 w-6 h-6 translate-x-[1px] text-neutral-1000 hover:opacity-40"
+                  fill="currentColor"
+                />
+              )}
             </Button>
 
 <div className="flex flex-col w-full">

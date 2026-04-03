@@ -334,15 +334,41 @@ export default function GlobalAudioPlayer({
       loadedTrack.id !== currentTrack.id ||
       loadedTrack.trackUrl !== currentTrack.trackUrl;
 
+    let handleMetadataOnSourceSwitch: (() => void) | undefined;
+
     if (needsSourceSwitch) {
+      handleMetadataOnSourceSwitch = () => {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
+          return;
+        }
+
+        if (Math.abs(duration - audio.duration) > 0.01) {
+          setDuration(audio.duration);
+        }
+      };
+
+      audio.addEventListener('loadedmetadata', handleMetadataOnSourceSwitch, {
+        once: true,
+      });
+
       loadedTrackRef.current = {
         id: currentTrack.id,
         trackUrl: currentTrack.trackUrl,
       };
       audio.src = currentTrack.trackUrl;
       audio.load();
+
+      if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        handleMetadataOnSourceSwitch();
+      }
     }
-  }, [canPlayCurrentTrack, currentTrack]);
+
+    return () => {
+      if (handleMetadataOnSourceSwitch) {
+        audio.removeEventListener('loadedmetadata', handleMetadataOnSourceSwitch);
+      }
+    };
+  }, [canPlayCurrentTrack, currentTrack, duration, setDuration]);
 
   useEffect(() => {
     // Keep audio element volume in sync with store state.
@@ -466,20 +492,22 @@ export default function GlobalAudioPlayer({
   }, [autoAdvanceOnEnd, currentTrack, duration, handleNextTrack, pause, setCurrentTime, setDuration]);
 
   useEffect(() => {
-    // Reset time and pending-seek state when active track identity changes.
+    // On track identity change, keep a queued seek if one already exists.
     const nextTrackId = currentTrack?.id ?? null;
     if (previousTrackIdRef.current === nextTrackId) {
       return;
     }
 
     previousTrackIdRef.current = nextTrackId;
-    setPendingSeek(null);
-    setCurrentTime(0);
 
-    if (currentTrack?.durationSeconds !== undefined) {
-      setDuration(currentTrack.durationSeconds);
+    // Do not overwrite a user-requested seek that arrived during track switch.
+    if (pendingSeek === null) {
+      setCurrentTime(0);
     }
-  }, [currentTrack, setCurrentTime, setDuration]);
+
+    // Reset stale duration from the previous track immediately.
+    setDuration(currentTrack?.durationSeconds ?? 0);
+  }, [currentTrack, pendingSeek, setCurrentTime, setDuration]);
 
   return (
     <>

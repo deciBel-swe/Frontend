@@ -94,6 +94,7 @@ export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
+  durationSeconds: z.coerce.number().int().nonnegative().optional().nullable(),
   genre: z.string().trim().optional().default('Unknown'),
   description: z.string().optional().default('').nullable(),
   releaseDate: z.string().trim().optional().nullable(),
@@ -140,6 +141,7 @@ export const trackMetadataSchema = z.object({
   title: z.string(),
   artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
+  durationSeconds: z.number().int().nonnegative().optional(),
   coverUrl: trackImageWithDefault,
   waveformUrl: z.string().url(),
   waveformData: z.array(z.number()).optional(),

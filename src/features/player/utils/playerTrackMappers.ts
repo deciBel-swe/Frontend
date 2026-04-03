@@ -46,7 +46,7 @@ const fromTrackMetaData: PlayerTrackMappers['fromTrackMetaData'] = (
     artistName: resolveArtistName(track.artist),
     trackUrl: track.trackUrl,
     access: toAccess(options?.access),
-    durationSeconds: options?.durationSeconds,
+    durationSeconds: options?.durationSeconds ?? track.durationSeconds,
     coverUrl: track.coverUrl,
     waveformData: track.waveformData,
   };
