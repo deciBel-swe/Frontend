@@ -77,27 +77,6 @@ export default function TrackList({
 
   const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
 
-  if (isLoading) {
-    return (
-      <>
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={i}
-            className="bg-surface-default rounded-lg h-40 animate-pulse"
-          />
-        ))}
-      </>
-    );
-  }
-
-  if (externalTracks === undefined && isError) {
-    return (
-      <p className="text-text-muted text-sm">
-        Failed to load tracks. Please try again later.
-      </p>
-    );
-  }
-
   // Normalize fetched service DTOs into TrackCard + playback mapping shape.
   const items: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
     const artistName =
@@ -130,7 +109,7 @@ export default function TrackList({
       waveform: track.waveformData ?? [],
     };
   });
-
+  
   const queueTracks = useMemo(
     // Build canonical queue payload once per list snapshot.
     () =>
@@ -158,10 +137,30 @@ export default function TrackList({
     [items]
   );
 
-  if (items.length === 0) {
-    return <p className="text-text-muted text-sm">No tracks published yet.</p>;
-  }
+    if (items.length === 0) {
+      return <p className="text-text-muted text-sm">No tracks published yet.</p>;
+    }
 
+    if (isLoading) {
+      return (
+        <>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-surface-default rounded-lg h-40 animate-pulse"
+            />
+          ))}
+        </>
+      );
+    }
+
+    if (externalTracks === undefined && isError) {
+      return (
+        <p className="text-text-muted text-sm">
+          Failed to load tracks. Please try again later.
+        </p>
+      );
+    }
   return (
     <>
       {items.map((item) => {

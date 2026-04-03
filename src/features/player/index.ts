@@ -8,6 +8,7 @@ export * from '@/features/player/contracts/playerContracts';
 export * from '@/features/player/components/playerComponent.contracts';
 export * from '@/features/player/store/playerStore.contract';
 export * from '@/features/player/store/playerStore';
-export * from '@/features/player/services/playbackTrackingService';
+export * from '@/services/api/playbackService';
+export * from '@/services/api/playbackTrackingService';
 export * from '@/features/player/utils/playerTrackMappers';
 export * from '@/features/player/utils/playbackTracking';

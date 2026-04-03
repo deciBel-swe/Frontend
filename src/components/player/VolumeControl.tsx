@@ -22,6 +22,7 @@ export default function VolumeControl({ value, onChange }: VolumeControlProps) {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     handleMouseMove(e);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onMouseMove = (event: MouseEvent) => handleMouseMove(event as any);
     const onMouseUp = () => {
       window.removeEventListener("mousemove", onMouseMove);

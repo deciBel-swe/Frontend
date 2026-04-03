@@ -101,6 +101,11 @@ const defineContract = <TRequest, TResponse>(
   contract: ApiEndpointContract<TRequest, TResponse>
 ): ApiEndpointContract<TRequest, TResponse> => contract;
 
+const trackPlaybackActionRequestSchema = z.object({
+  trackId: z.number().int().nonnegative(),
+  deviceInfo: deviceInfoDTOSchema,
+});
+
 /**
  * Endpoint registry used by useAPI templates and real services.
  *
@@ -549,6 +554,26 @@ export const API_CONTRACTS = {
       method: 'POST',
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
+    }),
+  TRACK_PLAY: (trackId: number) =>
+    defineContract<
+      z.infer<typeof trackPlaybackActionRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.PLAY(trackId),
+      requestSchema: trackPlaybackActionRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+  TRACK_COMPLETE: (trackId: number) =>
+    defineContract<
+      z.infer<typeof trackPlaybackActionRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.COMPLETE(trackId),
+      requestSchema: trackPlaybackActionRequestSchema,
+      responseSchema: messageResponseSchema,
     }),
   TRACK_REPOST: (trackId: number) =>
     defineContract<void, z.infer<typeof repostResponseSchema>>({

@@ -24,7 +24,7 @@ import {
   addToRecentlyPlayed,
   userCompletedTrack,
   userPlayedTrack,
-} from '@/features/player/services/playbackTrackingService';
+} from '@/services/api/playbackTrackingService';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import {
   shouldMarkTrackCompleted,
