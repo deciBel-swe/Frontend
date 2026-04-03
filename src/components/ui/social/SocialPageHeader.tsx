@@ -34,7 +34,7 @@ const heading: Record<ListType, string> = {
     <div className={`flex items-center gap-4 mb-7 ${className}`}>
       <a href={`/${username}`} className="no-underline shrink-0">
         <AvatarImage
-          src={profileData?.profile.avatarUrl}
+          src={profileData?.profile.profilePic}
           alt={username}
           size={72}
           shape="circle"

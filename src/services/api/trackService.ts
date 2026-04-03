@@ -235,7 +235,7 @@ export class RealTrackService implements TrackService {
   }
 
   async getUserTracks(userId: number): Promise<TrackMetaData[]> {
-    const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
+    const payload = await apiRequest(API_CONTRACTS.USERS_TRACKS(userId));
     const tracks = await Promise.all(
       payload.content.map(async (track) => {
         const normalized = normalizeTrackMetadata(track.id, track);
@@ -246,7 +246,7 @@ export class RealTrackService implements TrackService {
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {
-    const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS);
+    const payload = await apiRequest(API_CONTRACTS.USERS_TRACKS(1)); // todo this is temporary
     return Promise.all(
       payload.content.map(async (track) => {
         const normalized = normalizeTrackMetadata(track.id, track);

@@ -50,15 +50,12 @@ export const uploadSchema = z.object({
       .regex(safeTextPattern, 'Artist name contains invalid symbols')
       .optional()
   ),
-  genre: z.preprocess(
-    emptyToUndefined,
-    z
+  genre:z
       .string()
       .trim()
       .max(MAX_GENRE_LENGTH, 'Genre is too long')
-      .regex(safeTextPattern, 'Genre contains invalid symbols')
-      .optional()
-  ),
+      .min(1, 'Genre cannot be empty')
+      .regex(safeTextPattern, 'Genre contains invalid symbols'),
   tags: z
     .array(
       z

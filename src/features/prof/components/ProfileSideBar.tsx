@@ -15,7 +15,7 @@ interface ProfileSideBarProps {
 const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
   const { data } = usePublicUser(username);
 
-  const { tracks } = useUserTracks({ userId: data?.id, username });
+  const { tracks } = useUserTracks({ userId: data?.profile.id, username });
 
   const historyData = tracks.map((track) => ({
     image: track.coverUrl,
@@ -38,9 +38,9 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
       <div
         className="flex flex-col items-center gap-3 p-4 sm:p-5 bg-white dark:bg-[#121212] rounded-lg">
         <StatsGroup
-          countTracks={data?.stats.trackCount || 0}
-          countFollowers={data?.stats.followersCount || 0}
-          countFollowing={data?.stats.followingCount || 0}
+          countTracks={data?.profile.trackCount || 0}
+          countFollowers={data?.profile.followerCount || 0}
+          countFollowing={data?.profile.followingCount || 0}
         />
 
         {data?.profile.bio && (
@@ -50,7 +50,7 @@ const ProfileSideBar = ({ username }: ProfileSideBarProps) => {
         )}
 
         <div className="w-full flex justify-start">
-          <SocialList items={data?.socialLinks} />
+          <SocialList items={data?.profile.socialLinksDto[0]} />
         </div>
       </div>
 

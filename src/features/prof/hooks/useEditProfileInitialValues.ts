@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useUserMe } from './useUserMe';
 import type { ProfileLink } from '@/types/user';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 
 export type EditProfileInitialValues = {
   displayName: string;
@@ -69,7 +69,10 @@ const toProfileLinks = (
 };
 
 export const useEditProfileInitialValues = () => {
-  const { user, isLoading, error } = useUserMe();
+  const ownerContext = useProfileOwnerContext();
+  const user = ownerContext?.ownerUser ?? null;
+  const isLoading = ownerContext?.isOwnerLoading ?? false;
+  const error = ownerContext?.ownerError ?? null;
   const [nextLinkId, setNextLinkId] = useState(1);
 
   const initialValues = useMemo<EditProfileInitialValues | null>(() => {

@@ -55,7 +55,6 @@ export default function Page({
         <TrackList
           tracks={tracks}
           isLoading={isLoading}
-          showEditButton={false}
           showHeader={false}
         />
       </Suspense>

@@ -27,7 +27,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export interface SocialListProps {
-  items?: UserPublic['socialLinks'];
+  items?: UserPublic['profile']['socialLinksDto'][number];
 }
 
 export const SocialList: FC<SocialListProps> = ({ items }) => (

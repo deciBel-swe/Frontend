@@ -6,7 +6,6 @@ import {
   MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
-import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
 import { IconButton } from '@/components/buttons/IconButton';
 import {
@@ -14,6 +13,7 @@ import {
   ShareModal,
 } from '@/features/prof/components/ShareModal';
 import FollowButton from '@/components/buttons/FollowButton';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 
 interface MidBarProps {
   username: string;
@@ -22,9 +22,7 @@ interface MidBarProps {
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // const [isHydrated, setIsHydrated] = useState(false);
-  const { user: myUser } = useUserMe();
-  // const countries = useGetCountry();
+  const ownerContext = useProfileOwnerContext();
 
   // shared button classes
 const buttonBase =
@@ -33,9 +31,8 @@ const buttonBase =
   'border border-border-strong text-text-secondary hover:text-text-primary ' +
   'bg-transparent hover:bg-interactive-default';
 
-  //const isOwnProfile = isHydrated && myUser?.username === username;
-  // there is problem in it I will just use dummy name for testing
-  const isOwnProfile = myUser?.username === username;
+  const isOwnProfile = ownerContext?.isOwner ?? false;
+  const isOwnerStateLoading = ownerContext?.isOwnerLoading ?? false;
 
   const profileUrl =
     typeof window !== 'undefined'
@@ -49,7 +46,7 @@ const buttonBase =
 
       {/* BUTTON ROW */}
       <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-        {!isOwnProfile && (
+        {!isOwnProfile && !isOwnerStateLoading && (
           <IconButton aria-label="message">
             <span
               className={`${buttonBase} bg-interactive-default dark:bg-interactive-default text-text-muted dark:text-text-secondary`}
@@ -79,7 +76,7 @@ const buttonBase =
           </span>
         </IconButton>
 
-        {!isOwnProfile && (
+        {!isOwnProfile && !isOwnerStateLoading && (
           <FollowButton size='md'/>
         )}
       </div>

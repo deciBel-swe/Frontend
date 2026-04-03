@@ -44,7 +44,7 @@ export default function Page() {
 
       <Suspense fallback={<TrackListFallBack />}>
         <TrackList username={username}
-        artistAvatar={profileData?.profile.avatarUrl}
+        artistAvatar={profileData?.profile.profilePic}
         />
       </Suspense>
     </div>

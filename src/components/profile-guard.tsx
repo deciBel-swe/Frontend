@@ -12,21 +12,19 @@ interface ProfileGuardProps {
 /**
  * ProfileGuard
  *
- * Client component that gates access to a user profile based on privacy
- * settings. 
+ * Client component that only handles profile loading state and backend 404.
  *
  * Behaviour:
  * - Loading  → renders a skeleton placeholder
- * - Error    → calls notFound() (user does not exist)
- * - Private + not owner → calls notFound()
- * - Public or owner → renders children with isOwner context via slot props
+ * - Backend 404 → calls notFound()
+ * - Any other response state → renders children
  *
  * @example
  * // In layout.tsx (server component):
  * <ProfileGuard username={username}>{children}</ProfileGuard>
  */
 export function ProfileGuard({ username, children }: ProfileGuardProps) {
-  const { profile, isOwner, isLoading, isError } = useUserProfile(username);
+  const {isLoading, isError, errorStatusCode } = useUserProfile(username);
 
   if (isLoading) {
     return (
@@ -45,13 +43,8 @@ export function ProfileGuard({ username, children }: ProfileGuardProps) {
     );
   }
 
-  // User not found
-  if (isError || !profile) {
-    notFound();
-  }
-
-  // Private profile — visitor gets 404, owner sees their own profile
-  if (profile.isPrivate && !isOwner) {
+  // Only treat an actual backend 404 as a not-found route.
+  if (isError && errorStatusCode === 404) {
     notFound();
   }
 

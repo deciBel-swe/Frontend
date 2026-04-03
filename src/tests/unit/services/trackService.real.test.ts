@@ -85,6 +85,7 @@ describe('RealTrackService', () => {
       genre: 'Electronic',
       tags: ['night'],
       coverImage: '/images/covers/42.jpg',
+      coverUrl: '/images/covers/42.jpg',
       waveformUrl: 'waveforms/42.json',
       userId: 7,
       username: 'alice',
@@ -143,10 +144,13 @@ describe('RealTrackService', () => {
   } as PaginatedTracksResponse);
 
     const onlyAlice = await service.getUserTracks(10);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_TRACKS(10),
+    );
     const onlyBob = await service.getUserTracks(11);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_ME_TRACKS
+      API_CONTRACTS.USERS_TRACKS(11),
     );
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(onlyAlice).toHaveLength(1);
@@ -162,6 +166,8 @@ describe('RealTrackService', () => {
       genre: 'Synthwave',
       tags: ['retro'],
       waveformData: '[0.25, 0.75]',
+      coverUrl: '/images/default_song_image.png',
+      coverImage: '/images/default_song_image.png',
       userId: 4,
       username: 'neo',
       description: '',

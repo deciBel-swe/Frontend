@@ -28,6 +28,7 @@ const user: LoginUserDTO = {
   id: 1,
   username: 'service-user',
   tier: 'FREE',
+  avatarUrl: '/images/default_song_image.png',
 };
 
 const loginResponse: LoginResponseDTO = {

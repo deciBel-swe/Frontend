@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+const DEFAULT_TRACK_IMAGE = '/images/default_song_image.png';
+
+const trackImageWithDefault = z.preprocess((value) => {
+  if (value === null || value === undefined) {
+    return DEFAULT_TRACK_IMAGE;
+  }
+
+  if (typeof value === 'string' && value.trim().length === 0) {
+    return DEFAULT_TRACK_IMAGE;
+  }
+
+  return value;
+}, z.string().trim().min(1));
+
 // ================================
 // Track Upload
 // ================================
@@ -9,7 +23,7 @@ export const uploadTrackResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
   trackUrl: z.string().trim().min(1),
-  coverUrl: z.string().trim().min(1),
+  coverUrl: trackImageWithDefault,
   durationSeconds: z.number().int().nonnegative(),
 });
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;
@@ -86,8 +100,8 @@ export const trackDetailsResponseSchema = z.object({
   isPrivate: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional().default([]),
   trackUrl: z.string().trim().min(1).optional().nullable(),
-  coverUrl: z.string().trim().min(1).optional().nullable(),
-  coverImage: z.string().trim().min(1).optional().nullable(),
+  coverUrl: trackImageWithDefault,
+  coverImage: trackImageWithDefault,
   waveformUrl: z.string().trim().min(1).optional().nullable(),
   waveformData: z.union([z.string(), z.array(z.number())]).optional(),
   artist: trackArtistSchema.partial().optional(),
@@ -110,7 +124,7 @@ export type PaginatedTracksResponse = z.infer<typeof paginatedTracksResponseSche
 /** Schema for PATCH /tracks/:trackId */
 export const trackUpdateResponseSchema = z.object({
   id: z.number().int().nonnegative(),
-  coverUrl: z.string().trim().min(1),
+  coverUrl: trackImageWithDefault,
   title: z.string().trim().min(1),
   genre: z.string().trim().min(1),
   description: z.string(),
@@ -126,7 +140,7 @@ export const trackMetadataSchema = z.object({
   title: z.string(),
   artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
-  coverUrl: z.string().url(),
+  coverUrl: trackImageWithDefault,
   waveformUrl: z.string().url(),
   waveformData: z.array(z.number()).optional(),
   genre: z.string(),
@@ -144,7 +158,7 @@ export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
 export const trackResponseSchema = z
   .object({
     artist: trackArtistSchema,
-    coverUrl: z.string().optional(),
+    coverUrl: trackImageWithDefault,
     description: z.string().optional(),
     genre: z.string(),
     id: z.number(),
@@ -186,7 +200,7 @@ export type paginatedTrackResponse = z.infer<
 export const trackPreviewSchema = z.object({
   title: z.string(),
   artist: z.string(),
-  coverUrl: z.string().url().optional().nullable(),
+  coverUrl: trackImageWithDefault,
   duration: z.string().optional().nullable(),
 });
 export type TrackPreview = z.infer<typeof trackPreviewSchema>;

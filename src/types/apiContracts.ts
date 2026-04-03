@@ -135,10 +135,10 @@ export const API_CONTRACTS = {
     responseSchema: refreshTokenResponseDTOSchema,
   }),
 
-  AUTH_LOGOUT: defineContract<void, undefined>({
+  AUTH_LOGOUT: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.LOGOUT,
-    responseSchema: z.undefined(),
+    responseSchema: z.object({ message: z.string().trim().min(1) }),
   }),
 
   AUTH_LOGOUT_ALL: defineContract<void, undefined>({

@@ -2,7 +2,22 @@ import { z } from 'zod';
 
 import { privacySettingsSchema } from './privacy';
 
-const userRoleSchema = z.enum(['LISTENER', 'ARTIST', 'OTHER']);
+const DEFAULT_PROFILE_AVATAR_IMAGE = '/images/default_song_image.png';
+const DEFAULT_PROFILE_COVER_IMAGE = '/images/default_song_image.png';
+
+const imageWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return defaultValue;
+    }
+
+    return value;
+  }, z.string());
+
 const userTierSchema = z.enum([
   'FREE',
   'ARTIST',
@@ -15,8 +30,8 @@ const userProfileSchema = z.object({
   bio: z.string(),
   city: z.string(),
   country: z.string(),
-  profilePic: z.string(),
-  coverPic: z.string(),
+  profilePic: imageWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
+  coverPic: imageWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
   favoriteGenres: z.array(z.string()),
 });
 
@@ -37,10 +52,9 @@ const userStatsSchema = z.object({
 export const userMeSchema = z
   .object({
     id: z.number().int().nonnegative(),
-    Role: userRoleSchema,
     email: z.string().trim().email(),
     username: z.string().trim().min(1),
-    emailVerified: z.boolean(),
+    isBlocked: z.boolean(),
     tier: userTierSchema,
     profile: userProfileSchema,
     socialLinks: userSocialLinksSchema,
@@ -50,37 +64,37 @@ export const userMeSchema = z
   .passthrough();
 export type UserMe = z.infer<typeof userMeSchema>;
 
+const publicSocialLinksItemSchema = z.object({
+  instagram: z.string().nullable(),
+  twitter: z.string().nullable(),
+  website: z.string().nullable(),
+});
+
 const userPublicProfileSchema = z.object({
-  username: z.string(),
   id: z.number().int().nonnegative(),
-  bio: z.string(),
-  location: z.string(),
-  avatarUrl: z.string(),
-  coverPhotoUrl: z.string(),
-  favoriteGenres: z.array(z.string()),
-});
-
-const userPublicSocialLinksSchema = z.object({
-  instagram: z.string(),
-  twitter: z.string(),
-  website: z.string(),
-});
-
-const userPublicStatsSchema = z.object({
-  followersCount: z.number().int().nonnegative(),
+  email: z.string().trim().email(),
+  username: z.string().trim().min(1),
+  tier: userTierSchema,
+  followerCount: z.number().int().nonnegative(),
   followingCount: z.number().int().nonnegative(),
   trackCount: z.number().int().nonnegative(),
+  isFollowed: z.boolean(),
+  isFollowing: z.boolean(),
+  isBlocked: z.boolean(),
+  bio: z.string(),
+  city: z.string(),
+  country: z.string().nullable(),
+  profilePic: imageWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
+  coverPic: imageWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
+  favoriteGenres: z.array(z.string()),
+  socialLinksDto: z.array(publicSocialLinksItemSchema),
 });
 
 /** DTO returned by GET /users/{userId} */
 export const userPublicSchema = z
   .object({
-    id: z.number().int().nonnegative(),
-    username: z.string().trim().min(1),
-    tier: userTierSchema,
     profile: userPublicProfileSchema,
-    socialLinks: userPublicSocialLinksSchema,
-    stats: userPublicStatsSchema,
+    privacySettings: privacySettingsSchema.nullable(),
   })
   .passthrough();
 export type UserPublic = z.infer<typeof userPublicSchema>;
