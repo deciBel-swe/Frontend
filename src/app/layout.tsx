@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import type { Metadata } from 'next';
-
+import PlayerBarWrapper from "@/components/player/PlayerBarWrapper";
 import './globals.css';
 
 /**
@@ -85,6 +85,7 @@ export default function RootLayout({
                        QueryClient on the client side.*/}
                   <QueryProvider>{children}</QueryProvider>
                 </div>
+                <PlayerBarWrapper />
               </div>
             </Suspense>
           </AuthProvider>
