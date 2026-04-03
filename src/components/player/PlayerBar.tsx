@@ -85,7 +85,6 @@ export default function PlayerBar(props: PlayerBarProps) {
         <SocialActions />
       </div>
 
-      <QueuePanel queue={queue} onClose={onQueueToggle} />
     </div>
   );
 }
