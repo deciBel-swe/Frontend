@@ -124,7 +124,10 @@ export default function Waveform({
     }));
   }, [waveform, containerWidth]);
 
-  const currentBarIndex = Math.floor((currentTime / durationSeconds) * bars.length);
+  const safeDurationSeconds =
+    Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : 1;
+
+  const currentBarIndex = Math.floor((currentTime / safeDurationSeconds) * bars.length);
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60).toString();
@@ -188,9 +191,10 @@ export default function Waveform({
             >
               {[...comments, ...(pendingTimestamp ? [{ id: 'pending', timestamp: pendingTimestamp, comment: '', user: { name: '', avatar: '' } }] : [])].map(
                 (c) => {
-                  const leftPercent = durationSeconds
-                    ? (c.timestamp / durationSeconds) * 100
-                    : 0;
+                  const leftPercent = Math.max(
+                    0,
+                    Math.min(100, (c.timestamp / safeDurationSeconds) * 100)
+                  );
                   const isActive = c.id === activeCommentId;
                   return (
                     <div

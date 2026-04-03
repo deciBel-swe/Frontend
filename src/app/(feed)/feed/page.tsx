@@ -63,6 +63,9 @@ export default function FeedPage() {
             genre: 'Electronic', // Add genre for testing
           }}
           waveform={item.waveform}
+          playback={item.playback}
+          queueTracks={item.queueTracks}
+          queueSource="feed"
         />
       ))}
     </>

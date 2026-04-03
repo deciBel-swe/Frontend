@@ -104,6 +104,7 @@ describe('RealTrackService', () => {
     expect(metadata).toEqual({
       id: 42,
       title: 'Neon Pulse',
+      access: 'PLAYABLE',
       artist: {
         id: 7,
         username: 'alice',

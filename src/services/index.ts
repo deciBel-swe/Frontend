@@ -38,6 +38,9 @@ import { FeedService } from './api/feedService';
 import type { CommentService } from './api/commentService';
 import { RealCommentService } from './api/commentService';
 import { MockCommentService } from './mocks/commentService';
+import type { PlaybackService } from './api/playbackService';
+import { RealPlaybackService } from './api/playbackService';
+import { MockPlaybackService } from './mocks/playbackService';
 
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
@@ -111,3 +114,12 @@ const resolveCommentService = (): CommentService => {
 };
 
 export const commentService = resolveCommentService();
+
+const resolvePlaybackService = (): PlaybackService => {
+  if (config.api.useMock) {
+    return new MockPlaybackService();
+  }
+  return new RealPlaybackService();
+};
+
+export const playbackService = resolvePlaybackService();
