@@ -110,3 +110,18 @@ export { useGetCountry } from './useGetCountry';
 export { useEditMe } from '@/features/prof/hooks/useEditMe';
 export { useUserMe } from '@/features/prof/hooks/useUserMe';
 export { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+
+/**
+ * useTrackPage — loads and manages track page state from the service layer.
+ */
+export { useTrackPage } from './useTrackPage';
+
+/**
+ * useTrackCard — manages engagement interactions for track cards.
+ */
+export { useTrackCard } from './useTrackCard';
+
+/**
+ * useUserRepostPage — loads reposted tracks for the current user profile page.
+ */
+export { useUserRepostPage } from './useUserRepostPage';

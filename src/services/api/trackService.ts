@@ -98,6 +98,9 @@ export interface TrackService {
 
   /** Get paginated list of tracks liked by a user (GET /users/:userId/liked-playlists) */
   getMyLikedTracks(): Promise<paginatedTrackResponse>;
+
+  /** Get paginated list of tracks reposted by the current user (GET /users/me/reposts) */
+  getMyRepostedTracks(params?: PaginationParams): Promise<paginatedTrackResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -147,6 +150,12 @@ const normalizeTrackMetadata = (
     tags: payload.tags,
     description: payload.description ?? '',
     releaseDate: payload.releaseDate ?? '',
+    isLiked: payload.isLiked,
+    isReposted: payload.isReposted,
+    likeCount: payload.likeCount,
+    repostCount: payload.repostCount,
+    playCount: payload.playCount,
+    uploadDate: payload.uploadDate ?? '',
   };
 };
 
@@ -333,6 +342,14 @@ export class RealTrackService implements TrackService {
     params?: PaginationParams
   ): Promise<paginatedTrackResponse> {
     return apiRequest(API_CONTRACTS.ME_LIKED_TRACKS(), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getMyRepostedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
+    return apiRequest(API_CONTRACTS.ME_REPOSTED_TRACKS(), {
       params: toQueryParams(params),
     });
   }

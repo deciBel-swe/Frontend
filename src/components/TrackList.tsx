@@ -37,6 +37,10 @@ export type TrackListItem = {
     createdAt?: string;
     genre?: string;
     durationSeconds?: number;
+    isLiked?: boolean;
+    isReposted?: boolean;
+    likeCount?: number;
+    repostCount?: number;
   };
   trackUrl?: string;
   access?: PlaybackAccess;
@@ -112,6 +116,10 @@ export default function TrackList({
         duration: durationSeconds ? formatDuration(durationSeconds) : '',
         createdAt: track.releaseDate,
         durationSeconds,
+        isLiked: track.isLiked,
+        isReposted: track.isReposted,
+        likeCount: track.likeCount,
+        repostCount: track.repostCount,
       },
       trackUrl: track.trackUrl,
       access: toPlaybackAccess(track.access),

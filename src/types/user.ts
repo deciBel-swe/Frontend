@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { privacySettingsSchema } from './privacy';
 
-const DEFAULT_PROFILE_AVATAR_IMAGE = '/images/default_song_image.png';
-const DEFAULT_PROFILE_COVER_IMAGE = '/images/default_song_image.png';
+export const DEFAULT_PROFILE_AVATAR_IMAGE = '/images/default_song_image.png';
+export const DEFAULT_PROFILE_COVER_IMAGE = '/images/default_song_image.png';
 
-const imageWithDefault = (defaultValue: string) =>
+export const imageWithDefault = (defaultValue: string) =>
   z.preprocess((value) => {
     if (value === null || value === undefined) {
       return defaultValue;

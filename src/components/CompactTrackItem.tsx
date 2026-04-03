@@ -16,7 +16,6 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
   const [hovered, setHovered] = useState(false);
 
   const artistSlug = track.artist.toLowerCase().replace(/\s+/g, '-');
-  const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <li
@@ -26,7 +25,7 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
     >
       <div className="trackItem flex items-center gap-2 p-1 relative">
         {/* IMAGE */}
-        <div className="trackItem__image flex-shrink-0 w-7 h-7">
+        <div className="trackItem__image shrink-0 w-7 h-7">
           <HoverPlayImage image={track.coverUrl} alt={track.title} />
         </div>
 
@@ -38,7 +37,7 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
         {/* Track info */}
         <div className="trackItem__content flex-1 truncate">
           <Link
-            href={`/${artistSlug}/${trackSlug}`}
+            href={`/${artistSlug}/${track.id}`}
             className="trackItem__title text-[13px] text-primary text-sm inline-flex self-start font-bold truncate hover:opacity-40"
           >
             {track.title}

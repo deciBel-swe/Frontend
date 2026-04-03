@@ -3,7 +3,6 @@
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import { useSecretLink } from '@/hooks/useSecretLink';
-import { formatSecretUrlWithSlug } from '@/utils/formatSecretUrl';
 import { CheckIcon, CopyIcon } from '@/components/nav/TrackActionBar';
 import {SocialShareButtons} from '@/components/icons/SocialIcons';
 
@@ -109,11 +108,11 @@ function PrivateShareContent({
     useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
-  const slugShareUrl =
-    secretToken && track
-      ? formatSecretUrlWithSlug(track.artist, track.title, secretToken)
-      : null;
-  const urlToUse = slugShareUrl ?? secretUrl;
+  const userSlug = track.artist.toLowerCase().replace(/\s+/g, '');
+  const urlToUse =
+    secretToken && typeof window !== 'undefined'
+      ? `${window.location.origin}/${userSlug}/${trackId}?s=${secretToken}`
+      : secretUrl;
 
   const handleCopy = async () => {
     if (!urlToUse) return;
@@ -180,10 +179,15 @@ function PrivateShareContent({
 }
 
 /** Public track share — social buttons + URL row */
-function PublicTrackShareContent({ artist, title }: { artist: string; title: string }) {
+function PublicTrackShareContent({
+  artist,
+  trackId,
+}: {
+  artist: string;
+  trackId: string;
+}) {
   const userSlug = artist.toLowerCase().replace(/\s+/g, '');
-  const trackSlug = title.toLowerCase().replace(/\s+/g, '-');
-  const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${trackSlug}`;
+  const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${trackId}`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -201,11 +205,11 @@ function PublicTrackShareContent({ artist, title }: { artist: string; title: str
 
 function WaveformPlaceholder() {
   return (
-    <div className="flex items-end gap-[2px] h-8">
+    <div className="flex items-end gap-0.5 h-8">
       {Array.from({ length: 40 }).map((_, i) => (
         <div
           key={i}
-          className="w-[2px] bg-border-strong rounded-full"
+          className="w-0.5 bg-border-strong rounded-full"
           style={{ height: `${20 + Math.sin(i * 0.8) * 10 + Math.random() * 8}%` }}
         />
       ))}
@@ -360,7 +364,7 @@ export function ShareModal(props: ShareModalProps) {
       shareContent = props.isPrivate ? (
         <PrivateShareContent trackId={props.trackId} track={track} />
       ) : (
-        <PublicTrackShareContent artist={track.artist} title={track.title} />
+        <PublicTrackShareContent artist={track.artist} trackId={props.trackId} />
       );
     }
   } else if (activeTab === 'embed') {
@@ -405,7 +409,7 @@ export function ShareModal(props: ShareModalProps) {
                   >
                     {label}
                     {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-text-primary" />
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-text-primary" />
                     )}
                   </button>
                 );

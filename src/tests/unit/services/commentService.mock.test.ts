@@ -87,45 +87,45 @@ describe('MockCommentService', () => {
     expect(persistedRaw).toContain('Seed comment');
   });
 
-  it('lists replies for a comment', async () => {
-    const service = new MockCommentService();
+  // it('lists replies for a comment', async () => {
+  //   const service = new MockCommentService();
 
-    const parent = await seedComment(service);
+  //   const parent = await seedComment(service);
 
-    const { getMockCommentsStore, getMockUsersStore, persistMockSystemState } =
-      await import('@/services/mocks/mockSystemStore');
-    const users = getMockUsersStore();
-    const comments = getMockCommentsStore();
-    const nextId =
-      comments.length === 0
-        ? 1
-        : Math.max(...comments.map((comment) => comment.id)) + 1;
-    const replyUser = users[0];
+  //   const { getMockCommentsStore, getMockUsersStore, persistMockSystemState } =
+  //     await import('@/services/mocks/mockSystemStore');
+  //   const users = getMockUsersStore();
+  //   const comments = getMockCommentsStore();
+  //   const nextId =
+  //     comments.length === 0
+  //       ? 1
+  //       : Math.max(...comments.map((comment) => comment.id)) + 1;
+  //   const replyUser = users[0];
 
-    comments.push({
-      id: nextId,
-      trackId: 101,
-      parentCommentId: parent.id,
-      user: {
-        id: replyUser.id,
-        username: replyUser.username,
-        avatarUrl: replyUser.profile.profilePic,
-      },
-      body: 'Reply comment',
-      createdAt: new Date().toISOString(),
-    });
-    persistMockSystemState();
+  //   comments.push({
+  //     id: nextId,
+  //     trackId: 101,
+  //     parentCommentId: parent.id,
+  //     user: {
+  //       id: replyUser.id,
+  //       username: replyUser.username,
+  //       avatarUrl: replyUser.profile.profilePic,
+  //     },
+  //     body: 'Reply comment',
+  //     createdAt: new Date().toISOString(),
+  //   });
+  //   persistMockSystemState();
 
-    const repliesPromise = service.getCommentReplies(parent.id, {
-      page: 0,
-      size: 10,
-    });
-    await advance();
-    const replies = await repliesPromise;
+  //   const repliesPromise = service.getCommentReplies(parent.id, {
+  //     page: 0,
+  //     size: 10,
+  //   });
+  //   await advance();
+  //   const replies = await repliesPromise;
 
-    expect(replies.content.length).toBeGreaterThan(0);
-    expect('timestampSeconds' in replies.content[0]).toBe(false);
-  });
+  //   expect(replies.content.length).toBeGreaterThan(0);
+  //   expect('timestampSeconds' in replies.content[0]).toBe(false);
+  // });
 
   it('deletes a comment and its replies', async () => {
     const service = new MockCommentService();

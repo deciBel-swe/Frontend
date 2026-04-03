@@ -492,6 +492,16 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.COMMENTS.REPLIES(commentId),
       responseSchema: paginatedRepliesResponseSchema,
     }),
+  COMMENTS_REPLIES_CREATE: (commentId: number) =>
+    defineContract<
+      z.infer<typeof createCommentRequestSchema>,
+      z.infer<typeof commentSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.COMMENTS.REPLIES(commentId),
+      requestSchema: createCommentRequestSchema,
+      responseSchema: commentSchema,
+    }),
 
   COMMENTS_DELETE: (commentId: number) =>
     defineContract<void, undefined>({
@@ -620,6 +630,12 @@ export const API_CONTRACTS = {
     defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.USERS.ME_LIKED_TRACKS,
+      responseSchema: paginatedTrackResponseSchema,
+    }),
+  ME_REPOSTED_TRACKS: () =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.ME_REPOSTs,
       responseSchema: paginatedTrackResponseSchema,
     }),
 } as const;

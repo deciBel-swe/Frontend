@@ -53,7 +53,10 @@ export interface CommentService {
     commentId: number,
     params?: PaginationParams
   ): Promise<PaginatedRepliesResponse>;
-
+  replyToComment(
+    commentId: number,
+    payload: CreateCommentRequest
+  ): Promise<Comment>;
   /** Delete a comment (DELETE /comments/:commentId). */
   deleteComment(commentId: number): Promise<void>;
 }
@@ -68,6 +71,15 @@ export class RealCommentService implements CommentService {
       params: toQueryParams(params),
     });
   }
+  async replyToComment(
+    commentId: number,
+    payload: CreateCommentRequest
+  ): Promise<Comment> {
+    return apiRequest(API_CONTRACTS.COMMENTS_REPLIES_CREATE(commentId), {
+      payload,
+    });
+  }
+
 
   async addTrackComment(
     trackId: number,

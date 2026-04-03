@@ -129,7 +129,7 @@ export const API_ENDPOINTS = {
     ME_IMAGES: '/users/me/images',
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
-    ME_REPOSTs: '/users/me/reposts',
+    ME_REPOSTs: '/users/me/repost',
     SUGGESTED: '/users/suggested',
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
