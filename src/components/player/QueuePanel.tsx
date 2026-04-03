@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart, MoreHorizontal, GripVertical, Play, Pause } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface QueueItem {
   id: number;
@@ -100,11 +101,23 @@ return (
 
     {/* 2. ARTWORK & PLAY BUTTON */}
     <div className="relative w-10 h-10 rounded bg-muted flex-shrink-0 overflow-hidden shadow-sm">
-      {item.artwork ? (
+      {/* {item.artwork ? (
         <img src={item.artwork} alt="" className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full bg-muted" />
-      )}
+      )} */}
+      {item.artwork ? (
+  <Image 
+    src={item.artwork} 
+    alt={item.title} 
+    width={40} 
+    height={40} 
+    className="w-full h-full object-cover"
+    unoptimized // Use this if images come from an external URL
+  />
+) : (
+  <div className="w-full h-full bg-muted" />
+)}
       
       <div 
         onClick={(e) => { e.stopPropagation(); handlePlayClick(item.id); }}
@@ -176,7 +189,8 @@ return (
           </div>
         </div>
         <p className="text-[12px] text-text-secondary leading-normal">
-          Hear related tracks based on what's playing now.
+          {/* Hear related tracks based on what's playing now. */}
+          Hear related tracks based on what&apos;s playing now.
         </p>
       </div>
     </div>
