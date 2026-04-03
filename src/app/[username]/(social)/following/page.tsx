@@ -5,7 +5,6 @@ import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
 // import { followerToUserCardData } from "@/types/follower";
 // import type { Follower } from "@/types/follower";
 import { UserCardData } from "@/components/ui/social/UserCard";
-import { usePublicUser } from "@/features/prof/hooks/usePublicUser";
 import { useParams } from "next/navigation";
 
 // ─── Mock data ───────────────────
@@ -67,8 +66,6 @@ export default function ProfileFollowingPage({
 }: ProfileFollowingPageProps) {
 
     const { username } = useParams<{ username: string }>();
-    const { data: profileData } = usePublicUser(username);
-
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
 

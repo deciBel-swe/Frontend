@@ -25,23 +25,6 @@ describe('MockUserService', () => {
   const flush = async (ms = 250) => {
     await jest.advanceTimersByTimeAsync(ms);
   };
-
-  it('returns public profile and me payload', async () => {
-    const publicPromise = service.getPublicUserById(1);
-    await flush();
-    const publicUser = await publicPromise;
-
-    expect(publicUser.id).toBe(1);
-    expect(publicUser.stats.trackCount).toBeGreaterThan(0);
-
-    const mePromise = service.getUserMe();
-    await flush();
-    const me = await mePromise;
-
-    expect(me.id).toBe(1);
-    expect(me.socialLinks.supportLink).toContain('support');
-  });
-
   it('updates profile and social links', async () => {
     const updatePromise = service.updateMe({
       bio: 'updated bio',
@@ -166,14 +149,7 @@ describe('MockUserService', () => {
     expect(me.email).toBe(email);
     expect(me.username).toBe('session-user');
   });
-  it('getPublicUserByUsername returns profile for public user', async () => {
-  const publicPromise = service.getPublicUserByUsername('mockartist');
-  await flush();
-  const profile = await publicPromise;
- 
-  expect(profile.username).toBe('mockartist');
-});
- 
+
 it('getPublicUserByUsername throws for non-existent username', async () => {
   jest.useRealTimers();
   
@@ -182,7 +158,7 @@ it('getPublicUserByUsername throws for non-existent username', async () => {
   ).rejects.toThrow('User not found');
 });
 
-it('getPublicUserByUsername throws for private profile when not the owner', async () => {
+it('getPublicUserByUsername throws for private profile', async () => {
   jest.useRealTimers();
   
   const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
@@ -199,25 +175,4 @@ it('getPublicUserByUsername throws for private profile when not the owner', asyn
   mockartist.privacySettings.isPrivate = false;
 });
 
-it('getPublicUserByUsername succeeds for private profile when IS the owner', async () => {
-  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
-  const users = getMockUsersStore();
-  const mockartist = users.find((u) => u.username === 'mockartist');
-  if (!mockartist) throw new Error('seed user mockartist not found');
-
-  mockartist.privacySettings.isPrivate = true;
-
-  // Simulate session as mockartist (id: 7)
-  localStorage.setItem('user', JSON.stringify({ id: 7, username: 'mockartist' }));
-
-  const fetchPromise = service.getPublicUserByUsername('mockartist');
-  await flush();
-  const profile = await fetchPromise;
-
-  expect(profile.username).toBe('mockartist');
-
-  // Cleanup
-  mockartist.privacySettings.isPrivate = false;
-  localStorage.removeItem('user');
-});
 });

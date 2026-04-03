@@ -41,11 +41,13 @@ const artistUser: LoginUserDTO = {
   id: 1,
   username: 'mockartist',
   tier: 'ARTIST',
+  avatarUrl: '/images/default_song_image.png',
 };
 const listenerUser: LoginUserDTO = {
   id: 2,
   username: 'mocklistener',
   tier: 'FREE',
+  avatarUrl: '/images/default_song_image.png',
 };
 
 const artistSession: LoginResponseDTO = {

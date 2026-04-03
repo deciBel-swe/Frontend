@@ -108,12 +108,15 @@ const realUser: LoginUserDTO = {
   id: 12,
   username: 'real-user',
   tier: 'FREE',
+  avatarUrl: '/images/default_song_image.png',
 };
 
 const artistUser: LoginUserDTO = {
   id: 99,
   username: 'artist-user',
   tier: 'ARTIST',
+  avatarUrl: '/images/default_song_image.png',
+
 };
 
 const advanceMockDelay = async (ms = 350) => {
@@ -327,7 +330,6 @@ describe('AuthService contract parity', () => {
 
     const parsed = assertValidLoginResponse(googleLogin);
     expect(parsed.user.username).toBe('google-user');
-    expect(parsed.user.avatarUrl).toBeUndefined();
 
     jest.useRealTimers();
   });
