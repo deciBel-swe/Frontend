@@ -45,8 +45,6 @@ export default function PlayerBar(props: PlayerBarProps) {
     onScrub,
     volume,
     onVolumeChange,
-    queue,
-    onQueueToggle,
   } = props;
 
   return (
