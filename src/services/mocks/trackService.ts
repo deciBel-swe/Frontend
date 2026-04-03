@@ -27,9 +27,19 @@ const MOCK_DELAY_MS = 220;
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const buildTrackUrl = (username: string, slug: string): string => {
-  const base = config.urls.domainName.replace(/\/+$/, '');
-  return `${base}/${username}/${slug}`;
+const FALLBACK_AUDIO_TRACK_URL =
+  'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3';
+
+const resolvePlayableTrackUrl = (
+  formData: FormData,
+  currentTrackUrl?: string
+): string => {
+  const providedTrackUrl = getOptionalStringField(formData, 'trackUrl');
+  if (providedTrackUrl) {
+    return providedTrackUrl;
+  }
+
+  return currentTrackUrl ?? FALLBACK_AUDIO_TRACK_URL;
 };
 
 const buildCoverUrl = (trackId: number): string =>
@@ -294,11 +304,6 @@ export class MockTrackService implements TrackService {
 
         const sessionArtist = getSessionArtist();
         const title = getStringField(formData, 'title', `Untitled ${nextId}`);
-        const trackLinkSuffix = getStringField(
-          formData,
-          'trackLinkSuffix',
-          `track-${nextId}`
-        );
         const genre = getStringField(formData, 'genre', 'Electronic');
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
@@ -329,11 +334,11 @@ export class MockTrackService implements TrackService {
               id: artistId,
               username: artistName,
             },
-            trackUrl: buildTrackUrl(artistName, trackLinkSuffix),
+            trackUrl: resolvePlayableTrackUrl(formData),
             coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
             coverImageDataUrl,
             waveformUrl: buildWaveformUrl(nextId),
-            waveformData: waveformJson,
+            waveformData: waveformJson.trim().length > 0 ? JSON.parse(waveformJson) : [],
             genre,
             description,
             tags,
@@ -368,7 +373,7 @@ export class MockTrackService implements TrackService {
             title: uploaded.title,
             trackUrl: uploaded.trackUrl,
             coverUrl: uploaded.coverUrl,
-            durationSeconds: uploaded.durationSeconds,
+            durationSeconds: uploaded.durationSeconds?? 0,
           });
         };
 
@@ -419,7 +424,6 @@ export class MockTrackService implements TrackService {
       allowEmpty: true,
     });
     const releaseDate = getOptionalStringField(formData, 'releaseDate');
-    const trackLinkSuffix = getOptionalStringField(formData, 'trackLinkSuffix');
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
@@ -442,10 +446,7 @@ export class MockTrackService implements TrackService {
       ? undefined
       : (coverImageDataUrl ?? current.coverImageDataUrl);
 
-    const nextArtistName = artistName ?? current.artist.username;
-    const nextTrackUrl = trackLinkSuffix
-      ? buildTrackUrl(nextArtistName, trackLinkSuffix)
-      : current.trackUrl;
+    const nextTrackUrl = resolvePlayableTrackUrl(formData, current.trackUrl);
 
     const updated: MockTrackRecord = {
       ...current,
