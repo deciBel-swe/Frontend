@@ -45,7 +45,7 @@ export default function GlobalAudioPlayer({
   const loadedTrackRef = useRef<{ id: number; trackUrl: string } | null>(null);
 
   // If seek is requested before metadata is ready, queue it until seekable.
-  const pendingSeekRef = useRef<number | null>(null);
+  const [pendingSeek, setPendingSeek] = useState<number | null>(null);
 
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -91,12 +91,14 @@ export default function GlobalAudioPlayer({
       return false;
     }
 
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
-      pendingSeekRef.current = targetTime;
+    if (audio.readyState < HTMLMediaElement.HAVE_METADATA) {
+      setPendingSeek(targetTime);
       return false;
     }
 
-    const clamped = Math.max(0, Math.min(targetTime, audio.duration));
+    const clamped = Number.isFinite(audio.duration) && audio.duration > 0
+      ? Math.max(0, Math.min(targetTime, audio.duration))
+      : Math.max(0, targetTime);
 
     if (typeof audio.fastSeek === 'function') {
       try {
@@ -108,7 +110,7 @@ export default function GlobalAudioPlayer({
       audio.currentTime = clamped;
     }
 
-    pendingSeekRef.current = null;
+    setPendingSeek(null);
     return true;
   };
 
@@ -123,10 +125,45 @@ export default function GlobalAudioPlayer({
       return;
     }
 
-    pendingSeekRef.current = time;
     requestSeek(time);
     applySeek(time);
   };
+
+  useEffect(() => {
+    // Apply queued seeks as soon as metadata is available.
+    const audio = audioRef.current;
+    if (!audio || pendingSeek === null) {
+      return;
+    }
+
+    const applyPendingSeek = () => {
+      const clamped = Number.isFinite(audio.duration) && audio.duration > 0
+        ? Math.max(0, Math.min(pendingSeek, audio.duration))
+        : Math.max(0, pendingSeek);
+
+      if (typeof audio.fastSeek === 'function') {
+        try {
+          audio.fastSeek(clamped);
+        } catch {
+          audio.currentTime = clamped;
+        }
+      } else {
+        audio.currentTime = clamped;
+      }
+
+      setPendingSeek(null);
+    };
+
+    if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      applyPendingSeek();
+      return;
+    }
+
+    audio.addEventListener('loadedmetadata', applyPendingSeek);
+    return () => {
+      audio.removeEventListener('loadedmetadata', applyPendingSeek);
+    };
+  }, [pendingSeek]);
 
   const handlePlay = () => {
     if (isPlaying) {
@@ -326,8 +363,6 @@ export default function GlobalAudioPlayer({
 
     if (Math.abs(audio.currentTime - currentTime) > 0.05) {
       applySeek(currentTime);
-      console.log(`Applied seek to ${currentTime} for track ${currentTrack.title}`);
-      console.log(`Audio currentTime is now ${audio.currentTime}`);
     }
   }, [currentTime, currentTrack]);
 
@@ -374,11 +409,6 @@ export default function GlobalAudioPlayer({
     }
 
     const handleTimeUpdate = () => {
-      // If a seek was queued before metadata was ready, retry continuously.
-      if (pendingSeekRef.current !== null) {
-        applySeek(pendingSeekRef.current);
-      }
-
       const now = audio.currentTime;
       setCurrentTime(now);
 
@@ -406,14 +436,10 @@ export default function GlobalAudioPlayer({
     };
 
     const handleLoadedMetadata = () => {
-      // Metadata availability unlocks precise duration and pending seek replay.
+      // Metadata availability unlocks precise duration.
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
         if (Math.abs(duration - audio.duration) > 0.01) {
           setDuration(audio.duration);
-        }
-
-        if (pendingSeekRef.current !== null) {
-          applySeek(pendingSeekRef.current);
         }
       }
     };
@@ -447,7 +473,7 @@ export default function GlobalAudioPlayer({
     }
 
     previousTrackIdRef.current = nextTrackId;
-    pendingSeekRef.current = null;
+    setPendingSeek(null);
     setCurrentTime(0);
 
     if (currentTrack?.durationSeconds !== undefined) {
