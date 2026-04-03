@@ -9,9 +9,11 @@ import { Heart, UserPlus, MoreHorizontal } from 'lucide-react';
 interface PlaylistCardProps {
   title: string;
   coverUrl: string;
+  username?: string; // Optional username for linking to artist profile
+  sets?:boolean; // Optional flag to indicate if this card is for a playlist (set) 
 }
 
-const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
+const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl, username, sets }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -68,7 +70,10 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
 
       {/* Title */}
       <Link
-        href="#"
+        href={username && sets ? 
+          `/${username.toLowerCase().replace(/\s+/g, '')}/sets/${title.toLowerCase().replace(/\s+/g, '-')}`
+          : username ? `/${username.toLowerCase().replace(/\s+/g, '')}/${title.toLowerCase().replace(/\s+/g, '-')}` :
+          `/${title.toLowerCase().replace(/\s+/g, '-')}`} 
         className="mt-3 text-sm font-medium text-text-primary truncate block hover:text-text-secondary transition-colors"
       >
         {title}

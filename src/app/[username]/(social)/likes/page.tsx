@@ -14,7 +14,7 @@ const FIXED_WAVE = [
   0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,0.6,0.4,0.9,0.5,0.7,0.3,0.8,
 ];
 
-const MOCK_LIKED_TRACKS: TrackListItem[] = [
+export const MOCK_LIKED_TRACKS: TrackListItem[] = [
   {
     trackId: '1',
     user: { name: 'artist 1', avatar: 'https://picsum.photos/seed/billie/200' },
