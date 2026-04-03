@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'picsum.photos' },
       { protocol: 'https', hostname: 'i1.sndcdn.com' },
       { protocol: 'https', hostname: 'i.ibb.co' },
+      { protocol: 'https', hostname: 'decibelblob.blob.core.windows.net' },
     ],
   },
 };
