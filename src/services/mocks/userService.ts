@@ -107,39 +107,45 @@ const toSearchUser = (
   isFollowing: viewer.following.has(target.id),
 });
 
-const toUserPublic = (user: MockUserRecord): UserPublic => ({
-  id: user.id,
-  username: user.username,
-  tier: user.tier,
+const toUserPublic = (
+  user: MockUserRecord,
+  viewer: MockUserRecord
+): UserPublic => ({
   profile: {
-    username: user.username,
     id: user.id,
-    bio: user.profile.bio,
-    location: [user.profile.city, user.profile.country]
-      .filter(Boolean)
-      .join(', '),
-    avatarUrl: user.profile.profilePic,
-    coverPhotoUrl: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
-  },
-  socialLinks: {
-    instagram: user.socialLinks.instagram,
-    twitter: user.socialLinks.twitter,
-    website: user.socialLinks.website,
-  },
-  stats: {
-    followersCount: user.followers.size,
+    email: user.email,
+    username: user.username,
+    tier: user.tier,
+    followerCount: user.followers.size,
     followingCount: user.following.size,
     trackCount: user.tracks.length,
+    isFollowed: user.following.has(viewer.id),
+    isFollowing: viewer.following.has(user.id),
+    isBlocked: viewer.blocked.has(user.id),
+    bio: user.profile.bio,
+    city: user.profile.city,
+    country: user.profile.country || null,
+    profilePic: user.profile.profilePic,
+    coverPic: user.profile.coverPic,
+    favoriteGenres: [...user.profile.favoriteGenres],
+    socialLinksDto: [
+      {
+        instagram: user.socialLinks.instagram || null,
+        twitter: user.socialLinks.twitter || null,
+        website: user.socialLinks.website || null,
+      },
+    ],
   },
+  privacySettings: user.privacySettings.isPrivate
+    ? { ...user.privacySettings }
+    : null,
 });
 
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
-  Role: user.role,
   email: user.email,
   username: user.username,
-  emailVerified: user.emailVerified,
+  isBlocked: false,
   tier: user.tier,
   profile: {
     bio: user.profile.bio,
@@ -173,8 +179,9 @@ export class MockUserService implements UserService {
   async getPublicUserById(userId: number): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
+    const viewer = getCurrentUser();
     const user = findUser(userId);
-    return toUserPublic(user);
+    return toUserPublic(user, viewer);
   }
 
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
@@ -191,7 +198,8 @@ export class MockUserService implements UserService {
       throw new Error('User not found');
     }
 
-    return toUserPublic(user);
+    const viewer = getCurrentUser();
+    return toUserPublic(user, viewer);
   }
 
   async getUserMe(): Promise<UserMe> {

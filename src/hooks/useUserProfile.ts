@@ -5,6 +5,10 @@ import { userService } from '@/services';
 import { useAuth } from '@/features/auth';
 import { normalizeApiError } from '@/hooks/useAPI';
 import type { UserPublic } from '@/types/user';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+
+const normalizeUsername = (value: string | undefined): string =>
+  decodeURIComponent(value ?? '').trim().toLowerCase();
 
 /**
  * useUserProfile
@@ -19,12 +23,21 @@ import type { UserPublic } from '@/types/user';
  */
 export function useUserProfile(username: string) {
   const { user } = useAuth();
+  const profileContext = useProfileOwnerContext();
+  const isManagedByContext =
+    normalizeUsername(profileContext?.routeUsername) ===
+    normalizeUsername(username);
+
   const [profile, setProfile] = useState<UserPublic | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [errorStatusCode, setErrorStatusCode] = useState<number | null>(null);
 
   useEffect(() => {
+    if (isManagedByContext) {
+      return;
+    }
+
     let isCancelled = false;
 
     const fetchProfile = async () => {
@@ -55,15 +68,46 @@ export function useUserProfile(username: string) {
     return () => {
       isCancelled = true;
     };
-  }, [username]);
+  }, [isManagedByContext, username]);
 
   /**
-   * True if the logged-in user is the profile owner.
-   * Used to decide between OwnerView and VisitorView,
-   * and to gate private profile visibility.
+   * True if the logged-in user matches the route username.
+   * Falls back to response username when available.
    */
-  const isOwner =
-    !!user && !!profile && user.username === profile.profile.username;
+  const effectiveProfile = isManagedByContext
+    ? (profileContext?.publicUser ?? null)
+    : profile;
 
-  return { profile, isOwner, isLoading, isError, errorStatusCode };
+  const effectiveIsLoading = isManagedByContext
+    ? (profileContext?.isPublicLoading ?? false)
+    : isLoading;
+
+  const effectiveErrorStatusCode = isManagedByContext
+    ? (profileContext?.publicErrorStatusCode ?? null)
+    : errorStatusCode;
+
+  const effectiveIsError = isManagedByContext
+    ? !!profileContext?.publicError
+    : isError;
+
+  const normalizedRouteUsername = username.trim().toLowerCase();
+  const normalizedCurrentUsername = user?.username?.trim().toLowerCase() ?? '';
+  const normalizedProfileUsername =
+    effectiveProfile?.profile.username?.trim().toLowerCase() ?? '';
+  const isOwnerById =
+    typeof user?.id === 'number' && user.id === effectiveProfile?.profile.id;
+
+  const isOwner =
+    isOwnerById ||
+    (normalizedCurrentUsername.length > 0 &&
+      (normalizedCurrentUsername === normalizedRouteUsername ||
+        normalizedCurrentUsername === normalizedProfileUsername));
+
+  return {
+    profile: effectiveProfile,
+    isOwner,
+    isLoading: effectiveIsLoading,
+    isError: effectiveIsError,
+    errorStatusCode: effectiveErrorStatusCode,
+  };
 }

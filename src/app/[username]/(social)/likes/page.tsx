@@ -77,9 +77,8 @@ export default function Page({
         <TrackList
           tracks={tracks}
           isLoading={isLoading}
-          showEditButton={false}
           // showCommentInput={true}
-          currentUserAvatar={profileData?.profile.avatarUrl}
+          currentUserAvatar={profileData?.profile.profilePic}
           showHeader={false}
         />
       </Suspense>

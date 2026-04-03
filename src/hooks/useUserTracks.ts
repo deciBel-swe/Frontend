@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { trackService } from '@/services';
 import { userService } from '@/services';
+import { ApiErrorDTO } from '@/types';
+import { ApiError } from 'next/dist/server/api-utils';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+
+const normalizeUsername = (value: string | undefined): string =>
+  decodeURIComponent(value ?? '').trim().toLowerCase();
 
 type UseUserTracksParams = {
   userId?: number;
@@ -14,6 +20,12 @@ type UseUserTracksParams = {
  * pagination/filtering once real page logic is finalized.
  */
 export function useUserTracks(params: UseUserTracksParams) {
+  const profileContext = useProfileOwnerContext();
+  const isManagedByContext =
+    normalizeUsername(profileContext?.routeUsername) ===
+    normalizeUsername(params.username);
+  const contextPublicUserId = profileContext?.publicUser?.profile.id;
+
   const [tracks, setTracks] = useState<
     Awaited<ReturnType<typeof trackService.getUserTracks>>
   >([]);
@@ -47,10 +59,18 @@ export function useUserTracks(params: UseUserTracksParams) {
         let resolvedUserId = params.userId;
         const normalizedUsername = params.username?.trim() ?? '';
 
+        if (
+          !resolvedUserId &&
+          isManagedByContext &&
+          contextPublicUserId
+        ) {
+          resolvedUserId = contextPublicUserId;
+        }
+
         if (!resolvedUserId && normalizedUsername.length > 0) {
           const publicUser =
             await userService.getPublicUserByUsername(normalizedUsername);
-          resolvedUserId = publicUser.id;
+          resolvedUserId = publicUser.profile.id;
         }
 
         if (!resolvedUserId) {
@@ -64,9 +84,16 @@ export function useUserTracks(params: UseUserTracksParams) {
         if (!isCancelled) {
           setTracks(data);
         }
-      } catch{
+      } catch(error){
         if (!isCancelled) {
           setIsError(true);
+        }
+        if (error instanceof ApiError) {
+          const apiError = error as ApiErrorDTO;
+          console.error('API Error fetching user tracks:', apiError.message);
+        } else {
+          console.error('Unexpected error fetching user tracks:', error);
+          throw error;
         }
       } finally {
         if (!isCancelled) {
@@ -80,7 +107,13 @@ export function useUserTracks(params: UseUserTracksParams) {
     return () => {
       isCancelled = true;
     };
-  }, [params.userId, params.username, refreshIndex]);
+  }, [
+    contextPublicUserId,
+    isManagedByContext,
+    params.userId,
+    params.username,
+    refreshIndex,
+  ]);
 
   return {
     tracks,

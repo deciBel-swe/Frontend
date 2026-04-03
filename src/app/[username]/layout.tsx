@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ProfileGuard } from '@/components/profile-guard';
+import { ProfileOwnerProvider } from '@/features/prof/context/ProfileOwnerContext';
 
 const Layout = async ({
   children,
@@ -10,7 +11,11 @@ const Layout = async ({
 }) => {
   const { username } = await params;
 
-  return <ProfileGuard username={username}>{children}</ProfileGuard>;
+  return (
+    <ProfileOwnerProvider username={username}>
+      <ProfileGuard username={username}>{children}</ProfileGuard>
+    </ProfileOwnerProvider>
+  );
 };
 
 export default Layout;

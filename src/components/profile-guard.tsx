@@ -24,7 +24,7 @@ interface ProfileGuardProps {
  * <ProfileGuard username={username}>{children}</ProfileGuard>
  */
 export function ProfileGuard({ username, children }: ProfileGuardProps) {
-  const { isLoading, isError, errorStatusCode } = useUserProfile(username);
+  const {isLoading, isError, errorStatusCode } = useUserProfile(username);
 
   if (isLoading) {
     return (

@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Header — "Followers of X" or "X is following" */}
       <SocialPageHeader 
         profileUsername={username}
-        profileAvatarSrc={profileData?.profile.avatarUrl}
+        profileAvatarSrc={profileData?.profile.profilePic}
         listType={listType} />
 
       {/* Tabs — Likes | Following | Followers */}

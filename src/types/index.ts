@@ -15,6 +15,21 @@ export type UserRole = 'artist' | 'listener';
 export const userTierSchema = z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']);
 export type UserTier = z.infer<typeof userTierSchema>;
 
+const DefaultAvatarUrl = '/images/default_song_image.png';
+
+const imageWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return defaultValue;
+    }
+
+    return value;
+  }, z.string());
+
 // ================================
 // Auth
 // ================================
@@ -70,7 +85,7 @@ export const loginUserDTOSchema = z.object({
   username: z.string().trim().min(1),
   tier: userTierSchema,
   profileUrl: z.string().trim().min(1).optional(),
-  avatarUrl: z.string().trim().min(1).optional().nullable(),
+  avatarUrl: imageWithDefault(DefaultAvatarUrl),
 });
 export type LoginUserDTO = z.infer<typeof loginUserDTOSchema>;
 

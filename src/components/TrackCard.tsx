@@ -60,7 +60,7 @@ export default function TrackCard({
 
   repostedBy,
 
-  showEditButton = true,
+  showEditButton = false,
   track,
   waveform,
   showTrackList = false,

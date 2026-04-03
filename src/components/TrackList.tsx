@@ -2,6 +2,7 @@
 
 import TrackCard from '@/components/TrackCard';
 import { useUserTracks } from '@/hooks/useUserTracks';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 
 export type TrackListItem = {
   trackId: string;
@@ -46,15 +47,22 @@ export default function TrackList({
 
   tracks: externalTracks,
   isLoading: externalLoading = false,
-  showEditButton = true,
+  showEditButton = false,
   // showCommentInput = false,
   currentUserAvatar,
   showHeader = true,
 }: TrackListProps) {
+  const ownerContext = useProfileOwnerContext();
+
   // Only fetch when no external tracks are supplied
   const { tracks: fetchedTracks, isLoading: fetchLoading, isError } = useUserTracks(
     externalTracks === undefined ? { userId, username } : { userId: undefined, username: undefined }
   );
+
+  const resolvedShowEditButton =
+    ownerContext !== undefined
+      ? ownerContext.isOwner
+      : showEditButton;
 
   const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
 
@@ -123,7 +131,7 @@ export default function TrackList({
           track={item.track}
           waveform={item.waveform}
 
-          showEditButton={showEditButton}
+          showEditButton={resolvedShowEditButton}
           // showCommentInput={showCommentInput}
           currentUserAvatar={currentUserAvatar}
           showHeader={showHeader}

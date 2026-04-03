@@ -79,7 +79,7 @@ export default function ProfileFollowingPage({
         <UserGrid
           users={users}
           onFollowToggle={onFollowToggle}
-          emptyTitle={`${profileData?.profile.username} isn't following anyone yet`}
+          emptyTitle={`${username} isn't following anyone yet`}
         />
       )}
     </div>

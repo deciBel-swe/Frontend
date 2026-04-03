@@ -69,7 +69,7 @@ const toLoginUser = (
     id: account.id,
     username: account.username,
     tier: account.tier,
-    avatarUrl: account.avatarUrl,
+    avatarUrl: account.avatarUrl?.trim() || "/images/default_song_image.png",
   };
 };
 
