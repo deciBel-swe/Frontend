@@ -74,6 +74,7 @@ export default function Page() {
 
           <SearchBar
             onSearch={(value: string) => setFilterText(value)}
+            placeholder='Filter'
           />
         </div>
       </div>
