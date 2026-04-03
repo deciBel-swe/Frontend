@@ -23,12 +23,12 @@ export default function SoundBadge({ track, artist, artwork }: SoundBadgeProps) 
       {/* Text Container */}
       <div className="flex flex-col min-w-0 leading-tight">
         {/* Artist Name (Top, Gray) */}
-        <Link href="#" className="text-xs text-neutral-400 truncate hover:text-interactive-hover cursor-pointer transition-colors font-extrabold">
+        <Link href="#" className="text-xs text-neutral-300 truncate hover:text-neutral-400 cursor-pointer transition-colors font-extrabold">
           {artist}
         </Link>
         
         {/* Track Title (Bottom, Bold White) */}
-        <Link href="#" className="text-xs font-extrabold text-text-primary truncate block hover:text-interactive-hover transition-colors">
+        <Link href="#" className="text-xs font-extrabold text-neutral-200 truncate block hover:text-interactive-hover transition-colors">
           {track}
         </Link>
       </div>
