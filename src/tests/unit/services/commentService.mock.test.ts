@@ -1,3 +1,5 @@
+export {};
+
 type MockCommentServiceCtor =
   typeof import('@/services/mocks/commentService').MockCommentService;
 

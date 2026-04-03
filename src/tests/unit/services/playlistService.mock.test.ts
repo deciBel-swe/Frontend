@@ -1,3 +1,5 @@
+export {};
+
 type MockPlaylistServiceCtor =
   typeof import('@/services/mocks/playlistService').MockPlaylistService;
 

@@ -1,3 +1,5 @@
+export {};
+
 type MockTrackServiceCtor =
   typeof import('@/services/mocks/trackService').MockTrackService;
 
