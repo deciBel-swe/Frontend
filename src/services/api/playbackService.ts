@@ -12,7 +12,6 @@ export interface PlaybackService {
 	getListeningHistory(
 		params?: PlaybackPaginationParams
 	): Promise<PaginatedFeedResponse>;
-	startTrack(trackId: number, deviceInfo?: DeviceInfoDTO): Promise<MessageResponse>;
 	playTrack(trackId: number, deviceInfo?: DeviceInfoDTO): Promise<MessageResponse>;
 	completeTrack(trackId: number, deviceInfo?: DeviceInfoDTO): Promise<MessageResponse>;
 }
@@ -78,15 +77,6 @@ export class RealPlaybackService implements PlaybackService {
 	): Promise<PaginatedFeedResponse> {
 		return apiRequest(API_CONTRACTS.USERS_ME_HISTORY, {
 			params: toQueryParams(params),
-		});
-	}
-
-	async startTrack(
-		trackId: number,
-		deviceInfo?: DeviceInfoDTO
-	): Promise<MessageResponse> {
-		return apiRequest(API_CONTRACTS.TRACK_START(trackId), {
-			payload: buildPlaybackPayload(trackId, deviceInfo),
 		});
 	}
 

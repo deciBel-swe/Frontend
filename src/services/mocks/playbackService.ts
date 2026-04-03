@@ -68,19 +68,6 @@ export class MockPlaybackService implements PlaybackService {
     return paginateHistory(user?.history ?? [], params);
   }
 
-  async startTrack(
-    trackId: number,
-    deviceInfo?: DeviceInfoDTO
-  ): Promise<MessageResponse> {
-    await delay();
-    noopDeviceInfo(deviceInfo);
-    pushListeningHistory(trackId);
-
-    return {
-      message: 'Track started successfully',
-    };
-  }
-
   async playTrack(
     trackId: number,
     deviceInfo?: DeviceInfoDTO

@@ -23,7 +23,7 @@ export function userCompletedTrack(trackId: number): void {
  * @param trackId Numeric track identifier from the canonical playback model.
  */
 export function addToRecentlyPlayed(trackId: number): void {
-  void playbackService.startTrack(trackId);
+  void playbackService.playTrack(trackId);
 }
 
 /**

@@ -46,23 +46,6 @@ describe('RealPlaybackService', () => {
     });
   });
 
-  it('calls TRACK_START with trackId and deviceInfo payload', async () => {
-    mockedApiRequest.mockResolvedValue({ message: 'Track started successfully' });
-
-    await service.startTrack(42);
-
-    expect(mockedApiRequest).toHaveBeenCalledWith(API_CONTRACTS.TRACK_START(42), {
-      payload: {
-        trackId: 42,
-        deviceInfo: expect.objectContaining({
-          deviceType: 'DESKTOP',
-          fingerPrint: 'jest-agent',
-          deviceName: 'jest-agent',
-        }),
-      },
-    });
-  });
-
   it('calls TRACK_PLAY with trackId and provided deviceInfo', async () => {
     mockedApiRequest.mockResolvedValue({ message: 'Track play recorded successfully' });
 
