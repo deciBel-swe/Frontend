@@ -22,7 +22,7 @@ export const nullableStringWithDefault = (defaultValue: string) =>
     if (value === null || value === undefined) {
       return defaultValue;
     }
-  }, z.string().nullable());
+  }, z.string().nullable().optional());
 const userTierSchema = z.enum([
   'FREE',
   'ARTIST',

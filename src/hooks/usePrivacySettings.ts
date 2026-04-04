@@ -20,10 +20,11 @@ export function usePrivacySettings() {
         if (!isCancelled) {
           setSettings(me.privacySettings);
         }
-      } catch {
+      } catch(error) {
         if (!isCancelled) {
           setIsError(true);
         }
+        throw error;
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
