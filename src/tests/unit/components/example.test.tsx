@@ -239,7 +239,7 @@ describe('AsyncDataComponent', () => {
 //     <div>
 //       <h1>Welcome</h1>
 //       <p data-testid="description">This is a description</p>
-//       <img src="logo.png" alt="Logo" />
+//       <Image src="logo.png" alt="Logo" width={80} height={24} />
 //       <input placeholder="Enter text" />
 //     </div>
 //   );

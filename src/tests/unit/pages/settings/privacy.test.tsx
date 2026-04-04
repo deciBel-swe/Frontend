@@ -3,9 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import Page from '@/app/settings/privacy/page';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 jest.mock('@/hooks/usePrivacySettings');
+jest.mock('@/hooks/useBlockedUsers');
 
 describe('Settings privacy page', () => {
   const mockUpdate = jest.fn();
@@ -19,6 +21,14 @@ describe('Settings privacy page', () => {
       isError: false,
       isUpdating: false,
       updateSetting: mockUpdate,
+    });
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      users: [],
+      isLoading: false,
+      isError: false,
+      pendingIds: [],
+      unblockUser: jest.fn(),
+      refresh: jest.fn(),
     });
   });
 

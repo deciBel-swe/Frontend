@@ -35,7 +35,7 @@ const ProfileHeader = ({ username }: ProfileHeaderProps) => {
                   key={genre}
                   className="rounded-full bg-surface-overlay/60 px-2 py-0.5 text-[11px] font-semibold text-neutral-0 backdrop-blur-sm"
                 >
-                  #{genre}
+                  {genre}
                 </span>
               ))}
             </div>

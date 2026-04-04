@@ -43,6 +43,10 @@ const findTrackIndex = (queue: PlayerTrack[], trackId: number): number => {
   return queue.findIndex((item) => item.id === trackId);
 };
 
+const isValidQueueIndex = (queue: PlayerTrack[], index: number): boolean => {
+  return Number.isInteger(index) && index >= 0 && index < queue.length;
+};
+
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
   ...PLAYER_INITIAL_STATE,
 
@@ -119,32 +123,56 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   // Append a single track to the queue.
   addToQueue: (track) => {
-    set((state) => ({
-      queue: [...state.queue, track],
-      currentIndex:
-        state.currentIndex >= 0
-          ? state.currentIndex
-          : state.queue.length === 0
-            ? 0
-            : state.currentIndex,
-      currentTrack:
-        state.currentTrack ?? (state.queue.length === 0 ? track : state.currentTrack),
-    }));
+    set((state) => {
+      if (state.queue.some((item) => item.id === track.id)) {
+        return state;
+      }
+
+      return {
+        queue: [...state.queue, track],
+        currentIndex:
+          state.currentIndex >= 0
+            ? state.currentIndex
+            : state.queue.length === 0
+              ? 0
+              : state.currentIndex,
+        currentTrack:
+          state.currentTrack ?? (state.queue.length === 0 ? track : state.currentTrack),
+      };
+    });
   },
 
   // Append multiple tracks to the queue.
   addPlaylistToQueue: (tracks) => {
-    set((state) => ({
-      queue: [...state.queue, ...tracks],
-      currentIndex:
-        state.currentIndex >= 0
-          ? state.currentIndex
-          : tracks.length > 0
-            ? 0
-            : state.currentIndex,
-      currentTrack:
-        state.currentTrack ?? (tracks.length > 0 ? tracks[0] : null),
-    }));
+    set((state) => {
+      const existingIds = new Set(state.queue.map((item) => item.id));
+      const seenIds = new Set<number>();
+
+      const uniqueIncomingTracks = tracks.filter((track) => {
+        if (existingIds.has(track.id) || seenIds.has(track.id)) {
+          return false;
+        }
+
+        seenIds.add(track.id);
+        return true;
+      });
+
+      if (uniqueIncomingTracks.length === 0) {
+        return state;
+      }
+
+      return {
+        queue: [...state.queue, ...uniqueIncomingTracks],
+        currentIndex:
+          state.currentIndex >= 0
+            ? state.currentIndex
+            : uniqueIncomingTracks.length > 0
+              ? 0
+              : state.currentIndex,
+        currentTrack:
+          state.currentTrack ?? (uniqueIncomingTracks.length > 0 ? uniqueIncomingTracks[0] : null),
+      };
+    });
   },
 
   // Remove a track from queue and keep playback/index coherent.
@@ -191,6 +219,56 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         currentTime: 0,
         duration: nextTrack.durationSeconds ?? 0,
         isPlaying: nextTrack.access === 'PLAYABLE' ? state.isPlaying : false,
+      };
+    });
+  },
+
+  // Clear queue and reset playback selection.
+  clearQueue: () => {
+    set({
+      queue: [],
+      currentIndex: -1,
+      currentTrack: null,
+      currentTime: 0,
+      duration: 0,
+      isPlaying: false,
+      queueSource: undefined,
+    });
+  },
+
+  // Reorder queue by moving one item from source index to target index.
+  reorderQueue: (fromIndex, toIndex) => {
+    set((state) => {
+      if (!isValidQueueIndex(state.queue, fromIndex) || !isValidQueueIndex(state.queue, toIndex)) {
+        return state;
+      }
+
+      if (fromIndex === toIndex) {
+        return state;
+      }
+
+      const nextQueue = [...state.queue];
+      const [movedTrack] = nextQueue.splice(fromIndex, 1);
+      nextQueue.splice(toIndex, 0, movedTrack);
+
+      let nextCurrentIndex = state.currentIndex;
+
+      if (state.currentIndex === fromIndex) {
+        nextCurrentIndex = toIndex;
+      } else if (fromIndex < state.currentIndex && toIndex >= state.currentIndex) {
+        nextCurrentIndex = state.currentIndex - 1;
+      } else if (fromIndex > state.currentIndex && toIndex <= state.currentIndex) {
+        nextCurrentIndex = state.currentIndex + 1;
+      }
+
+      const nextCurrentTrack = isValidQueueIndex(nextQueue, nextCurrentIndex)
+        ? nextQueue[nextCurrentIndex]
+        : state.currentTrack;
+
+      return {
+        queue: nextQueue,
+        currentIndex: nextCurrentIndex,
+        currentTrack: nextCurrentTrack,
       };
     });
   },

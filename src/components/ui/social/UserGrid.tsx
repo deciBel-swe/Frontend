@@ -1,4 +1,3 @@
-import React from "react";
 import UserCard, { UserCardData } from "./UserCard";
 import EmptyState from "@/components/ui/social/EmptyState";
 

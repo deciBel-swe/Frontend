@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Play, Pause } from 'lucide-react';
 import TimeAgo from '@/components/TimeAgo';
 import Waveform from '@/components/waveform/Waveform';
@@ -64,7 +65,14 @@ export default function PlaylistBanner({
       {/* Top-right cover */}
       <div className="absolute top-0 right-0 w-[220px] md:w-[300px] h-full group cursor-pointer">
         {coverToShow ? (
-          <img src={coverToShow} alt={playlist.title} className="w-full h-full object-cover" />
+          <Image
+            src={coverToShow}
+            alt={`${playlist.title} cover image`}
+            className="w-full h-full object-cover"
+            width={600}
+            height={600}
+            unoptimized
+          />
         ) : (
           <div className="w-full h-full bg-surface-overlay flex items-center justify-center">
             <span className="text-text-muted text-sm">Upload image</span>

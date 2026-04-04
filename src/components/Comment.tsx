@@ -3,7 +3,7 @@
 import { useState, FC } from 'react';
 import { Send } from 'lucide-react';
 import Button from './buttons/Button';
-
+import Image from 'next/image';
 interface CommentInputProps {
   user: {
     avatar: string;
@@ -31,9 +31,12 @@ const CommentInput: FC<CommentInputProps> = ({ user, onPost }) => {
   return (
     <div className="mt-3 flex items-center w-full gap-2">
       {/* Avatar */}
-      <img
+      <Image
         src={user.avatar}
         className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+        width ={36}
+        height={36}
+        alt={user.name || 'User Avatar'}
       />
 
       {/* Input + Send */}

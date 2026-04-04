@@ -105,8 +105,8 @@ export interface TrackService {
   /** Remove repost of a track (DELETE /tracks/:trackId/repost) */
   unrepostTrack(trackId: number): Promise<repostResponse>;
 
-  /** Get paginated list of tracks liked by a user (GET /users/:userId/liked-playlists) */
-  getMyLikedTracks(): Promise<paginatedTrackResponse>;
+  /** Get paginated list of tracks liked by current user (GET /users/me/liked-tracks) */
+  getMyLikedTracks(params?: PaginationParams): Promise<paginatedTrackResponse>;
 
   /** Get paginated list of tracks reposted by the current user (GET /users/me/reposts) */
   getMyRepostedTracks(params?: PaginationParams): Promise<paginatedTrackResponse>;
@@ -126,7 +126,7 @@ const toAbsoluteUrl = (
   if (value.startsWith('http://') || value.startsWith('https://')) {
     return value;
   }
-  return `${base}${value.startsWith('/') ? value : `/${value}`}`;
+  return `${value.startsWith('/') ? value : `/${value}`}`;
 };
 
 const normalizeTrackMetadata = (

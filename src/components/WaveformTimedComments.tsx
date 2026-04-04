@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export type TimedComment = {
   id: string;
@@ -67,9 +68,13 @@ export default function WaveformTimedComments({
               onMouseLeave={() => setHoveredCommentId(null)}
             >
               {/* Avatar */}
-              <img
+              <Image
                 src={c.user.avatar}
+                alt={`${c.user.name} avatar`}
                 className={`${avatarSize} rounded-full object-cover border ${avatarBorder} shadow-sm cursor-pointer`}
+                width={isLatest ? 24 : 16}
+                height={isLatest ? 24 : 16}
+                unoptimized
               />
 
               {/* Tooltip */}

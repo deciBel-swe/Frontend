@@ -1,7 +1,7 @@
 // TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Heart, Repeat2, Share2, Copy, Pencil, Trash2, ListPlus } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 
 type TrackActionsProps = {
@@ -16,6 +16,7 @@ type TrackActionsProps = {
   showRepost?: boolean;
   showShare?: boolean;
   showCopy?: boolean;
+  showAddToQueue?: boolean;
   showEdit?: boolean;
   showDelete?: boolean;
   showMore?: boolean;
@@ -25,6 +26,7 @@ type TrackActionsProps = {
   onRepost?: () => void;
   onShare?: () => void;
   onCopy?: () => void;
+  onAddToQueue?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onMore?: () => void;
@@ -40,22 +42,22 @@ export default function TrackActions({
   showRepost = true,
   showShare = true,
   showCopy = true,
+  showAddToQueue = false,
   showEdit = false,
   showDelete = false,
-  showMore = true,
   onLike,
   onRepost,
   onShare,
   onCopy,
+  onAddToQueue,
   onEdit,
   onDelete,
-  onMore,
 }: TrackActionsProps) {
   return (
     <div className={`flex gap-1 ${className}`}>
       {showLike && (
         <Button
-          variant={variant}
+          variant={isLiked ? 'ghost_highlight' : 'ghost'}
           aria-label="Like"
           aria-pressed={isLiked}
           onClick={onLike}
@@ -66,7 +68,7 @@ export default function TrackActions({
       )}
       {showRepost && (
         <Button
-          variant={variant}
+          variant={isReposted ? 'ghost_highlight' : 'ghost'}
           aria-label="Repost"
           aria-pressed={isReposted}
           onClick={onRepost}
@@ -83,6 +85,16 @@ export default function TrackActions({
       {showCopy && (
         <Button variant={variant} aria-label="Copy link" onClick={onCopy}>
           <Copy size={size} />
+        </Button>
+      )}
+      {showAddToQueue && (
+        <Button
+          variant={variant}
+          aria-label="Add to queue"
+          onClick={onAddToQueue}
+          disabled={!onAddToQueue}
+        >
+          <ListPlus size={size} />
         </Button>
       )}
       {showEdit && onEdit && (

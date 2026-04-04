@@ -262,7 +262,7 @@ export class MockTrackService implements TrackService {
   ): Promise<UploadTrackResponse> {
     await delay();
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       let progress = 0;
       const interval = setInterval(() => {
         progress = Math.min(100, progress + 10);
@@ -349,7 +349,7 @@ export class MockTrackService implements TrackService {
             coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
             coverImageDataUrl,
             waveformUrl: buildWaveformUrl(nextId),
-            waveformData: waveformJson.trim().length > 0 ? JSON.parse(waveformJson) : [],
+            waveformData: parseWaveformPayload(waveformJson),
             genre,
             description,
             tags,
@@ -388,7 +388,7 @@ export class MockTrackService implements TrackService {
           });
         };
 
-        void finalizeUpload();
+        void finalizeUpload().catch(reject);
       }, 120);
     });
   }
@@ -795,7 +795,9 @@ export class MockTrackService implements TrackService {
     });
   }
 
-  async getMyLikedTracks(): Promise<paginatedTrackResponse> {
+  async getMyLikedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
     return new Promise((resolve) => {
       setTimeout(() => {
         const currentUserId = resolveCurrentMockUserId();
@@ -824,8 +826,8 @@ export class MockTrackService implements TrackService {
         resolve({
           content,
           isLast: true,
-          pageNumber: 0,
-          pageSize: content.length,
+          pageNumber: params?.page ?? 0,
+          pageSize: params?.size ?? content.length,
           totalElements: content.length,
           totalPages: 1,
         });

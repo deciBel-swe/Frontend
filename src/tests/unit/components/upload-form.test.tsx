@@ -71,4 +71,61 @@ describe('UploadForm', () => {
 
     expect(screen.getByText('Unable to parse audio')).toBeInTheDocument();
   });
+
+  it('hides header controls when reset callback is missing', () => {
+    render(<UploadForm {...baseProps} onReset={undefined} />);
+
+    expect(
+      screen.queryByRole('button', { name: /replace track/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not call submit when submit button is disabled', async () => {
+    const user = userEvent.setup();
+    const onSubmit = jest.fn();
+
+    render(
+      <UploadForm {...baseProps} onSubmit={onSubmit} submitDisabled={true} />
+    );
+
+    const submitButton = screen.getByRole('button', { name: 'Upload' });
+    expect(submitButton).toBeDisabled();
+
+    await user.click(submitButton);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('hides footer actions when showFooter is false', () => {
+    render(<UploadForm {...baseProps} showFooter={false} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Upload' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders release date field only when enabled with a change handler', () => {
+    const { rerender } = render(
+      <UploadForm
+        {...baseProps}
+        showReleaseDate
+        releaseDate="2026-04-04"
+        onReleaseDateChange={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText(/release date/i)).toBeInTheDocument();
+
+    rerender(
+      <UploadForm {...baseProps} showReleaseDate releaseDate="2026-04-04" />
+    );
+
+    expect(screen.queryByText(/release date/i)).not.toBeInTheDocument();
+  });
+
+  it('renders custom submit labels', () => {
+    render(<UploadForm {...baseProps} submitLabel="Publish now" />);
+
+    expect(screen.getByRole('button', { name: 'Publish now' })).toBeInTheDocument();
+  });
 });

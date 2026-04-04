@@ -10,7 +10,8 @@ import QueuePanel from "./QueuePanel";
 
 interface QueueInfo {
   visible: boolean;
-  items: { id: number; title: string; artist?: string }[];
+  items: { id: number; title: string; artist?: string; artwork?: string }[];
+  activeTrackId?: number;
 }
 
 interface PlayerBarProps {
@@ -31,6 +32,8 @@ interface PlayerBarProps {
   onQueueToggle: () => void;
   onQueueSelect: (trackId: number) => void;
   onQueueRemove: (trackId: number) => void;
+  onQueueClear: () => void;
+  onQueueReorder: (fromIndex: number, toIndex: number) => void;
   shuffleActive: boolean;
   repeatActive: boolean;
   onToggleShuffle: () => void;
@@ -56,6 +59,8 @@ export default function PlayerBar(props: PlayerBarProps) {
     onQueueToggle,
     onQueueSelect,
     onQueueRemove,
+    onQueueClear,
+    onQueueReorder,
     shuffleActive,
     repeatActive,
     onToggleShuffle,
@@ -69,13 +74,12 @@ export default function PlayerBar(props: PlayerBarProps) {
 <QueuePanel 
           items={queue.items} 
           isPlaying={isPlaying}
+          activeTrackId={queue.activeTrackId ?? null}
           onClose={onQueueToggle}
           onSelect={onQueueSelect} 
           onRemove={onQueueRemove}
-          onClear={() => {
-            // This is where you actually empty the items
-            // e.g., props.onQueueClear() 
-          }}
+          onClear={onQueueClear}
+          onReorder={onQueueReorder}
         />
       )}
       
@@ -84,7 +88,7 @@ export default function PlayerBar(props: PlayerBarProps) {
           - mx-auto: Centers that smaller area.
           - flex items-center: Keeps everything vertically centered.
       */}
-      <div className="max-w-[1240px] mx-auto flex items-center h-[52px] px-2">
+      <div className="max-w-310 mx-auto flex items-center h-13 px-2">
         
         <PlayerControls
           isPlaying={isPlaying}

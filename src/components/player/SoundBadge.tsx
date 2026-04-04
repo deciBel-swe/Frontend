@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 interface SoundBadgeProps {
   track: string;
@@ -13,10 +14,13 @@ export default function SoundBadge({ track, artist, artwork }: SoundBadgeProps) 
     <div className="flex items-center gap-3 w-57 overflow-hidden group select-none">
       {/* Artwork with subtle border */}
       <div className="relative flex-shrink-0">
-        <img 
+        <Image 
           src={artwork}
           alt={track} 
           className="w-12 h-12 rounded-[4px] object-cover border border-neutral-800" 
+          width={48}
+          height={48}
+          unoptimized
         />
       </div>
 

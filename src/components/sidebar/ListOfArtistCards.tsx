@@ -4,9 +4,11 @@ type ListOfArtistCardsprops ={
   headerUrl:string
   Artist_header: string
   artists: {
+    id?: number;
     name: string;
     followers: number;
     tracks: number;
+    isFollowing?: boolean;
     imageUrl?: string;
     artistUrl?: string;
   }[];

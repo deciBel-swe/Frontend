@@ -106,6 +106,8 @@ export interface PlayerActions {
   addToQueue: (track: PlayerTrack) => void;
   addPlaylistToQueue: (tracks: PlayerTrack[]) => void;
   removeFromQueue: (trackId: number) => void;
+  clearQueue: () => void;
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
   nextTrack: () => void;
   previousTrack: () => void;
 

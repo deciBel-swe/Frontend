@@ -2,6 +2,7 @@
 
 import { Send } from 'lucide-react';
 import Button from '@/components/buttons/Button';
+import Image from 'next/image';
 
 type CommentInputProps = {
   avatarUrl?: string;
@@ -34,10 +35,13 @@ export default function CommentInput({
     <div className="flex items-center gap-3 py-3">
       {/* Avatar */}
       {avatarUrl ? (
-        <img
+        <Image
           src={avatarUrl}
           alt="Your avatar"
           className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+          width={36}
+          height={36}
+          unoptimized
         />
       ) : (
         <div className="w-9 h-9 rounded-full bg-interactive-default flex-shrink-0" />

@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface AvatarImageProps {
   src?: string;
   alt: string;
@@ -27,10 +29,13 @@ export default function AvatarImage({
       style={{ width: size, height: size }}
     >
       {src ? (
-        <img
+        <Image
           src={src}
           alt={alt}
           className="h-full w-full object-cover"
+          width={size}
+          height={size}
+          unoptimized
         />
       ) : (
         <span

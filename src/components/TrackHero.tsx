@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Play, Pause } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Waveform from '@/components/waveform/Waveform';
+import Image from 'next/image';
 import WaveformTimedComments, {
   type TimedComment,
 } from '@/components/WaveformTimedComments';
@@ -160,10 +161,12 @@ export default function TrackHero({
 
         {/* ── RIGHT: Cover art ──────────────────────────────── */}
         <div className="shrink-0 w-full md:w-52 lg:w-64 aspect-square md:aspect-auto">
-          <img
+          <Image
             src={coverUrl}
             alt={`${title} cover art`}
             className="w-full h-full object-cover"
+            width ={400}
+            height={400}
           />
         </div>
       </div>

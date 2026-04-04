@@ -2,24 +2,7 @@
 
 import UserGrid from "@/components/ui/social/UserGrid";
 import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
-import { UserCardData } from "@/components/ui/social/UserCard";
-
-// ─── Mock data ────────────────────────────────────────────────
-const MOCK_SUGGESTED: UserCardData[] = [
-  { id: "1",  username: "Gracie",            followerCount: 89_900,   isVerified: true,  isFollowing: true,  avatarSrc: "https://picsum.photos/seed/ff/200" },
-  { id: "2",  username: "redwitch",          followerCount: 12_300,   isVerified: false, isFollowing: false, avatarSrc: "https://picsum.photos/seed/gg/200" },
-  { id: "3",  username: "nightlane",         followerCount: 98_000,   isVerified: false, isFollowing: false, avatarSrc: "https://picsum.photos/seed/hh/200" },
-  { id: "4",  username: "solstice",          followerCount: 450_000,  isVerified: true,  isFollowing: false, avatarSrc: "https://picsum.photos/seed/ii/200" },
-  { id: "5", username: "kairosound",        followerCount: 6_200,    isVerified: false, isFollowing: true,  avatarSrc: "https://picsum.photos/seed/jj/200" },
-  { id: "6", username: "dawnbreak",         followerCount: 210_000,  isVerified: true,  isFollowing: false, avatarSrc: "https://picsum.photos/seed/kk/200" },
-  { id: "7", username: "velvetpulse",       followerCount: 33_500,   isVerified: false, isFollowing: false, avatarSrc: "https://picsum.photos/seed/ll/200" },
-];
-
-interface PeoplePageProps {
-  users?: UserCardData[];
-  isLoading?: boolean;
-  onFollowToggle?: (userId: string) => void;
-}
+import { useSuggestedUsers } from '@/hooks/useSuggestedUsers';
 
 /**
  * PeoplePage — /people
@@ -33,13 +16,11 @@ interface PeoplePageProps {
  * Reuses the same UserGrid + UserCard as /[username]/followers
  * and /[username]/following — no new components needed.
  */
-export default function Page({
-  users = MOCK_SUGGESTED,
-  isLoading = false,
-  onFollowToggle,
-}: PeoplePageProps) {
+export default function Page() {
+  const { users, isLoading } = useSuggestedUsers({ size: 48 });
+
   return (
-    <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
+    <div className="max-w-295 mx-auto px-6 pt-8 pb-16">
 
       {/* ── Header ── */}
       <div className="mb-8">
@@ -57,7 +38,7 @@ export default function Page({
       ) : (
         <UserGrid
           users={users}
-          onFollowToggle={onFollowToggle}
+          showFollowButton
           emptyTitle="No suggestions right now. Follow some artists to get started."
         />
       )}

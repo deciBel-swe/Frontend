@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useRef } from 'react';
+import Image from 'next/image';
 
 interface ArtworkPreviewFieldProps {
   artworkPreview: string | null;
@@ -30,11 +31,13 @@ export default function ArtworkPreviewField({
         onClick={() => artworkInputRef.current?.click()}
       >
         {artworkPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={artworkPreview}
             alt="Artwork preview"
             className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 420px"
+            unoptimized
           />
         ) : (
           <div className="flex flex-col items-center text-text-primary text-xs gap-2">

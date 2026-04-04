@@ -283,9 +283,10 @@ export type FollowResponse = z.infer<typeof followResponseSchema>;
 
 export const searchUserSchema = z
   .object({
-    id: z.number().int().nonnegative(),
-    username: z.string().trim().min(1),
-    avatarUrl: z.string().url().optional(),
+    id: z.number().int().nonnegative().optional(),
+    username: z.string().trim().min(1).optional(),
+    displayName: z.string().trim().min(1).optional().nullable(),
+    avatarUrl: z.string().url().optional().nullable(),
     tier: z.string().optional(),
     isFollowing: z.boolean().optional(),
   })
@@ -326,9 +327,12 @@ const paginationInfoSchema = z
   .object({
     pageNumber: z.number().int().nonnegative().optional(),
     pageSize: z.number().int().positive().optional(),
+    number: z.number().int().nonnegative().optional(),
+    size: z.number().int().positive().optional(),
     totalElements: z.number().int().nonnegative().optional(),
     totalPages: z.number().int().nonnegative().optional(),
-    isLast: z.boolean(),
+    isLast: z.boolean().optional(),
+    last: z.boolean().optional(),
   })
   .passthrough();
 
@@ -351,7 +355,16 @@ export type PaginatedTracksResponse = z.infer<
   typeof paginatedTracksResponseSchema
 >;
 
-export const usersSuggestedResponseSchema = z.array(searchUserSchema);
+export const usersSuggestedResponseSchema = z
+  .union([
+    z.array(searchUserSchema),
+    z
+      .object({
+        content: z.array(searchUserSchema),
+      })
+      .passthrough(),
+  ])
+  .transform((payload) => (Array.isArray(payload) ? payload : payload.content));
 export type UsersSuggestedResponse = z.infer<
   typeof usersSuggestedResponseSchema
 >;

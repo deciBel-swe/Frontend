@@ -1,8 +1,6 @@
 'use client';
 
 import { useTrackPage } from '@/hooks/useTrackPage';
-import TrackHero from '@/components/TrackHero';
-import TrackActionBar from '@/components/TrackActionBar';
 import CommentInput from '@/components/comments/CommentInput';
 import CommentList from '@/components/comments/CommentList';
 import TrackFansPanel from '@/components/TrackFansPanel';
@@ -19,9 +17,7 @@ export default function TrackPageView({
   currentUserAvatar,
 }: TrackPageViewProps) {
   const {
-    track,
     comments,
-    waveformComments,
     fans,
     commentText,
     pendingTimestamp,
@@ -31,20 +27,11 @@ export default function TrackPageView({
     errorMessage,
     isCommentSubmitting,
     replyingToCommentId,
-    isPlaying,
-    waveformCurrentTime,
-    waveformDurationSeconds,
     likeCount,
     repostCount,
-    isLiked,
-    isReposted,
     currentUserAvatar: resolvedCurrentUserAvatar,
     setCommentText,
     clearPendingTimestamp,
-    onPlayPause,
-    onWaveformSeek,
-    onLike,
-    onRepost,
     onCommentSubmit,
     onReplySubmit,
   } = useTrackPage({ username, trackId, currentUserAvatar });
@@ -53,7 +40,7 @@ export default function TrackPageView({
     return <div className="w-full mt-4 text-sm text-text-muted">Loading track...</div>;
   }
 
-  if (isError || !track) {
+  if (isError) {
     return (
       <div className="w-full mt-4 text-sm text-text-muted">
         {errorMessage ?? 'Failed to load this track.'}
@@ -63,42 +50,6 @@ export default function TrackPageView({
 
   return (
     <div className="w-full flex flex-col gap-0 mt-4">
-      {/* 1. TOP SECTION: Full Width Hero & Action Bar */}
-      <div className="w-full">
-        <TrackHero
-          title={track.title}
-          artistName={track.artistName}
-          artistSlug={track.artistSlug}
-          coverUrl={track.coverUrl}
-          timeAgo={track.timeAgo}
-          tags={track.tags}
-          waveformUrl={track.waveformUrl}
-          duration={track.duration}
-          currentUserAvatar={resolvedCurrentUserAvatar}
-          waveformComments={waveformComments}
-          waveformCurrentTime={waveformCurrentTime}
-          waveformDurationSeconds={waveformDurationSeconds}
-          pendingTimestamp={pendingTimestamp}
-          isPlaying={isPlaying}
-          onPlayPause={onPlayPause}
-          onWaveformSeek={onWaveformSeek}
-        />
-
-        <TrackActionBar
-          plays={track.plays}
-          likes={likeCount}
-          reposts={repostCount}
-          isLiked={isLiked}
-          isReposted={isReposted}
-          onLike={() => {
-            void onLike();
-          }}
-          onRepost={() => {
-            void onRepost();
-          }}
-        />
-      </div>
-
       {/* 2. BOTTOM SECTION: Grid for Comments + Sidebar */}
       <div className="flex flex-col lg:flex-row gap-8 mt-6">
         {/* Left Side: Comments Area */}
@@ -137,7 +88,14 @@ export default function TrackPageView({
 
         {/* Right Side: Sidebar (Fans, etc.) */}
         <aside className="w-full lg:w-75 shrink-0">
-          <TrackFansPanel fans={fans} />
+          <TrackFansPanel
+            fans={fans}
+            username={username}
+            trackId={trackId}
+            likesCount={likeCount}
+            repostsCount={repostCount}
+            commentsCount={comments.length}
+          />
         </aside>
       </div>
     </div>

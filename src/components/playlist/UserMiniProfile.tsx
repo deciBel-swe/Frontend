@@ -31,6 +31,8 @@ export const UserMiniProfile: React.FC<UserMiniProfileProps> = ({
             alt={displayName} 
             fill 
             className="object-cover" 
+            width ={120}
+            height={120}
           />
         )}
       </Link>

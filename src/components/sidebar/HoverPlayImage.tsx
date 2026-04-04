@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Play } from 'lucide-react';
+import Image from 'next/image';
 
 interface HoverPlayImageProps {
   image: string;
@@ -18,9 +19,14 @@ export const HoverPlayImage: FC<HoverPlayImageProps> = ({
       onClick={onClick}
     >
       {/* Image */}
-      {/* <Image src={src} alt={alt} fill className="object-cover" /> */}
-      {/* IMAGE */}
-      <img src={image} alt={alt} className="w-full h-full object-cover" />
+      <Image
+        src={image}
+        alt={alt}
+        fill
+        className="w-full h-full object-cover"
+        sizes="(max-width: 768px) 100vw, 320px"
+        unoptimized
+      />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-surface-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

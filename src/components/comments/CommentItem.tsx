@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
+import Image from 'next/image';
 import CommentInput from '@/components/comments/CommentInput';
 
 export type CommentReply = {
@@ -57,10 +58,13 @@ export default function CommentItem({
     <div className="py-3 border-b border-border-default last:border-0">
       <div className="flex items-start gap-3">
         <Link href={`/${comment.authorSlug}`} className="shrink-0">
-          <img
+          <Image
             src={comment.authorAvatar}
             alt={comment.authorName}
             className="w-9 h-9 rounded-full object-cover hover:opacity-80 transition-opacity"
+            width={36}
+            height={36}
+            unoptimized
           />
         </Link>
 
@@ -116,10 +120,13 @@ export default function CommentItem({
           {comment.replies?.map((reply) => (
             <div key={reply.id} className="flex items-start gap-3">
               <Link href={`/${reply.authorSlug}`} className="shrink-0">
-                <img
+                <Image
                   src={reply.authorAvatar}
                   alt={reply.authorName}
                   className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition-opacity"
+                  width={32}
+                  height={32}
+                  unoptimized
                 />
               </Link>
 
