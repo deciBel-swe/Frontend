@@ -52,7 +52,7 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
         {hovered && (
         <TrackActions
          size={14}
-            className="bsolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex items-center bg-background/80 backdrop-blur-sm pl-2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex items-center bg-background/80 backdrop-blur-sm pl-2"
             onLike={() => console.log('Liked track', track.id)}
             onCopy={() => console.log('Copy link', track.id)}
          />
