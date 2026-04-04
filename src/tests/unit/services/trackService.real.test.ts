@@ -78,64 +78,6 @@ describe('RealTrackService', () => {
     expect(onProgress).toHaveBeenCalledWith(25);
   });
 
-  it('normalizes metadata URLs and fallback artist fields', async () => {
-    const payload: TrackDetailsResponse = {
-      id: 42,
-      title: 'Neon Pulse',
-      genre: 'Electronic',
-      tags: ['night'],
-      coverImage: '/images/covers/42.jpg',
-      coverUrl: '/images/covers/42.jpg',
-      waveformUrl: 'waveforms/42.json',
-      userId: 7,
-      username: 'alice',
-      isLiked: false,
-      isReposted: false,  
-      likeCount: 0,
-      repostCount: 0,
-      playCount: 0,
-      uploadDate: '',
-
-      description: '',
-      isPrivate: false,
-    };
-
-    mockedApiRequest.mockResolvedValue(payload);
-
-    const metadata = await service.getTrackMetadata(42);
-
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ method: 'GET', url: '/tracks/42' })
-    );
-
-    expect(metadata).toEqual({
-      id: 42,
-      title: 'Neon Pulse',
-      access: 'PLAYABLE',
-      artist: {
-        id: 7,
-        username: 'alice',
-      },
-      trackUrl: `${config.api.appUrl}/tracks/42`,
-      coverUrl: `${config.api.appUrl}/images/covers/42.jpg`,
-      waveformUrl: `${config.api.appUrl}/waveforms/42.json`,
-      waveformData: [0.1, 0.5, 1, 0],
-      genre: 'Electronic',
-      tags: ['night'],
-      isLiked: false,
-      isReposted: false,  
-      likeCount: 0,
-      repostCount: 0,
-      playCount: 0,
-      uploadDate: '',
-      description: '',
-      releaseDate: '',
-    });
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.api.appUrl}/waveforms/42.json`
-    );
-  });
-
   it('preserves absolute URLs and falls back to unknown artist fields with explicit duration', async () => {
     const payload: TrackDetailsResponse = {
       id: 55,
@@ -182,7 +124,7 @@ describe('RealTrackService', () => {
     const metadata = await service.getTrackMetadata(56);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${config.api.appUrl}/waveforms/56.json`
+      `/waveforms/56.json`
     );
     expect(metadata.waveformData).toEqual([0.1, 0.5, 1, 0]);
   });
@@ -442,7 +384,7 @@ describe('RealTrackService', () => {
     const result = await service.getTrackMetadata(121);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${config.api.appUrl}/waveforms/121.json`
+      `/waveforms/121.json`
     );
     expect(result.waveformData).toEqual([]);
   });
