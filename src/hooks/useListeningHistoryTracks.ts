@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 
 import type { TrackListItem } from '@/components/TrackList';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
-import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
-import { trackService } from '@/services';
+import { playbackService, trackService } from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
 
-const normalizeUsername = (value: string | undefined): string =>
-  decodeURIComponent(value ?? '').trim().toLowerCase();
+type UseListeningHistoryTracksParams = {
+  page?: number;
+  size?: number;
+};
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -38,82 +39,68 @@ const asIsoDate = (value: unknown): string | undefined => {
   return undefined;
 };
 
-type UseLikedTracksOptions = {
-  forCurrentUser?: boolean;
-};
-
-export function useLikedTracks(
-  username: string,
-  options: UseLikedTracksOptions = {}
-) {
-  const profileContext = useProfileOwnerContext();
+export function useListeningHistoryTracks({
+  page = 0,
+  size = 20,
+}: UseListeningHistoryTracksParams = {}) {
   const [tracks, setTracks] = useState<TrackListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  const isManagedByContext =
-    normalizeUsername(profileContext?.routeUsername) ===
-    normalizeUsername(username);
-  const isOwner =
-    options.forCurrentUser ||
-    (isManagedByContext && Boolean(profileContext?.isOwner));
-
   useEffect(() => {
     let isCancelled = false;
 
-    const loadLikedTracks = async () => {
+    const loadHistory = async () => {
       setIsLoading(true);
       setIsError(false);
 
       try {
-        if (!isOwner) {
-          if (!isCancelled) {
-            setTracks([]);
-          }
-          return;
-        }
+        const response = await playbackService.getListeningHistory({ page, size });
+        const historyItems = response.content ?? [];
 
-        const response = await trackService.getMyLikedTracks({ page: 0, size: 100 });
-        const likedTracks = response.content ?? [];
+        const mappedTracks: Array<TrackListItem | null> = await Promise.all(
+          historyItems.map(async (item) => {
+            if (typeof item.id !== 'number') {
+              return null;
+            }
 
-        const mappedTracks = await Promise.all(
-          likedTracks.map(async (track) => {
             let metadata:
               | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
               | null = null;
 
             try {
-              metadata = await trackService.getTrackMetadata(track.id);
+              metadata = await trackService.getTrackMetadata(item.id);
             } catch {
               metadata = null;
             }
 
-            const artistName = track.artist?.username ?? 'unknown';
+            const artistName = metadata?.artist.username ?? 'unknown';
+            const title = metadata?.title ?? item.title ?? `Track ${item.id}`;
             const durationSeconds = metadata?.durationSeconds;
 
             return {
-              trackId: String(track.id),
+              trackId: String(item.id),
               user: {
                 name: artistName,
-                avatar: metadata?.coverUrl ?? track.coverUrl,
+                avatar: metadata?.coverUrl ?? '/images/default_song_image.png',
               },
-              postedText: 'liked a track',
+              postedText: 'played a track',
               track: {
-                id: track.id,
+                id: item.id,
                 artist: artistName,
-                title: track.title,
-                cover: metadata?.coverUrl ?? track.coverUrl,
+                title,
+                cover: metadata?.coverUrl ?? '/images/default_song_image.png',
                 duration: durationSeconds ? formatDuration(durationSeconds) : '',
-                plays: track.playCount,
-                createdAt: asIsoDate(track.releaseDate),
-                genre: track.genre,
+                plays: metadata?.playCount,
+                createdAt: asIsoDate(metadata?.releaseDate),
+                genre: metadata?.genre,
                 durationSeconds,
-                isLiked: track.isLiked,
-                isReposted: track.isReposted,
-                likeCount: track.likeCount,
-                repostCount: track.repostCount,
+                isLiked: metadata?.isLiked,
+                isReposted: metadata?.isReposted,
+                likeCount: metadata?.likeCount,
+                repostCount: metadata?.repostCount,
               },
-              trackUrl: metadata?.trackUrl ?? track.trackUrl,
+              trackUrl: metadata?.trackUrl,
               access: toPlaybackAccess(metadata?.access),
               waveform: metadata?.waveformData ?? [],
             } satisfies TrackListItem;
@@ -121,7 +108,9 @@ export function useLikedTracks(
         );
 
         if (!isCancelled) {
-          setTracks(mappedTracks);
+          setTracks(
+            mappedTracks.filter((item): item is TrackListItem => item !== null)
+          );
         }
       } catch {
         if (!isCancelled) {
@@ -135,17 +124,16 @@ export function useLikedTracks(
       }
     };
 
-    void loadLikedTracks();
+    void loadHistory();
 
     return () => {
       isCancelled = true;
     };
-  }, [isOwner]);
+  }, [page, size]);
 
   return {
     tracks,
     isLoading,
     isError,
-    isOwner,
   };
 }
