@@ -3,20 +3,16 @@
 import React, { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/buttons/Button';
-import { IconButton } from '@/components/buttons/IconButton';
 import {
   ArtworkPreviewField,
   AutoResizableTextAreaField,
   FloatingTextField,
-  PrefixedInputField,
   SelectTextField,
 } from '@/components/FormFields';
-import { Link2, Trash2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEditProfileForm } from '@/features/prof/hooks/useEditProfileForm';
-import {
-  MAX_PROFILE_LINKS,
-  type EditProfileFormValues,
-} from '@/types/editProfile';
+import type { EditProfileFormValues } from '@/types/editProfile';
+import FavoriteGenresSelector from '@/features/prof/components/FavoriteGenresSelector';
 
 type Props = {
   open: boolean;
@@ -52,22 +48,14 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
     formValues,
     formErrors,
     submitError,
-    links,
-    linkErrors,
     avatarPreviewUrl,
-    hasSupportLink,
-    isLinksTooltipOpen,
-    openSupportTooltipId,
+    coverPreviewUrl,
     countryOptions,
-    setIsLinksTooltipOpen,
-    setOpenSupportTooltipId,
-    addLink,
-    addSupportLink,
-    removeLink,
-    updateLinkField,
     updateField,
     handleImageSelect,
     handleImageRemove,
+    handleCoverImageSelect,
+    handleCoverImageRemove,
     handleSubmit,
   } = useEditProfileForm({
     open,
@@ -90,7 +78,7 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
         <button
           onClick={onClose}
           // classname must be top-4, but due to header
-          className="fixed top-7 right-6 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
+            className="fixed top-7 right-6 z-60 p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
           <X size={20} />
         </button>
 
@@ -101,76 +89,27 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
         <form onSubmit={handleSubmit} className="flex gap-6 p-6">
           <div className="w-65 flex flex-col gap-4">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-32">
+              <div className="w-48">
                 <ArtworkPreviewField
                   previewUrl={avatarPreviewUrl}
                   onSelect={handleImageSelect}
                   onRemove={handleImageRemove}
                   emptyLabel="Add profile image"
-                  replaceLabel="Replace image"
-                  removeLabel="Delete image"
+                  replaceLabel="Replace Profile image"
+                  removeLabel="Delete Profile image"
                 />
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2 mt-auto mb-7">
-              <div className="flex items-center gap-2">
-                <div className="font-bold text-sm">Your Links</div>
-
-                <div className="relative js-links-tooltip">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLinksTooltipOpen((prev) => !prev);
-                      setOpenSupportTooltipId(null);
-                    }}
-                    className="h-4 w-4 flex items-center justify-center rounded-full text-[10px] text-text-inverse cursor-pointer bg-interactive-active"
-                  >
-                    i
-                  </button>
-
-                  <div
-                    className={`absolute left-1/2 top-6 -translate-x-1/2 w-64 bg-surface-raised text-text-primary text-xs p-2 rounded border border-border-default shadow-lg transition ${
-                      isLinksTooltipOpen
-                        ? 'opacity-100 visible'
-                        : 'opacity-0 invisible'
-                    }`}
-                  >
-                    Add links to your website and social network profiles to
-                    help your audience find you wherever you are.
-                  </div>
-                </div>
+              <div className="w-48">
+                <ArtworkPreviewField
+                  previewUrl={coverPreviewUrl}
+                  onSelect={handleCoverImageSelect}
+                  onRemove={handleCoverImageRemove}
+                  emptyLabel="Add cover image"
+                  replaceLabel="Replace Cover image"
+                  removeLabel="Delete Cover image"
+                />
               </div>
-
-              <div className="flex flex-row gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={addLink}
-                  disabled={links.length >= MAX_PROFILE_LINKS}
-                >
-                  Add link
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={addSupportLink}
-                  disabled={
-                    links.length >= MAX_PROFILE_LINKS || hasSupportLink
-                  }
-                >
-                  Add support link
-                </Button>
-              </div>
-
-              <p className="text-[11px] text-text-muted mt-1">
-                {links.length}/{MAX_PROFILE_LINKS} links
-              </p>
-
-              {formErrors.links ? (
-                <p className="text-xs text-red-400">{formErrors.links}</p>
-              ) : null}
             </div>
           </div>
 
@@ -190,33 +129,6 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
               required
               error={formErrors.displayName}
             />
-
-            <PrefixedInputField
-              label="Profile URL *"
-              prefix="decibel.com"
-              value={formValues.profileUrl}
-              onChange={(v) => updateField('profileUrl', v.toLowerCase())}
-              placeholder="your-handle"
-              error={formErrors.profileUrl}
-            />
-
-            <div className="flex gap-3">
-              <FloatingTextField
-                name="firstName"
-                label="First name"
-                value={formValues.firstName}
-                onChange={(v) => updateField('firstName', v)}
-                error={formErrors.firstName}
-              />
-
-              <FloatingTextField
-                name="lastName"
-                label="Last name"
-                value={formValues.lastName}
-                onChange={(v) => updateField('lastName', v)}
-                error={formErrors.lastName}
-              />
-            </div>
 
             <div className="flex gap-3">
               <FloatingTextField
@@ -251,90 +163,48 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
               </div>
             </div>
 
-            {links.length > 0 ? (
-              <div className="space-y-2">
-                {links.map((link) => (
-                  <div key={link.id}>
-                    <div className="flex items-center gap-2">
-                      <Link2 className="w-4 h-4 text-text-secondary shrink-0" />
+            <FavoriteGenresSelector
+              value={formValues.favoriteGenres}
+              onChange={(genres) => updateField('favoriteGenres', genres)}
+            />
 
-                      <input
-                        type="text"
-                        placeholder={
-                          link.kind === 'support'
-                            ? 'https://paypal.me/username'
-                            : 'Web or email address'
-                        }
-                        value={link.url}
-                        onChange={(event) =>
-                          updateLinkField(link.id, 'url', event.target.value)
-                        }
-                        className="flex-1 h-10 rounded bg-interactive-default px-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
-                      />
-
-                      {link.kind !== 'support' ? (
-                        <input
-                          type="text"
-                          placeholder="Short title"
-                          value={link.title}
-                          onChange={(event) =>
-                            updateLinkField(link.id, 'title', event.target.value)
-                          }
-                          className="w-44 h-10 rounded bg-interactive-default px-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
-                        />
-                      ) : null}
-
-                      {link.kind === 'support' ? (
-                        <div className="relative js-support-tooltip">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setOpenSupportTooltipId((prev) =>
-                                prev === link.id ? null : link.id
-                              );
-                              setIsLinksTooltipOpen(false);
-                            }}
-                            className="h-4 w-4 flex items-center justify-center rounded-full text-[10px] text-text-inverse cursor-pointer bg-interactive-active"
-                          >
-                            i
-                          </button>
-
-                          <div
-                            className={`absolute left-1/2 top-6 -translate-x-1/2 w-64 bg-surface-raised text-text-primary text-xs p-2 rounded border border-border-default shadow-lg transition z-20 ${
-                              openSupportTooltipId === link.id
-                                ? 'opacity-100 visible'
-                                : 'opacity-0 invisible'
-                            }`}
-                          >
-                            Support links help listeners directly support your
-                            work.
-                          </div>
-                        </div>
-                      ) : null}
-
-                      <IconButton
-                        onClick={() => removeLink(link.id)}
-                        aria-label="Delete link"
-                        className="h-10 w-10 rounded bg-interactive-default hover:bg-interactive-hover text-text-secondary hover:text-text-primary transition-colors duration-150"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </IconButton>
-                    </div>
-
-                    {linkErrors[link.id] ? (
-                      <p className="mt-1 text-xs text-red-400">
-                        {linkErrors[link.id]}
-                      </p>
-                    ) : link.kind === 'support' ? (
-                      <p className="mt-1 text-xs text-text-muted">
-                        Supported platforms: PayPal, Cash app, Venmo, Bandcamp,
-                        Shopify, Kickstarter, Patreon, and Gofundme.
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
+            {formErrors.favoriteGenres ? (
+              <p className="text-xs text-red-400">{formErrors.favoriteGenres}</p>
             ) : null}
+
+            <div className="pt-2 border-t border-border-default">
+              <p className="text-xs font-semibold text-text-primary mb-3">
+                Social Links
+              </p>
+              <div className="space-y-3">
+                <FloatingTextField
+                  name="website"
+                  label="Website"
+                  value={formValues.website}
+                  onChange={(v) => updateField('website', v)}
+                  error={formErrors.website}
+                  placeholder="https://yourwebsite.com"
+                />
+
+                <FloatingTextField
+                  name="instagram"
+                  label="Instagram"
+                  value={formValues.instagram}
+                  onChange={(v) => updateField('instagram', v)}
+                  error={formErrors.instagram}
+                  placeholder="https://instagram.com/yourname"
+                />
+
+                <FloatingTextField
+                  name="twitter"
+                  label="Twitter / X"
+                  value={formValues.twitter}
+                  onChange={(v) => updateField('twitter', v)}
+                  error={formErrors.twitter}
+                  placeholder="https://x.com/yourname"
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-border-default">
               {submitError ? (

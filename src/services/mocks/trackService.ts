@@ -806,7 +806,7 @@ export class MockTrackService implements TrackService {
         const content = likedTracks.map((track) => ({
           artist: { ...track.artist },
           coverUrl: track.coverImageDataUrl ?? track.coverUrl,
-          description: track.description,
+          description: track.description ?? '',
           genre: track.genre,
           id: track.id,
           isLiked: true,
@@ -844,7 +844,7 @@ export class MockTrackService implements TrackService {
         const content = repostedTracks.map((track) => ({
           artist: { ...track.artist },
           coverUrl: track.coverImageDataUrl ?? track.coverUrl,
-          description: track.description,
+          description: track.description ?? '',
           genre: track.genre,
           id: track.id,
           isLiked: track.likes.has(currentUserId),

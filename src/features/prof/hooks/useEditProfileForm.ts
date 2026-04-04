@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useGetCountry } from '@/hooks/useGetCountry';
 import { useEditMe } from './useEditMe';
 import { useEditProfileInitialValues } from './useEditProfileInitialValues';
 import {
-  buildSocialLinksFromProfileLinks,
+  buildSocialLinksFromFields,
   emptyEditProfileFormValues,
   getEditProfileFormErrors,
-  MAX_PROFILE_LINKS,
   type EditProfileFormErrors,
   type EditProfileFormValues,
 } from '@/types/editProfile';
 import type {
-  ProfileLink,
   UpdateImagesJsonRequest,
   UpdateMeRequest,
 } from '@/types/user';
 import type { SelectTextOption } from '@/components/FormFields';
-import { validateLinks } from '@/utils/forValidation';
 import { validateImageFile } from '@/utils/fileValidation';
 import { userService } from '@/services';
 
@@ -33,33 +31,29 @@ export const useEditProfileForm = ({
   const { editMe, isUpdating, error: editMeError } = useEditMe();
   const {
     initialValues,
-    nextLinkId,
     isLoading: isInitialLoading,
     error: initialLoadError,
   } = useEditProfileInitialValues();
 
-  const nextLinkIdRef = useRef(1);
   const hasHydratedFromUserRef = useRef(false);
 
-  const [isLinksTooltipOpen, setIsLinksTooltipOpen] = useState(false);
-  const [openSupportTooltipId, setOpenSupportTooltipId] = useState<
-    number | null
-  >(null);
   const [formValues, setFormValues] = useState<EditProfileFormValues>(
     emptyEditProfileFormValues
   );
-  const [links, setLinks] = useState<ProfileLink[]>([]);
-  const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
   const [submitError, setSubmitError] = useState<string | undefined>(undefined);
   const [formErrors, setFormErrors] = useState<EditProfileFormErrors>({});
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
-
-  const hasSupportLink = links.some((item) => item.kind === 'support');
+  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(
+    null
+  );
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       hasHydratedFromUserRef.current = false;
+      setSelectedImage(null);
+      setSelectedCoverImage(null);
       return;
     }
 
@@ -70,21 +64,25 @@ export const useEditProfileForm = ({
     const hydratedValues: EditProfileFormValues = {
       ...initialValues,
       avatar: initialValues.avatar,
+      coverImage: initialValues.coverImage,
     };
 
     setFormValues(hydratedValues);
-    setLinks(initialValues.links);
     setAvatarPreviewUrl(initialValues.avatar);
-    nextLinkIdRef.current = Math.max(nextLinkId, initialValues.links.length + 1);
-    setLinkErrors(validateLinks(initialValues.links));
+    setCoverPreviewUrl(initialValues.coverImage);
     setFormErrors(getEditProfileFormErrors(hydratedValues));
     hasHydratedFromUserRef.current = true;
-  }, [initialValues, nextLinkId, open]);
+  }, [initialValues, open]);
 
   const countryOptions: SelectTextOption[] = useMemo(() => {
+    const countryList = countries ?? [];
+
     return Array.from(
       new Map(
-        countries.map((country) => [country.name.toLowerCase(), country.name])
+        countryList.map((country) => [
+          country.name.toLowerCase(),
+          country.name,
+        ])
       ).values()
     ).map((countryName) => ({
       label: countryName,
@@ -92,95 +90,24 @@ export const useEditProfileForm = ({
     }));
   }, [countries]);
 
-  const addLink = useCallback(() => {
-    if (links.length >= MAX_PROFILE_LINKS) {
-      return;
-    }
-
-    setLinks((prev) => {
-      const updated: ProfileLink[] = [
-        ...prev,
-        {
-          id: nextLinkIdRef.current++,
-          url: '',
-          title: '',
-          kind: 'regular',
-        },
-      ];
-
-      setFormValues((current) => ({ ...current, links: updated }));
-      setLinkErrors(validateLinks(updated));
-      return updated;
-    });
-  }, [links.length]);
-
-  const addSupportLink = useCallback(() => {
-    if (links.length >= MAX_PROFILE_LINKS || hasSupportLink) {
-      return;
-    }
-
-    setLinks((prev) => {
-      const updated: ProfileLink[] = [
-        ...prev,
-        {
-          id: nextLinkIdRef.current++,
-          url: '',
-          title: 'Support',
-          kind: 'support',
-        },
-      ];
-
-      setFormValues((current) => ({ ...current, links: updated }));
-      setLinkErrors(validateLinks(updated));
-      return updated;
-    });
-  }, [hasSupportLink, links.length]);
-
-  const removeLink = useCallback((id: number) => {
-    setLinks((prev) => {
-      const next = prev.filter((item) => item.id !== id);
-      setLinkErrors(validateLinks(next));
-      setFormValues((current) => ({ ...current, links: next }));
-      return next;
-    });
-  }, []);
-
-  const updateLinkField = useCallback(
-    (id: number, field: keyof Omit<ProfileLink, 'id'>, value: string) => {
-      setLinks((prev) => {
-        const next = prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                [field]: value,
-                kind: item.kind as 'regular' | 'support',
-              }
-            : item
-        );
-
-        setLinkErrors(validateLinks(next));
-        setFormValues((current) => ({ ...current, links: next }));
-        return next;
-      });
-    },
-    []
-  );
-
   const updateField = useCallback(
-    (field: keyof EditProfileFormValues, value: string) => {
-      const nextValue = field === 'bio' ? value.slice(0, 200) : value;
-
+    <K extends keyof EditProfileFormValues>(
+      field: K,
+      value: EditProfileFormValues[K]
+    ) => {
       setFormValues((prev) => {
         const nextValues = {
           ...prev,
-          [field]: nextValue,
+          [field]: field === 'bio' && typeof value === 'string'
+            ? value.slice(0, 200)
+            : value,
         };
 
-        setFormErrors(getEditProfileFormErrors({ ...nextValues, links }));
+        setFormErrors(getEditProfileFormErrors(nextValues));
         return nextValues;
       });
     },
-    [links]
+    []
   );
 
   const handleImageSelect = useCallback(async (file: File) => {
@@ -214,11 +141,42 @@ export const useEditProfileForm = ({
     setFormValues((prev) => ({ ...prev, avatar: null }));
   }, []);
 
+  const handleCoverImageSelect = useCallback(async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Cover image must be a valid image file.');
+        return;
+      }
+
+      setSelectedCoverImage(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCoverPreviewUrl(
+          typeof reader.result === 'string' ? reader.result : null
+        );
+      };
+      reader.readAsDataURL(file);
+
+      setFormValues((prev) => ({ ...prev, coverImage: file }));
+    } catch (err) {
+      console.error('Cover image validation failed:', err);
+      alert('Unable to read cover image. Please try another image.');
+    }
+  }, []);
+
+  const handleCoverImageRemove = useCallback(() => {
+    setSelectedCoverImage(null);
+    setCoverPreviewUrl(null);
+    setFormValues((prev) => ({ ...prev, coverImage: null }));
+  }, []);
+
   const submitForm = useCallback(async () => {
     const nextValues: EditProfileFormValues = {
       ...formValues,
-      links,
       avatar: selectedImage ?? formValues.avatar,
+      coverImage: selectedCoverImage ?? formValues.coverImage,
     };
 
     setFormValues(nextValues);
@@ -226,37 +184,30 @@ export const useEditProfileForm = ({
     const errors = getEditProfileFormErrors(nextValues);
     setFormErrors(errors);
 
-    const nextLinkErrors = validateLinks(links);
-    setLinkErrors(nextLinkErrors);
-
-    if (
-      Object.keys(errors).length > 0 ||
-      Object.keys(nextLinkErrors).length > 0
-    ) {
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
     setSubmitError(undefined);
-
-    const socialLinksPayload = buildSocialLinksFromProfileLinks(links) ?? {};
     const imagesPayload: UpdateImagesJsonRequest = {};
 
     if (selectedImage && avatarPreviewUrl) {
       imagesPayload.profilePic = avatarPreviewUrl;
+    }
+    if (selectedCoverImage && coverPreviewUrl) {
+      imagesPayload.coverPic = coverPreviewUrl;
     }
 
     const payload: UpdateMeRequest = {
       bio: nextValues.bio,
       city: nextValues.city,
       country: nextValues.country,
+      favoriteGenres: nextValues.favoriteGenres,
+      socialLinks: buildSocialLinksFromFields(nextValues),
     };
 
     try {
       await editMe(payload);
-
-      if (Object.keys(socialLinksPayload).length > 0) {
-        await userService.updateSocialLinks(socialLinksPayload);
-      }
 
       if (Object.keys(imagesPayload).length > 0) {
         await userService.updateImages(imagesPayload);
@@ -272,16 +223,17 @@ export const useEditProfileForm = ({
     }
   }, [
     avatarPreviewUrl,
+    coverPreviewUrl,
     editMe,
     editMeError,
     formValues,
-    links,
     onSubmit,
     selectedImage,
+    selectedCoverImage,
   ]);
 
   const handleSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       await submitForm();
     },
@@ -295,22 +247,14 @@ export const useEditProfileForm = ({
     formValues,
     formErrors,
     submitError,
-    links,
-    linkErrors,
     avatarPreviewUrl,
-    hasSupportLink,
-    isLinksTooltipOpen,
-    openSupportTooltipId,
+    coverPreviewUrl,
     countryOptions,
-    setIsLinksTooltipOpen,
-    setOpenSupportTooltipId,
-    addLink,
-    addSupportLink,
-    removeLink,
-    updateLinkField,
     updateField,
     handleImageSelect,
     handleImageRemove,
+    handleCoverImageSelect,
+    handleCoverImageRemove,
     handleSubmit,
   };
 };

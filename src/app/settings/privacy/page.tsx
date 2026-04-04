@@ -111,7 +111,7 @@ export default function PrivacyPage() {
     setIsPrivate(next);
     setStatus('saving');
     try {
-      await updateSetting({ isPrivate: next });
+      await updateSetting({ isPrivate: next, showHistory });
       flash('saved');
     } catch {
       flash('error');
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
     setShowHistory(next);
     setStatus('saving');
     try {
-      await updateSetting({ showHistory: next });
+      await updateSetting({ isPrivate, showHistory: next });
       flash('saved');
     } catch {
       flash('error');

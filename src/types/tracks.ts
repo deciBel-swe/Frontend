@@ -14,6 +14,16 @@ const trackImageWithDefault = z.preprocess((value) => {
   return value;
 }, z.string().trim().min(1));
 
+const nullableStringWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return defaultValue;
+    }
+    return value;
+  }, z.string());
 // ================================
 // Track Upload
 // ================================
@@ -96,7 +106,7 @@ export const trackDetailsResponseSchema = z.object({
   title: z.string().trim().min(1),
   durationSeconds: z.coerce.number().int().nonnegative().optional().nullable(),
   genre: z.string().trim().optional().default('Unknown'),
-  description: z.string().optional().default('').nullable(),
+  description: nullableStringWithDefault(' '),
   releaseDate: z.string().trim().optional().nullable(),
   isPrivate: z.boolean().optional().default(false),
   tags: z.array(z.string()).optional().default([]),
@@ -135,7 +145,7 @@ export const trackUpdateResponseSchema = z.object({
   coverUrl: trackImageWithDefault,
   title: z.string().trim().min(1),
   genre: z.string().trim().min(1),
-  description: z.string(),
+  description: nullableStringWithDefault(' '),
   isPrivate: z.boolean(),
   tags: z.array(z.string()),
   releaseDate: z.string().trim().min(1),
@@ -155,7 +165,7 @@ export const trackMetadataSchema = z.object({
   waveformData: z.array(z.number()).optional(),
   genre: z.string(),
   tags: z.array(z.string()),
-  description: z.string().optional().default(''),
+  description: nullableStringWithDefault(' '),
   releaseDate: z.string().optional().default(''),
   isLiked: z.boolean().optional(),
   isReposted: z.boolean().optional(),
@@ -175,7 +185,7 @@ export const trackResponseSchema = z
   .object({
     artist: trackArtistSchema,
     coverUrl: trackImageWithDefault,
-    description: z.string().nullable().optional(),
+    description: nullableStringWithDefault(' '),
     genre: z.string(),
     id: z.number(),
     isLiked: z.boolean(),

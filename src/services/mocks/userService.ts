@@ -115,6 +115,7 @@ const toUserPublic = (
     id: user.id,
     email: user.email,
     username: user.username,
+    displayName: user.username,
     tier: user.tier,
     followerCount: user.followers.size,
     followingCount: user.following.size,
@@ -145,9 +146,11 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
   username: user.username,
+  displayName: user.username,
   isBlocked: false,
   tier: user.tier,
   profile: {
+    displayName: user.username,
     bio: user.profile.bio,
     city: user.profile.city,
     country: user.profile.country,
@@ -224,6 +227,7 @@ export class MockUserService implements UserService {
         ...payload.socialLinks,
       };
     }
+
     commitMockUserState();
 
     return toUserMe(me);

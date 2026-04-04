@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { privacyService } from '@/services';
-import type { UpdatePrivacySettingsDto } from '@/types/privacy';
+import { privacyService, userService } from '@/services';
+import type { PrivacySettings, UpdatePrivacySettingsDto } from '@/types/privacy';
+import { error } from 'console';
 
 export function usePrivacySettings() {
-  const [settings, setSettings] = useState<Awaited<
-    ReturnType<typeof privacyService.getPrivacySettings>
-  > | null>(null);
+  const [settings, setSettings] = useState<PrivacySettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -18,11 +17,12 @@ export function usePrivacySettings() {
       setIsError(false);
 
       try {
-        const data = await privacyService.getPrivacySettings();
+        const me = await userService.getUserMe();
         if (!isCancelled) {
-          setSettings(data);
+          setSettings(me.privacySettings);
         }
-      } catch {
+      } catch (error) {
+        throw error;
         if (!isCancelled) {
           setIsError(true);
         }
@@ -46,21 +46,15 @@ export function usePrivacySettings() {
       setIsError(false);
 
       const previous = settings;
-      if (previous) {
-        setSettings({
-          ...previous,
-          ...data,
-        });
-      }
+      setSettings(data);
 
       try {
         const updated = await privacyService.updatePrivacySettings(data);
         setSettings(updated);
       } catch {
-        if (previous) {
-          setSettings(previous);
-        }
+        setSettings(previous ?? null);
         setIsError(true);
+        throw new Error('Failed to update privacy settings');
       } finally {
         setIsUpdating(false);
       }
