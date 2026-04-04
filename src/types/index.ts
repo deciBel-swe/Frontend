@@ -151,9 +151,10 @@ export type { UploadFormValues } from './uploadSchema';
 export {
   editProfileSchema,
   getEditProfileFormErrors,
-  buildSocialLinksFromProfileLinks,
+  buildSocialLinksFromFields,
   emptyEditProfileFormValues,
-  MAX_PROFILE_LINKS,
+  MAX_FAVORITE_GENRES,
+  MAX_FAVORITE_GENRE_LENGTH,
 } from './editProfile';
 export type {
   EditProfileFormValues,

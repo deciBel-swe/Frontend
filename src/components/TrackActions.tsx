@@ -1,7 +1,7 @@
 // TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, MoreHorizontal, Pencil } from 'lucide-react';
+import { Heart, Repeat2, Share2, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 
 type TrackActionsProps = {
@@ -17,6 +17,7 @@ type TrackActionsProps = {
   showShare?: boolean;
   showCopy?: boolean;
   showEdit?: boolean;
+  showDelete?: boolean;
   showMore?: boolean;
 
   // Callback actions
@@ -25,6 +26,7 @@ type TrackActionsProps = {
   onShare?: () => void;
   onCopy?: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
   onMore?: () => void;
 };
 
@@ -39,19 +41,21 @@ export default function TrackActions({
   showShare = true,
   showCopy = true,
   showEdit = false,
+  showDelete = false,
   showMore = true,
   onLike,
   onRepost,
   onShare,
   onCopy,
   onEdit,
+  onDelete,
   onMore,
 }: TrackActionsProps) {
   return (
     <div className={`flex gap-1 ${className}`}>
       {showLike && (
         <Button
-          variant={isLiked? 'ghost_highlight' : variant}
+          variant={variant}
           aria-label="Like"
           aria-pressed={isLiked}
           onClick={onLike}
@@ -62,7 +66,7 @@ export default function TrackActions({
       )}
       {showRepost && (
         <Button
-          variant={isReposted ? 'ghost_highlight' : variant}
+          variant={variant}
           aria-label="Repost"
           aria-pressed={isReposted}
           onClick={onRepost}
@@ -86,9 +90,14 @@ export default function TrackActions({
         <Pencil size={size} />
         </Button>
       )}
-      {showMore && (
-        <Button variant={variant} aria-label="More" onClick={onMore}>
-          <MoreHorizontal size={size} />
+      {showDelete && onDelete && (
+        <Button
+          variant={variant}
+          aria-label="Delete"
+          onClick={onDelete}
+          className="text-status-error hover:text-status-error"
+        >
+          <Trash2 size={size} />
         </Button>
       )}
     </div>

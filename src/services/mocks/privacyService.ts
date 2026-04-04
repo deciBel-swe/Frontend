@@ -40,8 +40,8 @@ export class MockPrivacyService implements PrivacyService {
   ): Promise<PrivacySettings> {
     await delay();
     const current = this._getCurrentUserPrivacy();
-    current.isPrivate = data.isPrivate ?? current.isPrivate;
-    current.showHistory = data.showHistory ?? current.showHistory;
+    current.isPrivate = data.isPrivate;
+    current.showHistory = data.showHistory;
     persistMockSystemState();
     return { ...current };
   }

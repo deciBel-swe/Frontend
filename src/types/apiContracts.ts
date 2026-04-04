@@ -544,6 +544,20 @@ export const API_CONTRACTS = {
       responseSchema: trackUpdateResponseSchema,
     }),
 
+  TRACKS_DELETE: (trackId: number) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  TRACKS_DELETE_COVER: (trackId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.COVER(trackId),
+      responseSchema: z.undefined(),
+    }),
+
   TRACKS_UPDATE_VISIBILITY: (trackId: number) =>
     defineContract({
       method: 'PATCH',

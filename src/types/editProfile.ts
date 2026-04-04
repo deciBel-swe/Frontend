@@ -1,62 +1,64 @@
 import { z } from 'zod';
-import type { ProfileLink, UpdateMeRequest } from './user';
+import type { UpdateMeRequest } from './user';
 
 export type EditProfileFormValues = {
   displayName: string;
-  profileUrl: string;
-  firstName: string;
-  lastName: string;
   city: string;
   country: string;
   bio: string;
-  links: ProfileLink[];
+  favoriteGenres: string[];
+  website: string;
+  instagram: string;
+  twitter: string;
   avatar: File | string | null;
+  coverImage: File | string | null;
 };
 
 export type EditProfileFormErrorKey =
   | 'displayName'
-  | 'profileUrl'
-  | 'firstName'
-  | 'lastName'
   | 'city'
   | 'country'
   | 'bio'
-  | 'links'
-  | 'avatar';
+  | 'favoriteGenres'
+  | 'website'
+  | 'instagram'
+  | 'twitter'
+  | 'avatar'
+  | 'coverImage';
 
 export type EditProfileFormErrors = Partial<
   Record<EditProfileFormErrorKey, string>
 >;
 
-export const MAX_PROFILE_LINKS = 10;
+export const MAX_FAVORITE_GENRES = 10;
+export const MAX_FAVORITE_GENRE_LENGTH = 40;
 
-const linkSchema = z
-  .object({
-    id: z.number().int().positive(),
-    url: z.string().trim().max(2048, 'Link URL is too long'),
-    title: z.string().trim().max(80, 'Link title is too long'),
-    kind: z.enum(['regular', 'support']),
-  })
-  .superRefine((value, ctx) => {
-    const hasUrl = value.url.length > 0;
-    const hasTitle = value.title.length > 0;
+const favoriteGenreSchema = z
+  .string()
+  .trim()
+  .min(1, 'Favorite genre cannot be empty')
+  .max(
+    MAX_FAVORITE_GENRE_LENGTH,
+    `Favorite genre must be ${MAX_FAVORITE_GENRE_LENGTH} characters or fewer`
+  )
+  .regex(
+    /^[a-z0-9-]+$/,
+    'Favorite genres can only contain lowercase letters, numbers, and hyphens'
+  );
 
-    if (value.kind === 'regular' && hasTitle && !hasUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['url'],
-        message: 'A URL is required when link title is provided.',
-      });
-    }
+const isValidOptionalUrl = (value: string): boolean => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
 
-    if (value.kind === 'support' && !hasUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['url'],
-        message: 'Support link URL is required.',
-      });
-    }
-  });
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const avatarSchema = z.union([
   z.string().trim().max(2048),
@@ -80,46 +82,35 @@ export const editProfileSchema = z
         /^[A-Za-z0-9 ._'-]+$/,
         "Display name can only contain letters, numbers, spaces, and . _ ' -"
       ),
-    profileUrl: z
-      .string()
-      .trim()
-      .min(3, 'Profile URL is required')
-      .max(30, 'Profile URL must be 30 characters or fewer')
-      .regex(
-        /^[a-z0-9._-]+$/,
-        'Profile URL can only contain lowercase letters, numbers, dot, underscore, and hyphen'
-      ),
-    firstName: z
-      .string()
-      .trim()
-      .max(40, 'First name must be 40 characters or fewer'),
-    lastName: z
-      .string()
-      .trim()
-      .max(40, 'Last name must be 40 characters or fewer'),
     city: z.string().trim().max(80, 'City must be 80 characters or fewer'),
     country: z
       .string()
       .trim()
       .max(60, 'Country must be 60 characters or fewer'),
     bio: z.string().trim().max(200, 'Bio must be 200 characters or fewer'),
-    links: z
-      .array(linkSchema)
-      .max(MAX_PROFILE_LINKS, `Maximum ${MAX_PROFILE_LINKS} links allowed`),
+    favoriteGenres: z
+      .array(favoriteGenreSchema)
+      .max(
+        MAX_FAVORITE_GENRES,
+        `Maximum ${MAX_FAVORITE_GENRES} favorite genres allowed`
+      ),
+    website: z
+      .string()
+      .trim()
+      .max(2048, 'Website URL is too long')
+      .refine(isValidOptionalUrl, 'Website must be a valid URL'),
+    instagram: z
+      .string()
+      .trim()
+      .max(2048, 'Instagram URL is too long')
+      .refine(isValidOptionalUrl, 'Instagram must be a valid URL'),
+    twitter: z
+      .string()
+      .trim()
+      .max(2048, 'Twitter/X URL is too long')
+      .refine(isValidOptionalUrl, 'Twitter/X must be a valid URL'),
     avatar: avatarSchema,
-  })
-  .superRefine((values, ctx) => {
-    const supportLinkCount = values.links.filter(
-      (link) => link.kind === 'support'
-    ).length;
-
-    if (supportLinkCount > 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['links'],
-        message: 'Only one support link is allowed.',
-      });
-    }
+    coverImage: avatarSchema,
   });
 
 export const getEditProfileFormErrors = (
@@ -140,14 +131,15 @@ export const getEditProfileFormErrors = (
 
     if (
       (pathKey === 'displayName' ||
-        pathKey === 'profileUrl' ||
-        pathKey === 'firstName' ||
-        pathKey === 'lastName' ||
         pathKey === 'city' ||
         pathKey === 'country' ||
         pathKey === 'bio' ||
-        pathKey === 'links' ||
-        pathKey === 'avatar') &&
+        pathKey === 'favoriteGenres' ||
+        pathKey === 'website' ||
+        pathKey === 'instagram' ||
+        pathKey === 'twitter' ||
+        pathKey === 'avatar' ||
+        pathKey === 'coverImage') &&
       !errors[pathKey]
     ) {
       errors[pathKey] = issue.message;
@@ -157,78 +149,30 @@ export const getEditProfileFormErrors = (
   return errors;
 };
 
-export const buildSocialLinksFromProfileLinks = (
-  links: ProfileLink[]
-): UpdateMeRequest['socialLinks'] => {
-  const socialLinks: UpdateMeRequest['socialLinks'] = {};
+export const buildSocialLinksFromFields = (
+  values: Pick<EditProfileFormValues, 'website' | 'instagram' | 'twitter'>
+): NonNullable<UpdateMeRequest['socialLinks']> => {
+  const normalizeOptional = (value: string): string | undefined => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  };
 
-  for (const link of links) {
-    const url = link.url.trim();
-    if (!url) {
-      continue;
-    }
-
-    if (link.kind === 'support') {
-      socialLinks.supportLink = url;
-      continue;
-    }
-
-    let normalizedHost = '';
-    try {
-      const parsed = new URL(url);
-      normalizedHost = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    } catch {
-      normalizedHost = '';
-    }
-
-    if (
-      !socialLinks.instagram &&
-      (normalizedHost === 'instagram.com' ||
-        normalizedHost.endsWith('.instagram.com'))
-    ) {
-      socialLinks.instagram = url;
-      continue;
-    }
-
-    if (
-      !socialLinks.twitter &&
-      (normalizedHost === 'twitter.com' ||
-        normalizedHost.endsWith('.twitter.com') ||
-        normalizedHost === 'x.com' ||
-        normalizedHost.endsWith('.x.com'))
-    ) {
-      socialLinks.twitter = url;
-      continue;
-    }
-
-    const title = link.title.trim().toLowerCase();
-
-    if (!socialLinks.instagram && title.includes('instagram')) {
-      socialLinks.instagram = url;
-      continue;
-    }
-
-    if (!socialLinks.twitter && (title.includes('twitter') || title === 'x')) {
-      socialLinks.twitter = url;
-      continue;
-    }
-
-    if (!socialLinks.website) {
-      socialLinks.website = url;
-    }
-  }
-
-  return socialLinks;
+  return {
+    instagram: normalizeOptional(values.instagram),
+    twitter: normalizeOptional(values.twitter),
+    website: normalizeOptional(values.website),
+  };
 };
 
 export const emptyEditProfileFormValues: EditProfileFormValues = {
   displayName: '',
-  profileUrl: '',
-  firstName: '',
-  lastName: '',
   city: '',
   country: '',
   bio: '',
-  links: [],
+  favoriteGenres: [],
+  website: '',
+  instagram: '',
+  twitter: '',
   avatar: null,
+  coverImage: null,
 };

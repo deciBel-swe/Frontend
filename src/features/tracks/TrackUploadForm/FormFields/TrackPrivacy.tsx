@@ -142,14 +142,6 @@ export function TrackPrivacy({ value, onChange, trackId }: TrackPrivacyProps) {
           disabled={isUpdating}
           onChange={() => handleChange('private')}
         />
-        <RadioOption
-          id="scheduled"
-          label="Schedule"
-          checked={value === 'scheduled'}
-          disabled
-          proOnly
-          onChange={() => {}}
-        />
       </div>
 
       {/* Upload mode — info message only, no trackId yet */}

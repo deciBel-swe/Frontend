@@ -12,17 +12,20 @@ interface TrackGenreFieldProps {
   value: string;
   error?: string;
   onChange: (value: string) => void;
+  required?: boolean;
 }
 
 export default function TrackGenreField({
   value,
   error,
   onChange,
+  required = false,
 }: TrackGenreFieldProps) {
   return (
     <div>
       <label className="block text-[10px] font-extrabold text-text-primary mb-1">
         Genre
+        {required ? <span className="text-status-error">*</span> : ''}
       </label>
       <div className="group relative w-full">
         <div className="flex items-center gap-2 py-2 bg-bg-base">

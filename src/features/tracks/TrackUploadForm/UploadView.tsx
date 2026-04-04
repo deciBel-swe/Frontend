@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks';
-import { config } from '@/config';
 import { trackService } from '@/services';
 import { generateWaveform } from '@/utils/generateWaveform';
 import { validateAudioFile, validateImageFile } from '@/utils/fileValidation';
@@ -34,23 +32,16 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 };
 
 export default function UploadView() {
-  const { user } = useAuth();
   const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [titleError, setTitleError] = useState<string>('');
-  const [trackLinkError, setTrackLinkError] = useState<string>('');
   const [genreError, setGenreError] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [artistEdited, setArtistEdited] = useState(false);
-  const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
-  const trackLinkPrefix = `${normalizedDomainName}/${user?.username ?? 'user1'}`;
   const [trackLinkSuffix, setTrackLinkSuffix] = useState('');
-  const [trackLinkEdited, setTrackLinkEdited] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
@@ -72,22 +63,8 @@ export default function UploadView() {
   }, [audioFile]);
 
   useEffect(() => {
-    if (trackLinkEdited) {
-      return;
-    }
-
     setTrackLinkSuffix(toTrackSlug(title));
-  }, [title, trackLinkEdited]);
-
-  useEffect(() => {
-    if (artistEdited || artist.trim().length > 0) {
-      return;
-    }
-
-    if (user?.username) {
-      setArtist(user.username);
-    }
-  }, [artist, artistEdited, user?.username]);
+  }, [title]);
 
   useEffect(() => {
     const updateWaveformHeight = () => {
@@ -139,8 +116,6 @@ export default function UploadView() {
     if (!audioFile) return;
     const validation = uploadSchema.safeParse({
       title,
-      trackLinkSuffix,
-      artist,
       genre,
       tags,
       description,
@@ -151,14 +126,12 @@ export default function UploadView() {
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
       setTitleError(fieldErrors.title?.[0] ?? '');
-      setTrackLinkError(fieldErrors.trackLinkSuffix?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
       setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
-    setTrackLinkError('');
     setGenreError('');
     setReleaseDateError('');
 
@@ -177,9 +150,6 @@ export default function UploadView() {
     formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
-    }
-    if (artist.trim().length > 0) {
-      formData.append('artist', artist);
     }
     const tagEntries = tags
       .map((tag) => tag.trim())
@@ -201,10 +171,9 @@ export default function UploadView() {
         formData,
         setUploadProgress
       );
-      const submittedTrackUrl = `${trackLinkPrefix}/${trackLinkSuffix}`;
       setUploadComplete(true);
       setIsUploading(false);
-      setUploadedTrackUrl(submittedTrackUrl || response.trackUrl);
+      setUploadedTrackUrl(response.trackUrl);
     } catch (err) {
       setError(getWaveformParseErrorMessage(err));
       setIsUploading(false);
@@ -221,12 +190,8 @@ export default function UploadView() {
     setError('');
     setTitle('');
     setTitleError('');
-    setTrackLinkError('');
     setGenreError('');
     setTrackLinkSuffix('');
-    setTrackLinkEdited(false);
-    setArtist('');
-    setArtistEdited(false);
     setGenre('');
     setTags([]);
     setDescription('');
@@ -364,21 +329,6 @@ export default function UploadView() {
           if (titleError && nextTitle.trim().length > 0) {
             setTitleError('');
           }
-        }}
-        trackLinkPrefix={trackLinkPrefix}
-        trackLinkSuffix={trackLinkSuffix}
-        trackLinkError={trackLinkError}
-        onTrackLinkSuffixChange={(nextSuffix) => {
-          setTrackLinkEdited(true);
-          setTrackLinkSuffix(toTrackSlug(nextSuffix));
-          if (trackLinkError) {
-            setTrackLinkError('');
-          }
-        }}
-        artist={artist}
-        onArtistChange={(nextArtist) => {
-          setArtistEdited(true);
-          setArtist(nextArtist);
         }}
         genre={genre}
         genreError={genreError}

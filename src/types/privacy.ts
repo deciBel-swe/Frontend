@@ -8,15 +8,7 @@ export const privacySettingsSchema = z.object({
 export type PrivacySettings = z.infer<typeof privacySettingsSchema>;
 
 /** DTO sent to PATCH /users/me/privacy */
-export const updatePrivacySettingsDtoSchema = privacySettingsSchema
-  .partial()
-  .refine(
-    (payload) =>
-      payload.isPrivate !== undefined || payload.showHistory !== undefined,
-    {
-      message: 'At least one privacy setting must be provided.',
-    }
-  );
+export const updatePrivacySettingsDtoSchema = privacySettingsSchema;
 export type UpdatePrivacySettingsDto = z.infer<
   typeof updatePrivacySettingsDtoSchema
 >;

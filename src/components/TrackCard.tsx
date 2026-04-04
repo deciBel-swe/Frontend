@@ -139,10 +139,12 @@ export default function TrackCard({
     pendingTimestamp,
     showCommentInput,
     waveformTimedCommentsVisible,
+    isDeleted,
     likeCount,
     repostCount,
     isLiked,
     isReposted,
+    isDeletePending,
     setPendingText,
     selectTimestamp,
     onCommentInputFocus,
@@ -150,6 +152,7 @@ export default function TrackCard({
     submitTimedComment,
     onLike,
     onRepost,
+    onDeleteTrack,
   } = useTrackCard({
     trackId: Number(cardTrackId),
     initialIsLiked: track.isLiked,
@@ -278,6 +281,10 @@ export default function TrackCard({
 
     selectTimestamp(timestamp);
   };
+
+  if (isDeleted) {
+    return null;
+  }
 
   return (
     <div className={`bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3 ${isBlocked ? 'opacity-60' : ''}`}>
@@ -611,9 +618,25 @@ export default function TrackCard({
   <TrackActions
     size={16}
     showEdit={showEditButton}
+    showDelete={showEditButton}
     isLiked={isLiked}
     isReposted={isReposted}
     onEdit={() => setEditOpen(true)}
+    onDelete={() => {
+      if (!showEditButton || isDeletePending) {
+        return;
+      }
+
+      const confirmed = typeof window === 'undefined'
+        ? false
+        : window.confirm('Delete this track?');
+
+      if (!confirmed) {
+        return;
+      }
+
+      void onDeleteTrack();
+    }}
     onLike={() => {
       void onLike();
     }}
@@ -622,7 +645,6 @@ export default function TrackCard({
     }}
     onShare={() => setIsShareOpen(true)}
     onCopy={handleCopy}
-    onMore={() => console.log('More options', track.id)}
   />
 
 {/* RIGHT: stats */}

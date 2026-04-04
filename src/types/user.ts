@@ -27,6 +27,7 @@ const userTierSchema = z.enum([
 ]);
 
 const userProfileSchema = z.object({
+  displayName: z.string().trim().optional().nullable(),
   bio: z.string(),
   city: z.string(),
   country: z.string(),
@@ -48,12 +49,12 @@ const userStatsSchema = z.object({
   tracksCount: z.number().int().nonnegative(),
 });
 
-/** DTO returned by GET /users/me */
-export const userMeSchema = z
+const userMeLegacySchema = z
   .object({
     id: z.number().int().nonnegative(),
     email: z.string().trim().email(),
     username: z.string().trim().min(1),
+    displayName: z.string().trim().optional().nullable(),
     isBlocked: z.boolean(),
     tier: userTierSchema,
     profile: userProfileSchema,
@@ -62,7 +63,6 @@ export const userMeSchema = z
     stats: userStatsSchema,
   })
   .passthrough();
-export type UserMe = z.infer<typeof userMeSchema>;
 
 const publicSocialLinksItemSchema = z.object({
   instagram: z.string().nullable(),
@@ -74,6 +74,7 @@ const userPublicProfileSchema = z.object({
   id: z.number().int().nonnegative(),
   email: z.string().trim().email(),
   username: z.string().trim().min(1),
+  displayName: z.string().trim().optional().nullable(),
   tier: userTierSchema,
   followerCount: z.number().int().nonnegative(),
   followingCount: z.number().int().nonnegative(),
@@ -89,6 +90,87 @@ const userPublicProfileSchema = z.object({
   favoriteGenres: z.array(z.string()),
   socialLinksDto: z.array(publicSocialLinksItemSchema),
 });
+
+const userMeApiProfileSchema = z
+  .object({
+    profile: userPublicProfileSchema,
+    privacySettings: privacySettingsSchema,
+  })
+  .passthrough();
+
+type UserMeNormalized = z.infer<typeof userMeLegacySchema>;
+
+/** DTO returned by GET /users/me */
+export const userMeSchema = z
+  .union([userMeLegacySchema, userMeApiProfileSchema])
+  .transform((payload): UserMeNormalized => {
+    if ('id' in payload) {
+      const legacy = payload as z.infer<typeof userMeLegacySchema>;
+      const legacyDisplayName =
+        legacy.displayName ?? legacy.profile.displayName ?? null;
+
+      return {
+        id: legacy.id,
+        email: legacy.email,
+        username: legacy.username,
+        displayName: legacyDisplayName,
+        isBlocked: legacy.isBlocked,
+        tier: legacy.tier,
+        profile: {
+          displayName: legacyDisplayName,
+          bio: legacy.profile.bio,
+          city: legacy.profile.city,
+          country: legacy.profile.country ?? '',
+          profilePic: legacy.profile.profilePic,
+          coverPic: legacy.profile.coverPic,
+          favoriteGenres: legacy.profile.favoriteGenres,
+        },
+        socialLinks: {
+          instagram: legacy.socialLinks.instagram ?? '',
+          twitter: legacy.socialLinks.twitter ?? '',
+          website: legacy.socialLinks.website ?? '',
+          supportLink: legacy.socialLinks.supportLink ?? '',
+        },
+        privacySettings: legacy.privacySettings,
+        stats: legacy.stats,
+      };
+    }
+
+    const modern = payload as z.infer<typeof userMeApiProfileSchema>;
+    const profile = modern.profile;
+    const socialLinksDto = profile.socialLinksDto[0];
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      username: profile.username,
+      displayName: profile.displayName ?? null,
+      isBlocked: profile.isBlocked,
+      tier: profile.tier,
+      profile: {
+        displayName: profile.displayName ?? null,
+        bio: profile.bio,
+        city: profile.city,
+        country: profile.country ?? '',
+        profilePic: profile.profilePic,
+        coverPic: profile.coverPic,
+        favoriteGenres: profile.favoriteGenres,
+      },
+      socialLinks: {
+        instagram: socialLinksDto?.instagram ?? '',
+        twitter: socialLinksDto?.twitter ?? '',
+        website: socialLinksDto?.website ?? '',
+        supportLink: '',
+      },
+      privacySettings: modern.privacySettings,
+      stats: {
+        followers: profile.followerCount,
+        following: profile.followingCount,
+        tracksCount: profile.trackCount,
+      },
+    };
+  });
+export type UserMe = z.infer<typeof userMeSchema>;
 
 /** DTO returned by GET /users/{userId} */
 export const userPublicSchema = z
@@ -282,18 +364,18 @@ export type UserPlaylistsResponse = z.infer<typeof userPlaylistsResponseSchema>;
  */
 
 const userEditedSocialLinksSchema = z.object({
-  instagram: z.string().optional(),
-  twitter: z.string().optional(),
-  website: z.string().optional(),
-  supportLink: z.string().optional(),
+  instagram: z.string().url().optional(),
+  twitter: z.string().url().optional(),
+  website: z.string().url().optional(),
 });
+
 export const updateMeRequestSchema = z
   .object({
     bio: z.string().optional(),
     city: z.string().optional(),
     country: z.string().optional(),
     favoriteGenres: z.array(z.string()).optional(),
-    socialLinks: userEditedSocialLinksSchema.optional(),
+    socialLinks: userEditedSocialLinksSchema,
   })
   .passthrough();
 export type UpdateMeRequest = z.infer<typeof updateMeRequestSchema>;

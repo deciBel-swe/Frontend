@@ -149,6 +149,7 @@ export const API_ENDPOINTS = {
   TRACKS: {
     UPLOAD: '/tracks/upload',
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
+    COVER: (trackId: number) => `/tracks/${trackId}/cover`,
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,
     PUBLISH: (trackId: number | string) => `/tracks/${trackId}/publish`,

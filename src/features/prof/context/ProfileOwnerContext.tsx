@@ -121,10 +121,11 @@ export const ProfileOwnerProvider = ({
         if (!isCancelled) {
           setOwnerUser(me ?? null);
         }
-      } catch {
+      } catch (error){
         if (!isCancelled) {
           setOwnerError('Failed to fetch current user data');
         }
+        throw error;
       } finally {
         if (!isCancelled) {
           setIsOwnerLoading(false);
