@@ -1,75 +1,11 @@
 'use client';
 import React from "react";
+
 import FilterBar from "@/components/nav/FilterBar";
 import UserGrid from "@/components/ui/social/UserGrid";
 import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
-import { UserCardData } from "@/components/ui/social/UserCard";
-
-// ─── Mock data ───────────────────
-const MOCK_FOLLOWING: UserCardData[] = [
-  {
-    id: "1",
-    username: "mockuser1",
-    followerCount: 562_000,
-    isVerified: true,
-    isFollowing: true,
-    avatarSrc: 'https://picsum.photos/seed/cover/400/400',
-  },
-  {
-    id: "2",
-    username: "mockuser2",
-    followerCount: 1_080_000,
-    isVerified: true,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-  {
-    id: "3",
-    username: "mockuser3",
-    followerCount: 3_620_000,
-    isVerified: true,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-    {
-    id: "4",
-    username: "mockuser4",
-    followerCount: 4_620_000,
-    isVerified: false,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-  {
-    id: "5",
-    username: "mockuser5",
-    followerCount: 3_000_000,
-    isVerified: true,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-  {
-    id: "6",
-    username: "mockuser6",
-    followerCount: 3_800_000,
-    isVerified: false,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-  {
-    id: "7",
-    username: "mockuser7",
-    followerCount: 3_100_00,
-    isVerified: false,
-    isFollowing: true,
-    avatarSrc: undefined,
-  },
-];
-
-interface LibraryFollowingPageProps {
-  /** For Storybook / testing: override the following list */
-  users?: UserCardData[];
-  isLoading?: boolean;
-}
+import { useAuth } from '@/features/auth';
+import { useFollowing } from '@/hooks/useFollowing';
 
 /**
  * LibraryFollowingPage — /you/following
@@ -79,10 +15,9 @@ interface LibraryFollowingPageProps {
  *
  * Stateless: all data flows in as props.
  */
-export default function Page({
-  users = MOCK_FOLLOWING,
-  isLoading = false,
-}: LibraryFollowingPageProps) {
+export default function Page() {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { users, isLoading } = useFollowing({ username: user?.username ?? '' });
   const [filterValue, setFilterValue] = React.useState("");
 
   const filtered = filterValue
@@ -121,7 +56,7 @@ export default function Page({
       </div>
 
       {/* ── User grid ── */}
-      {isLoading ? (
+      {isAuthLoading || isLoading ? (
         <LoadingSkeleton variant="user-card" count={6} />
       ) : (
         <UserGrid

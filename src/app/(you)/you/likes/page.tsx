@@ -1,45 +1,67 @@
 'use client';
 
-import PlaylistCard from '@/components/PlaylistCard';
-import TrackCard from '@/components/TrackCard';
-import { SearchBar } from '@/components/nav/SearchBar';
+
+import MinimalTrackCard from '@/components/MinimalTrackCard';
+import TrackList from '@/components/TrackList';
 import Button from '@/components/buttons/Button';
+import FilterBar from '@/components/nav/FilterBar';
+import LibrarySection from '@/components/ui/library/LibrarySection';
+import { useAuth } from '@/features/auth';
+import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
+import { useLikedTracks } from '@/hooks/useLikedTracks';
+import { useTrackLayoutPreference } from '@/hooks/useTrackLayoutPreference';
 import { LayoutGrid, List } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-const mockPlaylists = [
-  {
-    id: 1,
-    title: 'The Beauty of Existence',
-    artist: 'Muhammad Al Muqit',
-    image: 'https://i1.sndcdn.com/artworks-000523960650-2nc5nm-t500x500.jpg',
-  },
-  {
-    id: 2,
-    title: 'A Flower',
-    artist: 'Double Vision',
-    image: 'https://i1.sndcdn.com/artworks-000184761485-dzknun-t500x500.jpg',
-  },
-  {
-    id: 3,
-    title: 'Al-Aqsa',
-    artist: 'Palestine',
-    image: 'https://i1.sndcdn.com/artworks-000034240364-u9zoa8-t500x500.jpg',
-  },
-];
-
 export default function Page() {
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { layout, setLayout, isCompact } = useTrackLayoutPreference('compact');
+  const { tracks, isLoading } = useLikedTracks(user?.username ?? '', {
+    forCurrentUser: true,
+  });
   const [filterText, setFilterText] = useState('');
 
-  const filteredItems = useMemo(() => {
-    if (!filterText.trim()) return mockPlaylists;
+  const filteredTracks = useMemo(() => {
+    if (!filterText.trim()) {
+      return tracks;
+    }
+
     const normalized = filterText.toLowerCase();
-    return mockPlaylists.filter((item) =>
-      item.title.toLowerCase().includes(normalized) ||
-      item.artist.toLowerCase().includes(normalized)
+    return tracks.filter((track) =>
+      track.track.title.toLowerCase().includes(normalized) ||
+      track.track.artist.toLowerCase().includes(normalized)
     );
-  }, [filterText]);
+  }, [filterText, tracks]);
+
+  const compactQueueTracks = useMemo(
+    () =>
+      filteredTracks
+        .map((item) => {
+          if (item.playback) {
+            return item.playback;
+          }
+
+          if (!item.trackUrl) {
+            return null;
+          }
+
+          return playerTrackMappers.fromAdapterInput(
+            {
+              id: item.track.id,
+              title: item.track.title,
+              trackUrl: item.trackUrl,
+              artist: item.track.artist,
+              coverUrl: item.track.cover,
+              waveformData: item.waveform,
+              durationSeconds: item.track.durationSeconds,
+            },
+            { access: item.access ?? 'PLAYABLE' }
+          );
+        })
+        .filter((item): item is PlayerTrack => item !== null),
+    [filteredTracks]
+  );
 
   return (
     <section className="px-8 py-10">
@@ -49,77 +71,61 @@ export default function Page() {
           Hear the tracks you’ve liked:
         </h2>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-text-muted">View</span>
+        <FilterBar
+          value={filterText}
+          onChange={setFilterText}
+          placeholder='Filter'
+        />
 
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setView('grid')}
-              variant={view === 'grid' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="w-10 h-9 p-0"
-            >
-              <LayoutGrid size={16} />
-            </Button>
-
-            <Button
-              onClick={() => setView('list')}
-              variant={view === 'list' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="w-10 h-9 p-0"
-            >
-              <List size={16} />
-            </Button>
-          </div>
-
-          <SearchBar
-            onSearch={(value: string) => setFilterText(value)}
-            placeholder='Filter'
-          />
+        <div className="inline-flex items-center rounded border border-border-default overflow-hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLayout('compact')}
+            aria-pressed={isCompact}
+            className={layout === 'compact' ? 'bg-interactive-hover text-text-primary' : ''}
+            aria-label="Compact layout"
+          >
+            <LayoutGrid size={16} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLayout('non-compact')}
+            aria-pressed={!isCompact}
+            className={layout === 'non-compact' ? 'bg-interactive-hover text-text-primary' : ''}
+            aria-label="List layout"
+          >
+            <List size={16} />
+          </Button>
         </div>
       </div>
 
-      {/* GRID */}
-      <div
-        className={`grid gap-8 ${
-          view === 'grid' ? 'grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]' : 'grid-cols-1'
-        }`}
-      >
-        {filteredItems.map((item) =>
-          view === 'grid' ? (
-            <PlaylistCard
-              key={item.id}
-              title={item.title}
-              coverUrl={item.image}
-            />
-          ) : (
-            <TrackCard
-              key={item.id}
-              trackId={String(item.id)}
-              user={{ name: item.artist, avatar: item.image }}
-              track={{
-                id: item.id,
-                artist: item.artist,
-                title: item.title,
-                cover: item.image,
-                duration: '2:45',
-                genre: 'Pop',
-              }}
-              waveform={[]}
-              showEditButton={false}
-              showComments={false}
-            />
-          )
-        )}
-
-        {/* EMPTY PLACEHOLDERS */}
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={`empty-${i}`}
-            className="w-full aspect-square rounded-lg bg-surface-dark/70"
-          />
-        ))}
-      </div>
+      {isCompact ? (
+        <LibrarySection title="Likes" className="mb-0" hideHeader>
+          {isAuthLoading || isLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={`likes-compact-skeleton-${index}`}
+                  className="shrink-0 rounded-lg bg-surface-raised animate-pulse m-2 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40"
+                />
+              ))
+            : filteredTracks.map((item) => (
+                <MinimalTrackCard
+                  key={item.trackId}
+                  item={item}
+                  queueTracks={compactQueueTracks}
+                  queueSource="likes"
+                />
+              ))}
+        </LibrarySection>
+      ) : (
+        <TrackList
+          tracks={filteredTracks}
+          isLoading={isAuthLoading || isLoading}
+          showHeader={false}
+        />
+      )}
     </section>
   );
 }
