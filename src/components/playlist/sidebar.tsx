@@ -19,8 +19,6 @@ export const Sidebar = () => {
               alt="Download on App Store" 
               fill 
               className="object-contain"
-              width ={135}
-              height={40}
             />
           </div>
           {/* Google Play Badge */}
