@@ -19,31 +19,30 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
 
   return (
     <li
-      className={`compactTrackList__item relative ${track.available === false ? 'opacity-50 pointer-events-none' : ''}`}
+      className={`compactTrackList__item group relative ${track.available === false ? 'opacity-50 pointer-events-none' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="trackItem flex items-center gap-2 p-1 relative">
+      <div className="trackItem flex items-center gap-2 p-1 relative min-h-[32px]">
         {/* IMAGE */}
         <div className="trackItem__image shrink-0 w-7 h-7">
           <HoverPlayImage image={track.coverUrl} alt={track.title} />
         </div>
 
         {/* Track number */}
-        <div className="trackItem__numberWrapper text-[11px] font-bold text-text-muted w-6">
+        <div className="trackItem__numberWrapper text-[11px] font-bold text-text-muted w-4 shrink-0">
           {index + 1}.
         </div>
 
         {/* Track info */}
-        <div className="trackItem__content flex-1 truncate">
+        <div className="trackItem__content flex-1 min-w-0">
           <Link
             href={`/${artistSlug}/${track.id}`}
-            className="trackItem__title text-[13px] text-primary text-sm inline-flex self-start font-bold truncate hover:opacity-40"
+            className="trackItem__title text-[13px] text-primary font-bold truncate block hover:opacity-40"
           >
             {track.title}
           </Link>
         </div>
-
         {/* Plays - hide when hovered */}
         <div className={`trackItem__plays text-[11px] font-bold text-text-muted mr-2 transition-opacity duration-200 flex gap-1 ${hovered ? 'opacity-0' : 'opacity-100'}`}>
           <Play size={14} /> {track.plays}
@@ -53,7 +52,7 @@ export default function CompactTrackItem({ track, index }: CompactTrackItemProps
         {hovered && (
         <TrackActions
          size={14}
-            className="absolute right-2 top-1/2 -translate-y-1/2"
+            className="bsolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex items-center bg-background/80 backdrop-blur-sm pl-2"
             onLike={() => console.log('Liked track', track.id)}
             onCopy={() => console.log('Copy link', track.id)}
          />
