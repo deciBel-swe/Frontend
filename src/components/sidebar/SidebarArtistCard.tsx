@@ -108,7 +108,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
         }}
         disabled={!canToggleFollow || isFollowPending}
       >
-        {resolvedUser.isFollowing ? 'Follow' : 'Following'}
+        {resolvedUser.isFollowing ? 'Following' : 'Follow'}
       </Button>
     </div>
   );
