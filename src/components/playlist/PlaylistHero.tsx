@@ -64,15 +64,15 @@ export const PlaylistHero: React.FC<PlaylistHeroProps> = ({
         </span>
         
         {/* Artwork - Takes full height of the parent p-6 container */}
-        <div className="relative h-full aspect-square shadow-2xl border rounded-2xl border-white/5">
-          <Image 
-            src={artworkUrl} 
-            alt={title} 
-            fill 
-            className="object-cover"
-            priority
-          />
-        </div>
+      <div className="relative h-full aspect-square shadow-2xl border rounded-xl border-white/5 overflow-hidden"> 
+      <Image 
+        src={artworkUrl} 
+        alt={title} 
+        fill 
+        className="object-cover rounded-xl" // Added rounded-2xl here
+        priority
+        />
+      </div>
       </div>
 
       {/* Aesthetic Gradient Overlay */}
