@@ -2,13 +2,18 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import { Heart, UserPlus, MoreHorizontal } from 'lucide-react';
+
 interface PlaylistCardProps {
   title: string;
   coverUrl: string;
+  username?: string; // Optional username for linking to artist profile
+  sets?:boolean; // Optional flag to indicate if this card is for a playlist (set) 
 }
 
-const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
+const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl, username, sets }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -20,10 +25,8 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
   return (
     <div
       className="
-        group 
-        relative 
-        cursor-pointer 
-        w-28 h-28 
+        relative
+        w-28 h-28
         w-[6.5rem] h-[6.5rem]      /* default (half screen) */
         md:w-[8rem] md:h-[8rem] /* medium screen */
         lg:w-[10rem] lg:h-[10rem] /* full laptop screen */
@@ -32,16 +35,49 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl }) => {
       "
     >
       {/* Image with hover play */}
-      <HoverPlayImage
-        image={coverUrl}
-        //size={160} // controls scaling (adjust if needed)
-        alt={title}
-      />
+      <div className="group relative cursor-pointer h-full w-full rounded-md overflow-hidden">
+        <HoverPlayImage
+          image={coverUrl}
+          alt={title}
+        />
+
+        {/* Hover Actions Overlay */}
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className="hidden sm:flex absolute inset-x-0 bottom-1 justify-end gap-1 px-2">
+            <button
+              aria-label="love"
+              className="pointer-events-auto h-8 w-8 rounded-full text-white flex items-center justify-center hover:text-red-400"
+            >
+              <Heart size={16} />
+            </button>
+
+            <button
+              aria-label="follow"
+              className="pointer-events-auto h-8 w-8 rounded-full text-white flex items-center justify-center hover:text-blue-400"
+            >
+              <UserPlus size={16} />
+            </button>
+
+            <button
+              aria-label="more"
+              className="pointer-events-auto h-8 w-8 rounded-full text-white flex items-center justify-center hover:text-gray-400"
+            >
+              <MoreHorizontal size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Title */}
-      <p className="mt-1 text-xs font-medium text-text-primary truncate">
+      <Link
+        href={username && sets ? 
+          `/${username.toLowerCase().replace(/\s+/g, '')}/sets/${title.toLowerCase().replace(/\s+/g, '-')}`
+          : username ? `/${username.toLowerCase().replace(/\s+/g, '')}/${title.toLowerCase().replace(/\s+/g, '-')}` :
+          `/${title.toLowerCase().replace(/\s+/g, '-')}`} 
+        className="mt-3 text-sm font-medium text-text-primary truncate block hover:text-text-secondary transition-colors"
+      >
         {title}
-      </p>
+      </Link>
     </div>
   );
 };

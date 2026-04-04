@@ -1,10 +1,10 @@
-import { API_ENDPOINTS } from '@/constants/routes';
-import { apiClient, apiRequest } from '@/hooks/useAPI';
+import {apiRequest } from '@/hooks/useAPI';
 import type {
   DeviceInfoDTO,
   LoginResponseDTO,
   RegisterLocalRequestDTO,
   RefreshTokenResponseDTO,
+  RegisterLocalResponseDTO,
 } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import { sha256Hex } from '@/utils/sha256';
@@ -19,7 +19,7 @@ export interface AuthService {
   login(email: string, password: string): Promise<LoginResponseDTO>;
 
   /** Register a local account (POST /auth/register/local). */
-  registerLocal(payload: RegisterLocalPayload): Promise<string>;
+  registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO>;
 
   // NEW: Handle the Google OAuth code exchange
   loginWithGoogle(code: string): Promise<LoginResponseDTO>;
@@ -37,19 +37,18 @@ export interface AuthService {
   logoutAll(): Promise<void>;
 
   /** Resend email verification message (POST /auth/resend-verification). */
-  resendVerification(email: string): Promise<{ success: boolean }>;
+  resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }>;
 
   /** Verify email token (POST /auth/verify-email). */
-  verifyEmail(token: string): Promise<{ success: boolean }>;
+  verifyEmail(token: string): Promise<{ message: string }>;
 
   /** Backward-compatible alias for resendVerification. */
-  requestEmailVerification(email: string): Promise<{ success: boolean }>;
+  requestEmailVerification(email: string): Promise<{ message: string }>;
 }
 
-const USER_STORAGE_KEY = 'user';
-const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
-
+export const USER_STORAGE_KEY = 'user';
+export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
+export const AUTH_COOKIE = 'decibel_auth';
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
   if (typeof window === 'undefined') {
     return 'DESKTOP';
@@ -90,14 +89,14 @@ export class RealAuthService implements AuthService {
     const hashedPassword = await sha256Hex(password);
 
     const response = await apiRequest(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
-      payload: { email, password: hashedPassword },
+      payload: { email, password: hashedPassword, deviceInfo: buildDeviceInfo() },
     });
 
     this.persistSession(response);
     return response;
   }
 
-  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
     const hashedPassword = await sha256Hex(payload.password);
 
     return apiRequest(API_CONTRACTS.AUTH_REGISTER_LOCAL, {
@@ -129,23 +128,13 @@ export class RealAuthService implements AuthService {
 
     return {
       accessToken: this.accessToken ?? storedAccessToken ?? '',
-      refreshToken:
-        localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? undefined,
       user: JSON.parse(stored),
       expiresIn: 3600,
     };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
-    if (!refreshToken) {
-      throw new Error('No refresh token available. Please log in again.');
-    }
-
-    const response = await apiRequest(API_CONTRACTS.AUTH_REFRESH_TOKEN, {
-      payload: { refreshToken },
-    });
-
+    const response = await apiRequest(API_CONTRACTS.AUTH_REFRESH_TOKEN);
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     return response;
@@ -161,29 +150,21 @@ export class RealAuthService implements AuthService {
     this.clearSession();
   }
 
-  async resendVerification(email: string): Promise<{ success: boolean }> {
-    await apiClient.request({
-      baseURL: '',
-      method: 'POST',
-      url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
-      data: { email },
+  async resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }> {
+    const response = await apiRequest(API_CONTRACTS.RESEND_VERIFICATION, {
+      payload: { email ,deviceInfo: buildDeviceInfo()},
     });
-
-    return { success: true };
+    return response;
   }
 
-  async verifyEmail(token: string): Promise<{ success: boolean }> {
-    await apiClient.request({
-      baseURL: '',
-      method: 'POST',
-      url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
-      data: { token },
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const response = await apiRequest(API_CONTRACTS.VERIFY_EMAIL, {
+      payload: { token },
     });
-
-    return { success: true };
+    return response;
   }
 
-  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ message: string }> {
     return this.resendVerification(email);
   }
 
@@ -191,16 +172,13 @@ export class RealAuthService implements AuthService {
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
-
-    if (response.refreshToken) {
-      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, response.refreshToken);
-    }
+    document.cookie = `${AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
   }
 
   private clearSession(): void {
     this.accessToken = null;
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   }
 }

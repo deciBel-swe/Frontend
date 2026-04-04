@@ -8,7 +8,7 @@ interface StateItemProps {
 const StateItem = ({ count, text }: StateItemProps) => {
   return (
     <div className="group cursor-pointer">
-      <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-6">
+      <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-3">
         <span className="text-[#999] text-sm font-bold mb-1 tracking-wide">
           {text}
         </span>

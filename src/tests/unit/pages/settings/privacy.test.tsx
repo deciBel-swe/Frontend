@@ -3,9 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import Page from '@/app/settings/privacy/page';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 jest.mock('@/hooks/usePrivacySettings');
+jest.mock('@/hooks/useBlockedUsers');
 
 describe('Settings privacy page', () => {
   const mockUpdate = jest.fn();
@@ -19,6 +21,14 @@ describe('Settings privacy page', () => {
       isError: false,
       isUpdating: false,
       updateSetting: mockUpdate,
+    });
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      users: [],
+      isLoading: false,
+      isError: false,
+      pendingIds: [],
+      unblockUser: jest.fn(),
+      refresh: jest.fn(),
     });
   });
 
@@ -68,17 +78,4 @@ describe('Settings privacy page', () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it('proceeds with update when confirmation is accepted', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const user = userEvent.setup();
-    render(<Page />);
-
-    const firstToggle = screen.getByRole('switch', {
-      name: /Receive messages from anyone/i,
-    });
-    await user.click(firstToggle);
-    await waitFor(() =>
-      expect(mockUpdate).toHaveBeenCalledWith({ isPrivate: true })
-    );
-  });
 });

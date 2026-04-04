@@ -3,10 +3,10 @@
 import type { TrackPrivacyValue } from '@/types/tracks';
 import ArtworkPreviewField from '@/features/tracks/TrackUploadForm/FormFields/ArtworkPreviewField';
 import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTextField';
-import TrackLinkField from '@/features/tracks/TrackUploadForm/FormFields/TrackLinkField';
 import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
 import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
+import TrackReleaseDateField from '@/features/tracks/TrackUploadForm/FormFields/TrackReleaseDateField';
 import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
 
 interface UploadFormProps {
@@ -27,12 +27,6 @@ interface UploadFormProps {
   title: string;
   titleError: string;
   onTitleChange: (value: string) => void;
-  trackLinkPrefix: string;
-  trackLinkSuffix: string;
-  trackLinkError?: string;
-  onTrackLinkSuffixChange: (value: string) => void;
-  artist: string;
-  onArtistChange: (value: string) => void;
   genre: string;
   genreError?: string;
   onGenreChange: (value: string) => void;
@@ -40,6 +34,11 @@ interface UploadFormProps {
   onTagsChange: (value: string[]) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
+  releaseDate?: string;
+  releaseDateError?: string;
+  onReleaseDateChange?: (value: string) => void;
+  releaseDateMax?: string;
+  showReleaseDate?: boolean;
   privacy: TrackPrivacyValue;
   onPrivacyChange: (value: TrackPrivacyValue) => void;
 }
@@ -62,12 +61,6 @@ export default function UploadForm({
   title,
   titleError,
   onTitleChange,
-  trackLinkPrefix,
-  trackLinkSuffix,
-  trackLinkError,
-  onTrackLinkSuffixChange,
-  artist,
-  onArtistChange,
   genre,
   genreError,
   onGenreChange,
@@ -75,6 +68,11 @@ export default function UploadForm({
   onTagsChange,
   description,
   onDescriptionChange,
+  releaseDate = '',
+  releaseDateError,
+  onReleaseDateChange,
+  releaseDateMax,
+  showReleaseDate = false,
   privacy,
   onPrivacyChange,
 }: UploadFormProps) {
@@ -158,22 +156,7 @@ export default function UploadForm({
                 </div>
 
                 <div>
-                  <TrackLinkField
-                    prefix={trackLinkPrefix}
-                    suffix={trackLinkSuffix}
-                    error={trackLinkError}
-                    onChange={onTrackLinkSuffixChange}
-                  />
-                </div>
-
-                <div>
-                  <TrackTextField
-                    label="Main Artist"
-                    value={artist}
-                    onChange={onArtistChange}
-                    tooltipTitle="Main artist"
-                    tooltipText="Put your name and any featured artists you want to give primary credit to here. These names will be displayed underneath your track title."
-                  />
+                  {/* URL and Main Artist fields intentionally removed */}
                 </div>
 
                 <div>
@@ -181,6 +164,7 @@ export default function UploadForm({
                     value={genre}
                     error={genreError}
                     onChange={onGenreChange}
+                    required
                   />
                 </div>
 
@@ -191,6 +175,14 @@ export default function UploadForm({
                   value={description}
                   onChange={onDescriptionChange}
                 />
+                {showReleaseDate && onReleaseDateChange ? (
+                  <TrackReleaseDateField
+                    value={releaseDate}
+                    onChange={onReleaseDateChange}
+                    error={releaseDateError}
+                    maxDate={releaseDateMax}
+                  />
+                ) : null}
                 <div>
                   <TrackPrivacy value={privacy} onChange={onPrivacyChange} />
                 </div>

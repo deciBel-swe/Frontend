@@ -15,16 +15,24 @@ export type UserRole = 'artist' | 'listener';
 export const userTierSchema = z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']);
 export type UserTier = z.infer<typeof userTierSchema>;
 
+const DefaultAvatarUrl = '/images/default_song_image.png';
+
+const imageWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return defaultValue;
+    }
+
+    return value;
+  }, z.string());
+
 // ================================
 // Auth
 // ================================
-
-/** DTO sent to POST /auth/login/local */
-export const loginLocalRequestDTOSchema = z.object({
-  email: z.string().trim().email(),
-  password: z.string().min(1),
-});
-export type LoginLocalRequestDTO = z.infer<typeof loginLocalRequestDTOSchema>;
 
 /** Device metadata sent to OAuth exchange endpoints. */
 export const deviceInfoDTOSchema = z.object({
@@ -33,6 +41,14 @@ export const deviceInfoDTOSchema = z.object({
   deviceName: z.string().trim().min(1),
 });
 export type DeviceInfoDTO = z.infer<typeof deviceInfoDTOSchema>;
+
+/** DTO sent to POST /auth/login/local */
+export const loginLocalRequestDTOSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(1),
+  deviceInfo: deviceInfoDTOSchema,
+});
+export type LoginLocalRequestDTO = z.infer<typeof loginLocalRequestDTOSchema>;
 
 /** DTO sent to POST /auth/register/local */
 export const registerLocalRequestDTOSchema = z.object({
@@ -46,6 +62,12 @@ export const registerLocalRequestDTOSchema = z.object({
   captchaToken: z.string().trim().min(1),
   deviceInfo: deviceInfoDTOSchema,
 });
+
+/** Response from POST /auth/register/local */
+export const registerLocalResponseDTOSchema = z.object({
+  message: z.string().trim().min(1),
+});
+
 export type RegisterLocalRequestDTO = z.infer<
   typeof registerLocalRequestDTOSchema
 >;
@@ -63,26 +85,18 @@ export const loginUserDTOSchema = z.object({
   username: z.string().trim().min(1),
   tier: userTierSchema,
   profileUrl: z.string().trim().min(1).optional(),
-  avatarUrl: z.string().trim().min(1).optional(),
+  avatarUrl: imageWithDefault(DefaultAvatarUrl),
 });
 export type LoginUserDTO = z.infer<typeof loginUserDTOSchema>;
 
 /** Response from POST /auth/login/local and POST /auth/oauth/google */
 export const loginResponseDTOSchema = z.object({
   accessToken: z.string().trim().min(1),
-  refreshToken: z.string().trim().min(1).optional(),
   expiresIn: z.number().int().positive().optional(),
   user: loginUserDTOSchema,
 });
 export type LoginResponseDTO = z.infer<typeof loginResponseDTOSchema>;
-
-/** DTO sent to POST /auth/refreshtoken */
-export const refreshTokenRequestDTOSchema = z.object({
-  refreshToken: z.string().trim().min(1),
-});
-export type RefreshTokenRequestDTO = z.infer<
-  typeof refreshTokenRequestDTOSchema
->;
+export type RegisterLocalResponseDTO = z.infer<typeof registerLocalResponseDTOSchema>;
 
 /** Response from POST /auth/refreshtoken */
 export const refreshTokenResponseDTOSchema = z.object({
@@ -137,9 +151,10 @@ export type { UploadFormValues } from './uploadSchema';
 export {
   editProfileSchema,
   getEditProfileFormErrors,
-  buildSocialLinksFromProfileLinks,
+  buildSocialLinksFromFields,
   emptyEditProfileFormValues,
-  MAX_PROFILE_LINKS,
+  MAX_FAVORITE_GENRES,
+  MAX_FAVORITE_GENRE_LENGTH,
 } from './editProfile';
 export type {
   EditProfileFormValues,

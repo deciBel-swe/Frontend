@@ -2,7 +2,22 @@ import { z } from 'zod';
 
 import { privacySettingsSchema } from './privacy';
 
-const userRoleSchema = z.enum(['LISTENER', 'ARTIST', 'OTHER']);
+export const DEFAULT_PROFILE_AVATAR_IMAGE = '/images/default_song_image.png';
+export const DEFAULT_PROFILE_COVER_IMAGE = '/images/default_song_image.png';
+
+export const imageWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return defaultValue;
+    }
+
+    return value;
+  }, z.string());
+
 const userTierSchema = z.enum([
   'FREE',
   'ARTIST',
@@ -12,11 +27,12 @@ const userTierSchema = z.enum([
 ]);
 
 const userProfileSchema = z.object({
+  displayName: z.string().trim().optional().nullable(),
   bio: z.string(),
   city: z.string(),
   country: z.string(),
-  profilePic: z.string(),
-  coverPic: z.string(),
+  profilePic: imageWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
+  coverPic: imageWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
   favoriteGenres: z.array(z.string()),
 });
 
@@ -33,14 +49,13 @@ const userStatsSchema = z.object({
   tracksCount: z.number().int().nonnegative(),
 });
 
-/** DTO returned by GET /users/me */
-export const userMeSchema = z
+const userMeLegacySchema = z
   .object({
     id: z.number().int().nonnegative(),
-    Role: userRoleSchema,
     email: z.string().trim().email(),
     username: z.string().trim().min(1),
-    emailVerified: z.boolean(),
+    displayName: z.string().trim().optional().nullable(),
+    isBlocked: z.boolean(),
     tier: userTierSchema,
     profile: userProfileSchema,
     socialLinks: userSocialLinksSchema,
@@ -48,39 +63,120 @@ export const userMeSchema = z
     stats: userStatsSchema,
   })
   .passthrough();
-export type UserMe = z.infer<typeof userMeSchema>;
+
+const publicSocialLinksItemSchema = z.object({
+  instagram: z.string().nullable(),
+  twitter: z.string().nullable(),
+  website: z.string().nullable(),
+});
 
 const userPublicProfileSchema = z.object({
-  username: z.string(),
   id: z.number().int().nonnegative(),
-  bio: z.string(),
-  location: z.string(),
-  avatarUrl: z.string(),
-  coverPhotoUrl: z.string(),
-  favoriteGenres: z.array(z.string()),
-});
-
-const userPublicSocialLinksSchema = z.object({
-  instagram: z.string(),
-  twitter: z.string(),
-  website: z.string(),
-});
-
-const userPublicStatsSchema = z.object({
-  followersCount: z.number().int().nonnegative(),
+  email: z.string().trim().email(),
+  username: z.string().trim().min(1),
+  displayName: z.string().trim().optional().nullable(),
+  tier: userTierSchema,
+  followerCount: z.number().int().nonnegative(),
   followingCount: z.number().int().nonnegative(),
   trackCount: z.number().int().nonnegative(),
+  isFollowed: z.boolean(),
+  isFollowing: z.boolean(),
+  isBlocked: z.boolean(),
+  bio: z.string(),
+  city: z.string(),
+  country: z.string().nullable(),
+  profilePic: imageWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
+  coverPic: imageWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
+  favoriteGenres: z.array(z.string()),
+  socialLinksDto: z.array(publicSocialLinksItemSchema),
 });
+
+const userMeApiProfileSchema = z
+  .object({
+    profile: userPublicProfileSchema,
+    privacySettings: privacySettingsSchema,
+  })
+  .passthrough();
+
+type UserMeNormalized = z.infer<typeof userMeLegacySchema>;
+
+/** DTO returned by GET /users/me */
+export const userMeSchema = z
+  .union([userMeLegacySchema, userMeApiProfileSchema])
+  .transform((payload): UserMeNormalized => {
+    if ('id' in payload) {
+      const legacy = payload as z.infer<typeof userMeLegacySchema>;
+      const legacyDisplayName =
+        legacy.displayName ?? legacy.profile.displayName ?? null;
+
+      return {
+        id: legacy.id,
+        email: legacy.email,
+        username: legacy.username,
+        displayName: legacyDisplayName,
+        isBlocked: legacy.isBlocked,
+        tier: legacy.tier,
+        profile: {
+          displayName: legacyDisplayName,
+          bio: legacy.profile.bio,
+          city: legacy.profile.city,
+          country: legacy.profile.country ?? '',
+          profilePic: legacy.profile.profilePic,
+          coverPic: legacy.profile.coverPic,
+          favoriteGenres: legacy.profile.favoriteGenres,
+        },
+        socialLinks: {
+          instagram: legacy.socialLinks.instagram ?? '',
+          twitter: legacy.socialLinks.twitter ?? '',
+          website: legacy.socialLinks.website ?? '',
+          supportLink: legacy.socialLinks.supportLink ?? '',
+        },
+        privacySettings: legacy.privacySettings,
+        stats: legacy.stats,
+      };
+    }
+
+    const modern = payload as z.infer<typeof userMeApiProfileSchema>;
+    const profile = modern.profile;
+    const socialLinksDto = profile.socialLinksDto[0];
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      username: profile.username,
+      displayName: profile.displayName ?? null,
+      isBlocked: profile.isBlocked,
+      tier: profile.tier,
+      profile: {
+        displayName: profile.displayName ?? null,
+        bio: profile.bio,
+        city: profile.city,
+        country: profile.country ?? '',
+        profilePic: profile.profilePic,
+        coverPic: profile.coverPic,
+        favoriteGenres: profile.favoriteGenres,
+      },
+      socialLinks: {
+        instagram: socialLinksDto?.instagram ?? '',
+        twitter: socialLinksDto?.twitter ?? '',
+        website: socialLinksDto?.website ?? '',
+        supportLink: '',
+      },
+      privacySettings: modern.privacySettings,
+      stats: {
+        followers: profile.followerCount,
+        following: profile.followingCount,
+        tracksCount: profile.trackCount,
+      },
+    };
+  });
+export type UserMe = z.infer<typeof userMeSchema>;
 
 /** DTO returned by GET /users/{userId} */
 export const userPublicSchema = z
   .object({
-    id: z.number().int().nonnegative(),
-    username: z.string().trim().min(1),
-    tier: userTierSchema,
     profile: userPublicProfileSchema,
-    socialLinks: userPublicSocialLinksSchema,
-    stats: userPublicStatsSchema,
+    privacySettings: privacySettingsSchema.nullable(),
   })
   .passthrough();
 export type UserPublic = z.infer<typeof userPublicSchema>;
@@ -187,14 +283,29 @@ export type FollowResponse = z.infer<typeof followResponseSchema>;
 
 export const searchUserSchema = z
   .object({
-    id: z.number().int().nonnegative(),
-    username: z.string().trim().min(1),
-    avatarUrl: z.string().url().optional(),
+    id: z.number().int().nonnegative().optional(),
+    username: z.string().trim().min(1).optional(),
+    displayName: z.string().trim().min(1).optional().nullable(),
+    avatarUrl: z.string().url().optional().nullable(),
     tier: z.string().optional(),
     isFollowing: z.boolean().optional(),
   })
   .passthrough();
 export type SearchUser = z.infer<typeof searchUserSchema>;
+
+/**
+ * FollowerUser
+ */
+export const followerUserSchema = z
+  .object({
+    avatarUrl: z.string().optional(),
+    id: z.number().int().nonnegative().optional(),
+    isFollowing: z.boolean().optional(),
+    tier: z.string().optional(),
+    username: z.string().optional(),
+  })
+  .passthrough();
+export type FollowerUser = z.infer<typeof followerUserSchema>;
 
 export const searchPlaylistSchema = z
   .object({
@@ -216,9 +327,12 @@ const paginationInfoSchema = z
   .object({
     pageNumber: z.number().int().nonnegative().optional(),
     pageSize: z.number().int().positive().optional(),
+    number: z.number().int().nonnegative().optional(),
+    size: z.number().int().positive().optional(),
     totalElements: z.number().int().nonnegative().optional(),
     totalPages: z.number().int().nonnegative().optional(),
-    isLast: z.boolean(),
+    isLast: z.boolean().optional(),
+    last: z.boolean().optional(),
   })
   .passthrough();
 
@@ -241,7 +355,16 @@ export type PaginatedTracksResponse = z.infer<
   typeof paginatedTracksResponseSchema
 >;
 
-export const usersSuggestedResponseSchema = z.array(searchUserSchema);
+export const usersSuggestedResponseSchema = z
+  .union([
+    z.array(searchUserSchema),
+    z
+      .object({
+        content: z.array(searchUserSchema),
+      })
+      .passthrough(),
+  ])
+  .transform((payload) => (Array.isArray(payload) ? payload : payload.content));
 export type UsersSuggestedResponse = z.infer<
   typeof usersSuggestedResponseSchema
 >;
@@ -254,18 +377,18 @@ export type UserPlaylistsResponse = z.infer<typeof userPlaylistsResponseSchema>;
  */
 
 const userEditedSocialLinksSchema = z.object({
-  instagram: z.string().optional(),
-  twitter: z.string().optional(),
-  website: z.string().optional(),
-  supportLink: z.string().optional(),
+  instagram: z.string().url().optional(),
+  twitter: z.string().url().optional(),
+  website: z.string().url().optional(),
 });
+
 export const updateMeRequestSchema = z
   .object({
     bio: z.string().optional(),
     city: z.string().optional(),
     country: z.string().optional(),
     favoriteGenres: z.array(z.string()).optional(),
-    socialLinks: userEditedSocialLinksSchema.optional(),
+    socialLinks: userEditedSocialLinksSchema,
   })
   .passthrough();
 export type UpdateMeRequest = z.infer<typeof updateMeRequestSchema>;

@@ -172,7 +172,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                       className="h-12 px-1 gap-0.5 rounded-none border-0 bg-transparent text-text-secondary hover:text-text-primary hover:bg-transparent"
                     >
                       <Avatar
-                        src={user.profileUrl}
+                        src={user.avatarUrl}
                         alt={user.username}
                         initials={initials}
                       />

@@ -108,12 +108,15 @@ const realUser: LoginUserDTO = {
   id: 12,
   username: 'real-user',
   tier: 'FREE',
+  avatarUrl: '/images/default_song_image.png',
 };
 
 const artistUser: LoginUserDTO = {
   id: 99,
   username: 'artist-user',
   tier: 'ARTIST',
+  avatarUrl: '/images/default_song_image.png',
+
 };
 
 const advanceMockDelay = async (ms = 350) => {
@@ -131,7 +134,6 @@ describe('AuthService contract parity', () => {
   it('returns schema-valid login responses for both RealAuthService and MockAuthService', async () => {
     mockedApiRequest.mockResolvedValueOnce({
       accessToken: 'real-access-token',
-      refreshToken: 'real-refresh-token',
       expiresIn: 3600,
       user: realUser,
     });
@@ -150,6 +152,11 @@ describe('AuthService contract parity', () => {
         payload: {
           email: 'service@test.dev',
           password: expect.stringMatching(/^[a-f0-9]{64}$/),
+          deviceInfo: expect.objectContaining({
+            deviceType: expect.any(String),
+            fingerPrint: expect.any(String),
+            deviceName: expect.any(String),
+          }),
         },
       }
     );
@@ -323,7 +330,6 @@ describe('AuthService contract parity', () => {
 
     const parsed = assertValidLoginResponse(googleLogin);
     expect(parsed.user.username).toBe('google-user');
-    expect(parsed.user.avatarUrl).toBeUndefined();
 
     jest.useRealTimers();
   });

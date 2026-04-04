@@ -5,8 +5,8 @@ import { AuthProvider } from '@/features/auth';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
+import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
 import type { Metadata } from 'next';
-
 import './globals.css';
 
 /**
@@ -83,7 +83,14 @@ export default function RootLayout({
                   <TopNavBar />
                   {/* QueryProvider is a client‑component wrapper that creates the
                        QueryClient on the client side.*/}
-                  <QueryProvider>{children}</QueryProvider>
+                  <QueryProvider>
+                    {children}
+                    {/*
+                      Persistent global player runtime.
+                      Mounted once at the app shell so playback survives route changes.
+                    */}
+                    <GlobalAudioPlayer />
+                  </QueryProvider>
                 </div>
               </div>
             </Suspense>

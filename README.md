@@ -184,4 +184,4 @@ This project is developed for educational purposes as part of a Software Enginee
 ---
 
 **Last Updated:** March 10, 2026  
-**Version:** 0.1.0 (Initial Setup)
+**Version:** 1.0.0 (Initial Setup)

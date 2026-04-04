@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
+import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { trackService } from '@/services';
+
+const toPlaybackAccess = (
+  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
+): PlaybackAccess => {
+  if (access === 'BLOCKED' || access === 'PREVIEW') {
+    return 'BLOCKED';
+  }
+  return 'PLAYABLE';
+};
 
 /**
  * useFeedTracks
@@ -7,9 +18,7 @@ import { trackService } from '@/services';
  * Fetches all tracks from the track service and maps them into the shape
  * expected by <TrackCard />.
  *
- * Waveform data is derived deterministically per track id until the real
- * waveform endpoint is wired up — at that point, replace `generateWaveform`
- * with a fetch to `track.waveformUrl`.
+ * Waveform data is hydrated by the track service from waveformUrl payloads.
  *
  * @example
  * const { feedTracks, isLoading, isError } = useFeedTracks();
@@ -43,9 +52,9 @@ export function useFeedTracks() {
     const fetchTracks = async () => {
       setIsLoading(true);
       setIsError(false);
-
       try {
         const data = await trackService.getAllTracks();
+        console.log('Fetched tracks:', data);
         if (!isCancelled) {
           setTracks(data);
         }
@@ -67,35 +76,27 @@ export function useFeedTracks() {
     };
   }, [refreshIndex]);
 
-  const parseWaveform = (value: string | undefined): number[] => {
-    if (!value || value.trim().length === 0) {
-      return [];
-    }
+  // Canonical queue payload for current feed snapshot.
+  const queueTracks = tracks.map((track) =>
+    playerTrackMappers.fromTrackMetaData(track, {
+      access: toPlaybackAccess(track.access),
+    })
+  );
 
-    try {
-      const parsed = JSON.parse(value);
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
+  // Quick lookup for mapping feed rows to playback items.
+  const queueMap = new Map(queueTracks.map((track) => [track.id, track]));
 
-      return parsed
-        .map((entry) => Number(entry))
-        .filter((entry) => Number.isFinite(entry))
-        .map((entry) => Math.max(0, Math.min(1, entry)));
-    } catch {
-      return [];
-    }
-  };
-
+  // Map service DTOs into existing TrackCard presentation shape plus playback hooks.
   const feedTracks = tracks.map((track) => {
     const artistName =
       typeof track.artist === 'string' ? track.artist : track.artist.username;
 
     return {
       id: track.id,
+      isPrivate: false,
       user: {
         name: artistName,
-        avatar: track.coverUrl,
+        avatar: '/images/default_song_image.png', //use this until API provides it
       },
       postedText: 'posted a track' as const,
       timeAgo: '',
@@ -106,7 +107,9 @@ export function useFeedTracks() {
         cover: track.coverUrl,
         duration: '',
       },
-      waveform: parseWaveform(track.waveformData),
+      waveform: track.waveformData ?? [],
+      playback: queueMap.get(track.id),
+      queueTracks,
     };
   });
 

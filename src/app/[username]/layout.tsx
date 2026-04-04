@@ -1,29 +1,20 @@
-import ProfileHeader from '@/features/prof/components/ProfileHeader';
-import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
-import MidBar from '@/features/prof/components/MidBar';
+import type { ReactNode } from 'react';
+import { ProfileGuard } from '@/components/profile-guard';
+import { ProfileOwnerProvider } from '@/features/prof/context/ProfileOwnerContext';
 
 const Layout = async ({
   children,
   params,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ username: string }>;
 }) => {
   const { username } = await params;
 
   return (
-    <div>
-      <div>
-        <ProfileHeader username={username} />
-      </div>
-      <MidBar username={username} />
-      <div className="flex w-full mt-6 px-8">
-        <div className="flex-1">{children}</div>
-        <div className="w-[340px] ml-10">
-          <ProfileSideBar username={username} />
-        </div>
-      </div>
-    </div>
+    <ProfileOwnerProvider username={username}>
+      <ProfileGuard username={username}>{children}</ProfileGuard>
+    </ProfileOwnerProvider>
   );
 };
 

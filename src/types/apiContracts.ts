@@ -19,19 +19,25 @@ import {
   loginLocalRequestDTOSchema,
   loginResponseDTOSchema,
   registerLocalRequestDTOSchema,
-  refreshTokenRequestDTOSchema,
+  registerLocalResponseDTOSchema,
   refreshTokenResponseDTOSchema,
+  deviceInfoDTOSchema,
 } from './index';
 import {
   privacySettingsSchema,
   updatePrivacySettingsDtoSchema,
 } from './privacy';
 import {
+  likeResponseSchema,
+  paginatedTrackResponseSchema,
+  paginationRepostUserSchema,
+  repostResponseSchema,
   secretTokenResponseSchema,
   trackDetailsResponseSchema,
   trackUpdateResponseSchema,
   updateTrackVisibilityDtoSchema,
   uploadTrackResponseSchema,
+  paginatedTracksResponseSchema,
 } from './tracks';
 import {
   addNewEmailRequestSchema,
@@ -39,7 +45,6 @@ import {
   messageResponseSchema,
   paginatedFeedResponseSchema,
   paginatedFollowersResponseSchema,
-  paginatedTracksResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
   updateImagesJsonRequestSchema,
@@ -55,6 +60,27 @@ import {
   userPublicSchema,
   usersSuggestedResponseSchema,
 } from './user';
+import { paginatedTrackFeedResponseSchema } from './feed';
+// import { paginatedPlaylistResponseSchema } from './playlist';
+import {
+  createCommentRequestSchema,
+  commentSchema,
+  paginatedCommentsResponseSchema,
+  paginatedRepliesResponseSchema,
+} from './comments';
+import {
+  createPlaylistRequestSchema,
+  addPlaylistTrackRequestSchema,
+  playlistUpdateResponseSchema,
+  playlistEmbedResponseSchema,
+  playlistSecretLinkResponseSchema,
+  playlistSecretLinkRegenerateResponseSchema,
+  playlistLikeResponseSchema,
+  paginatedPlaylistsResponseSchema,
+  reorderPlaylistTracksRequestSchema,
+  updatePlaylistRequestSchema,
+  playlistResponseSchema,
+} from './playlists';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -75,6 +101,11 @@ const defineContract = <TRequest, TResponse>(
   contract: ApiEndpointContract<TRequest, TResponse>
 ): ApiEndpointContract<TRequest, TResponse> => contract;
 
+const trackPlaybackActionRequestSchema = z.object({
+  trackId: z.number().int().nonnegative(),
+  deviceInfo: deviceInfoDTOSchema,
+});
+
 /**
  * Endpoint registry used by useAPI templates and real services.
  *
@@ -93,7 +124,7 @@ export const API_CONTRACTS = {
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REGISTER_LOCAL,
     requestSchema: registerLocalRequestDTOSchema,
-    responseSchema: z.string().min(1),
+    responseSchema: registerLocalResponseDTOSchema,
   }),
 
   AUTH_OAUTH_GOOGLE: defineContract({
@@ -106,14 +137,13 @@ export const API_CONTRACTS = {
   AUTH_REFRESH_TOKEN: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.REFRESH,
-    requestSchema: refreshTokenRequestDTOSchema,
     responseSchema: refreshTokenResponseDTOSchema,
   }),
 
-  AUTH_LOGOUT: defineContract<void, undefined>({
+  AUTH_LOGOUT: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.LOGOUT,
-    responseSchema: z.undefined(),
+    responseSchema: z.object({ message: z.string().trim().min(1) }),
   }),
 
   AUTH_LOGOUT_ALL: defineContract<void, undefined>({
@@ -121,7 +151,21 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.AUTH.LOGOUT_ALL,
     responseSchema: z.undefined(),
   }),
-
+  VERIFY_EMAIL: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.VERIFY_EMAIL,
+    requestSchema: z.object({ token: z.string().trim().min(1) }),
+    responseSchema: z.object({ message: z.string().trim().min(1) }),
+  }),
+  RESEND_VERIFICATION: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
+    requestSchema: z.object({ email: z.string().trim().email() , deviceInfo: deviceInfoDTOSchema }),
+    responseSchema: z.object({ 
+      message: z.string().trim().min(1),
+      coolDown: z.number().int().nonnegative().optional().nullable(),
+    }),
+  }),
   USERS_ME: defineContract({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME,
@@ -135,11 +179,20 @@ export const API_CONTRACTS = {
   }),
   USERS_ME_TRACKS: defineContract<
     void,
-    z.infer<typeof trackDetailsResponseSchema>[]
+    z.infer<typeof paginatedTracksResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_TRACKS,
-    responseSchema: z.array(trackDetailsResponseSchema),
+    responseSchema: paginatedTracksResponseSchema,
+  }),
+
+  USERS_ME_PLAYLISTS: defineContract<
+    void,
+    z.infer<typeof userPlaylistsResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_PLAYLISTS,
+    responseSchema: userPlaylistsResponseSchema,
   }),
 
   USERS_ME_PRIVACY: defineContract({
@@ -244,6 +297,13 @@ export const API_CONTRACTS = {
       responseSchema: userPlaylistsResponseSchema,
     }),
 
+  USERS_LIKED_PLAYLISTS: (username: string) =>
+    defineContract<void, z.infer<typeof paginatedPlaylistsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.LIKED_PLAYLISTS(username),
+      responseSchema: paginatedPlaylistsResponseSchema,
+    }),
+
   USERS_FOLLOW: (userId: number) =>
     defineContract<void, z.infer<typeof followResponseSchema>>({
       method: 'POST',
@@ -298,6 +358,158 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.USERS.BY_USERNAME(username),
       responseSchema: userPublicSchema,
     }),
+
+  PLAYLISTS_CREATE: defineContract<
+    z.infer<typeof createPlaylistRequestSchema>,
+    z.infer<typeof playlistResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.PLAYLISTS.CREATE,
+    requestSchema: createPlaylistRequestSchema,
+    responseSchema: playlistResponseSchema,
+  }),
+
+  PLAYLISTS_BY_ID: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.BY_ID(playlistId),
+      responseSchema: playlistResponseSchema,
+    }),
+
+  PLAYLISTS_UPDATE: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof updatePlaylistRequestSchema>,
+      z.infer<typeof playlistUpdateResponseSchema>
+    >({
+      method: 'PATCH',
+      url: API_ENDPOINTS.PLAYLISTS.UPDATE(playlistId),
+      requestSchema: updatePlaylistRequestSchema,
+      responseSchema: playlistUpdateResponseSchema,
+    }),
+
+  PLAYLISTS_DELETE: (playlistId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.PLAYLISTS.DELETE(playlistId),
+      responseSchema: z.undefined(),
+    }),
+
+  PLAYLISTS_ADD_TRACK: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof addPlaylistTrackRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
+      requestSchema: addPlaylistTrackRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+
+  PLAYLISTS_REMOVE_TRACK: (playlistId: number, trackId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.PLAYLISTS.TRACK(playlistId, trackId),
+      responseSchema: z.undefined(),
+    }),
+
+  PLAYLISTS_REORDER_TRACKS: (playlistId: number) =>
+    defineContract<
+      z.infer<typeof reorderPlaylistTracksRequestSchema>,
+      z.infer<typeof playlistUpdateResponseSchema>
+    >({
+      method: 'PATCH',
+      url: API_ENDPOINTS.PLAYLISTS.REORDER_TRACKS(playlistId),
+      requestSchema: reorderPlaylistTracksRequestSchema,
+      responseSchema: playlistUpdateResponseSchema,
+    }),
+
+  PLAYLISTS_EMBED: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistEmbedResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.EMBED(playlistId),
+      responseSchema: playlistEmbedResponseSchema,
+    }),
+
+  PLAYLISTS_SECRET_LINK: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistSecretLinkResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.SECRET_LINK(playlistId),
+      responseSchema: playlistSecretLinkResponseSchema,
+    }),
+
+  PLAYLISTS_SECRET_LINK_REGENERATE: (playlistId: number) =>
+    defineContract<
+      void,
+      z.infer<typeof playlistSecretLinkRegenerateResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.PLAYLISTS.SECRET_LINK_REGENERATE(playlistId),
+      responseSchema: playlistSecretLinkRegenerateResponseSchema,
+    }),
+
+  PLAYLISTS_BY_TOKEN: (token: string) =>
+    defineContract<void, z.infer<typeof playlistResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.TOKEN(token),
+      responseSchema: playlistResponseSchema,
+    }),
+
+  PLAYLISTS_LIKE: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistLikeResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.PLAYLISTS.LIKE(playlistId),
+      responseSchema: playlistLikeResponseSchema,
+    }),
+
+  PLAYLISTS_UNLIKE: (playlistId: number) =>
+    defineContract<void, z.infer<typeof playlistLikeResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.PLAYLISTS.LIKE(playlistId),
+      responseSchema: playlistLikeResponseSchema,
+    }),
+
+  TRACKS_COMMENTS_LIST: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedCommentsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.COMMENTS(trackId),
+      responseSchema: paginatedCommentsResponseSchema,
+    }),
+
+  TRACKS_COMMENTS_CREATE: (trackId: number) =>
+    defineContract<
+      z.infer<typeof createCommentRequestSchema>,
+      z.infer<typeof commentSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.COMMENTS(trackId),
+      requestSchema: createCommentRequestSchema,
+      responseSchema: commentSchema,
+    }),
+
+  COMMENTS_REPLIES_LIST: (commentId: number) =>
+    defineContract<void, z.infer<typeof paginatedRepliesResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.COMMENTS.REPLIES(commentId),
+      responseSchema: paginatedRepliesResponseSchema,
+    }),
+  COMMENTS_REPLIES_CREATE: (commentId: number) =>
+    defineContract<
+      z.infer<typeof createCommentRequestSchema>,
+      z.infer<typeof commentSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.COMMENTS.REPLIES(commentId),
+      requestSchema: createCommentRequestSchema,
+      responseSchema: commentSchema,
+    }),
+
+  COMMENTS_DELETE: (commentId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.COMMENTS.DELETE(commentId),
+      responseSchema: z.undefined(),
+    }),
+
   TRACKS_UPLOAD: defineContract<
     FormData,
     z.infer<typeof uploadTrackResponseSchema>
@@ -306,7 +518,18 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.TRACKS.UPLOAD,
     responseSchema: uploadTrackResponseSchema,
   }),
-
+  TRACK_LIKE: (trackId: number) =>
+    defineContract<void, z.infer<typeof likeResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.LIKE(trackId),
+      responseSchema: likeResponseSchema,
+    }),
+  TRACK_UNLIKE: (trackId: number) =>
+    defineContract<void, z.infer<typeof likeResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.LIKE(trackId),
+      responseSchema: likeResponseSchema,
+    }),
   TRACKS_BY_ID: (trackId: number) =>
     defineContract<void, z.infer<typeof trackDetailsResponseSchema>>({
       method: 'GET',
@@ -319,6 +542,20 @@ export const API_CONTRACTS = {
       method: 'PATCH',
       url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
       responseSchema: trackUpdateResponseSchema,
+    }),
+
+  TRACKS_DELETE: (trackId: number) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.BY_ID(trackId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  TRACKS_DELETE_COVER: (trackId: number) =>
+    defineContract<void, undefined>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.COVER(trackId),
+      responseSchema: z.undefined(),
     }),
 
   TRACKS_UPDATE_VISIBILITY: (trackId: number) =>
@@ -341,6 +578,79 @@ export const API_CONTRACTS = {
       method: 'POST',
       url: API_ENDPOINTS.TRACKS.GENERATE_TOKEN(trackId),
       responseSchema: secretTokenResponseSchema,
+    }),
+  TRACK_PLAY: (trackId: number) =>
+    defineContract<
+      z.infer<typeof trackPlaybackActionRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.PLAY(trackId),
+      requestSchema: trackPlaybackActionRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+  TRACK_COMPLETE: (trackId: number) =>
+    defineContract<
+      z.infer<typeof trackPlaybackActionRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.COMPLETE(trackId),
+      requestSchema: trackPlaybackActionRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+  TRACK_REPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
+  TRACK_UNREPOST: (trackId: number) =>
+    defineContract<void, z.infer<typeof repostResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.REPOST(trackId),
+      responseSchema: repostResponseSchema,
+    }),
+  TRACK_REPOST_USERS: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginationRepostUserSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.GET_REPOSTERS(trackId),
+      responseSchema: paginationRepostUserSchema,
+    }),
+  FEED: defineContract<void, z.infer<typeof paginatedTrackFeedResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.FEED,
+    responseSchema: paginatedTrackFeedResponseSchema,
+  }),
+  USERS_WHO_LIKED_TRACK: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.WHO_LIKE_TRACK(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+  // USERS_LIKED_PLAYLISTS: (userId: number) =>
+  //   defineContract<void, z.infer<typeof paginatedPlaylistResponseSchema>>({
+  //     method: 'GET',
+  //     url: API_ENDPOINTS.USERS.LIKE_PLAYLISTS(userId),
+  //     responseSchema: paginatedPlaylistResponseSchema,
+  //   }),
+  USERS_WHO_REPOSTED: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.WHO_REPOSTED(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+  ME_LIKED_TRACKS: () =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.ME_LIKED_TRACKS,
+      responseSchema: paginatedTrackResponseSchema,
+    }),
+  ME_REPOSTED_TRACKS: () =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.ME_REPOSTs,
+      responseSchema: paginatedTrackResponseSchema,
     }),
 } as const;
 

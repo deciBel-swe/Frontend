@@ -20,9 +20,10 @@ import { SearchIcon } from '@/components/icons/NavIcons';
 import { IconButton } from '@/components/buttons/IconButton';
 export interface SearchBarProps {
   onSearch?: (query: string) => void;
+  placeholder?: string;
 }
 
-export const SearchBar: FC<SearchBarProps> = ({ onSearch }) => {
+export const SearchBar: FC<SearchBarProps> = ({ onSearch, placeholder = 'Search', }) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
@@ -39,7 +40,7 @@ export const SearchBar: FC<SearchBarProps> = ({ onSearch }) => {
       <input
         type="search"
         name="q"
-        placeholder="Search"
+        placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search"

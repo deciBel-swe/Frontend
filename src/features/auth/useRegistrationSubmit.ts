@@ -105,7 +105,6 @@ export const useRegistrationSubmit = ({
           captchaToken: recaptchaResult.token,
         });
 
-        await authService.resendVerification(email);
         onSuccess();
       } catch (error) {
         console.error('Registration submit failed:', error);

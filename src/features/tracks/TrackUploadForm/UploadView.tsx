@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks';
-import { config } from '@/config';
 import { trackService } from '@/services';
 import { generateWaveform } from '@/utils/generateWaveform';
+import { validateAudioFile, validateImageFile } from '@/utils/fileValidation';
 import UploadDropzone from '@/features/tracks/TrackUploadForm/FormFields/UploadDropzone';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess';
@@ -33,25 +32,21 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 };
 
 export default function UploadView() {
-  const { user } = useAuth();
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [titleError, setTitleError] = useState<string>('');
-  const [trackLinkError, setTrackLinkError] = useState<string>('');
   const [genreError, setGenreError] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [artistEdited, setArtistEdited] = useState(false);
-  const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
-  const trackLinkPrefix = `${normalizedDomainName}/${user?.username ?? 'user1'}`;
   const [trackLinkSuffix, setTrackLinkSuffix] = useState('');
-  const [trackLinkEdited, setTrackLinkEdited] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -68,22 +63,8 @@ export default function UploadView() {
   }, [audioFile]);
 
   useEffect(() => {
-    if (trackLinkEdited) {
-      return;
-    }
-
     setTrackLinkSuffix(toTrackSlug(title));
-  }, [title, trackLinkEdited]);
-
-  useEffect(() => {
-    if (artistEdited || artist.trim().length > 0) {
-      return;
-    }
-
-    if (user?.username) {
-      setArtist(user.username);
-    }
-  }, [artist, artistEdited, user?.username]);
+  }, [title]);
 
   useEffect(() => {
     const updateWaveformHeight = () => {
@@ -135,25 +116,24 @@ export default function UploadView() {
     if (!audioFile) return;
     const validation = uploadSchema.safeParse({
       title,
-      trackLinkSuffix,
-      artist,
       genre,
       tags,
       description,
+      releaseDate,
       privacy,
     });
 
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
       setTitleError(fieldErrors.title?.[0] ?? '');
-      setTrackLinkError(fieldErrors.trackLinkSuffix?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
-    setTrackLinkError('');
     setGenreError('');
+    setReleaseDateError('');
 
     const formData = new FormData();
 
@@ -167,12 +147,9 @@ export default function UploadView() {
     formData.append('trackLinkSuffix', trackLinkSuffix);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
-    formData.append('releaseDate', new Date().toISOString().slice(0, 10));
+    formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
-    }
-    if (artist.trim().length > 0) {
-      formData.append('artist', artist);
     }
     const tagEntries = tags
       .map((tag) => tag.trim())
@@ -194,10 +171,9 @@ export default function UploadView() {
         formData,
         setUploadProgress
       );
-      const submittedTrackUrl = `${trackLinkPrefix}/${trackLinkSuffix}`;
       setUploadComplete(true);
       setIsUploading(false);
-      setUploadedTrackUrl(submittedTrackUrl || response.trackUrl);
+      setUploadedTrackUrl(response.trackUrl);
     } catch (err) {
       setError(getWaveformParseErrorMessage(err));
       setIsUploading(false);
@@ -214,35 +190,39 @@ export default function UploadView() {
     setError('');
     setTitle('');
     setTitleError('');
-    setTrackLinkError('');
     setGenreError('');
     setTrackLinkSuffix('');
-    setTrackLinkEdited(false);
-    setArtist('');
-    setArtistEdited(false);
     setGenre('');
     setTags([]);
     setDescription('');
+    setReleaseDate(todayIsoDate);
+    setReleaseDateError('');
     setPrivacy('public');
     setArtworkFile(null);
     setArtworkPreview(null);
     setGeneratedWaveform([]);
   };
 
-  const handleArtwork = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Artwork must be an image file');
-      return;
+  const handleArtwork = async (file: File) => {
+    try {
+      const validation = await validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.reason ?? 'Artwork must be a valid image file.');
+        return;
+      }
+
+      setArtworkFile(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setArtworkPreview(reader.result as string);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Artwork validation failed:', err);
+      alert('Unable to read artwork file. Please try another image.');
     }
-
-    setArtworkFile(file);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setArtworkPreview(reader.result as string);
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const removeArtwork = () => {
@@ -250,7 +230,7 @@ export default function UploadView() {
     setArtworkPreview(null);
   };
 
-  const handleAudio = (file: File) => {
+  const handleAudio = async (file: File) => {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (
       !ALLOWED_TYPES.includes(file.type) &&
@@ -272,17 +252,37 @@ export default function UploadView() {
       );
       setAudioFile(null);
       setShowForm(false);
-    } else {
-      setError('');
-      setAudioFile(file);
-      setShowForm(true);
-      console.log(
-        'Valid file:',
-        file.name,
-        (file.size / (1024 * 1024)).toFixed(2),
-        'MB'
-      );
+      return;
     }
+
+    try {
+      const validation = await validateAudioFile(file);
+      if (!validation.ok) {
+        setError(
+          validation.reason ??
+            'File content does not match a supported audio format.'
+        );
+        setAudioFile(null);
+        setShowForm(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Audio validation failed:', err);
+      setError('Unable to read audio file. Please try another file.');
+      setAudioFile(null);
+      setShowForm(false);
+      return;
+    }
+
+    setError('');
+    setAudioFile(file);
+    setShowForm(true);
+    console.log(
+      'Valid file:',
+      file.name,
+      (file.size / (1024 * 1024)).toFixed(2),
+      'MB'
+    );
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -294,7 +294,9 @@ export default function UploadView() {
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer.files?.[0];
-    if (file) handleAudio(file);
+    if (file) {
+      void handleAudio(file);
+    }
   };
 
   if (uploadComplete && uploadedTrackUrl) {
@@ -328,21 +330,6 @@ export default function UploadView() {
             setTitleError('');
           }
         }}
-        trackLinkPrefix={trackLinkPrefix}
-        trackLinkSuffix={trackLinkSuffix}
-        trackLinkError={trackLinkError}
-        onTrackLinkSuffixChange={(nextSuffix) => {
-          setTrackLinkEdited(true);
-          setTrackLinkSuffix(toTrackSlug(nextSuffix));
-          if (trackLinkError) {
-            setTrackLinkError('');
-          }
-        }}
-        artist={artist}
-        onArtistChange={(nextArtist) => {
-          setArtistEdited(true);
-          setArtist(nextArtist);
-        }}
         genre={genre}
         genreError={genreError}
         onGenreChange={(nextGenre) => {
@@ -355,6 +342,16 @@ export default function UploadView() {
         onTagsChange={setTags}
         description={description}
         onDescriptionChange={setDescription}
+        releaseDate={releaseDate}
+        releaseDateError={releaseDateError}
+        onReleaseDateChange={(nextDate) => {
+          setReleaseDate(nextDate);
+          if (releaseDateError) {
+            setReleaseDateError('');
+          }
+        }}
+        releaseDateMax={todayIsoDate}
+        showReleaseDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />
@@ -366,7 +363,9 @@ export default function UploadView() {
       error={error}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onFileSelected={handleAudio}
+      onFileSelected={(file) => {
+        void handleAudio(file);
+      }}
     />
   );
 }

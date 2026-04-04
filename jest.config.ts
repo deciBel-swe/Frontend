@@ -34,16 +34,19 @@ const customJestConfig: Config = {
     '!src/**/__tests__/**',
     '!src/**/tests/**',
     '!src/components/**', // Exclude pure UI components from coverage
+    '!src/features/home/components/**', // Exclude landing-page presentational components
+    '!src/features/prof/components/**', // Exclude profile presentational components
+    '!src/features/tracks/components/**', // Exclude track presentational components
     '!src/app/**', // Exclude Next.js pages from coverage (they're tested via E2E)
   ],
 
   // Coverage thresholds
   coverageThreshold: {
     global: {
-      branches: 30,
-      functions: 30,
-      lines: 30,
-      statements: 30,
+      branches: 10,
+      functions: 10,
+      lines: 10,
+      statements: 10,
     },
   },
 

@@ -14,7 +14,25 @@ import { config } from '@/config';
  * formatSecretUrl('42', 'nQ7ENRPl')
  * // → 'https://localhost:3000/tracks/42?s=nQ7ENRPl'
  */
+const slugify = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
 export function formatSecretUrl(trackId: string, token: string): string {
   const base = config.api.appUrl;
   return `${base}/tracks/${trackId}?s=${token}`;
+}
+
+export function formatSecretUrlWithSlug(
+  artist: string,
+  title: string,
+  token: string
+): string {
+  const base = config.api.appUrl;
+  const userSlug = slugify(artist);
+  const trackSlug = slugify(title);
+  return `${base}/${userSlug}/${trackSlug}?s=${token}`;
 }

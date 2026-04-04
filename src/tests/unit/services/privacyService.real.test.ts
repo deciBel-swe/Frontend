@@ -36,12 +36,15 @@ describe('RealPrivacyService', () => {
       showHistory: true,
     });
 
-    const updated = await service.updatePrivacySettings({ isPrivate: false });
+    const updated = await service.updatePrivacySettings({
+      isPrivate: false,
+      showHistory: true,
+    });
 
     expect(updated).toEqual({ isPrivate: false, showHistory: true });
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.USERS_ME_PRIVACY_UPDATE,
-      { payload: { isPrivate: false } }
+      { payload: { isPrivate: false, showHistory: true } }
     );
   });
 });

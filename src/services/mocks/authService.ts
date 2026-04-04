@@ -7,6 +7,7 @@ import type {
   LoginResponseDTO,
   LoginUserDTO,
   RefreshTokenResponseDTO,
+  RegisterLocalResponseDTO,
 } from '@/types';
 
 import {
@@ -20,17 +21,17 @@ import {
   persistMockSystemState,
 } from './mockSystemStore';
 import { sha256Hex } from '@/utils/sha256';
-
+import {
+  ACCESS_TOKEN_STORAGE_KEY as ACCESS_TOKEN_KEY,
+  USER_STORAGE_KEY as USER_KEY,  
+  AUTH_COOKIE,
+} from '../api/authService';
 // ================================
 // Mock data
 // ================================
-
-const MOCK_DELAY_MS = 300;
-const ACCESS_TOKEN_KEY = 'decibel_access_token';
 const REFRESH_TOKEN_KEY = 'decibel_refresh_token';
-const USER_KEY = 'decibel_mock_user';
+const MOCK_DELAY_MS = 300;
 /** Cookie name read by middleware to gate protected routes. */
-const AUTH_COOKIE = 'decibel_auth';
 
 /** Simulates a network round-trip */
 const delay = (ms = MOCK_DELAY_MS) =>
@@ -68,7 +69,7 @@ const toLoginUser = (
     id: account.id,
     username: account.username,
     tier: account.tier,
-    avatarUrl: account.avatarUrl,
+    avatarUrl: account.avatarUrl?.trim() || "/images/default_song_image.png",
   };
 };
 
@@ -170,7 +171,7 @@ const extractGoogleIdentity = (
 // ================================
 
 export class MockAuthService implements AuthService {
-  async registerLocal(payload: RegisterLocalPayload): Promise<string> {
+  async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
     await delay();
 
     createMockAuthAccount({
@@ -182,7 +183,7 @@ export class MockAuthService implements AuthService {
       tier: 'FREE',
     });
 
-    return 'User Generated successfully';
+    return { message: 'User Generated successfully' };
   }
 
   async getSession(): Promise<LoginResponseDTO | null> {
@@ -203,11 +204,11 @@ export class MockAuthService implements AuthService {
     // middleware redirect loop back to /signin.
     const remainingMs = decoded.exp - Date.now();
     const remainingSec = Math.floor(remainingMs / 1000);
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${remainingSec}; SameSite=Lax`;
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${remainingSec}; SameSite=Lax`;
 
     const expiresIn = remainingSec;
     const user: LoginUserDTO = JSON.parse(raw);
-    return { accessToken, expiresIn, refreshToken, user };
+    return { accessToken, expiresIn, user };
   }
 
   async loginWithGoogle(code: string): Promise<LoginResponseDTO> {
@@ -233,9 +234,9 @@ export class MockAuthService implements AuthService {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
 
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${expiresIn}; SameSite=Lax`;
 
-    return { accessToken, expiresIn, refreshToken, user };
+    return { accessToken, expiresIn, user };
   }
 
   async refreshToken(): Promise<RefreshTokenResponseDTO> {
@@ -286,15 +287,56 @@ export class MockAuthService implements AuthService {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     // Sync to cookie so middleware can read it on the server side.
-    document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${expiresIn}; SameSite=Lax`;
-    return { accessToken, expiresIn, refreshToken, user };
+    document.cookie = `${AUTH_COOKIE}=${accessToken}; path=/; max-age=${expiresIn}; SameSite=Lax`;
+
+    // --- MOBILE INTEGRATION START ---
+  // Check the browser URL for a redirect parameter (e.g., ?redirect_uri=soundcloud-clone://callback)
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectUri = urlParams.get('redirect_uri');
+
+  if (redirectUri) {
+    // Construct the final URL to send the user back to the app with the token
+    const finalUrl = `${redirectUri}?token=${accessToken}&refreshToken=${refreshToken}`;
+    
+    // This is the "magic" line that closes the mobile browser and re-opens the app
+    window.location.href = finalUrl;
+  }
+  // --- MOBILE INTEGRATION END ---
+
+  //mobile link: https://your-site.com/login?redirect_uri=soundcloud-clone://callback
+
+//   import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+
+// Future<void> loginWithWeb() async {
+//   // 1. They point to your login page with the redirect_uri query param
+//   final url = 'https://your-website.com/login?redirect_uri=soundcloud-clone://callback';
+
+//   try {
+//     // 2. This opens the secure browser session
+//     final result = await FlutterWebAuth2.authenticate(
+//       url: url,
+//       callbackUrlScheme: "soundcloud-clone",
+//     );
+
+//     // 3. 'result' will be the full string you sent: 
+//     // "soundcloud-clone://callback?token=ABC&refreshToken=XYZ"
+//     final Uri callbackUri = Uri.parse(result);
+//     final String? token = callbackUri.queryParameters['token'];
+    
+//     print("Success! Received token: $token");
+//   } catch (e) {
+//     print("User closed the browser or error occurred: $e");
+//   }
+// }
+
+    return { accessToken, expiresIn, user };
   }
 
   // ================================
   // Email verification methods
   // ================================
 
-  async resendVerification(email: string): Promise<{ success: boolean }> {
+  async resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }> {
     await delay();
 
     const token = crypto.randomUUID();
@@ -308,24 +350,24 @@ export class MockAuthService implements AuthService {
     updateMockAuthEmailVerification(email, true);
     persistMockSystemState();
 
-    return { success: true };
+    return { message: 'Verification email sent.', coolDown: 60 };
   }
 
-  async verifyEmail(token: string): Promise<{ success: boolean }> {
+  async verifyEmail(token: string): Promise<{ message: string }> {
     await delay();
 
     const entry = mockEmailVerification[token];
     if (!entry) {
-      return { success: false };
+      return { message: 'Invalid or expired verification token.' };
     }
 
     entry.verified = true;
     updateMockAuthEmailVerification(entry.email, true);
     persistMockSystemState();
-    return { success: true };
+    return { message: 'Email verified successfully.' };
   }
 
-  async requestEmailVerification(email: string): Promise<{ success: boolean }> {
+  async requestEmailVerification(email: string): Promise<{ message: string }> {
     return this.resendVerification(email);
   }
 

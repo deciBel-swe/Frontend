@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
+import Button from '@/components/buttons/Button';
 import { Toggle } from '@/components/buttons/Toggle';
+import AvatarImage from '@/components/ui/AvatarImage';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
@@ -58,10 +63,95 @@ function Skeleton() {
             <div className="h-3.5 w-48 bg-surface-raised rounded animate-pulse" />
             <div className="h-3 w-full max-w-lg bg-surface-default rounded animate-pulse" />
           </div>
-          <div className="w-[46px] h-[26px] rounded-full bg-surface-raised animate-pulse shrink-0" />
+          <div className="w-11.5 h-6.5 rounded-full bg-surface-raised animate-pulse shrink-0" />
         </div>
       ))}
     </div>
+  );
+}
+
+function BlockedUsersSection() {
+  const { users, isLoading, isError, pendingIds, unblockUser, refresh } =
+    useBlockedUsers();
+
+  return (
+    <section className="mt-10">
+      <div className="flex justify-between items-center border-b border-border-default pb-2">
+        <span className="text-sm font-semibold text-text-muted">
+          Blocked users
+        </span>
+
+        <button
+          type="button"
+          onClick={refresh}
+          className="text-xs text-gray-400 hover:text-white transition"
+        >
+          Refresh list
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex flex-col gap-4 mt-4">
+          {[1, 2].map((index) => (
+            <div
+              key={index}
+              className="h-16 rounded-xl bg-surface-raised animate-pulse"
+            />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="text-sm text-status-error mt-4">
+          Unable to load blocked users.
+        </p>
+      ) : users.length === 0 ? (
+        <p className="text-sm text-text-secondary mt-4">
+          You have not blocked anyone.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4 mt-4">
+          {users.map((user) => {
+            const profileHref = `/${encodeURIComponent(user.username)}`;
+            const isPending = pendingIds.includes(user.id);
+
+            return (
+              <div
+                key={user.id}
+                className="group flex items-center justify-between px-2 py-4 rounded-xl hover:bg-surface-raised transition-colors w-full"
+              >
+                <div className="flex items-center gap-2">
+                  <AvatarImage
+                    src={user.avatarUrl}
+                    alt={user.username}
+                    size={40}
+                    shape="circle"
+                  />
+
+                  <div className="flex flex-col">
+                    <Link
+                      href={profileHref}
+                      className="text-sm font-medium text-text-primary truncate transition group-hover:text-text-primary"
+                    >
+                      {user.username}
+                    </Link>
+                    <span className="text-xs text-text-muted">Blocked user</span>
+                  </div>
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="rounded-full px-3 py-1"
+                  disabled={isPending}
+                  onClick={() => void unblockUser(user.id)}
+                >
+                  {isPending ? 'Unblocking...' : 'Unblock'}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -111,7 +201,7 @@ export default function PrivacyPage() {
     setIsPrivate(next);
     setStatus('saving');
     try {
-      await updateSetting({ isPrivate: next });
+      await updateSetting({ isPrivate: next, showHistory });
       flash('saved');
     } catch {
       flash('error');
@@ -123,7 +213,7 @@ export default function PrivacyPage() {
     setShowHistory(next);
     setStatus('saving');
     try {
-      await updateSetting({ showHistory: next });
+      await updateSetting({ isPrivate, showHistory: next });
       flash('saved');
     } catch {
       flash('error');
@@ -175,6 +265,8 @@ export default function PrivacyPage() {
           onChange={handleShowHistoryToggle}
         />
       </div>
+
+      <BlockedUsersSection />
     </div>
   );
 }

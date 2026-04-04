@@ -1,9 +1,12 @@
 import type { PaginationParams, UserService } from '@/services/api/userService';
 import {
+  getMockTracksStore,
   getMockUsersStore,
+  getMockPlaylistsStore,
   persistMockSystemState,
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
+  MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
 import type {
@@ -29,6 +32,11 @@ import type {
   UserPublic,
   UsersSuggestedResponse,
 } from '@/types/user';
+import type {
+  PaginatedPlaylistsResponse,
+  PlaylistResponse,
+  PlaylistType,
+} from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
 
@@ -99,39 +107,50 @@ const toSearchUser = (
   isFollowing: viewer.following.has(target.id),
 });
 
-const toUserPublic = (user: MockUserRecord): UserPublic => ({
-  id: user.id,
-  username: user.username,
-  tier: user.tier,
+const toUserPublic = (
+  user: MockUserRecord,
+  viewer: MockUserRecord
+): UserPublic => ({
   profile: {
-    username: user.username,
     id: user.id,
-    bio: user.profile.bio,
-    location: `${user.profile.city}, ${user.profile.country}`,
-    avatarUrl: user.profile.profilePic,
-    coverPhotoUrl: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
-  },
-  socialLinks: {
-    instagram: user.socialLinks.instagram,
-    twitter: user.socialLinks.twitter,
-    website: user.socialLinks.website,
-  },
-  stats: {
-    followersCount: user.followers.size,
+    email: user.email,
+    username: user.username,
+    displayName: user.username,
+    tier: user.tier,
+    followerCount: user.followers.size,
     followingCount: user.following.size,
     trackCount: user.tracks.length,
+    isFollowed: user.following.has(viewer.id),
+    isFollowing: viewer.following.has(user.id),
+    isBlocked: viewer.blocked.has(user.id),
+    bio: user.profile.bio,
+    city: user.profile.city,
+    country: user.profile.country || null,
+    profilePic: user.profile.profilePic,
+    coverPic: user.profile.coverPic,
+    favoriteGenres: [...user.profile.favoriteGenres],
+    socialLinksDto: [
+      {
+        instagram: user.socialLinks.instagram || null,
+        twitter: user.socialLinks.twitter || null,
+        website: user.socialLinks.website || null,
+      },
+    ],
   },
+  privacySettings: user.privacySettings.isPrivate
+    ? { ...user.privacySettings }
+    : null,
 });
 
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
-  Role: user.role,
   email: user.email,
   username: user.username,
-  emailVerified: user.emailVerified,
+  displayName: user.username,
+  isBlocked: false,
   tier: user.tier,
   profile: {
+    displayName: user.username,
     bio: user.profile.bio,
     city: user.profile.city,
     country: user.profile.country,
@@ -155,22 +174,35 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
   },
 });
 
+const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
+  return type as PlaylistType;
+};
+
 export class MockUserService implements UserService {
   async getPublicUserById(userId: number): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
+    const viewer = getCurrentUser();
     const user = findUser(userId);
-    return toUserPublic(user);
+    return toUserPublic(user, viewer);
   }
 
   async getPublicUserByUsername(username: string): Promise<UserPublic> {
     await delay();
     syncAuthAccountsToUserStore();
-    const user = inMemoryUsers.find((u) => u.username === username);
+    const users = getMockUsersStore();
+    const user = users.find((u) => u.username === username);
     if (!user) {
       throw new Error('User not found');
     }
-    return toUserPublic(user);
+
+    const currentUserId = resolveCurrentMockUserId();
+    if (user.privacySettings.isPrivate && user.id !== currentUserId) {
+      throw new Error('User not found');
+    }
+
+    const viewer = getCurrentUser();
+    return toUserPublic(user, viewer);
   }
 
   async getUserMe(): Promise<UserMe> {
@@ -195,6 +227,7 @@ export class MockUserService implements UserService {
         ...payload.socialLinks,
       };
     }
+
     commitMockUserState();
 
     return toUserMe(me);
@@ -336,6 +369,53 @@ export class MockUserService implements UserService {
     return user.playlists.slice(start, start + pageSize);
   }
 
+  async getMePlaylists(
+    params?: PaginationParams
+  ): Promise<UserPlaylistsResponse> {
+    await delay();
+    const user = getCurrentUser();
+    if (!params) {
+      return [...user.playlists];
+    }
+
+    const pageNumber = Math.max(0, params.page ?? 0);
+    const pageSize = Math.max(1, params.size ?? 20);
+    const start = pageNumber * pageSize;
+    return user.playlists.slice(start, start + pageSize);
+  }
+
+  async getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const playlistsById = new Map<number, PlaylistResponse>();
+    for (const owner of inMemoryUsers) {
+      for (const playlist of owner.playlists) {
+        playlistsById.set(playlist.id, {
+          id: playlist.id,
+          title: playlist.title,
+          type: playlist.type,
+          isLiked: user.likedPlaylists.includes(playlist.id),
+          owner: { id: owner.id, username: owner.username },
+          tracks: playlist.tracks,
+        });
+      }
+    }
+
+    const liked = user.likedPlaylists
+      .map((id) => playlistsById.get(id))
+      .filter((item): item is PlaylistResponse => Boolean(item));
+
+    return paginate(liked, params);
+  }
+
   async followUser(userId: number): Promise<FollowResponse> {
     await delay();
 
@@ -446,5 +526,74 @@ export class MockUserService implements UserService {
       .map((user) => toSearchUser(user, me));
 
     return paginate(blockedUsers, params);
+  }
+
+  async getUsersWhoLikedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoLiked = [...track.likes]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoLiked, params);
+  }
+
+  async getUsersLikedPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+    const user = findUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const likedPlaylists = [...user.likedPlaylists]
+      .map((playlistId) =>
+        getMockPlaylistsStore().find((p) => p.id === playlistId)
+      )
+      .filter((playlist): playlist is MockPlaylistRecord => Boolean(playlist))
+      .map((playlist) => ({
+        id: playlist.id,
+        title: playlist.title,
+        type: toPlaylistType(playlist.type),
+        isLiked: true,
+        owner: {
+          id: playlist.owner.id,
+          username: playlist.owner.username,
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tracks: playlist.tracks.map((track:any) => ({
+          trackId: track.trackId,
+          title: track.title,
+          trackUrl: track.trackUrl,
+          durationSeconds: track.durationSeconds,
+        })),
+      }));
+
+    return paginate(likedPlaylists, params);
+  }
+
+  async getUsersWhoRepostedTrack(
+    trackId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedFollowersResponse> {
+    await delay();
+    const track = getMockTracksStore().find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+    const usersWhoReposted = [...track.reposters]
+      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
+      .filter((user): user is MockUserRecord => Boolean(user))
+      .map((user) => toSearchUser(user, getCurrentUser()));
+
+    return paginate(usersWhoReposted, params);
   }
 }

@@ -165,7 +165,6 @@ describe('RegisterationForm', () => {
       })
     );
     expect(mockGetRecaptchaToken).toHaveBeenCalledWith('register_local');
-    expect(mockResendVerification).toHaveBeenCalledWith('user@example.com');
   });
 
   it('keeps auto-suggested display name in sync with email changes until user edits it', async () => {
@@ -212,5 +211,55 @@ describe('RegisterationForm', () => {
     await user.type(emailInput, 'second@decibel.test');
 
     expect(displayNameInput).toHaveValue('custom-handle');
+  });
+});
+
+describe('Registration Date Validation', () => {
+  it('rejects February 30th in a non-leap year', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<RegisterationForm />);
+
+    const monthSelect = container.querySelector(
+      'select[name="month"]'
+    ) as HTMLSelectElement;
+    const daySelect = container.querySelector(
+      'select[name="day"]'
+    ) as HTMLSelectElement;
+    const yearSelect = container.querySelector(
+      'select[name="year"]'
+    ) as HTMLSelectElement;
+
+    await user.selectOptions(monthSelect, 'February');
+    await user.selectOptions(daySelect, '30');
+    await user.selectOptions(yearSelect, '2023');
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(
+      await screen.findByText('Invalid date. February only has 28 days.')
+    ).toBeInTheDocument();
+  });
+
+  it('accepts February 29th in a leap year', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<RegisterationForm />);
+
+    await user.selectOptions(
+      container.querySelector('select[name="month"]')!,
+      'February'
+    );
+    await user.selectOptions(
+      container.querySelector('select[name="day"]')!,
+      '29'
+    );
+    await user.selectOptions(
+      container.querySelector('select[name="year"]')!,
+      '2024'
+    ); // 2024 is a leap year
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    // Verify that the "Invalid date" error DOES NOT appear
+    expect(screen.queryByText(/Invalid date/)).not.toBeInTheDocument();
   });
 });

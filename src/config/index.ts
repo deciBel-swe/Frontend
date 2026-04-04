@@ -30,77 +30,35 @@ export interface AppConfig {
     reactQueryDevTools: boolean;
   };
 }
-
-// ================================
-// HELPER FUNCTIONS
-// ================================
-
-/**
- * Get environment variable value
- * @param key - Environment variable key
- * @param defaultValue - Default value if not found
- */
-const getEnv = (key: string, defaultValue: string = ''): string => {
-  return process.env[key] || defaultValue;
-};
-
-/**
- * Get boolean environment variable
- * @param key - Environment variable key
- * @param defaultValue - Default value if not found
- */
-const getBoolEnv = (key: string, defaultValue: boolean = false): boolean => {
-  const value = process.env[key];
-  if (value === undefined) return defaultValue;
-  return value === 'true';
-};
-
-/**
- * Get number environment variable
- * @param key - Environment variable key
- * @param defaultValue - Default value if not found
- */
-const getNumberEnv = (key: string, defaultValue: number): number => {
-  const value = process.env[key];
-  if (value === undefined) return defaultValue;
-  const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? defaultValue : parsed;
-};
-
 // ================================
 // CONFIGURATION OBJECT
 // ================================
-
 export const config: AppConfig = {
-  // Environment
-  env: getEnv('NODE_ENV', 'development') as AppConfig['env'],
-  isDevelopment: getEnv('NODE_ENV') !== 'production',
-  isProduction: getEnv('NODE_ENV') === 'production',
+  env: process.env.NODE_ENV as AppConfig['env'],
+  isDevelopment: process.env.NODE_ENV !== 'production',
+  isProduction: process.env.NODE_ENV === 'production',
 
-  // API Configuration
   api: {
-    baseURL: getEnv('NEXT_PUBLIC_API_URL', 'http://localhost:5000/api/v1'),
-    wsURL: getEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:5000'),
-    appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
-    useMock: getBoolEnv('NEXT_PUBLIC_USE_MOCK', true),
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
+    wsURL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:5000',
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    useMock: process.env.NEXT_PUBLIC_USE_MOCK === 'true',
   },
+
   urls: {
-    domainName: getEnv(
-      'NEXT_PUBLIC_TRACK_BASE_URL',
-      getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000')
-    ),
+    domainName: process.env.NEXT_PUBLIC_TRACK_BASE_URL || 
+                process.env.NEXT_PUBLIC_APP_URL || 
+                'http://localhost:3000',
   },
-  // Pagination
+
   pagination: {
-    defaultPageSize: getNumberEnv('NEXT_PUBLIC_DEFAULT_PAGE_SIZE', 20),
-    maxPageSize: getNumberEnv('NEXT_PUBLIC_MAX_PAGE_SIZE', 100),
+    defaultPageSize: parseInt(process.env.NEXT_PUBLIC_DEFAULT_PAGE_SIZE || '20'),
+    maxPageSize: parseInt(process.env.NEXT_PUBLIC_MAX_PAGE_SIZE || '100'),
   },
-  // Development Tools
+
   devTools: {
-    reactQueryDevTools: getBoolEnv(
-      'NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS',
-      true
-    ),
+    reactQueryDevTools:
+      process.env.NEXT_PUBLIC_ENABLE_REACT_QUERY_DEVTOOLS === 'true',
   },
 };
 

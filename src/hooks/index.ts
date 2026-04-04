@@ -110,3 +110,56 @@ export { useGetCountry } from './useGetCountry';
 export { useEditMe } from '@/features/prof/hooks/useEditMe';
 export { useUserMe } from '@/features/prof/hooks/useUserMe';
 export { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+
+/**
+ * useTrackPage — loads and manages track page state from the service layer.
+ */
+export { useTrackPage } from './useTrackPage';
+
+/**
+ * useTrackCard — manages engagement interactions for track cards.
+ */
+export { useTrackCard } from './useTrackCard';
+
+/**
+ * useUserRepostPage — loads reposted tracks for the current user profile page.
+ */
+export { useUserRepostPage } from './useUserRepostPage';
+
+/**
+ * useFollowers / useFollowing — loads social user lists for profile pages.
+ */
+export { useFollowers } from './useFollowers';
+export { useFollowing } from './useFollowing';
+
+/**
+ * useUserCardHook — hydrates user cards and handles follow actions.
+ */
+export { useUserCardHook } from './useUserCardHook';
+
+/**
+ * useLikedTracks — loads liked tracks for profile likes page.
+ */
+export { useLikedTracks } from './useLikedTracks';
+
+/**
+ * useSuggestedUsers — loads people suggestions (/users/suggested).
+ */
+export { useSuggestedUsers } from './useSuggestedUsers';
+
+/**
+ * useBlockedUsers — loads blocked users and exposes unblock action.
+ */
+export { useBlockedUsers } from './useBlockedUsers';
+
+/**
+ * useListeningHistoryTracks — loads listening history as TrackList items.
+ */
+export { useListeningHistoryTracks } from './useListeningHistoryTracks';
+export { useTrackLayoutPreference } from './useTrackLayoutPreference';
+
+/**
+ * Sidebar composition hooks.
+ */
+export { useFeedSidebar } from './useFeedSidebar';
+export { useProfileSidebar } from './useProfileSidebar';

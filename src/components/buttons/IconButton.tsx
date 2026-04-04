@@ -24,8 +24,13 @@ export interface IconButtonProps {
 }
 
 const BASE_CLASS =
-  'relative inline-flex items-center justify-center w-8 h-8 px-0 gap-0 rounded-full ' +
-  'border-0 bg-transparent text-text-muted hover:text-text-primary hover:cursor-pointer';
+  'relative inline-flex items-center justify-center ' +
+  'min-w-7 min-h-7 sm:min-w-8 sm:min-h-8 ' +
+  'px-0 sm:px-1 ' +
+  'gap-0 rounded-full ' +
+  'border-0 bg-transparent text-text-muted ' +
+  'hover:opacity-70 active:opacity-50 ' +
+  'transition-opacity duration-150';
 export const IconButton: FC<IconButtonProps> = ({
   children,
   'aria-label': ariaLabel,

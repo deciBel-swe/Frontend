@@ -17,7 +17,7 @@ export const ShareIcon: FC = () => (
     width="20"
     height="20"
     fill="currentColor"
-    style={{ display: 'block', color: '#fff' }}
+    style={{ display: 'block' }}
   >
     <path
       d="M8 .94l3.03 3.03-1.06 1.06-1.22-1.22V10h-1.5V3.81L6.03 5.03 4.97 3.97 8 .94z"
@@ -38,7 +38,7 @@ export const EditIcon: FC = () => (
     width="20"
     height="20"
     fill="none"
-    style={{ display: 'block', color: '#fff' }}
+    style={{ display: 'block' }}
     stroke="currentColor"
     strokeWidth="1.7"
   >
@@ -100,5 +100,17 @@ export const MessageIcon: FC = () => (
     <path d="M4 6.75A2.75 2.75 0 0 1 6.75 4h10.5A2.75 2.75 0 0 1 20 6.75v6.5A2.75 2.75 0 0 1 17.25 16H9l-4.5 4v-4.11A2.75 2.75 0 0 1 4 13.25v-6.5Z" />
     <path d="M8 9h8" />
     <path d="M8 12h5" />
+  </svg>
+);
+
+export const UserIcon:FC=() =>(
+  <svg 
+    width="11" 
+    height="11" 
+    viewBox="0 0 16 16" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg">
+      <circle cx="8" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M1.5 14.5C1.5 11.5 4.5 9.5 8 9.5C11.5 9.5 14.5 11.5 14.5 14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );

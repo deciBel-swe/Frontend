@@ -1,89 +1,188 @@
 'use client';
-import { useState } from 'react';
-import { IconButton } from '@/components/buttons/IconButton';
+import { useEffect, useState } from 'react';
 import {
   ShareIcon,
   EditIcon,
-  FollowIcon,
-  FollowingIcon,
-  MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
-// import { useUserMe } from '@/features/prof/hooks/useUserMe';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
+import { IconButton } from '@/components/buttons/IconButton';
+import {
+  ProfilePreview,
+  ShareModal,
+} from '@/features/prof/components/ShareModal';
+import FollowButton from '@/components/buttons/FollowButton';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { userService } from '@/services';
+import Button from '@/components/buttons/Button';
+
 interface MidBarProps {
   username: string;
 }
-// import { useGetCountry } from '@/hooks';
 
 const MidBar = ({ username }: MidBarProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  // const [isHydrated, setIsHydrated] = useState(false);
-  // const { user: myUser } = useUserMe();
-  // const countries = useGetCountry();
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [isFollowPending, setIsFollowPending] = useState(false);
+  const [isBlockPending, setIsBlockPending] = useState(false);
+  const ownerContext = useProfileOwnerContext();
 
-  // useEffect(() => {
-  //   setIsHydrated(true);
-  // }, []);
+  // shared button classes
+const buttonBase =
+  'flex items-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
+  'transition-all duration-150 shrink-0 ' +
+  'border border-border-strong text-text-secondary hover:text-text-primary ' +
+  'bg-transparent hover:bg-interactive-default';
 
-  //const isOwnProfile = isHydrated && myUser?.username === username;
-  // there is problem in it I will just use dummy name for testing
-  const isOwnProfile = 'mockuser' === username;
+  const isOwnProfile = ownerContext?.isOwner ?? false;
+  const isOwnerStateLoading = ownerContext?.isOwnerLoading ?? false;
+  const targetProfile = ownerContext?.publicUser?.profile;
+  const targetUserId = targetProfile?.id;
+
+  useEffect(() => {
+    setIsFollowing(targetProfile?.isFollowed ?? false);
+    setIsBlocked(targetProfile?.isBlocked ?? false);
+  }, [targetProfile?.id, targetProfile?.isBlocked, targetProfile?.isFollowed]);
+
+  const handleFollowToggle = async (nextFollowing: boolean) => {
+    if (!targetUserId || isFollowPending || isBlockPending) {
+      return;
+    }
+
+    const previousFollowing = isFollowing;
+    setIsFollowing(nextFollowing);
+    setIsFollowPending(true);
+
+    try {
+      const response = nextFollowing
+        ? await userService.followUser(targetUserId)
+        : await userService.unfollowUser(targetUserId);
+      setIsFollowing(response.isFollowing);
+       
+    } catch(error) {
+      setIsFollowing(previousFollowing);
+      throw error;
+    } finally {
+      setIsFollowPending(false);
+    }
+  };
+
+  const handleBlockToggle = async () => {
+    if (!targetUserId || isBlockPending) {
+      return;
+    }
+
+    const previousBlocked = isBlocked;
+    const nextBlocked = !previousBlocked;
+    setIsBlocked(nextBlocked);
+    setIsBlockPending(true);
+
+    try {
+      if (nextBlocked) {
+        await userService.blockUser(targetUserId);
+      } else {
+        await userService.unblockUser(targetUserId);
+      }
+       
+    } catch(error) {
+      setIsBlocked(previousBlocked);
+      throw error;
+    } finally {
+      setIsBlockPending(false);
+    }
+  };
+
+  const profileUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/${username}`
+      : '';
+
   return (
-    <div className="flex flex-row-reverse items-center gap-2 sm:gap-3 md:gap-4 mt-1 mb-1 mr-10">
-      {!isOwnProfile && (
-        <div className="group relative inline-block">
+    <div className="w-full flex items-center justify-between mt-3">
+      {/* NAV */}
+      <ProfileNav username={username} />
+
+      {/* BUTTON ROW */}
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+        {/* {!isOwnProfile && !isOwnerStateLoading && (
           <IconButton aria-label="message">
-            <span className="flex h-10 items-center justify-center bg-gray-300 rounded-md px-2.5 py-2 flex-shrink-0 dark:bg-gray-700">
+            <span
+              className={`${buttonBase} bg-interactive-default dark:bg-interactive-default text-text-muted dark:text-text-secondary`}
+            >
               <MessageIcon />
             </span>
           </IconButton>
-          <div className="invisible absolute left-1/2 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#1f1f1f] px-3 py-1.5 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:visible group-hover:opacity-100">
-            Send a message
-            <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-[#1f1f1f]"></div>
-          </div>
-        </div>
-      )}
-      {isOwnProfile && (
-        <IconButton
-          aria-label="edit"
-          className="w-auto h-auto"
-          onClick={() => setIsEditOpen(true)}
-        >
-          <span className="flex items-center bg-gray-300 rounded-md px-4 py-2 flex-shrink-0 dark:bg-gray-800">
-            <EditIcon /> edit
-          </span>
-        </IconButton>
-      )}
-      <IconButton aria-label="Share" className="w-auto h-auto">
-        <span className="flex items-center bg-gray-300 rounded-md px-4 py-2 flex-shrink-0 dark:bg-gray-800">
-          <ShareIcon /> share
-        </span>
-      </IconButton>
-      {!isOwnProfile && (
-        <IconButton
-          aria-label={isFollowing ? 'Following' : 'Follow'}
-          className="group w-auto h-auto"
-          onClick={() => {
-            setIsFollowing((prev) => !prev);
-          }}
-        >
+        )} */}
+
+        {isOwnProfile && (
+          <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>
+            <span
+              className={`${buttonBase} bg-bg-subtle text-text-muted dark:text-text-secondary`}
+            >
+              <EditIcon />
+              <span className="hidden sm:inline">edit</span>
+            </span>
+          </IconButton>
+        )}
+
+        <IconButton aria-label="share" onClick={() => setIsShareOpen(true)}>
           <span
-            className="flex items-center text-white dark:text-black bg-black dark:bg-white 
-        rounded-md px-4 py-2 flex-shrink-0 group-hover:bg-gray-700 group-hover:text-white transition-colors"
+            className={`${buttonBase} bg-bg-subtle text-text-muted dark:text-text-secondary`}
           >
-            {isFollowing ? <FollowingIcon /> : <FollowIcon />}{' '}
-            {isFollowing ? 'Following' : 'Follow'}
+            <ShareIcon />
+            <span className="hidden sm:inline">share</span>
           </span>
         </IconButton>
-      )}
-      {/* Spacer between buttons and nav */}
-      <ProfileNav username={`${username}`} />
-      {/* not sure if this is the correct way to call the modal component */}
+
+        {!isOwnProfile && !isOwnerStateLoading && (
+          <>
+            <FollowButton
+              size='md'
+              isFollowing={isFollowing}
+              onToggle={handleFollowToggle}
+              disabled={isFollowPending || isBlockPending}
+            />
+            <Button
+              size='md'
+              variant='secondary'
+              aria-label={isBlocked ? 'Unblock' : 'Block'}
+              onClick={handleBlockToggle}
+              className='min-w-33 font-normal'
+            >
+              <span>
+                <span className="hidden sm:inline">
+                  {isBlockPending
+                    ? isBlocked
+                      ? '...'
+                      : '...'
+                    : isBlocked
+                      ? 'Unblock'
+                      : 'Block'}
+                </span>
+              </span>
+            </Button>
+          </>
+        )}
+      </div>
+
       <EditProfileModal
         open={isEditOpen}
         onClose={() => setIsEditOpen(false)}
+      />
+      <ShareModal
+        variant="profile"
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        profileUrl={profileUrl}
+        preview={
+          <ProfilePreview
+            displayName={username}
+            username={username}
+            // avatarUrl={myUser?.avatarUrl} // Pass avatar if available in your user hook
+          />
+        }
       />
     </div>
   );

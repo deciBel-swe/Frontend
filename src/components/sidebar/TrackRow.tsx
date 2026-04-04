@@ -4,13 +4,16 @@ import Link from 'next/link';
 import {
   Play,
   Heart,
-  MoreHorizontal,
   MessageCircle,
   Repeat,
 } from 'lucide-react';
 import React from 'react';
-import Button from '@/components/buttons/Button';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import type {
+  PlayerTrack,
+  QueueSource,
+} from '@/features/player/contracts/playerContracts';
+import { usePlayerStore } from '@/features/player/store/playerStore';
 
 interface TrackStats {
   plays: string;
@@ -20,31 +23,93 @@ interface TrackStats {
 }
 
 interface TrackRowProps {
+  trackId?: string | number;
   image: string;
   artist: string;
   title: string;
   stats: TrackStats;
+  playback?: PlayerTrack;
+  queueTracks?: PlayerTrack[];
+  queueSource?: QueueSource;
+
+  // Optional callbacks for the actions
+  onLike?: () => void;
+  onMore?: () => void;
 }
 
-const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
-  const artistSlug = encodeURIComponent(artist);
-  const songSlug = encodeURIComponent(title);
+const isSameQueue = (currentQueue: PlayerTrack[], incomingQueue: PlayerTrack[]): boolean => {
+  if (currentQueue.length !== incomingQueue.length) {
+    return false;
+  }
 
-  const artistUrl = `/artist/${artistSlug}`;
-  const songUrl = `/artist/${artistSlug}/${songSlug}`;
+  return currentQueue.every((track, index) => track.id === incomingQueue[index]?.id);
+};
+
+const TrackRow: React.FC<TrackRowProps> = ({
+  trackId,
+  image,
+  artist,
+  title,
+  stats,
+  playback,
+  queueTracks,
+  queueSource,
+}) => {
+  const playerQueue = usePlayerStore((state) => state.queue);
+  const currentPlayerTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
+  const isCurrentTrackPlaying = usePlayerStore(
+    (state) => Number(state.currentTrack?.id ?? -1) === Number(playback?.id ?? -1) && state.isPlaying
+  );
+  const setQueue = usePlayerStore((state) => state.setQueue);
+  const playTrack = usePlayerStore((state) => state.playTrack);
+  const pausePlayback = usePlayerStore((state) => state.pause);
+
+  const artistSlug = encodeURIComponent(artist.toLowerCase().replace(/\s+/g, ''));
+
+  const artistUrl = `/${artistSlug}`;
+  const trackUrl =
+    trackId === undefined ? artistUrl : `/${artistSlug}/${encodeURIComponent(String(trackId))}`;
+
+  const isBlocked = playback?.access === 'BLOCKED';
+
+  const handlePlayFromRow = () => {
+    if (!playback || isBlocked) {
+      return;
+    }
+
+    const isSameTrack = Number(currentPlayerTrackId) === Number(playback.id);
+    if (isSameTrack) {
+      if (isCurrentTrackPlaying) {
+        pausePlayback();
+        return;
+      }
+
+      playTrack(playback);
+      return;
+    }
+
+    if (queueTracks && queueTracks.length > 0) {
+      const startIndex = queueTracks.findIndex((track) => track.id === playback.id);
+      if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
+        setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
+      }
+    }
+
+    playTrack(playback);
+  };
 
   const statsLinks = {
-    plays: artistUrl,
-    likes: `${artistUrl}/likes`,
-    reposts: `${artistUrl}/reposts`,
-    comments: `${artistUrl}/comments`,
+    plays: trackUrl,
+    likes: `${trackUrl}/likes`,
+    reposts: `${trackUrl}/reposts`,
+    comments: trackUrl,
   };
 
   return (
     <div className="group flex w-full items-center gap-3 px-2 py-3 rounded-xl transition hover:bg-surface-raised">
       {/* IMAGE WRAPPER (controls size now) */}
       <div className="w-12 h-12 md:w-14 md:h-14 shrink-0">
-        <HoverPlayImage image={image} />
+        <HoverPlayImage image={image} alt={title} onClick={handlePlayFromRow} />
       </div>
 
       {/* TEXT SECTION */}
@@ -60,7 +125,7 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
             </Link>
 
             <Link
-              href={songUrl}
+              href={trackUrl}
               className="text-sm font-semibold truncate transition group-hover:text-text-primary"
             >
               {title}
@@ -71,21 +136,8 @@ const TrackRow: React.FC<TrackRowProps> = ({ image, artist, title, stats }) => {
           <div className="flex-1" />
 
           {/* RIGHT: ACTION BUTTONS */}
-          <div className="hidden group-hover:flex items-center gap-2">
-            <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <Heart size={18} />
-            </Button>
 
-            <Button
-              className="p-2 rounded-lg bg-surface hover:opacity-80 transition"
-              variant="secondary"
-            >
-              <MoreHorizontal size={18} />
-            </Button>
-          </div>
+
         </div>
         {/* STATS */}
         <div className="flex items-center gap-3 text-xs mt-1">

@@ -51,12 +51,21 @@ export default function FeedPage() {
       {feedTracks.map((item) => (
         <TrackCard
           key={item.id}
+          trackId={String(item.id)}
+          isPrivate={item.isPrivate}
           user={item.user}
           postedText={item.postedText}
-          timeAgo={item.timeAgo}
+          // timeAgo={item.timeAgo}
           showEditButton={false}
-          track={item.track}
+          track={{
+            ...item.track,
+            duration: '2:41', // Add duration for testing
+            genre: 'Electronic', // Add genre for testing
+          }}
           waveform={item.waveform}
+          playback={item.playback}
+          queueTracks={item.queueTracks}
+          queueSource="feed"
         />
       ))}
     </>

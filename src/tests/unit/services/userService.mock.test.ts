@@ -25,23 +25,6 @@ describe('MockUserService', () => {
   const flush = async (ms = 250) => {
     await jest.advanceTimersByTimeAsync(ms);
   };
-
-  it('returns public profile and me payload', async () => {
-    const publicPromise = service.getPublicUserById(1);
-    await flush();
-    const publicUser = await publicPromise;
-
-    expect(publicUser.id).toBe(1);
-    expect(publicUser.stats.trackCount).toBeGreaterThan(0);
-
-    const mePromise = service.getUserMe();
-    await flush();
-    const me = await mePromise;
-
-    expect(me.id).toBe(1);
-    expect(me.socialLinks.supportLink).toContain('support');
-  });
-
   it('updates profile and social links', async () => {
     const updatePromise = service.updateMe({
       bio: 'updated bio',
@@ -115,6 +98,33 @@ describe('MockUserService', () => {
     expect(tracks.totalElements).toBeGreaterThanOrEqual(2);
   });
 
+  it('returns playlists for current and public users', async () => {
+    const mePlaylistsPromise = service.getMePlaylists({ page: 0, size: 2 });
+    await flush();
+    const mePlaylists = await mePlaylistsPromise;
+    expect(mePlaylists.length).toBeGreaterThan(0);
+
+    const publicPlaylistsPromise = service.getUserPlaylists(1, {
+      page: 0,
+      size: 2,
+    });
+    await flush();
+    const publicPlaylists = await publicPlaylistsPromise;
+    expect(publicPlaylists.length).toBeGreaterThan(0);
+  });
+
+  it('returns liked playlists for a user', async () => {
+    const likedPromise = service.getUserLikedPlaylists('listenertwo', {
+      page: 0,
+      size: 5,
+    });
+    await flush();
+    const liked = await likedPromise;
+
+    expect(liked.content.length).toBeGreaterThan(0);
+    expect(liked.pageSize).toBe(5);
+  });
+
   it('updates account security and tier data', async () => {
     const addEmailPromise = service.addNewEmail({
       newEmail: 'new@mail.com',
@@ -166,4 +176,30 @@ describe('MockUserService', () => {
     expect(me.email).toBe(email);
     expect(me.username).toBe('session-user');
   });
+
+it('getPublicUserByUsername throws for non-existent username', async () => {
+  jest.useRealTimers();
+  
+  await expect(
+    service.getPublicUserByUsername('this-user-does-not-exist')
+  ).rejects.toThrow('User not found');
+});
+
+it('getPublicUserByUsername throws for private profile', async () => {
+  jest.useRealTimers();
+  
+  const { getMockUsersStore } = await import('@/services/mocks/mockSystemStore');
+  const users = getMockUsersStore();
+  const mockartist = users.find((u) => u.username === 'mockartist');
+  if (!mockartist) throw new Error('seed user mockartist not found');
+
+  mockartist.privacySettings.isPrivate = true;
+
+  await expect(
+    service.getPublicUserByUsername('mockartist')
+  ).rejects.toThrow('User not found');
+
+  mockartist.privacySettings.isPrivate = false;
+});
+
 });

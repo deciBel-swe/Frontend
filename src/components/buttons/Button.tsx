@@ -25,7 +25,8 @@ export type ButtonVariant =
   | 'secondary'
   | 'ghost'
   | 'danger'
-  | 'premium';
+  | 'premium'
+  | 'ghost_highlight';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -57,6 +58,10 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-transparent text-text-secondary',
     'border border-transparent',
     'hover:bg-interactive-hover hover:text-text-primary',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
+  ].join(' '),
+  ghost_highlight: [
+    'hover:bg-interactive-hover',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 
