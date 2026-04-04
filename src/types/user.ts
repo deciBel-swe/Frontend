@@ -17,7 +17,12 @@ export const imageWithDefault = (defaultValue: string) =>
 
     return value;
   }, z.string());
-
+export const nullableStringWithDefault = (defaultValue: string) =>
+  z.preprocess((value) => {
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+  }, z.string().nullable());
 const userTierSchema = z.enum([
   'FREE',
   'ARTIST',
@@ -74,7 +79,7 @@ const userPublicProfileSchema = z.object({
   id: z.number().int().nonnegative(),
   email: z.string().trim().email(),
   username: z.string().trim().min(1),
-  displayName: z.string().trim().optional().nullable(),
+  displayName: nullableStringWithDefault(''),
   tier: userTierSchema,
   followerCount: z.number().int().nonnegative(),
   followingCount: z.number().int().nonnegative(),
@@ -82,9 +87,9 @@ const userPublicProfileSchema = z.object({
   isFollowed: z.boolean(),
   isFollowing: z.boolean(),
   isBlocked: z.boolean(),
-  bio: z.string(),
-  city: z.string(),
-  country: z.string().nullable(),
+  bio: nullableStringWithDefault(''),
+  city: nullableStringWithDefault(''),
+  country: nullableStringWithDefault(''),
   profilePic: imageWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
   coverPic: imageWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
   favoriteGenres: z.array(z.string()),
@@ -118,8 +123,8 @@ export const userMeSchema = z
         tier: legacy.tier,
         profile: {
           displayName: legacyDisplayName,
-          bio: legacy.profile.bio,
-          city: legacy.profile.city,
+          bio: legacy.profile.bio??'',
+          city: legacy.profile.city??'',
           country: legacy.profile.country ?? '',
           profilePic: legacy.profile.profilePic,
           coverPic: legacy.profile.coverPic,
@@ -149,8 +154,8 @@ export const userMeSchema = z
       tier: profile.tier,
       profile: {
         displayName: profile.displayName ?? null,
-        bio: profile.bio,
-        city: profile.city,
+        bio: profile.bio??'',
+        city: profile.city??'',
         country: profile.country ?? '',
         profilePic: profile.profilePic,
         coverPic: profile.coverPic,
