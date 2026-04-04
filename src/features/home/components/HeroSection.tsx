@@ -2,7 +2,7 @@
 
 import Button from '@/components/buttons/Button';
 import { useEffect, useState } from 'react';
-
+import Image from 'next/image';
 const slides = [
   {
     title: 'Discover.\nGet Discovered.',
@@ -48,9 +48,12 @@ export default function HeroSection() {
         {slides.map((slide, index) => (
           <div key={index} className="w-full h-full relative flex-shrink-0">
             {/* Background image */}
-            <img
+            <Image
               src={slide.image}
               className="absolute inset-0 w-full h-full object-cover"
+              width={1200}
+              height={500}
+              alt={slide.title}
             />
 
             {/* Overlay */}

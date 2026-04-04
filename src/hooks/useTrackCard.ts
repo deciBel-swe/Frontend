@@ -103,7 +103,7 @@ export function useTrackCard({
           trackService.getTrackMetadata(numericTrackId),
           commentService.getTrackComments(numericTrackId, { page: 0, size: 100 }),
         ]);
-
+        console.log('Loaded track metadata and comments:', { trackMetadata, commentsResponse });
         if (isCancelled) {
           return;
         }

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import {
   ShareIcon,
   EditIcon,
-  MessageIcon,
 } from '@/components/icons/GenrealIcons';
 import ProfileNav from './ProfileNav';
 import EditProfileModal from '@/features/prof/components/EditProfileModal';
@@ -61,7 +60,7 @@ const buttonBase =
         ? await userService.followUser(targetUserId)
         : await userService.unfollowUser(targetUserId);
       setIsFollowing(response.isFollowing);
-      // eslint-disable-next-line no-useless-catch
+       
     } catch(error) {
       setIsFollowing(previousFollowing);
       throw error;
@@ -86,7 +85,7 @@ const buttonBase =
       } else {
         await userService.unblockUser(targetUserId);
       }
-      // eslint-disable-next-line no-useless-catch
+       
     } catch(error) {
       setIsBlocked(previousBlocked);
       throw error;

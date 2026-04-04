@@ -126,7 +126,7 @@ const toAbsoluteUrl = (
   if (value.startsWith('http://') || value.startsWith('https://')) {
     return value;
   }
-  return `${base}${value.startsWith('/') ? value : `/${value}`}`;
+  return `${value.startsWith('/') ? value : `/${value}`}`;
 };
 
 const normalizeTrackMetadata = (

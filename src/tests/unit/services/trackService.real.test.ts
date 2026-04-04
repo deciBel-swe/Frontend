@@ -3,8 +3,6 @@ import { apiRequest } from '@/hooks/useAPI';
 import { RealTrackService } from '@/services/api/trackService';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { PaginatedTracksResponse, TrackDetailsResponse } from '@/types/tracks';
-import { upload } from '@testing-library/user-event/dist/cjs/utility/upload.js';
-import { is } from 'zod/locales';
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
@@ -136,6 +134,57 @@ describe('RealTrackService', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${config.api.appUrl}/waveforms/42.json`
     );
+  });
+
+  it('preserves absolute URLs and falls back to unknown artist fields with explicit duration', async () => {
+    const payload: TrackDetailsResponse = {
+      id: 55,
+      title: 'Absolute URL Track',
+      genre: 'Electronic',
+      tags: [],
+      trackUrl: 'https://cdn.decibel.test/tracks/55.mp3',
+      coverUrl: 'http://cdn.decibel.test/covers/55.jpg',
+      waveformUrl: 'https://cdn.decibel.test/waveforms/55.json',
+      durationSeconds: 321,
+      description: '',
+      isPrivate: false,
+    };
+
+    mockedApiRequest.mockResolvedValue(payload);
+
+    const metadata = await service.getTrackMetadata(55);
+
+    expect(metadata.trackUrl).toBe('https://cdn.decibel.test/tracks/55.mp3');
+    expect(metadata.coverUrl).toBe('http://cdn.decibel.test/covers/55.jpg');
+    expect(metadata.waveformUrl).toBe('https://cdn.decibel.test/waveforms/55.json');
+    expect(metadata.artist).toEqual({ id: 0, username: 'unknown' });
+    expect(metadata.durationSeconds).toBe(321);
+  });
+
+  it('treats blank embedded waveform strings as empty and falls back to fetched waveform data', async () => {
+    const payload: TrackDetailsResponse = {
+      id: 56,
+      title: 'Blank Embedded Waveform',
+      genre: 'Ambient',
+      tags: [],
+      trackUrl: '/tracks/56',
+      coverUrl: '/covers/56.jpg',
+      waveformUrl: '/waveforms/56.json',
+      waveformData: '   ',
+      userId: 4,
+      username: 'artist-4',
+      description: '',
+      isPrivate: false,
+    };
+
+    mockedApiRequest.mockResolvedValue(payload);
+
+    const metadata = await service.getTrackMetadata(56);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${config.api.appUrl}/waveforms/56.json`
+    );
+    expect(metadata.waveformData).toEqual([0.1, 0.5, 1, 0]);
   });
 
   it('returns and filters user tracks by user id', async () => {
@@ -346,6 +395,204 @@ describe('RealTrackService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.TRACK_UNREPOST(106)
+    );
+  });
+
+  it('falls back to empty waveform data when waveform fetch is unavailable', async () => {
+    const payload: TrackDetailsResponse = {
+      id: 120,
+      title: 'No Waveform Runtime',
+      genre: 'Ambient',
+      tags: [],
+      coverUrl: '/covers/120.jpg',
+      coverImage: '/covers/120.jpg',
+      waveformUrl: '/waveforms/120.json',
+      userId: 12,
+      username: 'artist-12',
+      description: '',
+      isPrivate: false,
+    };
+
+    mockedApiRequest.mockResolvedValue(payload);
+    delete (globalThis as { fetch?: unknown }).fetch;
+
+    const result = await service.getTrackMetadata(120);
+
+    expect(result.waveformData).toEqual([]);
+  });
+
+  it('falls back to empty waveform data when waveform fetch is not ok', async () => {
+    const payload: TrackDetailsResponse = {
+      id: 121,
+      title: 'Broken Waveform',
+      genre: 'Ambient',
+      tags: [],
+      coverUrl: '/covers/121.jpg',
+      coverImage: '/covers/121.jpg',
+      waveformUrl: '/waveforms/121.json',
+      userId: 12,
+      username: 'artist-12',
+      description: '',
+      isPrivate: false,
+    };
+
+    mockedApiRequest.mockResolvedValue(payload);
+    fetchMock.mockResolvedValueOnce({ ok: false } as Response);
+
+    const result = await service.getTrackMetadata(121);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${config.api.appUrl}/waveforms/121.json`
+    );
+    expect(result.waveformData).toEqual([]);
+  });
+
+  it('calls update and delete contracts for track mutation endpoints', async () => {
+    const updateResponse = {
+      id: 77,
+      title: 'Updated',
+      genre: 'House',
+      tags: ['updated'],
+      description: 'Updated description',
+      releaseDate: '2026-01-01',
+      isPrivate: false,
+      coverUrl: 'https://decibel.test/covers/77.jpg',
+    };
+
+    mockedApiRequest
+      .mockResolvedValueOnce(updateResponse)
+      .mockResolvedValueOnce(undefined as void)
+      .mockResolvedValueOnce(undefined as void);
+
+    const formData = new FormData();
+    formData.append('title', 'Updated');
+
+    const updated = await service.updateTrack(77, formData);
+    await service.deleteTrack(77);
+    await service.deleteTrackCover(77);
+
+    expect(updated).toEqual(updateResponse);
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      1,
+      API_CONTRACTS.TRACKS_UPDATE(77),
+      {
+        payload: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ method: 'DELETE', url: '/tracks/77' })
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ method: 'DELETE', url: '/tracks/77/cover' })
+    );
+  });
+
+  it('forwards pagination parameters for my-tracks and engagement lists', async () => {
+    const paginated = {
+      content: [],
+      isLast: true,
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 0,
+      totalPages: 0,
+    };
+
+    mockedApiRequest
+      .mockResolvedValueOnce({ content: [] } as PaginatedTracksResponse)
+      .mockResolvedValueOnce({ content: [] } as PaginatedTracksResponse)
+      .mockResolvedValueOnce(paginated)
+      .mockResolvedValueOnce(paginated);
+
+    await service.getMyTracks();
+    await service.getMyTracks({ page: 2, size: 5 });
+    await service.getMyLikedTracks({ page: 1, size: 7 });
+    await service.getMyRepostedTracks({ page: 3, size: 9 });
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      1,
+      API_CONTRACTS.USERS_ME_TRACKS,
+      { params: undefined }
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      2,
+      API_CONTRACTS.USERS_ME_TRACKS,
+      {
+        params: { page: 2, size: 5 },
+      }
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      3,
+      API_CONTRACTS.ME_LIKED_TRACKS(),
+      {
+        params: { page: 1, size: 7 },
+      }
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      4,
+      API_CONTRACTS.ME_REPOSTED_TRACKS(),
+      {
+        params: { page: 3, size: 9 },
+      }
+    );
+  });
+
+  it('normalizes empty query params and tolerates waveform fetch exceptions in list hydration', async () => {
+    const listPayload = {
+      content: [
+        {
+          id: 301,
+          title: 'List Item',
+          genre: 'House',
+          tags: ['one'],
+          artist: { id: 99, username: 'artist99' },
+          trackUrl: '/tracks/301',
+          waveformUrl: '/waveforms/301.json',
+          coverUrl: '/covers/301.jpg',
+          isLiked: false,
+          isReposted: false,
+          likeCount: 0,
+          repostCount: 0,
+          playCount: 0,
+          description: '',
+          isPrivate: false,
+        },
+      ],
+    } as PaginatedTracksResponse;
+
+    mockedApiRequest
+      .mockResolvedValueOnce(listPayload)
+      .mockResolvedValueOnce(listPayload);
+
+    fetchMock.mockRejectedValue(new Error('network down'));
+
+    const myTracks = await service.getMyTracks({});
+    const allTracks = await service.getAllTracks();
+
+    expect(myTracks).toHaveLength(1);
+    expect(myTracks[0].waveformData).toEqual([]);
+    expect(allTracks).toHaveLength(1);
+    expect(allTracks[0].waveformData).toEqual([]);
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      1,
+      API_CONTRACTS.USERS_ME_TRACKS,
+      { params: undefined }
+    );
+
+    expect(mockedApiRequest).toHaveBeenNthCalledWith(
+      2,
+      API_CONTRACTS.USERS_TRACKS(1)
     );
   });
 });

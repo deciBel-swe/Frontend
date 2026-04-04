@@ -2,7 +2,8 @@
 
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Play, MessageCircle, Repeat2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
@@ -294,16 +295,18 @@ export default function TrackCard({
   if (isDeleted) {
     return null;
   }
-
   return (
     <div className={`bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3 ${isBlocked ? 'opacity-60' : ''}`}>
       {/* HEADER (soundContext) */}
       {showHeader && (
         <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
           <Link href={`/${userSlug}`}>
-            <img
+            <Image
               src={user.avatar}
               className="w-8 h-8 rounded-full object-cover"
+              width ={32}
+              height={32}
+              alt={user.name}
             />
           </Link>
 
@@ -323,9 +326,12 @@ export default function TrackCard({
           href={`/${userSlug}/${track.id}`}
           className="w-24 sm:w-28 md:w-36 aspect-square shrink-0 -mt-1"
         >
-          <img
+          <Image
             src={track.cover}
             className="w-full h-full object-cover rounded"
+            width={400}
+            height={400}
+            alt={`${track.title} cover art`}
           />
         </Link>
 
@@ -706,7 +712,7 @@ export default function TrackCard({
           duration: track.duration,
         }}
       />
-
+  
       <EditTrackModal
         open={editOpen}
         onClose={() => setEditOpen(false)}

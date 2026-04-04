@@ -70,10 +70,12 @@ export default function TrackFansPanel({
                 {idx + 1}
               </span>
               <Link href={`/${fan.slug}`} className="flex items-center gap-2 flex-1 min-w-0 group">
-                <img
+                <Image
                   src={fan.avatarUrl}
                   alt={fan.name}
                   className="w-7 h-7 rounded-full object-cover shrink-0 group-hover:opacity-80 transition-opacity"
+                  width={28}
+                  height={28}
                 />
                 <span className="text-sm text-text-primary group-hover:text-brand-primary transition-colors truncate">
                   {fan.name}

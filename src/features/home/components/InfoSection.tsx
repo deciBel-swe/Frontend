@@ -1,5 +1,6 @@
 'use client';
 import Button from '@/components/buttons/Button';
+import Image from 'next/image';
 export default function InfoSection() {
   return (
     <section className="bg-neutral-900 text-neutral-0 py-16 px-6 flex flex-row items-center">
@@ -14,9 +15,11 @@ export default function InfoSection() {
         <Button variant="secondary">Find out more</Button>
       </div>
       <div>
-        <img
+        <Image
           src="https://i1.sndcdn.com/artworks-fNxVStvNE7txxeyJ-MAA8Qw-t500x500.jpg"
           alt="Find out more about us"
+          width={500}
+          height={500}
         />
       </div>
     </section>

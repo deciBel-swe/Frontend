@@ -34,6 +34,9 @@ const customJestConfig: Config = {
     '!src/**/__tests__/**',
     '!src/**/tests/**',
     '!src/components/**', // Exclude pure UI components from coverage
+    '!src/features/home/components/**', // Exclude landing-page presentational components
+    '!src/features/prof/components/**', // Exclude profile presentational components
+    '!src/features/tracks/components/**', // Exclude track presentational components
     '!src/app/**', // Exclude Next.js pages from coverage (they're tested via E2E)
   ],
 

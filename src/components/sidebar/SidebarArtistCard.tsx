@@ -4,6 +4,7 @@ import React from 'react';
 import { Users, Music } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useUserCardHook } from '@/hooks/useUserCardHook';
 
 interface SidebarArtistCardProps {
@@ -54,10 +55,13 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
       <div className="flex items-center gap-2">
         {/* IMAGE */}
         {resolvedUser.avatarSrc ? (
-          <img
+          <Image
             src={resolvedUser.avatarSrc}
             alt={resolvedUser.username}
             className="w-10 h-10 rounded-full object-cover shrink-0"
+            width={40}
+            height={40}
+            unoptimized
           />
         ) : (
           <div className="w-10 h-10 bg-neutral-400 rounded-full shrink-0" />

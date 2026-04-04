@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { generateWaveform } from '@/utils/generateWaveform';
-
+import Image from 'next/image';
 type WaveformValue = number | string;
 
 const MIN_WAVEFORM_LENGTH = 200;
@@ -208,7 +208,10 @@ export default function Waveform({
                       className="absolute bottom-0 transition-all duration-200"
                       style={{ left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
                     >
-                      <img
+                      <Image
+                        alt={c.user.name}
+                        width={isActive ? 24 : 16}
+                        height={isActive ? 24 : 16}
                         src={c.user.avatar}
                         className={`rounded-full object-cover border border-border-default shadow-sm cursor-pointer ${
                           isActive ? 'w-6 h-6' : 'w-4 h-4'

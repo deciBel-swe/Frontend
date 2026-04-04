@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useRef } from 'react';
+import Image from 'next/image';
 
 interface ImagePreviewFieldProps {
   previewUrl: string | null;
@@ -36,11 +37,13 @@ export default function ImagePreviewField({
         onClick={() => artworkInputRef.current?.click()}
       >
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={previewUrl}
             alt="Selected image preview"
             className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 420px"
+            unoptimized
           />
         ) : (
           <div className="flex flex-col items-center text-text-primary text-xs gap-2">
