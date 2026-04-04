@@ -24,6 +24,7 @@ export function useUserTracks(params: UseUserTracksParams) {
   const isManagedByContext =
     normalizeUsername(profileContext?.routeUsername) ===
     normalizeUsername(params.username);
+  const isOwnedProfile = isManagedByContext && Boolean(profileContext?.isOwner);
   const contextPublicUserId = profileContext?.publicUser?.profile.id;
 
   const [tracks, setTracks] = useState<
@@ -58,6 +59,14 @@ export function useUserTracks(params: UseUserTracksParams) {
       try {
         let resolvedUserId = params.userId;
         const normalizedUsername = params.username?.trim() ?? '';
+
+        if (isOwnedProfile) {
+          const data = await trackService.getMyTracks();
+          if (!isCancelled) {
+            setTracks(data);
+          }
+          return;
+        }
 
         if (
           !resolvedUserId &&
@@ -109,6 +118,7 @@ export function useUserTracks(params: UseUserTracksParams) {
     };
   }, [
     contextPublicUserId,
+    isOwnedProfile,
     isManagedByContext,
     params.userId,
     params.username,

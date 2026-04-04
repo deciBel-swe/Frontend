@@ -56,6 +56,9 @@ export interface TrackService {
   /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
   getUserTracks(userID: number): Promise<TrackMetaData[]>;
 
+  /** Read current user tracks via /users/me/tracks */
+  getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]>;
+
   /** Read all visible tracks for feed listing (GET /users/me/tracks) */
   getAllTracks(): Promise<TrackMetaData[]>;
   /** Update track metadata (PATCH /tracks/:trackId) */
@@ -63,6 +66,12 @@ export interface TrackService {
     trackId: number,
     formData: FormData
   ): Promise<TrackUpdateResponse>;
+
+  /** Delete a track (DELETE /tracks/:trackId) */
+  deleteTrack(trackId: number): Promise<void>;
+
+  /** Delete a track cover (DELETE /tracks/:trackId/cover) */
+  deleteTrackCover(trackId: number): Promise<void>;
 
   /** Read only privacy state for a track (GET /tracks/:trackId) */
   getTrackVisibility(trackId: number): Promise<TrackVisibility>;
@@ -258,6 +267,19 @@ export class RealTrackService implements TrackService {
     return tracks.filter((track) => track.artist.id === userId);
   }
 
+  async getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]> {
+    const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS, {
+      params: toQueryParams(params),
+    });
+
+    return Promise.all(
+      payload.content.map(async (track) => {
+        const normalized = normalizeTrackMetadata(track.id, track);
+        return hydrateWaveformData(normalized, track);
+      })
+    );
+  }
+
   async getAllTracks(): Promise<TrackMetaData[]> {
     const payload = await apiRequest(API_CONTRACTS.USERS_TRACKS(1)); // todo this is temporary
     return Promise.all(
@@ -278,6 +300,14 @@ export class RealTrackService implements TrackService {
         'Content-Type': 'multipart/form-data',
       },
     });
+  }
+
+  async deleteTrack(trackId: number): Promise<void> {
+    await apiRequest(API_CONTRACTS.TRACKS_DELETE(trackId));
+  }
+
+  async deleteTrackCover(trackId: number): Promise<void> {
+    await apiRequest(API_CONTRACTS.TRACKS_DELETE_COVER(trackId));
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

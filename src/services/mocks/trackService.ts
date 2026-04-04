@@ -410,6 +410,15 @@ export class MockTrackService implements TrackService {
       .map(toMetadata);
   }
 
+  async getMyTracks(): Promise<TrackMetaData[]> {
+    await delay();
+    const currentUserId = resolveCurrentMockUserId();
+
+    return readTracks()
+      .filter((track) => track.artist.id === currentUserId)
+      .map(toMetadata);
+  }
+
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
     return readTracks()
@@ -490,6 +499,46 @@ export class MockTrackService implements TrackService {
       tags: [...updated.tags],
       releaseDate: updated.releaseDate,
     };
+  }
+
+  async deleteTrack(trackId: number): Promise<void> {
+    await delay();
+
+    const tracks = readTracks();
+    const index = tracks.findIndex((track) => track.id === trackId);
+    if (index < 0) {
+      throw new Error('Track not found');
+    }
+
+    tracks.splice(index, 1);
+    writeTracks(tracks);
+
+    const usersStore = getMockUsersStore();
+    for (const user of usersStore) {
+      user.tracks = user.tracks.filter((track) => track.id !== trackId);
+      user.likedTracks = user.likedTracks.filter((track) => track.id !== trackId);
+      user.reposts = user.reposts.filter((repost) => repost.id !== trackId);
+    }
+
+    persistMockSystemState();
+  }
+
+  async deleteTrackCover(trackId: number): Promise<void> {
+    await delay();
+
+    const tracks = readTracks();
+    const index = tracks.findIndex((track) => track.id === trackId);
+    if (index < 0) {
+      throw new Error('Track not found');
+    }
+
+    tracks[index] = {
+      ...tracks[index],
+      coverUrl: buildCoverUrl(trackId),
+      coverImageDataUrl: undefined,
+    };
+
+    writeTracks(tracks);
   }
 
   async getTrackVisibility(trackId: number): Promise<TrackVisibility> {

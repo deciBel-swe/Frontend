@@ -1,13 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { useAuth } from '@/hooks';
-import { config } from '@/config';
 import { trackService } from '@/services';
 import { useQueryClient } from '@tanstack/react-query';
 import type { TrackPrivacyValue } from '@/types/tracks';
-import { toTrackSlug } from '@/types/uploadSchema';
+import { uploadSchema } from '@/types/uploadSchema';
 import { validateImageFile } from '@/utils/fileValidation';
 import Button from '@/components/buttons/Button';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
@@ -23,32 +21,24 @@ type EditTrackModalProps = {
   };
 };
 
-type EditTab = 'basic' | 'metadata' | 'permissions' | 'advanced';
-const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
 export default function EditTrackModal({
   open,
   onClose,
   trackId,
   track,
 }: EditTrackModalProps) {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const todayIsoDate = new Date().toISOString().slice(0, 10);
-  const [activeTab, setActiveTab] = useState<EditTab>('basic');
   const [title, setTitle] = useState(track.title);
-  const [artist, setArtist] = useState(track.artist);
-  const [trackLinkSuffix, setTrackLinkSuffix] = useState(
-    toTrackSlug('')
-  );
-  const [trackLinkEdited, setTrackLinkEdited] = useState(false);
+  const [titleError, setTitleError] = useState('');
   const [genre, setGenre] = useState('');
+  const [genreError, setGenreError] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [descriptionTouched, setDescriptionTouched] = useState(false);
   const [releaseDate, setReleaseDate] = useState(todayIsoDate);
   const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
-  const [privacyTouched, setPrivacyTouched] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
     track.cover ?? null
   );
@@ -56,14 +46,8 @@ export default function EditTrackModal({
   const [artworkRemoved, setArtworkRemoved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  // const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
   const [metaError, setMetaError] = useState('');
-
-  // const normalizedDomainName = config.urls.domainName.replace(/\/+$/, '');
-  const trackLinkPrefix = useMemo(() => {
-    const username = user?.username ?? artist ?? track.artist ?? 'user';
-    return `${normalizedDomainName}/${username}`;
-  }, [artist, normalizedDomainName, track.artist, user?.username]);
 
   useEffect(() => {
     if (!open) return;
@@ -71,20 +55,17 @@ export default function EditTrackModal({
     let isCancelled = false;
 
     const resetFormState = () => {
-      setActiveTab('basic');
-      setTitle(track.title);
-      setArtist(track.artist);
-      setTrackLinkSuffix('');
-      setTrackLinkEdited(false);
+      setTitle('');
+      setTitleError('');
       setGenre('');
+      setGenreError('');
       setTags([]);
       setDescription('');
       setDescriptionTouched(false);
       setReleaseDate(todayIsoDate);
       setReleaseDateError('');
       setPrivacy('public');
-      setPrivacyTouched(false);
-      setArtworkPreview(track.cover ?? null);
+      setArtworkPreview(null);
       setArtworkFile(null);
       setArtworkRemoved(false);
       setSaveError('');
@@ -92,36 +73,22 @@ export default function EditTrackModal({
 
     const loadTrack = async () => {
       resetFormState();
-      // setIsLoadingMeta(true);
+      setIsLoadingMeta(true);
       setMetaError('');
 
       try {
-        const data = await trackService.getTrackMetadata(trackId);
+        const [data, visibility] = await Promise.all([
+          trackService.getTrackMetadata(trackId),
+          trackService.getTrackVisibility(trackId),
+        ]);
         if (isCancelled) return;
 
-        const artistName =
-          typeof data.artist === 'string'
-            ? data.artist
-            : data.artist.username;
-
         setTitle(data.title);
-        setArtist(artistName);
-        const trackUrl = data.trackUrl ?? '';
-        const trackUrlPath = trackUrl
-          ? new URL(trackUrl, normalizedDomainName).pathname
-          : '';
-        const trackUrlSegments = trackUrlPath.split('/').filter(Boolean);
-        const trackUrlSuffix =
-          trackUrlSegments.length > 0
-            ? trackUrlSegments[trackUrlSegments.length - 1]
-            : '';
-        setTrackLinkSuffix(
-          trackUrlSuffix ? toTrackSlug(trackUrlSuffix) : toTrackSlug(data.title)
-        );
         setGenre(data.genre ?? '');
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
         setReleaseDate(data.releaseDate?.trim() || todayIsoDate);
+        setPrivacy(visibility.isPrivate ? 'private' : 'public');
         setArtworkPreview(data.coverUrl ?? null);
         setArtworkRemoved(false);
       } catch (err) {
@@ -129,11 +96,11 @@ export default function EditTrackModal({
         if (!isCancelled) {
           setMetaError('Unable to load track details. Please try again.');
         }
-      // } finally {
-      //   if (!isCancelled) {
-      //     setIsLoadingMeta(false);
-      //   }
-       }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingMeta(false);
+        }
+      }
     };
 
     void loadTrack();
@@ -141,12 +108,7 @@ export default function EditTrackModal({
     return () => {
       isCancelled = true;
     };
-  }, [open, track.cover, track.artist, track.title, trackId, todayIsoDate]);
-
-  useEffect(() => {
-    if (trackLinkEdited) return;
-    setTrackLinkSuffix(toTrackSlug(title));
-  }, [title, trackLinkEdited]);
+  }, [open, trackId, todayIsoDate]);
 
   const handleArtwork = async (file: File) => {
     try {
@@ -175,70 +137,82 @@ export default function EditTrackModal({
     setArtworkRemoved(true);
   };
 
+  const handleCloseRequest = () => {
+    if (isSaving) return;
+    onClose();
+  };
+
   const handleSave = async () => {
     if (isSaving) return;
     if (!Number.isFinite(trackId)) {
       setSaveError('Track is missing an id.');
       return;
     }
-    const trimmedTitle = title.trim();
-    if (trimmedTitle.length === 0) {
-      setSaveError('Title is required.');
+
+    const normalizedTags = tags
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+      .map((tag) => tag.toLowerCase());
+
+    const validation = uploadSchema.safeParse({
+      title,
+      genre,
+      tags: normalizedTags,
+      description,
+      releaseDate,
+      privacy,
+    });
+    if (!validation.success) {
+      const fieldErrors = validation.error.flatten().fieldErrors;
+      setTitleError(fieldErrors.title?.[0] ?? '');
+      setGenreError(fieldErrors.genre?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      setSaveError('');
       return;
     }
-    if (!releaseDate) {
-      setReleaseDateError('Release date is required.');
-      return;
-    }
-    if (releaseDate > todayIsoDate) {
-      setReleaseDateError('Release date cannot be in the future.');
-      return;
-    }
+
+    const trimmedTitle = validation.data.title;
     setSaveError('');
+    setTitleError('');
+    setGenreError('');
     setReleaseDateError('');
     setIsSaving(true);
 
     try {
       const formData = new FormData();
+      const shouldDeleteCover = !artworkFile && artworkRemoved;
       if (artworkFile) {
         formData.append('coverImage', artworkFile);
       }
-      if (!artworkFile && artworkRemoved) {
-        formData.append('removeCover', 'true');
-      }
       formData.append('title', trimmedTitle);
-
-      const trimmedArtist = artist.trim();
-      if (trimmedArtist.length > 0) {
-        formData.append('artist', trimmedArtist);
-      }
 
       const trimmedGenre = genre.trim();
       if (trimmedGenre.length > 0) {
         formData.append('genre', trimmedGenre);
       }
 
-      const normalizedTags = tags
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
-      if (normalizedTags.length > 0) {
+      if (normalizedTags.length >= 0) {
         formData.append('tags', JSON.stringify(normalizedTags));
       }
 
       if (descriptionTouched) {
-        formData.append('description', description.trim());
+        formData.append('description', description);
       }
 
-      formData.append('trackLinkSuffix', trackLinkSuffix);
       formData.append('releaseDate', releaseDate);
+      formData.append('isPrivate', String(privacy === 'private'));
 
-      if (privacyTouched) {
-        formData.append('isPrivate', String(privacy === 'private'));
+      const updatedTrack = await trackService.updateTrack(trackId, formData);
+      if (!updatedTrack || updatedTrack.id !== trackId) {
+        throw new Error('Track update did not complete successfully.');
       }
 
-      await trackService.updateTrack(trackId, formData);
+      if (shouldDeleteCover) {
+        await trackService.deleteTrackCover(trackId);
+      }
+
       await queryClient.invalidateQueries({
-        queryKey: ['userTracks', user?.id ?? 7],
+        queryKey: ['userTracks'],
       });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
@@ -256,13 +230,6 @@ export default function EditTrackModal({
 
   if (!open) return null;
 
-  const tabs: { id: EditTab; label: string; isNew?: boolean }[] = [
-    { id: 'basic', label: 'Basic info' },
-    { id: 'metadata', label: 'Metadata' },
-    { id: 'permissions', label: 'Permissions' },
-    { id: 'advanced', label: 'Advanced', isNew: true },
-  ];
-
   return (
     <>
       
@@ -270,13 +237,14 @@ export default function EditTrackModal({
       {/* MODAL WRAPPER */}
       <div className="fixed inset-0 z-200 flex items-start justify-center">
         {/* BACKDROP */}
-      <div className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm" onClick={handleCloseRequest} />
         <div className="relative w-full max-w-5xl bg-white dark:bg-black rounded-lg border border-white/10 shadow-2xl overflow-hidden mt-5">
 
           {/* CLOSE BUTTON (like EditProfileModal style) */}
           <button
-            onClick={onClose}
-            className="fixed top-6 right-6 z-[60] p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
+            onClick={handleCloseRequest}
+            disabled={isSaving}
+            className="fixed top-6 right-6 z-60 p-2 rounded-full bg-white/80 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/20 hover:text-black dark:hover:text-white transition-all duration-200 hover:scale-105 active:scale-95 backdrop-blur-md">
             <X size={20} />
           </button>
 
@@ -285,26 +253,11 @@ export default function EditTrackModal({
             Edit Track
           </div>
 
-          {/* TABS */}
-          <div className="flex gap-6 px-5 border-b border-border-default">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-3 text-xs font-semibold ${
-                  activeTab === tab.id
-                    ? 'text-black dark:text-white'
-                    : 'text-gray-400'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
           {/* BODY */}
           <div className="max-h-[70vh] overflow-y-auto px-5 py-6">
-            {activeTab === 'basic' ? (
+            {isLoadingMeta ? (
+              <div className="py-12 text-sm text-text-secondary">Loading track details...</div>
+            ) : (
               <UploadForm
                 variant="modal"
                 showHeader={false}
@@ -314,18 +267,24 @@ export default function EditTrackModal({
                 onArtworkSelect={handleArtwork}
                 onRemoveArtwork={removeArtwork}
                 title={title}
-                titleError=""
-                onTitleChange={setTitle}
-                trackLinkPrefix={trackLinkPrefix}
-                trackLinkSuffix={trackLinkSuffix}
-                onTrackLinkSuffixChange={(v) => {
-                  setTrackLinkEdited(true);
-                  setTrackLinkSuffix(toTrackSlug(v));
+                titleError={titleError}
+                onTitleChange={(nextTitle) => {
+                  setTitle(nextTitle);
+                  if (titleError && nextTitle.trim().length > 0) {
+                    setTitleError('');
+                  }
+                  if (saveError) {
+                    setSaveError('');
+                  }
                 }}
-                artist={artist}
-                onArtistChange={setArtist}
                 genre={genre}
-                onGenreChange={setGenre}
+                genreError={genreError}
+                onGenreChange={(nextGenre) => {
+                  setGenre(nextGenre);
+                  if (genreError) {
+                    setGenreError('');
+                  }
+                }}
                 tags={tags}
                 onTagsChange={setTags}
                 description={description}
@@ -335,16 +294,19 @@ export default function EditTrackModal({
                 }}
                 releaseDate={releaseDate}
                 releaseDateError={releaseDateError}
-                onReleaseDateChange={setReleaseDate}
+                onReleaseDateChange={(nextDate) => {
+                  setReleaseDate(nextDate);
+                  if (releaseDateError) {
+                    setReleaseDateError('');
+                  }
+                }}
                 releaseDateMax={todayIsoDate}
                 showReleaseDate
                 privacy={privacy}
-                onPrivacyChange={setPrivacy}
+                onPrivacyChange={(nextPrivacy) => {
+                  setPrivacy(nextPrivacy);
+                }}
               />
-            ) : (
-              <div className="text-sm text-gray-400">
-                This section will be available soon.
-              </div>
             )}
           </div>
 
@@ -355,7 +317,7 @@ export default function EditTrackModal({
             </span>
 
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={onClose}>
+              <Button variant="ghost" onClick={handleCloseRequest} disabled={isSaving}>
                 Cancel
               </Button>
               <Button

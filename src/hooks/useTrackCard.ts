@@ -21,12 +21,14 @@ type UseTrackCardResult = {
   pendingTimestamp: number | null;
   showCommentInput: boolean;
   waveformTimedCommentsVisible: boolean;
+  isDeleted: boolean;
   likeCount: number;
   repostCount: number;
   isLiked: boolean;
   isReposted: boolean;
   isLikePending: boolean;
   isRepostPending: boolean;
+  isDeletePending: boolean;
   isCommentSubmitting: boolean;
   setPendingText: (value: string) => void;
   selectTimestamp: (timestampSeconds: number) => void;
@@ -35,6 +37,7 @@ type UseTrackCardResult = {
   submitTimedComment: (text: string) => Promise<void>;
   onLike: () => Promise<void>;
   onRepost: () => Promise<void>;
+  onDeleteTrack: () => Promise<void>;
 };
 
 const isTopLevelTrackComment = (comment: ApiComment): comment is TopLevelApiComment => {
@@ -81,7 +84,9 @@ export function useTrackCard({
 
   const [isLikePending, setIsLikePending] = useState(false);
   const [isRepostPending, setIsRepostPending] = useState(false);
+  const [isDeletePending, setIsDeletePending] = useState(false);
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
 
   const numericTrackId = useMemo(() => Number(trackId), [trackId]);
 
@@ -262,18 +267,39 @@ export function useTrackCard({
     }
   }, [isRepostPending, isReposted, numericTrackId]);
 
+  const onDeleteTrack = useCallback(async () => {
+    if (!Number.isInteger(numericTrackId) || numericTrackId <= 0 || isDeletePending) {
+      return;
+    }
+
+    setIsDeletePending(true);
+
+    try {
+      await trackService.deleteTrack(numericTrackId);
+      setIsDeleted(true);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('track-updated'));
+      }
+    } finally {
+      setIsDeletePending(false);
+    }
+  }, [isDeletePending, numericTrackId]);
+
   return {
     timedComments,
     pendingText,
     pendingTimestamp,
     showCommentInput,
     waveformTimedCommentsVisible,
+    isDeleted,
     likeCount,
     repostCount,
     isLiked,
     isReposted,
     isLikePending,
     isRepostPending,
+    isDeletePending,
     isCommentSubmitting,
     setPendingText,
     selectTimestamp,
@@ -282,5 +308,6 @@ export function useTrackCard({
     submitTimedComment,
     onLike,
     onRepost,
+    onDeleteTrack,
   };
 }
