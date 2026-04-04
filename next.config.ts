@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
+      { protocol: 'https', hostname: 'a-v2.sndcdn.com' }, // (SoundCloud)
+      { protocol: 'https', hostname: 'tse3.mm.bing.net' }, //  (Bing)
       { protocol: 'https', hostname: 'picsum.photos' },
       { protocol: 'https', hostname: 'i1.sndcdn.com' },
       { protocol: 'https', hostname: 'i.ibb.co' },
