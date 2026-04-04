@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Heart, MoreHorizontal, GripVertical, Play, Pause } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
+import ScrollableArea from '@/components/ui/ScrollableArea';
 
 interface QueueItem {
   id: number;
@@ -71,6 +72,7 @@ export default function QueuePanel({
       </div>
 
       {/* LIST */}
+      <ScrollableArea maxHeight="420px" className="bg-surface-raised">
       <ul className="max-h-[420px] overflow-y-auto overflow-x-hidden custom-scrollbar bg-surface-raised">
         {items.length === 0 ? (
           <li className="p-10 text-center text-sm text-text-secondary italic">Your queue is empty</li>
@@ -179,7 +181,7 @@ return (
           })
         )}
       </ul>
-
+          </ScrollableArea>
       {/* FOOTER */}
       <div className="p-4 bg-surface-raised border-t border-border-strong">
         <div className="flex items-center justify-between mb-1">
