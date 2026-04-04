@@ -104,7 +104,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
         variant="secondary"
         className="rounded-full px-3 py-1"
         onClick={() => {
-          void handleFollowToggle((resolvedUser.isFollowing ?? false));
+          void handleFollowToggle(!(resolvedUser.isFollowing ?? false));
         }}
         disabled={!canToggleFollow || isFollowPending}
       >
