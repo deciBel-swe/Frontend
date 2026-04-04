@@ -125,3 +125,29 @@ export { useTrackCard } from './useTrackCard';
  * useUserRepostPage — loads reposted tracks for the current user profile page.
  */
 export { useUserRepostPage } from './useUserRepostPage';
+
+/**
+ * useFollowers / useFollowing — loads social user lists for profile pages.
+ */
+export { useFollowers } from './useFollowers';
+export { useFollowing } from './useFollowing';
+
+/**
+ * useUserCardHook — hydrates user cards and handles follow actions.
+ */
+export { useUserCardHook } from './useUserCardHook';
+
+/**
+ * useLikedTracks — loads liked tracks for profile likes page.
+ */
+export { useLikedTracks } from './useLikedTracks';
+
+/**
+ * useSuggestedUsers — loads people suggestions (/users/suggested).
+ */
+export { useSuggestedUsers } from './useSuggestedUsers';
+
+/**
+ * useBlockedUsers — loads blocked users and exposes unblock action.
+ */
+export { useBlockedUsers } from './useBlockedUsers';

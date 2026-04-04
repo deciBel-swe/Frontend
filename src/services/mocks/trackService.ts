@@ -795,7 +795,9 @@ export class MockTrackService implements TrackService {
     });
   }
 
-  async getMyLikedTracks(): Promise<paginatedTrackResponse> {
+  async getMyLikedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
     return new Promise((resolve) => {
       setTimeout(() => {
         const currentUserId = resolveCurrentMockUserId();
@@ -824,8 +826,8 @@ export class MockTrackService implements TrackService {
         resolve({
           content,
           isLast: true,
-          pageNumber: 0,
-          pageSize: content.length,
+          pageNumber: params?.page ?? 0,
+          pageSize: params?.size ?? content.length,
           totalElements: content.length,
           totalPages: 1,
         });

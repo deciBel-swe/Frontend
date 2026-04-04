@@ -1,7 +1,7 @@
 // TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Heart, Repeat2, Share2, Copy, Pencil, Trash2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 
 type TrackActionsProps = {
@@ -42,20 +42,18 @@ export default function TrackActions({
   showCopy = true,
   showEdit = false,
   showDelete = false,
-  showMore = true,
   onLike,
   onRepost,
   onShare,
   onCopy,
   onEdit,
   onDelete,
-  onMore,
 }: TrackActionsProps) {
   return (
     <div className={`flex gap-1 ${className}`}>
       {showLike && (
         <Button
-          variant={variant}
+          variant={isLiked ? 'ghost_highlight' : 'ghost'}
           aria-label="Like"
           aria-pressed={isLiked}
           onClick={onLike}
@@ -66,7 +64,7 @@ export default function TrackActions({
       )}
       {showRepost && (
         <Button
-          variant={variant}
+          variant={isReposted ? 'ghost_highlight' : 'ghost'}
           aria-label="Repost"
           aria-pressed={isReposted}
           onClick={onRepost}
