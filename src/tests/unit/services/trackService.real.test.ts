@@ -86,6 +86,7 @@ describe('RealTrackService', () => {
       tags: [],
       trackUrl: 'https://cdn.decibel.test/tracks/55.mp3',
       coverUrl: 'http://cdn.decibel.test/covers/55.jpg',
+      coverImage: 'http://cdn.decibel.test/covers/55.jpg',
       waveformUrl: 'https://cdn.decibel.test/waveforms/55.json',
       durationSeconds: 321,
       description: '',
@@ -111,6 +112,7 @@ describe('RealTrackService', () => {
       tags: [],
       trackUrl: '/tracks/56',
       coverUrl: '/covers/56.jpg',
+      coverImage: '/covers/56.jpg',
       waveformUrl: '/waveforms/56.json',
       waveformData: '   ',
       userId: 4,
@@ -438,6 +440,15 @@ describe('RealTrackService', () => {
   });
 
   it('forwards pagination parameters for my-tracks and engagement lists', async () => {
+    const emptyPaginatedTracks = {
+      content: [],
+      isLast: true,
+      pageNumber: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+    } as PaginatedTracksResponse;
+
     const paginated = {
       content: [],
       isLast: true,
@@ -448,8 +459,8 @@ describe('RealTrackService', () => {
     };
 
     mockedApiRequest
-      .mockResolvedValueOnce({ content: [] } as PaginatedTracksResponse)
-      .mockResolvedValueOnce({ content: [] } as PaginatedTracksResponse)
+      .mockResolvedValueOnce(emptyPaginatedTracks)
+      .mockResolvedValueOnce(emptyPaginatedTracks)
       .mockResolvedValueOnce(paginated)
       .mockResolvedValueOnce(paginated);
 

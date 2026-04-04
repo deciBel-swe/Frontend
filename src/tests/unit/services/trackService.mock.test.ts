@@ -359,7 +359,7 @@ describe('MockTrackService', () => {
 
     expect(reposted.pageNumber).toBe(0);
     expect(reposted.totalElements).toBeGreaterThanOrEqual(1);
-    expect(reposted.content.every((track) => track.isReposted)).toBe(true);
+    expect((reposted.content ?? []).every((track) => track.isReposted)).toBe(true);
   });
 
   it('covers error branches for like and repost operations', async () => {
@@ -559,7 +559,7 @@ describe('MockTrackService', () => {
     const liked = await likedPromise;
 
     expect(liked.pageNumber).toBe(0);
-    expect(liked.pageSize).toBe(liked.content.length);
+    expect(liked.pageSize).toBe((liked.content ?? []).length);
   });
 
   it('rejects missing-track operations across update, delete, token, and engagement endpoints', async () => {
