@@ -37,7 +37,7 @@ jest.mock('@/features/player/utils/playerTrackMappers', () => ({
 }));
 
 const mockUseAuth = useAuth as jest.Mock;
-const mockUsePlayerStore = usePlayerStore as jest.Mock;
+const mockUsePlayerStore = usePlayerStore as unknown as jest.Mock;
 const mockTrackService = trackService as jest.Mocked<typeof trackService>;
 const mockCommentService = commentService as jest.Mocked<typeof commentService>;
 const mockTrackMappers = playerTrackMappers as jest.Mocked<typeof playerTrackMappers>;

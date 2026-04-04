@@ -48,7 +48,7 @@ export function useUserCardHook({
             username: publicUser.profile.username,
             avatarSrc: publicUser.profile.profilePic,
             followerCount: publicUser.profile.followerCount,
-            isFollowing: publicUser.profile.isFollowing,
+            isFollowing: publicUser.profile.isFollowed,
           }));
         }
       } catch {

@@ -635,6 +635,7 @@ const toPersistedState = (
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
   tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
+  comments: current.comments,
   emailVerification: current.emailVerification,
 });
 
