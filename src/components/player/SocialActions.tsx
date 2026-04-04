@@ -42,7 +42,7 @@ export default function FilledSocialActions({
           onClick={onQueueToggle}
           title="Queue"
           className={`transition-colors duration-200 active:scale-95 ${
-            queueVisible ? "text-orange-500" : "text-white hover:text-orange-500"
+            queueVisible ? "text-brand-primary" : "text-text-primary hover:text-brand-primary"
           }`}
         >
           {/* Using strokeWidth and fill to approximate the solid look */}

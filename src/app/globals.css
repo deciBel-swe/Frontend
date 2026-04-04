@@ -35,6 +35,7 @@
 
   --color-neutral-0: #ffffff; /* Pure white                       */
   --color-neutral-50: #f9f9f9; /* Off-white surface (light mode)   */
+  --color-neutral-75: #f3f3f3; /* Extra-light surface               */
   --color-neutral-100: #f0f0f0; /* Subtle dividers in light mode    */
   --color-neutral-200: #d4d4d4; /* Borders, placeholder text        */
   --color-neutral-300: #adadad; /* Muted / secondary text           */
@@ -182,7 +183,7 @@
 
   /* Surfaces */
   --surface-default: var(--color-neutral-0);
-  --surface-raised: var(--color-neutral-100);
+  --surface-raised: var(--color-neutral-75);
   --surface-overlay: rgba(0, 0, 0, 0.4);
 
   /* Text */

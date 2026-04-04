@@ -69,55 +69,60 @@ export default function PlayerBar(props: PlayerBarProps) {
 
   return (
     /* The main bar background - stays 100% width */
-    <div className="sticky bottom-0 w-full bg-neutral-600 border-t border-neutral-600 z-50">
-      {queue.visible && (
-<QueuePanel 
-          items={queue.items} 
-          isPlaying={isPlaying}
-          activeTrackId={queue.activeTrackId ?? null}
-          onClose={onQueueToggle}
-          onSelect={onQueueSelect} 
-          onRemove={onQueueRemove}
-          onClear={onQueueClear}
-          onReorder={onQueueReorder}
-        />
-      )}
-      
+    <div className="fixed bottom-0 w-full bg-surface-raised border-t border-border-strong z-50">
+     
       {/* The Content Div:
           - max-w-[1240px]: This makes the "content area" smaller.
           - mx-auto: Centers that smaller area.
           - flex items-center: Keeps everything vertically centered.
       */}
-      <div className="max-w-310 mx-auto flex items-center h-13 px-2">
-        
-        <PlayerControls
-          isPlaying={isPlaying}
-          onPlay={onPlay}
-          onPause={onPause}
-          onNext={onNext}
-          onPrev={onPrev}
-        />
+      <div className="w-full max-w-[1100px] mx-auto flex items-center h-13 px-4">
+         <div className="flex items-center shrink-0">
+          <PlayerControls
+            isPlaying={isPlaying}
+            onPlay={onPlay}
+            onPause={onPause}
+            onNext={onNext}
+            onPrev={onPrev}
+          />
 
-        <PlaybackModes
-          shuffleActive={shuffleActive}
-          repeatActive={repeatActive}
-          onToggleShuffle={onToggleShuffle}
-          onToggleRepeat={onToggleRepeat}
-        />
+          <PlaybackModes
+            shuffleActive={shuffleActive}
+            repeatActive={repeatActive}
+            onToggleShuffle={onToggleShuffle}
+            onToggleRepeat={onToggleRepeat}
+          />
+        </div>
         
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 px-3">
           <Timeline
             currentTime={currentTime}
             duration={duration}
             onScrub={onScrub}
           />
         </div>
+        <div className="flex items-center shrink-0 relative">
+          {queue.visible && (
+            <QueuePanel 
+              items={queue.items} 
+              isPlaying={isPlaying}
+              activeTrackId={queue.activeTrackId ?? null}
+              onClose={onQueueToggle}
+              onSelect={onQueueSelect} 
+              onRemove={onQueueRemove}
+              onClear={onQueueClear}
+              onReorder={onQueueReorder}
+            />
+         )}
+          <div className="hidden md:block">
+            <VolumeControl value={volume} onChange={onVolumeChange} />
+          </div>
 
-        <VolumeControl value={volume} onChange={onVolumeChange} />
-
-        <SoundBadge track={track} artist={artist} artwork={artwork} />
-        
-        <SocialActions queueVisible={queue.visible} onQueueToggle={onQueueToggle} />
+          <SoundBadge track={track} artist={artist} artwork={artwork} />
+          <div className="hidden sm:block">
+            <SocialActions queueVisible={queue.visible} onQueueToggle={onQueueToggle} />
+          </div>
+        </div>
       </div>
 
     </div>
