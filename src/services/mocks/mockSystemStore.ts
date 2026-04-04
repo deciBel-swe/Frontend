@@ -634,10 +634,7 @@ const toPersistedState = (
 ): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
-  tracks: current.tracks.map((track) =>
-    compactTrackForPersistence(track, options)
-  ),
-  comments: current.comments,
+  tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
   emailVerification: current.emailVerification,
 });
 
