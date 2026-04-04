@@ -27,7 +27,7 @@ export const HoverPlayImage: FC<HoverPlayImageProps> = ({
 
       {/* Play button */}
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-        <div className="rounded-full bg-neutral-50 shadow-md flex items-center justify-center w-1/3 h-1/3">
+        <div className="rounded-full bg-neutral-50 shadow-md flex items-center justify-center w-[70%] h-[70%] active:scale-95 max-w-[28px] max-h-[28px]">
           <Play
             className="text-neutral-1000 w-1/2 h-1/2 hover:opacity-40"
             fill="currentColor"
