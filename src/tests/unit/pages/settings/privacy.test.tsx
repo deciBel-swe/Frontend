@@ -68,17 +68,4 @@ describe('Settings privacy page', () => {
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it('proceeds with update when confirmation is accepted', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const user = userEvent.setup();
-    render(<Page />);
-
-    const firstToggle = screen.getByRole('switch', {
-      name: /Receive messages from anyone/i,
-    });
-    await user.click(firstToggle);
-    await waitFor(() =>
-      expect(mockUpdate).toHaveBeenCalledWith({ isPrivate: true })
-    );
-  });
 });

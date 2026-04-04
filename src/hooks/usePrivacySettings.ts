@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { privacyService, userService } from '@/services';
 import type { PrivacySettings, UpdatePrivacySettingsDto } from '@/types/privacy';
-import { error } from 'console';
 
 export function usePrivacySettings() {
   const [settings, setSettings] = useState<PrivacySettings | null>(null);
@@ -21,8 +20,7 @@ export function usePrivacySettings() {
         if (!isCancelled) {
           setSettings(me.privacySettings);
         }
-      } catch (error) {
-        throw error;
+      } catch {
         if (!isCancelled) {
           setIsError(true);
         }
