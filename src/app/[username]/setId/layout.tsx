@@ -4,23 +4,24 @@ import { PlaylistHero } from '@/components/playlist/PlaylistHero';
 import { ActionToolbar } from '@/components/playlist/ActionToolbar';
 import { Sidebar } from '@/components/playlist/sidebar';
 
-export default function UserProfileLayout({
+export default async function UserProfileLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
   // Note: You can fetch profileData here if you want it to be Server-Side,
   // or let the Sidebar handle its own internal fetching.
-  
+  const { username } = await params;
   return (
     <div className="flex flex-col min-h-screen bg-background">
       
       {/* 1. FULL WIDTH HEADER (Hero) */}
       <PlaylistHero 
+      creatorUsername={username}
   title="Test-Playlist"
-  creator={params.username}
+  creator={username}
   trackCount={3}
   duration="20:47"
   createdAt="1 day ago"

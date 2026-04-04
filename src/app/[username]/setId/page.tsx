@@ -5,19 +5,20 @@ import { Suspense } from 'react';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 import { UserMiniProfile } from '@/components/playlist/UserMiniProfile';
 import CompactTrackItem from '@/components/CompactTrackItem';
+import { Track } from '@/components/CompactTrackList'; // Ensure this is the correct path to your type
 
-// 1. MOCK DATA (Put this outside the component)
-const MOCK_TRACKS = [
+// 1. Apply the Track type to your mock data
+const MOCK_TRACKS: Track[] = [
   {
-    id: '1',
-    title: 'Une vie à t\'aimer',
+    id: 1,
+    title: "Une vie à t'aimer",
     artist: 'Lorien Testard',
     plays: '333K',
     coverUrl: 'https://i1.sndcdn.com/artworks-000500-large.jpg',
     available: true
   },
   {
-    id: '2',
+    id: 2,
     title: 'For Those Who Come After',
     artist: 'Lorien Testard',
     plays: '41.3K',
@@ -25,7 +26,7 @@ const MOCK_TRACKS = [
     available: true
   },
   {
-    id: '3',
+    id: 3,
     title: 'Alicia',
     artist: 'Victor Borba',
     plays: '224K',
@@ -45,14 +46,13 @@ const TrackListFallback = () => (
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   
-  // 1. Destructure data and isLoading
-  const { data, isLoading } = usePublicUser(username);
+  // Destructure data. You can also destructure isLoading here if needed.
+  const { data } = usePublicUser(username);
 
-  // 2. Safely extract tracks. 
-  // We check if data exists, if tracks exists, and if it's an array.
-  const apiTracks = Array.isArray(data?.tracks) ? data.tracks : [];
+  // 2. Cast the apiTracks to Track[] to satisfy the compiler
+  const apiTracks = (Array.isArray(data?.tracks) ? data.tracks : []) as Track[];
 
-  // 3. Fallback logic: If API is empty or loading, use Mocks
+  // 3. Fallback logic: displayTracks is now typed as Track[] automatically
   const displayTracks = apiTracks.length > 0 ? apiTracks : MOCK_TRACKS;
 
   return (
@@ -60,7 +60,6 @@ export default function Page() {
       
       <UserMiniProfile 
         username={username}
-        // displayName={data?.profile?.displayName || username} 
         displayName={username}
         avatarUrl={data?.profile?.profilePic}
         followers={data?.profile?.followerCount || 0}
@@ -69,9 +68,9 @@ export default function Page() {
 
       <div className="flex-1 min-w-0 my-8 ml-5">
         <Suspense fallback={<TrackListFallback />}>
-          {/* 4. We use displayTracks which is guaranteed to be an Array now */}
           <ul className="flex flex-col">
-            {displayTracks.map((track: any, index: number) => (
+            {/* 4. Removed 'any' and replaced with 'Track' */}
+            {displayTracks.map((track: Track, index: number) => (
               <CompactTrackItem 
                 key={track.id || index} 
                 track={track} 
