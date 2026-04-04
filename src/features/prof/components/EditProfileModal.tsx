@@ -13,6 +13,7 @@ import { X } from 'lucide-react';
 import { useEditProfileForm } from '@/features/prof/hooks/useEditProfileForm';
 import type { EditProfileFormValues } from '@/types/editProfile';
 import FavoriteGenresSelector from '@/features/prof/components/FavoriteGenresSelector';
+import ScrollableArea from '@/components/ui/ScrollableArea';
 
 type Props = {
   open: boolean;
@@ -69,6 +70,7 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center">
           {/* BACKDROP (ONLY THIS closes modal) */}
+    <ScrollableArea maxHeight="600px" className="bg-surface-raised">
     <div
       className="absolute inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm"
       onClick={onClose}
@@ -221,6 +223,7 @@ const EditProfileModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
           </div>
         </form>
       </div>
+      </ScrollableArea>
     </div>
   );
 };
