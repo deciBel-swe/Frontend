@@ -197,7 +197,7 @@ export default function UploadForm({
           className={
             isModal
               ? 'w-full border-t border-border-default bg-bg-base'
-              : 'fixed bottom-0 left-0 w-full border-t border-border-default bg-bg-base'
+              : 'fixed bottom-12 left-0 w-full border-t border-border-default bg-bg-base'
           }
         >
           <div className="w-full mx-auto flex items-center justify-end px-4 sm:px-6 py-3">
