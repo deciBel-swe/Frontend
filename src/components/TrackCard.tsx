@@ -126,6 +126,7 @@ export default function TrackCard({
   const playerCurrentTime = usePlayerStore((state) => state.currentTime);
   const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
+  const addToQueue = usePlayerStore((state) => state.addToQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
   const seek = usePlayerStore((state) => state.seek);
@@ -280,6 +281,14 @@ export default function TrackCard({
     }
 
     selectTimestamp(timestamp);
+  };
+
+  const handleAddToQueue = () => {
+    if (!playback || playback.access === 'BLOCKED' || playback.trackUrl.trim().length === 0) {
+      return;
+    }
+
+    addToQueue(playback);
   };
 
   if (isDeleted) {
@@ -619,6 +628,7 @@ export default function TrackCard({
     size={16}
     showEdit={showEditButton}
     showDelete={showEditButton}
+    showAddToQueue={Boolean(playback)}
     isLiked={isLiked}
     isReposted={isReposted}
     onEdit={() => setEditOpen(true)}
@@ -645,6 +655,7 @@ export default function TrackCard({
     }}
     onShare={() => setIsShareOpen(true)}
     onCopy={handleCopy}
+    onAddToQueue={handleAddToQueue}
   />
 
 {/* RIGHT: stats */}

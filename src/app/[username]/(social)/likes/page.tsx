@@ -1,7 +1,6 @@
 'use client';
 
 import TrackList from '@/components/TrackList';
-import { ShareIcon } from '@/components/icons/GenrealIcons';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 import { useLikedTracks } from '@/hooks/useLikedTracks';
 import { useParams } from 'next/navigation';
@@ -11,7 +10,7 @@ import { Suspense } from 'react';
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   const { data: profileData } = usePublicUser(username);
-  const { tracks, isLoading, isOwner } = useLikedTracks(username);
+  const { tracks, isLoading } = useLikedTracks(username);
 
   return (
     <div>

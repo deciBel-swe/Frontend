@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, Repeat2, Share2, List, MoreHorizontal } from 'lucide-react';
+import { Heart, Repeat2, Share2, List} from 'lucide-react';
 import Button from '@/components/buttons/Button';
 
 type TrackActionBarProps = {
@@ -32,7 +32,6 @@ export default function TrackActionBar({
   onRepost,
   onShare,
   onAddToPlaylist,
-  onMore,
 }: TrackActionBarProps) {
   return (
     <div className="flex items-center justify-between border-t border-b border-border-default py-1 px-1">
@@ -40,7 +39,7 @@ export default function TrackActionBar({
       <div className="flex items-center gap-1">
         {/* Like */}
         <Button
-          variant="ghost"
+          variant={isLiked ? 'ghost_highlight' : 'ghost'}
           onClick={onLike}
           aria-label="Like"
           className={`flex items-center gap-1.5 text-sm px-2 py-1.5 rounded ${
@@ -57,7 +56,7 @@ export default function TrackActionBar({
 
         {/* Repost */}
         <Button
-          variant="ghost"
+          variant={isReposted ? 'ghost_highlight' : 'ghost'}
           onClick={onRepost}
           aria-label="Repost"
           className={`flex items-center gap-1.5 text-sm px-2 py-1.5 rounded ${
@@ -89,7 +88,7 @@ export default function TrackActionBar({
           <span className="hidden sm:inline">Add to playlist</span>
         </Button>
 
-        {/* More */}
+        {/* More
         <Button
           variant="ghost"
           onClick={onMore}
@@ -97,7 +96,7 @@ export default function TrackActionBar({
           className="text-text-muted hover:text-text-primary px-2 py-1.5 rounded"
         >
           <MoreHorizontal size={16} />
-        </Button>
+        </Button> */}
       </div>
 
       {/* Right: play count */}

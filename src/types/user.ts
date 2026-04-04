@@ -283,8 +283,8 @@ export type FollowResponse = z.infer<typeof followResponseSchema>;
 
 export const searchUserSchema = z
   .object({
-    id: z.number().int().nonnegative(),
-    username: z.string().trim().min(1),
+    id: z.number().int().nonnegative().optional(),
+    username: z.string().trim().min(1).optional(),
     displayName: z.string().trim().min(1).optional().nullable(),
     avatarUrl: z.string().url().optional().nullable(),
     tier: z.string().optional(),

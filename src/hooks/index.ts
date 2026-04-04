@@ -151,3 +151,15 @@ export { useSuggestedUsers } from './useSuggestedUsers';
  * useBlockedUsers — loads blocked users and exposes unblock action.
  */
 export { useBlockedUsers } from './useBlockedUsers';
+
+/**
+ * useListeningHistoryTracks — loads listening history as TrackList items.
+ */
+export { useListeningHistoryTracks } from './useListeningHistoryTracks';
+export { useTrackLayoutPreference } from './useTrackLayoutPreference';
+
+/**
+ * Sidebar composition hooks.
+ */
+export { useFeedSidebar } from './useFeedSidebar';
+export { useProfileSidebar } from './useProfileSidebar';

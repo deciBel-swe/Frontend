@@ -107,7 +107,7 @@ const buttonBase =
 
       {/* BUTTON ROW */}
       <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-        {!isOwnProfile && !isOwnerStateLoading && (
+        {/* {!isOwnProfile && !isOwnerStateLoading && (
           <IconButton aria-label="message">
             <span
               className={`${buttonBase} bg-interactive-default dark:bg-interactive-default text-text-muted dark:text-text-secondary`}
@@ -115,7 +115,7 @@ const buttonBase =
               <MessageIcon />
             </span>
           </IconButton>
-        )}
+        )} */}
 
         {isOwnProfile && (
           <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>

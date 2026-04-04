@@ -7,7 +7,7 @@ type WaveformValue = number | string;
 
 const MIN_WAVEFORM_LENGTH = 200;
 const BAR_SLOT_WIDTH_PX = 3;
-const MIN_VISIBLE_BARS = 150;
+const INITIAL_VISIBLE_BARS = 150;
 
 export type TimedComment = {
   id: string;
@@ -111,11 +111,10 @@ export default function Waveform({
 
   const bars = useMemo(() => {
     if (!waveform.length) return [];
-    const dynamicBarCount = Math.max(
-      MIN_VISIBLE_BARS,
-      Math.floor(containerWidth / BAR_SLOT_WIDTH_PX)
-    );
-    const visibleWaveform = waveform.slice(0, dynamicBarCount);
+    const widthBasedCount = containerWidth > 0
+      ? Math.max(1, Math.floor(containerWidth / BAR_SLOT_WIDTH_PX))
+      : INITIAL_VISIBLE_BARS;
+    const visibleWaveform = waveform.slice(0, widthBasedCount);
 
     return visibleWaveform.map((value, index) => ({
       key: `bar-${index}`,
@@ -128,6 +127,16 @@ export default function Waveform({
     Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : 1;
 
   const currentBarIndex = Math.floor((currentTime / safeDurationSeconds) * bars.length);
+
+  const handleWaveformSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onWaveformClick || !containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    onWaveformClick(percent);
+  };
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60).toString();
@@ -153,18 +162,21 @@ export default function Waveform({
           {/* Floating time labels */}
           <div className="absolute w-full flex justify-between items-center -translate-y-1/2 pointer-events-none top-1/2 px-1">
             <div
-              className="absolute top-5 transform -translate-y-1/2 text-[10px] px-1 rounded bg-surface-overlay text-text-on-brand pointer-events-none">
+              className="absolute left-0 top-5 transform -translate-y-1/2 text-[10px] px-1 rounded bg-surface-overlay text-text-on-brand pointer-events-none">
               {formatTime(currentTime)}
             </div>
             <div className="absolute top-5 right-0 transform -translate-y-1/2 text-[10px] px-1 rounded bg-surface-overlay text-text-on-brand pointer-events-none">
-              {formatTime(durationSeconds)}
+              {formatTime(safeDurationSeconds)}
             </div>
           </div>
 
           {/* Waveform + mirror + comments */}
-          <div className="flex flex-col items-center gap-[2px] relative group">
+          <div className="flex flex-col gap-0.5 relative group">
             {/* Top waveform */}
-            <div className="flex items-end gap-px transition-opacity duration-200 opacity-60 group-hover:opacity-100">
+            <div
+              className="w-full flex items-end justify-between transition-opacity duration-200 opacity-60 group-hover:opacity-100"
+              onClick={handleWaveformSeek}
+            >
               {bars.map((bar, index) => (
                 <div
                   key={bar.key}
@@ -174,12 +186,6 @@ export default function Waveform({
                       : barClassName ?? 'bg-text-muted'
                   }`}
                   style={{ height: bar.mainHeight }}
-                  onClick={(e) => {
-                    if (!onWaveformClick || !containerRef.current) return;
-                    const rect = containerRef.current.getBoundingClientRect();
-                    const percent = (e.clientX - rect.left) / rect.width;
-                    onWaveformClick(percent);
-                  }}
                 />
               ))}
             </div>
@@ -215,7 +221,10 @@ export default function Waveform({
             </div>
 
             {/* Mirrored waveform */}
-            <div className="flex items-start gap-px transition-opacity duration-200 opacity-50 group-hover:opacity-70">
+            <div
+              className="w-full flex items-start justify-between transition-opacity duration-200 opacity-50 group-hover:opacity-70"
+              onClick={handleWaveformSeek}
+            >
               {bars.map((bar, index) => (
                 <div
                   key={bar.key + '-mirrored'}
@@ -224,14 +233,7 @@ export default function Waveform({
           ? 'bg-brand-muted' // active bar color
           : barClassName ?? 'bg-text-muted'
       }`}
-
                   style={{ height: bar.mirroredHeight }}
-                  onClick={(e) => {
-                    if (!onWaveformClick || !containerRef.current) return;
-                    const rect = containerRef.current.getBoundingClientRect();
-                    const percent = (e.clientX - rect.left) / rect.width;
-                    onWaveformClick(percent);
-                  }}
                 />
               ))}
             </div>

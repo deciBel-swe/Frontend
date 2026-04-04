@@ -61,7 +61,7 @@ const variantClasses: Record<ButtonVariant, string> = {
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
   ghost_highlight: [
-    'hover:bg-interactive-hover hover:text-text-primary',
+    'hover:bg-interactive-hover',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 

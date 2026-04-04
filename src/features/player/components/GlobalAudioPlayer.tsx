@@ -61,6 +61,8 @@ export default function GlobalAudioPlayer({
   const setDuration = usePlayerStore((state) => state.setDuration);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const removeFromQueue = usePlayerStore((state) => state.removeFromQueue);
+  const clearQueue = usePlayerStore((state) => state.clearQueue);
+  const reorderQueue = usePlayerStore((state) => state.reorderQueue);
   const pause = usePlayerStore((state) => state.pause);
 
   // Queue panel visibility state exposed by the merged PlayerBar API.
@@ -501,13 +503,13 @@ export default function GlobalAudioPlayer({
     previousTrackIdRef.current = nextTrackId;
 
     // Do not overwrite a user-requested seek that arrived during track switch.
-    if (pendingSeek === null) {
+    if (pendingSeek === null && currentTime <= 0.01) {
       setCurrentTime(0);
     }
 
     // Reset stale duration from the previous track immediately.
     setDuration(currentTrack?.durationSeconds ?? 0);
-  }, [currentTrack, pendingSeek, setCurrentTime, setDuration]);
+  }, [currentTime, currentTrack, pendingSeek, setCurrentTime, setDuration]);
 
   return (
     <>
@@ -528,14 +530,18 @@ export default function GlobalAudioPlayer({
         onVolumeChange={setVolume}
         queue={{
           visible: queueVisible,
+          activeTrackId: currentTrack?.id,
           items: queue.map((item) => ({
             id: item.id,
             title: item.title,
             artist: item.artistName,
+            artwork: item.coverUrl,
           })),
         }}
         onQueueSelect={selectTrackById}
         onQueueRemove={removeFromQueue}
+        onQueueClear={clearQueue}
+        onQueueReorder={reorderQueue}
         onQueueToggle={() => setQueueVisible((previous) => !previous)}
         shuffleActive={shuffleActive}
         repeatActive={repeatActive}
