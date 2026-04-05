@@ -64,7 +64,7 @@ function PlaylistRow({ playlist, onAdd }: { playlist: PlaylistItem; onAdd: () =>
           Private
         </span>
       )}
-      <Button variant="secondary" onClick={onAdd} className="shrink-0 text-[12px] px-3 py-1.5">
+      <Button variant="secondary_inverse" onClick={onAdd} className="shrink-0 text-[12px] px-3 py-1.5">
         Add to Playlist
       </Button>
     </div>

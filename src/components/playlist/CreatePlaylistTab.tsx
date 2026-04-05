@@ -133,7 +133,7 @@ function SuggestedTrackRow({ track, onAdd }: { track: SuggestedTrack; onAdd: () 
         <p className="text-[12px] text-text-muted truncate">{track.artist}</p>
         <p className="text-[13px] font-semibold text-text-primary truncate">{track.title}</p>
       </div>
-      <Button variant="secondary" onClick={onAdd} className="shrink-0 text-[12px] px-3 py-1.5">
+      <Button variant="secondary_inverse" onClick={onAdd} className="shrink-0 text-[12px] px-3 py-1.5">
         Add to playlist
       </Button>
     </div>
