@@ -1,8 +1,9 @@
 // TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, Pencil, Trash2, ListPlus } from 'lucide-react';
+import { Heart, Repeat2, Share2, Copy, Pencil, Trash2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
+import TrackMoreDropdown from '@/components/nav/TrackMoreDropdown';
 
 type TrackActionsProps = {
   size?: number;
@@ -10,7 +11,11 @@ type TrackActionsProps = {
   variant?: 'ghost' | 'secondary' | 'primary'| 'premium';
   isLiked?: boolean;
   isReposted?: boolean;
-  
+
+  isMoreOpen?: boolean;
+  onMoreToggle?: () => void;
+  onMoreClose?: () => void;
+
   // Show/hide buttons
   showLike?: boolean;
   showRepost?: boolean;
@@ -30,6 +35,9 @@ type TrackActionsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   onMore?: () => void;
+
+  onAddToPlaylist?: () => void;
+  onStation?: () => void;
 };
 
 export default function TrackActions({
@@ -38,6 +46,10 @@ export default function TrackActions({
   variant = 'ghost',
   isLiked = false,
   isReposted = false,
+  isMoreOpen = false,
+  onMoreToggle,
+  onMoreClose,
+
   showLike = true,
   showRepost = true,
   showShare = true,
@@ -45,6 +57,8 @@ export default function TrackActions({
   showAddToQueue = false,
   showEdit = false,
   showDelete = false,
+  showMore = false,
+
   onLike,
   onRepost,
   onShare,
@@ -52,6 +66,9 @@ export default function TrackActions({
   onAddToQueue,
   onEdit,
   onDelete,
+
+  onAddToPlaylist,
+  onStation,
 }: TrackActionsProps) {
   return (
     <div className={`flex gap-1 ${className}`}>
@@ -87,7 +104,7 @@ export default function TrackActions({
           <Copy size={size} />
         </Button>
       )}
-      {showAddToQueue && (
+      {/* {showAddToQueue && (
         <Button
           variant={variant}
           aria-label="Add to queue"
@@ -96,7 +113,7 @@ export default function TrackActions({
         >
           <ListPlus size={size} />
         </Button>
-      )}
+      )} */}
       {showEdit && onEdit && (
         <Button variant={variant} aria-label="Edit" onClick={onEdit}>
         <Pencil size={size} />
@@ -111,6 +128,16 @@ export default function TrackActions({
         >
           <Trash2 size={size} />
         </Button>
+      )}
+      {showMore && (
+        <TrackMoreDropdown
+          isOpen={isMoreOpen}
+          onToggle={() => onMoreToggle?.()}
+          onClose={() => onMoreClose?.()}
+          onAddToNextUp={showAddToQueue ? onAddToQueue : undefined}
+          onAddToPlaylist={onAddToPlaylist}
+          onStation={onStation}
+        />
       )}
     </div>
   );
