@@ -60,7 +60,7 @@ export default function CreatePlaylistTab({
               value="public"
               checked={privacy === 'public'}
               onChange={() => onPrivacyChange('public')}
-              className="accent-brand-primary"
+              className="accent-text-primary"
             />
             <span className="text-[13px] text-text-primary">Public</span>
           </label>
@@ -71,7 +71,7 @@ export default function CreatePlaylistTab({
               value="private"
               checked={privacy === 'private'}
               onChange={() => onPrivacyChange('private')}
-              className="accent-brand-primary"
+              className="accent-text-primary"
             />
             <span className="text-[13px] text-text-primary">Private</span>
           </label>
