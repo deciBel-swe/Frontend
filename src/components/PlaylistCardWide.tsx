@@ -9,8 +9,11 @@ import Waveform from '@/components/waveform/Waveform';
 import TrackActions from '@/components/TrackActions';
 import TimeAgo from '@/components/TimeAgo';
 import { usePlayerStore } from '@/features/player/store/playerStore';
-import { useDeletePlaylist } from '@/hooks/usePlaylists';
-
+import {
+  useDeletePlaylist,
+  useTogglePlaylistLike,
+  useTogglePlaylistRepost,
+} from '@/hooks/usePlaylists';
 type PlaylistCardWideProps = {
   playlistId: string;
   user: {
@@ -37,6 +40,7 @@ type PlaylistCardWideProps = {
   };
   showEditButton?: boolean;
   showHeader?: boolean;
+  onEdit?: () => void;
 };
 
 export default function PlaylistCardWide({
@@ -55,6 +59,30 @@ export default function PlaylistCardWide({
   );
   const [isLiked, setIsLiked] = useState(playlist.isLiked ?? false);
   const [isReposted, setIsReposted] = useState(playlist.isReposted ?? false);
+
+  const { mutate: toggleLike } = useTogglePlaylistLike();
+  const { mutate: toggleRepost } = useTogglePlaylistRepost();
+
+  const handleLike = () => {
+    setIsLiked(!isLiked); // Optimistic update
+    toggleLike({ playlistId: Number(playlistId), isLiked });
+  };
+
+  const handleRepost = () => {
+    setIsReposted(!isReposted); // Optimistic update
+    toggleRepost({ playlistId: Number(playlistId), isReposted });
+  };
+
+  const handleShare = () => {
+    const fullUrl = `${window.location.origin}${playlistLink}`;
+    if (navigator.share) {
+      navigator
+        .share({ title: playlist.title, url: fullUrl })
+        .catch(console.error);
+    } else {
+      handleCopyLink();
+    }
+  };
 
   const handleAddToQueue = () => {
     if (!playlist.tracks || playlist.tracks.length === 0) return;
@@ -174,13 +202,13 @@ export default function PlaylistCardWide({
               showAddToQueue={true}
               isLiked={isLiked}
               isReposted={isReposted}
-              onLike={() => setIsLiked(!isLiked)}
-              onRepost={() => setIsReposted(!isReposted)}
+              onLike={handleLike}
+              onRepost={handleRepost}
               onAddToQueue={handleAddToQueue}
               onEdit={onEdit}
               onDelete={handleDelete}
-              onShare={() => {}}
-              onCopy={() => {}}
+              onShare={handleShare}
+              onCopy={handleCopyLink}
             />
 
             <div className="ml-auto flex items-center gap-4 text-xs text-text-muted font-semibold">

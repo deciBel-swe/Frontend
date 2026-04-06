@@ -3,6 +3,8 @@ import { useParams } from 'next/navigation';
 import { useUserPlaylists } from '@/hooks/usePlaylists';
 import PlaylistCardWide from '@/components/PlaylistCardWide';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+import EditPlaylistModal from '@/components/playlist/EditPlaylistModal';
+import { useState } from 'react';
 
 interface PlaylistWithMetadata {
   id: number;
@@ -34,6 +36,8 @@ const TrackListFallback = () => (
 
 export default function Page() {
   const { username } = useParams<{ username: string }>();
+  const [editingPlaylist, setEditingPlaylist] =
+    useState<PlaylistWithMetadata | null>(null);
 
   const { data: profileData } = usePublicUser(username);
   const userId = profileData?.profile.id;
@@ -89,10 +93,25 @@ export default function Page() {
               }}
               showEditButton={userId === profileData?.profile.id}
               showHeader={false}
+              onEdit={() => setEditingPlaylist(playlist)}
             />
           );
-        })}{' '}
+        })}
       </div>
+
+      {/* Mount the modal if a playlist is selected */}
+      {editingPlaylist && (
+        <EditPlaylistModal
+          open={!!editingPlaylist}
+          onClose={() => setEditingPlaylist(null)}
+          playlist={{
+            id: editingPlaylist.id,
+            title: editingPlaylist.title,
+            // Map your backend's privacy field here if it exists, defaulting to false
+            isPrivate: false,
+          }}
+        />
+      )}
     </div>
   );
 }

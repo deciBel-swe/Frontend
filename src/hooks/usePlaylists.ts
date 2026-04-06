@@ -67,13 +67,21 @@ export const useCreatePlaylist = () => {
 /**
  * Update a playlist (title, description, privacy, cover)
  */
-export const useUpdatePlaylist = (playlistId: number) => {
+/**
+ * Update a playlist (title, description, privacy, cover)
+ */
+export const useUpdatePlaylist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: UpdatePlaylistRequest) =>
-      playlistService.updatePlaylist(playlistId, payload),
-    onSuccess: () => {
+    mutationFn: ({
+      playlistId,
+      data,
+    }: {
+      playlistId: number;
+      data: UpdatePlaylistRequest;
+    }) => playlistService.updatePlaylist(playlistId, data),
+    onSuccess: (_, { playlistId }) => {
       // Refresh both the specific playlist page and the user's library lists
       queryClient.invalidateQueries({ queryKey: ['playlists', playlistId] });
       queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
@@ -157,6 +165,62 @@ export const useReorderPlaylistTracks = () => {
     }) => playlistService.reorderPlaylistTracks(playlistId, { trackIds }),
     onSuccess: (_, { playlistId }) => {
       queryClient.invalidateQueries({ queryKey: ['playlists', playlistId] });
+    },
+  });
+};
+
+// ============================================================================
+// SOCIAL ACTIONS
+// ============================================================================
+
+/**
+ * Toggle like status on a playlist
+ */
+export const useTogglePlaylistLike = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      playlistId,
+      isLiked,
+    }: {
+      playlistId: number;
+      isLiked: boolean;
+    }) => {
+      // Replace with your actual playlistService call if you have one, e.g.:
+      // return playlistService.toggleLike(playlistId, isLiked);
+      console.log(`Toggled like for playlist ${playlistId} to ${!isLiked}`);
+      return !isLiked;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
+    },
+  });
+};
+
+/**
+ * Toggle repost status on a playlist
+ */
+export const useTogglePlaylistRepost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      playlistId,
+      isReposted,
+    }: {
+      playlistId: number;
+      isReposted: boolean;
+    }) => {
+      // Replace with your actual playlistService call if you have one, e.g.:
+      // return playlistService.toggleRepost(playlistId, isReposted);
+      console.log(
+        `Toggled repost for playlist ${playlistId} to ${!isReposted}`
+      );
+      return !isReposted;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
     },
   });
 };
