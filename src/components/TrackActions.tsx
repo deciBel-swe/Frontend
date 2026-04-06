@@ -1,22 +1,31 @@
-// TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, Pencil, Trash2, ListPlus } from 'lucide-react';
+import {
+  Heart,
+  Repeat2,
+  Share2,
+  Copy,
+  Pencil,
+  Trash2,
+  ListPlus,
+  ListMusic,
+} from 'lucide-react';
 import Button from '@/components/buttons/Button';
 
 type TrackActionsProps = {
   size?: number;
   className?: string;
-  variant?: 'ghost' | 'secondary' | 'primary'| 'premium';
+  variant?: 'ghost' | 'secondary' | 'primary' | 'premium';
   isLiked?: boolean;
   isReposted?: boolean;
-  
+
   // Show/hide buttons
   showLike?: boolean;
   showRepost?: boolean;
   showShare?: boolean;
   showCopy?: boolean;
   showAddToQueue?: boolean;
+  showAddToPlaylist?: boolean;
   showEdit?: boolean;
   showDelete?: boolean;
   showMore?: boolean;
@@ -27,6 +36,7 @@ type TrackActionsProps = {
   onShare?: () => void;
   onCopy?: () => void;
   onAddToQueue?: () => void;
+  onAddToPlaylist?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onMore?: () => void;
@@ -43,6 +53,7 @@ export default function TrackActions({
   showShare = true,
   showCopy = true,
   showAddToQueue = false,
+  showAddToPlaylist = false,
   showEdit = false,
   showDelete = false,
   onLike,
@@ -50,6 +61,7 @@ export default function TrackActions({
   onShare,
   onCopy,
   onAddToQueue,
+  onAddToPlaylist,
   onEdit,
   onDelete,
 }: TrackActionsProps) {
@@ -97,9 +109,18 @@ export default function TrackActions({
           <ListPlus size={size} />
         </Button>
       )}
+      {showAddToPlaylist && onAddToPlaylist && (
+        <Button
+          variant={variant}
+          aria-label="Add to playlist"
+          onClick={onAddToPlaylist}
+        >
+          <ListMusic size={size} />
+        </Button>
+      )}
       {showEdit && onEdit && (
         <Button variant={variant} aria-label="Edit" onClick={onEdit}>
-        <Pencil size={size} />
+          <Pencil size={size} />
         </Button>
       )}
       {showDelete && onDelete && (

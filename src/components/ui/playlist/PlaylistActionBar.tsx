@@ -9,6 +9,7 @@ type PlaylistActionBarProps = {
   onEdit?: () => void;
   onMore?: () => void;
   onDelete?: () => void;
+  onAddToQueue?: () => void; // <-- Added this
 };
 
 export default function PlaylistActionBar({
@@ -16,6 +17,8 @@ export default function PlaylistActionBar({
   onCopyLink,
   onEdit,
   onMore,
+  onDelete,
+  onAddToQueue, // <-- Added this
 }: PlaylistActionBarProps) {
   return (
     <div className="flex items-center gap-1 px-3 py-2.5">
@@ -26,10 +29,14 @@ export default function PlaylistActionBar({
         showCopy
         showEdit
         showMore
+        showDelete={!!onDelete}
+        showAddToQueue={!!onAddToQueue} // <-- Added this
         onShare={onShare}
         onCopy={onCopyLink}
         onEdit={onEdit}
         onMore={onMore}
+        onDelete={onDelete}
+        onAddToQueue={onAddToQueue} // <-- Added this
       />
     </div>
   );

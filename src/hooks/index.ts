@@ -163,3 +163,16 @@ export { useTrackLayoutPreference } from './useTrackLayoutPreference';
  */
 export { useFeedSidebar } from './useFeedSidebar';
 export { useProfileSidebar } from './useProfileSidebar';
+
+/**
+ * Playlist Data & Mutation hooks.
+ */
+export { useMePlaylists } from './usePlaylists';
+export { useUserPlaylists } from './usePlaylists';
+export { usePlaylist } from './usePlaylists';
+export { useCreatePlaylist } from './usePlaylists';
+export { useUpdatePlaylist } from './usePlaylists';
+export { useDeletePlaylist } from './usePlaylists';
+export { useAddTrackToPlaylist } from './usePlaylists';
+export { useRemoveTrackFromPlaylist } from './usePlaylists';
+export { useReorderPlaylistTracks } from './usePlaylists';

@@ -18,6 +18,7 @@ import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
+import AddToPlaylistModal from '@/components/playlist/AddToPlaylistModal';
 import CompactTrackList from '@/components/CompactTrackList';
 import TrackActions from '@/components/TrackActions';
 import TimeAgo from '@/components/TimeAgo';
@@ -28,18 +29,23 @@ import { parseDurationToSeconds } from '@/utils/parseDuration';
 /**
  * Shallow queue identity check used to avoid resetting queue on every track click.
  */
-const isSameQueue = (currentQueue: PlayerTrack[], incomingQueue: PlayerTrack[]): boolean => {
+const isSameQueue = (
+  currentQueue: PlayerTrack[],
+  incomingQueue: PlayerTrack[]
+): boolean => {
   if (currentQueue.length !== incomingQueue.length) {
     return false;
   }
 
-  return currentQueue.every((track, index) => track.id === incomingQueue[index]?.id);
+  return currentQueue.every(
+    (track, index) => track.id === incomingQueue[index]?.id
+  );
 };
 
 type TrackCardProps = {
   trackId: string;
   isPrivate?: boolean;
-  
+
   user: {
     name: string;
     avatar: string;
@@ -52,9 +58,9 @@ type TrackCardProps = {
   // showCommentInput?: boolean;
   /** Current user's avatar for the comment input */
   currentUserAvatar?: string;
-    // New prop to conditionally show the track list
+  // New prop to conditionally show the track list
   showTrackList?: boolean;
-  showHeader?: boolean; 
+  showHeader?: boolean;
 
   track: {
     id: number;
@@ -62,8 +68,8 @@ type TrackCardProps = {
     title: string;
     cover: string;
     duration: string;
-    plays?: number;        // optional number of plays
-    comments?: number;     // optional number of messages/comments
+    plays?: number; // optional number of plays
+    comments?: number; // optional number of messages/comments
     createdAt?: string; // ISO date
     genre?: string;
     isLiked?: boolean;
@@ -98,12 +104,11 @@ export default function TrackCard({
   // timeAgoText = '',
   // showCommentInput = false,
   showHeader = true,
-
 }: TrackCardProps) {
   const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
   // const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
-
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
 
@@ -123,7 +128,9 @@ export default function TrackCard({
   });
 
   const playerQueue = usePlayerStore((state) => state.queue);
-  const currentPlayerTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
+  const currentPlayerTrackId = usePlayerStore(
+    (state) => state.currentTrack?.id ?? null
+  );
   const playerCurrentTime = usePlayerStore((state) => state.currentTime);
   const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
@@ -187,7 +194,8 @@ export default function TrackCard({
   );
   const isCurrentTrackPlaying = usePlayerStore(
     (state) =>
-      Number(state.currentTrack?.id ?? -1) === Number(cardTrackId) && state.isPlaying
+      Number(state.currentTrack?.id ?? -1) === Number(cardTrackId) &&
+      state.isPlaying
   );
 
   useEffect(() => {
@@ -208,9 +216,7 @@ export default function TrackCard({
   }, [clearPendingCommentSelection, isCurrentPlaybackTrack]);
 
   const waveformDurationSeconds = knownDurationSeconds;
-  const waveformCurrentTime = isCurrentPlaybackTrack
-    ? playerCurrentTime
-    : 0;
+  const waveformCurrentTime = isCurrentPlaybackTrack ? playerCurrentTime : 0;
 
   /**
    * Queue-aware play handler.
@@ -234,7 +240,9 @@ export default function TrackCard({
     }
 
     if (queueTracks && queueTracks.length > 0) {
-      const startIndex = queueTracks.findIndex((item) => item.id === playback.id);
+      const startIndex = queueTracks.findIndex(
+        (item) => item.id === playback.id
+      );
       if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
         setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
       }
@@ -257,7 +265,9 @@ export default function TrackCard({
 
       if (!isSameTrack) {
         if (queueTracks && queueTracks.length > 0) {
-          const startIndex = queueTracks.findIndex((item) => item.id === playback.id);
+          const startIndex = queueTracks.findIndex(
+            (item) => item.id === playback.id
+          );
           if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
             setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
           }
@@ -285,7 +295,11 @@ export default function TrackCard({
   };
 
   const handleAddToQueue = () => {
-    if (!playback || playback.access === 'BLOCKED' || playback.trackUrl.trim().length === 0) {
+    if (
+      !playback ||
+      playback.access === 'BLOCKED' ||
+      playback.trackUrl.trim().length === 0
+    ) {
       return;
     }
 
@@ -296,7 +310,9 @@ export default function TrackCard({
     return null;
   }
   return (
-    <div className={`bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3 ${isBlocked ? 'opacity-60' : ''}`}>
+    <div
+      className={`bg-surface-default text-text-primary p-2 sm:p-3 rounded-lg w-full my-3 ${isBlocked ? 'opacity-60' : ''}`}
+    >
       {/* HEADER (soundContext) */}
       {showHeader && (
         <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
@@ -304,18 +320,18 @@ export default function TrackCard({
             <Image
               src={user.avatar}
               className="w-8 h-8 rounded-full object-cover"
-              width ={32}
+              width={32}
               height={32}
               alt={user.name}
             />
           </Link>
 
-        <div>
-          <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/${userSlug}`}>{user.name}</Link>
-          </span>{' '}
-          {postedText}
-        </div>
+          <div>
+            <span className="text-text-primary font-medium hover:opacity-40">
+              <Link href={`/${userSlug}`}>{user.name}</Link>
+            </span>{' '}
+            {postedText}
+          </div>
         </div>
       )}
 
@@ -371,58 +387,61 @@ export default function TrackCard({
               )}
             </Button>
 
-<div className="flex flex-col w-full">
-<div className="flex items-center gap-2">
-  <Link
-    href={`/${userSlug}`}
-    className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
-  >
-    {track.artist}
-  </Link>
-   {repostedBy && (
-      <>
-        <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
-          <Link
-            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
-            className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
-          >
-            {repostedBy}
-          </Link>
-      </>
-    )}
+            <div className="flex flex-col w-full">
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/${userSlug}`}
+                  className="text-text-muted text-sm inline-flex self-start font-bold hover:opacity-40"
+                >
+                  {track.artist}
+                </Link>
+                {repostedBy && (
+                  <>
+                    <Repeat2
+                      size={15}
+                      className="text-text-muted shrink-0"
+                      aria-label="reposted by"
+                    />
+                    <Link
+                      href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+                      className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
+                    >
+                      {repostedBy}
+                    </Link>
+                  </>
+                )}
 
-  {(track.createdAt || track.genre) && (
-    <div className="ml-auto flex flex-col items-end gap-1">
-      {track.createdAt && (
-        <div className="text-xs text-text-muted text-[11px]">
-          <TimeAgo date={track.createdAt} />
-        </div>
-      )}
+                {(track.createdAt || track.genre) && (
+                  <div className="ml-auto flex flex-col items-end gap-1">
+                    {track.createdAt && (
+                      <div className="text-xs text-text-muted text-[11px]">
+                        <TimeAgo date={track.createdAt} />
+                      </div>
+                    )}
 
-      {track.genre && (
-        <Link
-          href={`/tags/${encodeURIComponent(track.genre)}`}
-          className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
+                    {track.genre && (
+                      <Link
+                        href={`/tags/${encodeURIComponent(track.genre)}`}
+                        className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
            text-xs bg-interactive-default text-text-primary dark:bg-interactive-default dark:text-text-primary 
            hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors scale-105"
-        >
-          <span className="mr-1 font-semibold">#</span>
-          <span>{track.genre}</span>
-        </Link>
-      )}
-    </div>
-  )}
-</div>
+                      >
+                        <span className="mr-1 font-semibold">#</span>
+                        <span>{track.genre}</span>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
 
-
-<div className='flex w-full'>
-  <Link
-    href={`/${userSlug}/${track.id}`}
-    className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
-  >
-    {track.title}
-  </Link>
-{/* {track.genre && (
+              <div className="flex w-full">
+                <Link
+                  href={`/${userSlug}/${track.id}`}
+                  className="w-fit text-text-primary font-semibold inline-block hover:opacity-40"
+                >
+                  {track.title}
+                </Link>
+                {/* {track.genre && (
   <div className="flex-shrink-0 ml-auto">
     <Link
       href={`/tags/${encodeURIComponent(track.genre)}`}
@@ -435,8 +454,8 @@ export default function TrackCard({
     </Link>
   </div>
 )} */}
-    </div>
-</div>
+              </div>
+            </div>
           </div>
 
           {/* 2. WAVEFORM */}
@@ -448,253 +467,275 @@ export default function TrackCard({
             />
           </div> */}
           <div className="w-full relative">
-  <Waveform
-    data={waveform}
-    barClassName={isBlocked ? 'bg-text-muted' : 'bg-text-muted hover:bg-brand-primary'}
-    currentTime={waveformCurrentTime}
-    durationSeconds={waveformDurationSeconds}
-      onWaveformClick={handleWaveformClick}
-  />
-  <WaveformTimedComments
-  comments={timedComments} // only old comments
-  durationSeconds={waveformDurationSeconds}
-  currentUser={{ name: user.name, avatar: user.avatar }}
-  pendingTimestamp={null}   // nothing pending
-  pendingText=""             // nothing pending
-  setPendingText={() => {}} // noop
-  showCommentInput={false}  // old comments don't show input
-  onSubmit={() => {}}       // noop
-  showMarkers={true}        // show markers for old comments
-/>
-{waveformTimedCommentsVisible && (
-  <WaveformTimedComments
-    comments={[]}  // empty, we only want the new comment
-    durationSeconds={waveformDurationSeconds}
-    currentUser={{ name: user.name, avatar: user.avatar }}
-    pendingTimestamp={pendingTimestamp}
-    pendingText={pendingText}
-    setPendingText={setPendingText}
-    showCommentInput={true}  // show while typing
-    onSubmit={(text) => {
-      void submitTimedComment(text);
-    }}
-    showMarkers={true}
-/>
-)}
-</div>
+            <Waveform
+              data={waveform}
+              barClassName={
+                isBlocked
+                  ? 'bg-text-muted'
+                  : 'bg-text-muted hover:bg-brand-primary'
+              }
+              currentTime={waveformCurrentTime}
+              durationSeconds={waveformDurationSeconds}
+              onWaveformClick={handleWaveformClick}
+            />
+            <WaveformTimedComments
+              comments={timedComments} // only old comments
+              durationSeconds={waveformDurationSeconds}
+              currentUser={{ name: user.name, avatar: user.avatar }}
+              pendingTimestamp={null} // nothing pending
+              pendingText="" // nothing pending
+              setPendingText={() => {}} // noop
+              showCommentInput={false} // old comments don't show input
+              onSubmit={() => {}} // noop
+              showMarkers={true} // show markers for old comments
+            />
+            {waveformTimedCommentsVisible && (
+              <WaveformTimedComments
+                comments={[]} // empty, we only want the new comment
+                durationSeconds={waveformDurationSeconds}
+                currentUser={{ name: user.name, avatar: user.avatar }}
+                pendingTimestamp={pendingTimestamp}
+                pendingText={pendingText}
+                setPendingText={setPendingText}
+                showCommentInput={true} // show while typing
+                onSubmit={(text) => {
+                  void submitTimedComment(text);
+                }}
+                showMarkers={true}
+              />
+            )}
+          </div>
 
           {/* 3. Inline comment input (shown on likes page) */}
           {showCommentInput && (
             <div className="px-1 sm:px-2">
-             <CommentInput
-               onFocus={onCommentInputFocus}
-  avatarUrl={user.avatar}
-  value={pendingText}
-  onChange={setPendingText}
-  onSubmit={(text: string) => {
-    void submitTimedComment(text);
-  }}
-  placeholder="Write a comment…"
-/>
+              <CommentInput
+                onFocus={onCommentInputFocus}
+                avatarUrl={user.avatar}
+                value={pendingText}
+                onChange={setPendingText}
+                onSubmit={(text: string) => {
+                  void submitTimedComment(text);
+                }}
+                placeholder="Write a comment…"
+              />
             </div>
           )}
 
           {/* 2a. Track list */}
           {showTrackList && (
-<CompactTrackList
-  tracks={[
-    {
-      id: 1,
-      title: 'No Promises',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-000244807472-dvac3y-t120x120.jpg',
-      plays: '39.7M',
-    },
-    {
-      id: 2,
-      title: 'Undefeated (feat. 21 Savage)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-000244805227-4pqktm-t120x120.jpg',
-      plays: '15.5M',
-    },
-    {
-      id: 3,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 4,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 5,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 6,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-            {
-      id: 7,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 8,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 9,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-            {
-      id: 10,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 11,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 12,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-            {
-      id: 13,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 14,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-        {
-      id: 15,
-      title: 'Drowning (feat. Kodak Black)',
-      artist: 'A Boogie Wit Da Hoodie',
-      coverUrl: 'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
-      plays: 'Unavailable',
-      available: false,
-    },
-  ]}
-/>
-)}
-{/* {showComments && (
+            <CompactTrackList
+              tracks={[
+                {
+                  id: 1,
+                  title: 'No Promises',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-000244807472-dvac3y-t120x120.jpg',
+                  plays: '39.7M',
+                },
+                {
+                  id: 2,
+                  title: 'Undefeated (feat. 21 Savage)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-000244805227-4pqktm-t120x120.jpg',
+                  plays: '15.5M',
+                },
+                {
+                  id: 3,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 4,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 5,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 6,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 7,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 8,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 9,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 10,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 11,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 12,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 13,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 14,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+                {
+                  id: 15,
+                  title: 'Drowning (feat. Kodak Black)',
+                  artist: 'A Boogie Wit Da Hoodie',
+                  coverUrl:
+                    'https://i1.sndcdn.com/artworks-tii3xobg7kRq-0-t120x120.jpg',
+                  plays: 'Unavailable',
+                  available: false,
+                },
+              ]}
+            />
+          )}
+          {/* {showComments && (
   <CommentInput user={user} onPost={handleCommentPost} />
 )} */}
 
-        <div className="flex items-center w-full">
-  {/* LEFT: actions */}
-  <TrackActions
-    size={16}
-    showEdit={showEditButton}
-    showDelete={showEditButton}
-    showAddToQueue={Boolean(playback)}
-    isLiked={isLiked}
-    isReposted={isReposted}
-    onEdit={() => setEditOpen(true)}
-    onDelete={() => {
-      if (!showEditButton || isDeletePending) {
-        return;
-      }
+          <div className="flex items-center w-full">
+            {/* LEFT: actions */}
+            <TrackActions
+              size={16}
+              showEdit={showEditButton}
+              showDelete={showEditButton}
+              showAddToQueue={Boolean(playback)}
+              showAddToPlaylist={true}
+              isLiked={isLiked}
+              isReposted={isReposted}
+              onEdit={() => setEditOpen(true)}
+              onDelete={() => {
+                if (!showEditButton || isDeletePending) {
+                  return;
+                }
 
-      const confirmed = typeof window === 'undefined'
-        ? false
-        : window.confirm('Delete this track?');
+                const confirmed =
+                  typeof window === 'undefined'
+                    ? false
+                    : window.confirm('Delete this track?');
 
-      if (!confirmed) {
-        return;
-      }
+                if (!confirmed) {
+                  return;
+                }
 
-      void onDeleteTrack();
-    }}
-    onLike={() => {
-      void onLike();
-    }}
-    onRepost={() => {
-      void onRepost();
-    }}
-    onShare={() => setIsShareOpen(true)}
-    onCopy={handleCopy}
-    onAddToQueue={handleAddToQueue}
-  />
+                void onDeleteTrack();
+              }}
+              onLike={() => {
+                void onLike();
+              }}
+              onRepost={() => {
+                void onRepost();
+              }}
+              onShare={() => setIsShareOpen(true)}
+              onCopy={handleCopy}
+              onAddToQueue={handleAddToQueue}
+              onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
+            />
 
-{/* RIGHT: stats */}
-<div className="ml-auto flex items-center gap-4 text-xs text-text-muted font-semibold">
-  <div className="flex items-center gap-1">
-    <Heart size={14} />
-    <span>{likeCount}</span>
-  </div>
+            {/* RIGHT: stats */}
+            <div className="ml-auto flex items-center gap-4 text-xs text-text-muted font-semibold">
+              <div className="flex items-center gap-1">
+                <Heart size={14} />
+                <span>{likeCount}</span>
+              </div>
 
-  <div className="flex items-center gap-1">
-    <Repeat2 size={14} />
-    <span>{repostCount}</span>
-  </div>
+              <div className="flex items-center gap-1">
+                <Repeat2 size={14} />
+                <span>{repostCount}</span>
+              </div>
 
-  {track.plays && (
-    <div className="flex items-center gap-1">
-      <Play size={14} />
-      <span>{track.plays}</span>
-    </div>
-  )}
+              {track.plays && (
+                <div className="flex items-center gap-1">
+                  <Play size={14} />
+                  <span>{track.plays}</span>
+                </div>
+              )}
 
-  {track.comments && (
-    <Link
-      href={`/${userSlug}/${track.id}/comments`}
-      className="flex items-center gap-1 hover:underline"
-    >
-      <MessageCircle size={14} />
-      <span>{track.comments}</span>
-    </Link>
-  )}
-</div>
-</div>
-</div>
+              {track.comments && (
+                <Link
+                  href={`/${userSlug}/${track.id}/comments`}
+                  className="flex items-center gap-1 hover:underline"
+                >
+                  <MessageCircle size={14} />
+                  <span>{track.comments}</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
         {/* DURATION */}
         <div className="text-xs text-text-muted pt-1">{track.duration}</div>
       </div>
@@ -712,12 +753,22 @@ export default function TrackCard({
           duration: track.duration,
         }}
       />
-  
+
       <EditTrackModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         trackId={track.id}
         track={{ title: track.title, artist: track.artist, cover: track.cover }}
+      />
+      <AddToPlaylistModal
+        open={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        trackId={Number(trackId)}
+        track={{
+          title: track.title,
+          artist: track.artist,
+          coverUrl: track.cover,
+        }}
       />
     </div>
   );

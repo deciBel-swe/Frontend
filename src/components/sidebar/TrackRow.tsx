@@ -1,14 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Play,
-  Heart,
-  MessageCircle,
-  Repeat,
-} from 'lucide-react';
-import React from 'react';
+import { Play, Heart, MessageCircle, Repeat, ListMusic } from 'lucide-react';
+import React, { useState } from 'react';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import AddToPlaylistModal from '@/components/playlist/AddToPlaylistModal';
 import type {
   PlayerTrack,
   QueueSource,
@@ -37,12 +33,17 @@ interface TrackRowProps {
   onMore?: () => void;
 }
 
-const isSameQueue = (currentQueue: PlayerTrack[], incomingQueue: PlayerTrack[]): boolean => {
+const isSameQueue = (
+  currentQueue: PlayerTrack[],
+  incomingQueue: PlayerTrack[]
+): boolean => {
   if (currentQueue.length !== incomingQueue.length) {
     return false;
   }
 
-  return currentQueue.every((track, index) => track.id === incomingQueue[index]?.id);
+  return currentQueue.every(
+    (track, index) => track.id === incomingQueue[index]?.id
+  );
 };
 
 const TrackRow: React.FC<TrackRowProps> = ({
@@ -56,19 +57,30 @@ const TrackRow: React.FC<TrackRowProps> = ({
   queueSource,
 }) => {
   const playerQueue = usePlayerStore((state) => state.queue);
-  const currentPlayerTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
+  const currentPlayerTrackId = usePlayerStore(
+    (state) => state.currentTrack?.id ?? null
+  );
   const isCurrentTrackPlaying = usePlayerStore(
-    (state) => Number(state.currentTrack?.id ?? -1) === Number(playback?.id ?? -1) && state.isPlaying
+    (state) =>
+      Number(state.currentTrack?.id ?? -1) === Number(playback?.id ?? -1) &&
+      state.isPlaying
   );
   const setQueue = usePlayerStore((state) => state.setQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
 
-  const artistSlug = encodeURIComponent(artist.toLowerCase().replace(/\s+/g, ''));
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const numericTrackId = Number(trackId ?? playback?.id);
+
+  const artistSlug = encodeURIComponent(
+    artist.toLowerCase().replace(/\s+/g, '')
+  );
 
   const artistUrl = `/${artistSlug}`;
   const trackUrl =
-    trackId === undefined ? artistUrl : `/${artistSlug}/${encodeURIComponent(String(trackId))}`;
+    trackId === undefined
+      ? artistUrl
+      : `/${artistSlug}/${encodeURIComponent(String(trackId))}`;
 
   const isBlocked = playback?.access === 'BLOCKED';
 
@@ -89,7 +101,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
     }
 
     if (queueTracks && queueTracks.length > 0) {
-      const startIndex = queueTracks.findIndex((track) => track.id === playback.id);
+      const startIndex = queueTracks.findIndex(
+        (track) => track.id === playback.id
+      );
       if (startIndex >= 0 && !isSameQueue(playerQueue, queueTracks)) {
         setQueue(queueTracks, startIndex, queueSource ?? 'unknown');
       }
@@ -136,8 +150,19 @@ const TrackRow: React.FC<TrackRowProps> = ({
           <div className="flex-1" />
 
           {/* RIGHT: ACTION BUTTONS */}
-
-
+          <div className="flex items-center gap-1 shrink-0 pl-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (numericTrackId) setIsPlaylistModalOpen(true);
+              }}
+              className="p-1.5 text-text-muted hover:text-text-primary transition-colors rounded-full hover:bg-surface-default"
+              title="Add to playlist"
+            >
+              <ListMusic size={16} />
+            </button>
+          </div>
         </div>
         {/* STATS */}
         <div className="flex items-center gap-3 text-xs mt-1">
@@ -178,6 +203,19 @@ const TrackRow: React.FC<TrackRowProps> = ({
           <MoreHorizontal size={18} />
         </Button>
       </div> */}
+      {/* MODAL */}
+      {numericTrackId ? (
+        <AddToPlaylistModal
+          open={isPlaylistModalOpen}
+          onClose={() => setIsPlaylistModalOpen(false)}
+          trackId={numericTrackId}
+          track={{
+            title: title,
+            artist: artist,
+            coverUrl: image,
+          }}
+        />
+      ) : null}
     </div>
   );
 };

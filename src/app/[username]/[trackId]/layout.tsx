@@ -1,10 +1,11 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 
 import TrackActionBar from '@/components/TrackActionBar';
 import TrackHero from '@/components/TrackHero';
+import AddToPlaylistModal from '@/components/playlist/AddToPlaylistModal';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
 
 type LayoutProps = {
@@ -12,7 +13,12 @@ type LayoutProps = {
 };
 
 export default function Layout({ children }: LayoutProps) {
-  const { username, trackId } = useParams<{ username: string; trackId: string }>();
+  const { username, trackId } = useParams<{
+    username: string;
+    trackId: string;
+  }>();
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+
   const {
     hero,
     waveformComments,
@@ -35,9 +41,13 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="w-full">
       {isLoading && !hero ? (
-        <div className="w-full mt-4 text-sm text-text-muted">Loading track...</div>
+        <div className="w-full mt-4 text-sm text-text-muted">
+          Loading track...
+        </div>
       ) : isError || !hero ? (
-        <div className="w-full mt-4 text-sm text-text-muted">Failed to load track.</div>
+        <div className="w-full mt-4 text-sm text-text-muted">
+          Failed to load track.
+        </div>
       ) : (
         <div className="w-full min-w-0 mt-4">
           <TrackHero
@@ -69,6 +79,18 @@ export default function Layout({ children }: LayoutProps) {
             }}
             onRepost={() => {
               void onRepost();
+            }}
+            onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
+          />
+
+          <AddToPlaylistModal
+            open={isPlaylistModalOpen}
+            onClose={() => setIsPlaylistModalOpen(false)}
+            trackId={Number(trackId)}
+            track={{
+              title: hero.title,
+              artist: hero.artistName,
+              coverUrl: hero.coverUrl,
             }}
           />
         </div>
