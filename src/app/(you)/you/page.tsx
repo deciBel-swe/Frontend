@@ -15,7 +15,7 @@ export default function Page() {
     }
 
     if (user?.username) {
-      router.replace(`/${encodeURIComponent(user.username)}`);
+      router.replace(`/${user.username}`);
       return;
     }
 

@@ -143,6 +143,7 @@ const normalizeTrackMetadata = (
     artist: {
       id: artistId,
       username: artistUsername,
+      displayName: payload.artist?.displayName,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
     access: payload.access ?? 'PLAYABLE',

@@ -71,6 +71,7 @@ describe('low-coverage data hooks', () => {
 
     mockUseAuth.mockReturnValue({
       user: { id: 77, username: 'owner-user', avatarUrl: '/me.png' },
+      isAuthenticated: true,
       isLoading: false,
     });
 
@@ -94,13 +95,15 @@ describe('low-coverage data hooks', () => {
         {
           id: '1',
           username: 'alpha',
+          displayName: undefined,
           avatarSrc: '/a.png',
           followerCount: 0,
           isFollowing: true,
         },
         {
-          id: 'Bravo-1',
-          username: 'Bravo',
+          id: 'unknown-1',
+          username: 'unknown',
+          displayName: 'Bravo',
           avatarSrc: undefined,
           followerCount: 0,
           isFollowing: false,
@@ -295,7 +298,8 @@ describe('low-coverage data hooks', () => {
         page: 1,
         size: 5,
       });
-      expect(result.current.users[0].username).toBe('Reposter');
+      expect(result.current.users[0].username).toBe('unknown');
+      expect(result.current.users[0].displayName).toBe('Reposter');
     });
 
     it('marks hook as error for invalid track id', async () => {
@@ -474,7 +478,10 @@ describe('low-coverage data hooks', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.tracks).toHaveLength(1);
-      expect(result.current.tracks[0].repostedBy).toBe('owner-user');
+      expect(result.current.tracks[0].repostedBy).toEqual({
+        username: 'owner-user',
+        displayName: undefined,
+      });
       expect(result.current.tracks[0].access).toBe('BLOCKED');
       expect(result.current.isError).toBe(false);
     });

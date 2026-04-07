@@ -9,7 +9,8 @@ import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess';
 import { toTrackSlug, uploadSchema } from '@/types/uploadSchema';
 import type { TrackPrivacyValue } from '@/types/tracks';
-
+import { useAuth } from '@/hooks';
+import { config } from '@/config';
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
 const ALLOWED_TYPES = [
   'audio/mpeg',
@@ -32,6 +33,7 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 };
 
 export default function UploadView() {
+  const {user} = useAuth();
   const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
@@ -173,7 +175,7 @@ export default function UploadView() {
       );
       setUploadComplete(true);
       setIsUploading(false);
-      setUploadedTrackUrl(response.trackUrl);
+      setUploadedTrackUrl(`${config.urls.domainName}/${user?.username}/${response.id}`);
     } catch (err) {
       setError(getWaveformParseErrorMessage(err));
       setIsUploading(false);

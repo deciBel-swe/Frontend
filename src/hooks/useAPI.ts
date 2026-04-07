@@ -38,7 +38,7 @@ import { config } from '@/config';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import { apiErrorDTOSchema, type ApiErrorDTO } from '@/types';
-
+import toast from 'react-hot-toast';
 /**
  * Shared querystring parameter shape for API requests.
  */
@@ -200,6 +200,19 @@ export const attachJwtInterceptor = (
   return requestConfig;
 };
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+
+    if (status === 403) {
+      toast.error('Please log in to continue');
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 apiClient.interceptors.request.use(attachJwtInterceptor);
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
@@ -244,6 +257,7 @@ export const handleAuthRefreshOnUnauthorized = async (
   error: unknown
 ): Promise<unknown> => {
   if (!axios.isAxiosError(error) || !shouldHandleUnauthorized(error)) {
+    
     return Promise.reject(error);
   }
 
@@ -254,6 +268,9 @@ export const handleAuthRefreshOnUnauthorized = async (
     await refreshSessionToken();
     return apiClient.request(requestConfig);
   } catch {
+    const { authService } = await import('@/services');
+    authService.clearSession();
+    toast.error('Please log in to continue');
     return Promise.reject(error);
   }
 };
@@ -361,14 +378,13 @@ export const apiRequest = async <TRequest, TResponse>(
     headers: requestOptions.headers,
     onUploadProgress: requestOptions.onUploadProgress,
   });
-
   const responsePayload =
     response.status === 204 || response.data === '' ? undefined : response.data;
 
   return parseWithSchema(
     endpoint.responseSchema,
     responsePayload,
-    `Invalid response DTO for ${endpoint.url}`
+    `Invalid response DTO from ${endpoint.url}`
   );
 };
 

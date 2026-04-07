@@ -10,7 +10,8 @@ type SidebarProps = {
   Artist_header: string
   artists?: {
     id?: number;
-    name: string;
+    username: string;
+    displayName?: string;
     followers: number;
     tracks: number;
     isFollowing?: boolean;
@@ -22,6 +23,7 @@ type SidebarProps = {
     trackId?: string | number;
     image: string;
     artist: string;
+    artistUsername?: string;
     title: string;
     playback?: PlayerTrack;
     stats: {

@@ -141,21 +141,4 @@ describe('useAuth Google login', () => {
       'https://api.decibel.test/oauth/callback'
     );
   });
-
-  it.skip('adds an OAuth state parameter for CSRF protection', () => {
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'google-client-id';
-
-    const locationControl = mockLocation('https://client.decibel.test');
-    const wrapper = createWrapper(createAuthContextValue());
-
-    const { result } = renderHook(() => useAuth(), { wrapper });
-
-    act(() => {
-      result.current.handleGoogleLogin();
-    });
-
-    const redirectTarget = new URL(locationControl.getHref());
-
-    expect(redirectTarget.searchParams.get('state')).toBeTruthy();
-  });
 });

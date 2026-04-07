@@ -81,8 +81,8 @@ export const registrationSchema = z
         `Display name must be at most ${MAX_USERNAME_LENGTH} characters long.`
       )
       .regex(
-        /^[a-zA-Z0-9._-]+$/,
-        'Display name can only contain letters, numbers, dots, underscores, and hyphens.'
+        /^[a-zA-Z0-9._ -]+$/,
+        'Display name can only contain letters, numbers, dots, underscores,spaces and hyphens.'
       ),
     month: z.string().min(1, 'Month is required.'),
     day: z.string().min(1, 'Day is required.'),

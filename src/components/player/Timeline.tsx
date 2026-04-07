@@ -45,7 +45,7 @@ export default function Timeline({ duration, currentTime, onScrub }: TimelinePro
       <div 
         ref={trackRef}
         onMouseDown={handleMouseDown}
-        className="relative flex-1 h-6 flex items-center cursor-pointer"
+        className="relative flex-1 h-6 sm:flex items-center cursor-pointer hidden"
       >
         {/* Background Track (Gray) */}
         <div className="absolute w-full h-1 bg-border-strong rounded-full" />

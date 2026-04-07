@@ -42,13 +42,17 @@ type TrackCardProps = {
   isPrivate?: boolean;
   
   user: {
-    name: string;
+    username: string;
+    displayName?: string;
     avatar: string;
   };
   postedText?: string;
   // timeAgo?: string;
   showEditButton?: boolean;
-  repostedBy?: string;
+  repostedBy?: {
+    username: string;
+    displayName?: string;
+  };
   /** Show the inline comment input below the waveform */
   // showCommentInput?: boolean;
   /** Current user's avatar for the comment input */
@@ -101,7 +105,12 @@ export default function TrackCard({
   showHeader = true,
 
 }: TrackCardProps) {
-  const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
+  const userSlug = user.username.toLowerCase().replace(/\s+/g, '');
+  const userDisplayName = user.displayName?.trim() || user.username;
+  const repostedBySlug = repostedBy?.username.toLowerCase().replace(/\s+/g, '');
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
   // const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
 
@@ -311,13 +320,13 @@ export default function TrackCard({
               className="w-8 h-8 rounded-full object-cover"
               width ={32}
               height={32}
-              alt={user.name}
+              alt={userDisplayName}
             />
           </Link>
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/${userSlug}`}>{user.name}</Link>
+            <Link href={`/${userSlug}`}>{userDisplayName}</Link>
           </span>{' '}
           {postedText}
         </div>
@@ -384,14 +393,14 @@ export default function TrackCard({
   >
     {track.artist}
   </Link>
-   {repostedBy && (
+   {repostedBySlug && repostedByDisplayName && (
       <>
         <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
           <Link
-            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+            href={`/${repostedBySlug}`}
             className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
           >
-            {repostedBy}
+            {repostedByDisplayName}
           </Link>
       </>
     )}
@@ -405,15 +414,14 @@ export default function TrackCard({
       )}
 
       {track.genre && (
-        <Link
-          href={`/tags/${encodeURIComponent(track.genre)}`}
+        <button
           className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
            text-xs bg-interactive-default text-text-primary dark:bg-interactive-default dark:text-text-primary 
            hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors scale-105"
         >
           <span className="mr-1 font-semibold">#</span>
           <span>{track.genre}</span>
-        </Link>
+        </button>
       )}
     </div>
   )}
@@ -463,7 +471,7 @@ export default function TrackCard({
   <WaveformTimedComments
   comments={timedComments} // only old comments
   durationSeconds={waveformDurationSeconds}
-  currentUser={{ name: user.name, avatar: user.avatar }}
+  currentUser={{ name: userDisplayName, avatar: user.avatar }}
   pendingTimestamp={null}   // nothing pending
   pendingText=""             // nothing pending
   setPendingText={() => {}} // noop
@@ -475,7 +483,7 @@ export default function TrackCard({
   <WaveformTimedComments
     comments={[]}  // empty, we only want the new comment
     durationSeconds={waveformDurationSeconds}
-    currentUser={{ name: user.name, avatar: user.avatar }}
+    currentUser={{ name: userDisplayName, avatar: user.avatar }}
     pendingTimestamp={pendingTimestamp}
     pendingText={pendingText}
     setPendingText={setPendingText}

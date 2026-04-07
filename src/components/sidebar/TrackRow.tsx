@@ -26,6 +26,7 @@ interface TrackRowProps {
   trackId?: string | number;
   image: string;
   artist: string;
+  artistUsername?: string;
   title: string;
   stats: TrackStats;
   playback?: PlayerTrack;
@@ -49,6 +50,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
   trackId,
   image,
   artist,
+  artistUsername,
   title,
   stats,
   playback,
@@ -64,7 +66,8 @@ const TrackRow: React.FC<TrackRowProps> = ({
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
 
-  const artistSlug = encodeURIComponent(artist.toLowerCase().replace(/\s+/g, ''));
+  const artistSlugSource = artistUsername ?? artist;
+  const artistSlug = encodeURIComponent(artistSlugSource.toLowerCase().replace(/\s+/g, ''));
 
   const artistUrl = `/${artistSlug}`;
   const trackUrl =

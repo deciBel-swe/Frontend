@@ -177,7 +177,7 @@ export class MockAuthService implements AuthService {
     createMockAuthAccount({
       email: payload.email,
       username:
-        payload.username.trim() || payload.email.split('@')[0] || 'user',
+        payload.displayName.trim() || payload.email.split('@')[0] || 'user',
       password: await sha256Hex(payload.password),
       emailVerified: true,
       tier: 'FREE',
@@ -194,7 +194,7 @@ export class MockAuthService implements AuthService {
 
     const decoded = decodeMockToken(accessToken);
     if (!decoded || decoded.exp < Date.now()) {
-      this._clearStorage();
+      this.clearSession();
       return null;
     }
 
@@ -255,7 +255,7 @@ export class MockAuthService implements AuthService {
 
   async logout(): Promise<void> {
     await delay(100);
-    this._clearStorage();
+    this.clearSession();
   }
 
   async logoutAll(): Promise<void> {
@@ -373,7 +373,7 @@ export class MockAuthService implements AuthService {
 
   // ================================
 
-  private _clearStorage(): void {
+  public clearSession(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
