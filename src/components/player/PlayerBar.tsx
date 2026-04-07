@@ -69,14 +69,14 @@ export default function PlayerBar(props: PlayerBarProps) {
 
   return (
     /* The main bar background - stays 100% width */
-    <div className="fixed bottom-0 w-full bg-surface-raised border-t border-border-strong z-50">
+    <div className="fixed bottom-0 w-full max-w-[1240px] bg-surface-raised border-t border-border-strong z-50">
      
       {/* The Content Div:
           - max-w-[1240px]: This makes the "content area" smaller.
           - mx-auto: Centers that smaller area.
           - flex items-center: Keeps everything vertically centered.
       */}
-      <div className="w-full max-w-[1100px] mx-auto flex items-center h-13 px-4">
+      <div className="w-full max-w-[1150px] mx-auto flex items-center h-13 px-4">
          <div className="flex items-center shrink-0">
           <PlayerControls
             isPlaying={isPlaying}

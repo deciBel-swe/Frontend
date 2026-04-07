@@ -16,7 +16,7 @@ export default function PlaybackModes({
 }: PlaybackModesProps) {
 
   return (
-    <div className="flex items-center gap-6 p-4 select-none">
+    <div className="sm:flex items-center gap-6 p-4 select-none hidden">
       
       {/* Shuffle Button with Native Tooltip */}
       <button

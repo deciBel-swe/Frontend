@@ -44,6 +44,8 @@ export interface AuthService {
 
   /** Backward-compatible alias for resendVerification. */
   requestEmailVerification(email: string): Promise<{ message: string }>;
+
+  clearSession(): void;
 }
 
 export const USER_STORAGE_KEY = 'user';
@@ -175,7 +177,7 @@ export class RealAuthService implements AuthService {
     document.cookie = `${AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
   }
 
-  private clearSession(): void {
+  public clearSession(): void {
     this.accessToken = null;
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);

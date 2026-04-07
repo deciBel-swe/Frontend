@@ -38,6 +38,7 @@ import { config } from '@/config';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import { apiErrorDTOSchema, type ApiErrorDTO } from '@/types';
+import { authService } from '@/services';
 
 /**
  * Shared querystring parameter shape for API requests.
@@ -244,6 +245,7 @@ export const handleAuthRefreshOnUnauthorized = async (
   error: unknown
 ): Promise<unknown> => {
   if (!axios.isAxiosError(error) || !shouldHandleUnauthorized(error)) {
+    
     return Promise.reject(error);
   }
 
@@ -254,6 +256,7 @@ export const handleAuthRefreshOnUnauthorized = async (
     await refreshSessionToken();
     return apiClient.request(requestConfig);
   } catch {
+    authService.clearSession();
     return Promise.reject(error);
   }
 };
