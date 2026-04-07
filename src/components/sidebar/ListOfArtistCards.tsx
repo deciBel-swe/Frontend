@@ -5,7 +5,8 @@ type ListOfArtistCardsprops ={
   Artist_header: string
   artists: {
     id?: number;
-    name: string;
+    username: string;
+    displayName?: string;
     followers: number;
     tracks: number;
     isFollowing?: boolean;

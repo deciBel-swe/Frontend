@@ -89,6 +89,7 @@ export const trackArtistSchema = z
   .object({
     id: z.number().optional(),
     username: z.string().optional(),
+    displayName: z.string().optional(),
   })
   .passthrough();
 export type TrackArtist = z.infer<typeof trackArtistSchema>;
@@ -97,6 +98,7 @@ export type TrackArtist = z.infer<typeof trackArtistSchema>;
 export const trackMetadataArtistSchema = z.object({
   id: z.number(),
   username: z.string(),
+  displayName: z.string().optional(),
 });
 export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 

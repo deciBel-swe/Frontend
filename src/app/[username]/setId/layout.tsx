@@ -25,7 +25,7 @@ export default async function UserProfileLayout({
   trackCount={3}
   duration="20:47"
   createdAt="1 day ago"
-  artworkUrl="/default-artwork.png" 
+  artworkUrl="/images/default_song_image.png" 
 />
 
       {/* 2. FULL WIDTH ACTIONS BAR */}

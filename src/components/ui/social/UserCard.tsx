@@ -7,6 +7,7 @@ import { useUserCardHook } from '@/hooks/useUserCardHook';
 export interface UserCardData {
   id: string;
   username: string;
+  displayName?: string;
   avatarSrc?: string;
   followerCount: number;
   isVerified?: boolean;
@@ -60,7 +61,7 @@ export default function UserCard({
       <a href={`/${resolvedUser.username.toLowerCase().replace(/\s+/g, '')}`} className="no-underline">
         <span className="flex items-center gap-1 justify-center flex-wrap">
           <span className="text-sm font-bold text-text-primary leading-snug break-words">
-            {resolvedUser.username}
+            {resolvedUser.displayName || resolvedUser.username}
           </span>
           {resolvedUser.isVerified && <VerifiedBadge size={13} />}
         </span>

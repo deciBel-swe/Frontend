@@ -17,7 +17,7 @@ export default function SoundBadge({ track, artist, artwork }: SoundBadgeProps) 
         <Image 
           src={artwork}
           alt={track} 
-          className="w-12 h-12 rounded-[4px] object-cover border border-neutral-800" 
+          className="w-12 h-12 rounded-[4px] object-cover border border-border-strong" 
           width={48}
           height={48}
           unoptimized
@@ -27,12 +27,12 @@ export default function SoundBadge({ track, artist, artwork }: SoundBadgeProps) 
       {/* Text Container */}
       <div className="flex flex-col min-w-0 leading-tight">
         {/* Artist Name (Top, Gray) */}
-        <Link href="#" className="text-xs text-neutral-300 truncate hover:text-neutral-400 cursor-pointer transition-colors font-extrabold">
+        <Link href="#" className="text-xs text-text-secondary truncate hover:text-text-primary cursor-pointer transition-colors font-extrabold">
           {artist}
         </Link>
         
         {/* Track Title (Bottom, Bold White) */}
-        <Link href="#" className="text-xs font-extrabold text-neutral-200 truncate block hover:text-interactive-hover transition-colors">
+        <Link href="#" className="text-xs font-extrabold text-text-primary truncate block hover:text-interactive-hover transition-colors">
           {track}
         </Link>
       </div>

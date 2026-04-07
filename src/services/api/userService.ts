@@ -11,7 +11,6 @@ import type {
   PaginatedTracksResponse,
   PrivateSocialLinks,
   ResetLoggedInPasswordRequest,
-  UpdateImagesJsonRequest,
   UpdateImagesResponse,
   UpdateMeRequest,
   UpdatePrimaryEmailRequest,
@@ -91,8 +90,8 @@ export interface UserService {
   /** Update account tier (PATCH /users/me/tier). */
   updateTier(payload: UpdateTierRequest): Promise<UpdateTierResponse>;
 
-  /** Update profile/cover image URLs (PATCH /users/me/images). */
-  updateImages(payload: UpdateImagesJsonRequest): Promise<UpdateImagesResponse>;
+  /** Update profile/cover images (PATCH /users/me/images). */
+  updateImages(payload: FormData): Promise<UpdateImagesResponse>;
 
   /** Get current user listening history (GET /users/me/history). */
   getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse>;
@@ -156,6 +155,11 @@ export interface UserService {
     params?: PaginationParams
   ): Promise<PaginatedFollowersResponse>;
 
+  /** Get user liked tracks (GET /users/{userId}/liked-tracks). */
+  // getUserLikedTracks(
+  //   userId: number,
+  //   params?: PaginationParams
+  // ): Promise<PaginatedTracksResponse>;
   // /** Get playlists liked by a user (GET /users/{userId}/liked-playlists). */
   // getUsersLikedPlaylists(
   //   userID: number,
@@ -237,10 +241,13 @@ export class RealUserService implements UserService {
   }
 
   async updateImages(
-    payload: UpdateImagesJsonRequest
+    payload: FormData
   ): Promise<UpdateImagesResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_IMAGES_UPDATE, {
       payload,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
   }
 
@@ -341,7 +348,14 @@ export class RealUserService implements UserService {
       params: toQueryParams(params),
     });
   }
-
+  // async getUserLikedTracks(
+  //     userId: number,
+  //     params?: PaginationParams
+  //   ): Promise<PaginatedTracksResponse> {
+  //     return apiRequest(API_CONTRACTS.USER_LIKED_TRACKS(userId), {
+  //       params: toQueryParams(params),
+  //     });
+  //   }
   // async getUsersLikedPlaylists(
   //   trackid: number,
   //   params?: PaginationParams

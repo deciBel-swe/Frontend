@@ -159,7 +159,7 @@ describe('RegisterationForm', () => {
     expect(mockRegisterLocal).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'user@example.com',
-        username: 'user',
+        displayName: 'user',
         password: 'Password1',
         captchaToken: 'test-captcha-token',
       })

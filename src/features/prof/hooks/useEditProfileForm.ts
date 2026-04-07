@@ -11,7 +11,6 @@ import {
   type EditProfileFormValues,
 } from '@/types/editProfile';
 import type {
-  UpdateImagesJsonRequest,
   UpdateMeRequest,
 } from '@/types/user';
 import type { SelectTextOption } from '@/components/FormFields';
@@ -189,19 +188,20 @@ export const useEditProfileForm = ({
     }
 
     setSubmitError(undefined);
-    const imagesPayload: UpdateImagesJsonRequest = {};
+    const imagesPayload = new FormData();
 
-    if (selectedImage && avatarPreviewUrl) {
-      imagesPayload.profilePic = avatarPreviewUrl;
+    if (selectedImage) {
+      imagesPayload.append('profilePic', selectedImage);
     }
-    if (selectedCoverImage && coverPreviewUrl) {
-      imagesPayload.coverPic = coverPreviewUrl;
+    if (selectedCoverImage) {
+      imagesPayload.append('coverPic', selectedCoverImage);
     }
 
     const payload: UpdateMeRequest = {
       bio: nextValues.bio,
       city: nextValues.city,
       country: nextValues.country,
+      displayName: nextValues.displayName,
       favoriteGenres: nextValues.favoriteGenres,
       socialLinks: buildSocialLinksFromFields(nextValues),
     };
@@ -209,7 +209,7 @@ export const useEditProfileForm = ({
     try {
       await editMe(payload);
 
-      if (Object.keys(imagesPayload).length > 0) {
+      if (selectedImage || selectedCoverImage) {
         await userService.updateImages(imagesPayload);
       }
 
@@ -222,8 +222,6 @@ export const useEditProfileForm = ({
       );
     }
   }, [
-    avatarPreviewUrl,
-    coverPreviewUrl,
     editMe,
     editMeError,
     formValues,

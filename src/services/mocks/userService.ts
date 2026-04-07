@@ -19,7 +19,6 @@ import type {
   PrivateSocialLinks,
   ResetLoggedInPasswordRequest,
   SearchUser,
-  UpdateImagesJsonRequest,
   UpdateImagesResponse,
   UpdateMeRequest,
   UpdatePrimaryEmailRequest,
@@ -42,6 +41,14 @@ const MOCK_DELAY_MS = 120;
 
 const delay = (ms = MOCK_DELAY_MS) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 
 const paginate = <T>(items: T[], params?: PaginationParams) => {
   const pageNumber = Math.max(0, params?.page ?? 0);
@@ -305,16 +312,19 @@ export class MockUserService implements UserService {
   }
 
   async updateImages(
-    payload: UpdateImagesJsonRequest
+    payload: FormData
   ): Promise<UpdateImagesResponse> {
     await delay();
     const me = getCurrentUser();
 
-    if (payload.profilePic !== undefined) {
-      me.profile.profilePic = payload.profilePic;
+    const profilePic = payload.get('profilePic');
+    if (profilePic instanceof File) {
+      me.profile.profilePic = await readFileAsDataUrl(profilePic);
     }
-    if (payload.coverPic !== undefined) {
-      me.profile.coverPic = payload.coverPic;
+
+    const coverPic = payload.get('coverPic');
+    if (coverPic instanceof File) {
+      me.profile.coverPic = await readFileAsDataUrl(coverPic);
     }
 
     commitMockUserState();

@@ -9,12 +9,14 @@ type UseSuggestedUsersParams = {
 };
 
 const toUserCardData = (user: SearchUser, index: number): UserCardData => {
-  const resolvedName = user.username ?? user.displayName ?? 'unknown';
-  const fallbackId = `${resolvedName}-${index}`;
+  const canonicalUsername = user.username?.trim() || 'unknown';
+  const displayName = user.displayName?.trim() || undefined;
+  const fallbackId = `${canonicalUsername}-${index}`;
 
   return {
     id: String(user.id ?? fallbackId),
-    username: resolvedName,
+    username: canonicalUsername,
+    displayName,
     avatarSrc: user.avatarUrl ?? undefined,
     followerCount: 0,
     isFollowing: user.isFollowing ?? false,

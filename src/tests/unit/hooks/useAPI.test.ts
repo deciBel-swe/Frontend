@@ -209,7 +209,7 @@ describe('apiRequest', () => {
       apiRequest(sampleEndpoint, {
         payload: { name: 'mona' },
       })
-    ).rejects.toThrow('Invalid response DTO for /sample');
+    ).rejects.toThrow('Invalid response DTO from /sample');
   });
 
   it('supports endpoints that return no content (204)', async () => {

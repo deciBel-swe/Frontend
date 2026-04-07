@@ -22,16 +22,18 @@ type LooseUser = Partial<SearchUser> & {
 };
 
 const toUserCardData = (user: LooseUser, index: number): UserCardData => {
-  const resolvedName = user.username ?? user.displayName ?? 'unknown';
+  const canonicalUsername = user.username?.trim() || 'unknown';
+  const displayName = user.displayName?.trim() || undefined;
   const normalizedId =
     typeof user.id === 'number' || typeof user.id === 'string'
       ? String(user.id)
       : undefined;
-  const fallbackId = normalizedId ?? `${resolvedName}-${index}`;
+  const fallbackId = normalizedId ?? `${canonicalUsername}-${index}`;
 
   return {
     id: fallbackId,
-    username: resolvedName,
+    username: canonicalUsername,
+    displayName,
     avatarSrc: user.avatarUrl ?? undefined,
     followerCount: 0,
     isFollowing: Boolean(user.isFollowing),

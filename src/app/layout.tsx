@@ -7,6 +7,7 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
 import type { Metadata } from 'next';
+import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
 /**
@@ -78,7 +79,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <Suspense fallback={<>Loading ...</>}>
-              <div className="flex flex-col items-center min-h-screen pt-12 px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col items-center min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
                 <div className="w-full max-w-[1200px]">
                   <TopNavBar />
                   {/* QueryProvider is a client‑component wrapper that creates the
@@ -89,6 +90,7 @@ export default function RootLayout({
                       Persistent global player runtime.
                       Mounted once at the app shell so playback survives route changes.
                     */}
+                    <Toaster />
                     <GlobalAudioPlayer />
                   </QueryProvider>
                 </div>

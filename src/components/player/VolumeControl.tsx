@@ -51,33 +51,33 @@ export default function VolumeControl({ value, onChange }: VolumeControlProps) {
           ${hover ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
         `}
       >
-        <div className="bg-[#121212] border border-neutral-800 p-3 rounded-lg shadow-2xl flex flex-col items-center h-40 w-10 relative">
+        <div className="bg-surface-raised border border-border-strong p-3 rounded-lg shadow-2xl flex flex-col items-center h-40 w-10 relative">
           {/* Custom Slider Track */}
           <div 
             ref={trackRef}
             onMouseDown={handleMouseDown}
-            className="relative w-1 h-full bg-neutral-700 rounded-full cursor-pointer flex flex-col-reverse"
+            className="relative w-1 h-full bg-border-strong rounded-full cursor-pointer flex flex-col-reverse"
           >
             {/* Active Fill */}
             <div 
-              className="bg-white rounded-full w-full" 
+              className="bg-text-primary rounded-full w-full" 
               style={{ height: `${value * 100}%` }}
             />
             
             {/* Thumb (Ring) */}
             <div 
-              className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-[#121212] border-2 border-white rounded-full shadow-md"
+              className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-surface-raised border-2 border-text-primary rounded-full shadow-md"
               style={{ bottom: `calc(${value * 100}% - 7px)` }}
             />
           </div>
 
           {/* Triangle Arrow */}
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#121212] border-r border-b border-neutral-800 rotate-45" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-surface-raised border-r border-b border-border-strong rotate-45" />
         </div>
       </div>
 
       {/* Volume Icon Button */}
-      <button className="hover:text-neutral-400 text-white cursor-pointer transition-colors duration-200">
+      <button className="hover:text-text-secondary text-text-primary cursor-pointer transition-colors duration-200">
         {value === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
     </div>

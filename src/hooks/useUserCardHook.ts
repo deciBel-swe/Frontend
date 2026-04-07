@@ -46,6 +46,7 @@ export function useUserCardHook({
           setResolvedUser((previous) => ({
             ...previous,
             username: publicUser.profile.username,
+            displayName: publicUser.profile.displayName || undefined,
             avatarSrc: publicUser.profile.profilePic,
             followerCount: publicUser.profile.followerCount,
             isFollowing: publicUser.profile.isFollowed,

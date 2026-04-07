@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 
 import type { TrackListItem } from '@/components/TrackList';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
-import { playbackService, trackService } from '@/services';
+import { playbackService, trackService} from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
+import { useAuth } from '.';
 
 type UseListeningHistoryTracksParams = {
   page?: number;
@@ -46,10 +47,15 @@ export function useListeningHistoryTracks({
   const [tracks, setTracks] = useState<TrackListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-
+  const {isAuthenticated} = useAuth();
   useEffect(() => {
     let isCancelled = false;
-
+    if(!isAuthenticated) {
+      setTracks([]);
+      setIsLoading(false);
+      setIsError(false);
+      return;
+    }
     const loadHistory = async () => {
       setIsLoading(true);
       setIsError(false);
@@ -74,20 +80,22 @@ export function useListeningHistoryTracks({
               metadata = null;
             }
 
-            const artistName = metadata?.artist.username ?? 'unknown';
+            const artistUsername = metadata?.artist?.username ?? 'unknown';
+            const artistDisplayName = metadata?.artist?.displayName?.trim() || undefined;
             const title = metadata?.title ?? item.title ?? `Track ${item.id}`;
             const durationSeconds = metadata?.durationSeconds;
 
             return {
               trackId: String(item.id),
               user: {
-                name: artistName,
+                username: artistUsername,
+                displayName: artistDisplayName,
                 avatar: metadata?.coverUrl ?? '/images/default_song_image.png',
               },
               postedText: 'played a track',
               track: {
                 id: item.id,
-                artist: artistName,
+                artist: artistDisplayName || artistUsername,
                 title,
                 cover: metadata?.coverUrl ?? '/images/default_song_image.png',
                 duration: durationSeconds ? formatDuration(durationSeconds) : '',
@@ -129,7 +137,7 @@ export function useListeningHistoryTracks({
     return () => {
       isCancelled = true;
     };
-  }, [page, size]);
+  }, [isAuthenticated, page, size]);
 
   return {
     tracks,

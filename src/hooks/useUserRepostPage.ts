@@ -76,10 +76,16 @@ export function useUserRepostPage() {
             return {
               trackId: String(track.id),
               user: {
-                name: artistName,
+                username: artistName,
+                displayName: track.artist?.displayName,
                 avatar: metadata?.coverUrl ?? track.coverUrl,
               },
-              repostedBy: user?.username,
+              repostedBy: user?.username
+                ? {
+                    username: user.username,
+                    displayName: user.displayName ?? undefined,
+                  }
+                : undefined,
               track: {
                 id: track.id,
                 artist: artistName,
@@ -122,7 +128,7 @@ export function useUserRepostPage() {
     return () => {
       isCancelled = true;
     };
-  }, [user?.username]);
+  }, [user?.displayName, user?.username]);
 
   return {
     tracks,

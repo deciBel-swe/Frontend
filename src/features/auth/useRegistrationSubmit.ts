@@ -98,7 +98,7 @@ export const useRegistrationSubmit = ({
 
         await authService.registerLocal({
           email,
-          username: displayName,
+          displayName,
           password,
           dateOfBirth: toIsoDate(year, month, day),
           gender,

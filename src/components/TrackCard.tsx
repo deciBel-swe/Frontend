@@ -24,6 +24,7 @@ import TimeAgo from '@/components/TimeAgo';
 import CommentInput from '@/components/comments/CommentInput';
 import WaveformTimedComments from '@/components/WaveformTimedComments';
 import { parseDurationToSeconds } from '@/utils/parseDuration';
+import AddToPlaylistModal, { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 
 /**
  * Shallow queue identity check used to avoid resetting queue on every track click.
@@ -41,13 +42,17 @@ type TrackCardProps = {
   isPrivate?: boolean;
   
   user: {
-    name: string;
+    username: string;
+    displayName?: string;
     avatar: string;
   };
   postedText?: string;
   // timeAgo?: string;
   showEditButton?: boolean;
-  repostedBy?: string;
+  repostedBy?: {
+    username: string;
+    displayName?: string;
+  };
   /** Show the inline comment input below the waveform */
   // showCommentInput?: boolean;
   /** Current user's avatar for the comment input */
@@ -100,7 +105,12 @@ export default function TrackCard({
   showHeader = true,
 
 }: TrackCardProps) {
-  const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
+  const userSlug = user.username.toLowerCase().replace(/\s+/g, '');
+  const userDisplayName = user.displayName?.trim() || user.username;
+  const repostedBySlug = repostedBy?.username.toLowerCase().replace(/\s+/g, '');
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
   // const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
 
@@ -109,6 +119,10 @@ export default function TrackCard({
 
   // ── Share modal state
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('add');
 
   // ── Fetch correct URL based on privacy
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
@@ -306,13 +320,13 @@ export default function TrackCard({
               className="w-8 h-8 rounded-full object-cover"
               width ={32}
               height={32}
-              alt={user.name}
+              alt={userDisplayName}
             />
           </Link>
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/${userSlug}`}>{user.name}</Link>
+            <Link href={`/${userSlug}`}>{userDisplayName}</Link>
           </span>{' '}
           {postedText}
         </div>
@@ -379,14 +393,14 @@ export default function TrackCard({
   >
     {track.artist}
   </Link>
-   {repostedBy && (
+   {repostedBySlug && repostedByDisplayName && (
       <>
         <Repeat2 size={15} className="text-text-muted shrink-0" aria-label="reposted by" />
           <Link
-            href={`/${repostedBy.toLowerCase().replace(/\s+/g, '')}`}
+            href={`/${repostedBySlug}`}
             className="text-text-muted text-sm font-bold hover:opacity-40 shrink-0"
           >
-            {repostedBy}
+            {repostedByDisplayName}
           </Link>
       </>
     )}
@@ -400,15 +414,14 @@ export default function TrackCard({
       )}
 
       {track.genre && (
-        <Link
-          href={`/tags/${encodeURIComponent(track.genre)}`}
+        <button
           className="inline-flex items-center px-2 py-1 leading-none rounded-full cursor-pointer 
            text-xs bg-interactive-default text-text-primary dark:bg-interactive-default dark:text-text-primary 
            hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors scale-105"
         >
           <span className="mr-1 font-semibold">#</span>
           <span>{track.genre}</span>
-        </Link>
+        </button>
       )}
     </div>
   )}
@@ -458,7 +471,7 @@ export default function TrackCard({
   <WaveformTimedComments
   comments={timedComments} // only old comments
   durationSeconds={waveformDurationSeconds}
-  currentUser={{ name: user.name, avatar: user.avatar }}
+  currentUser={{ name: userDisplayName, avatar: user.avatar }}
   pendingTimestamp={null}   // nothing pending
   pendingText=""             // nothing pending
   setPendingText={() => {}} // noop
@@ -470,7 +483,7 @@ export default function TrackCard({
   <WaveformTimedComments
     comments={[]}  // empty, we only want the new comment
     durationSeconds={waveformDurationSeconds}
-    currentUser={{ name: user.name, avatar: user.avatar }}
+    currentUser={{ name: userDisplayName, avatar: user.avatar }}
     pendingTimestamp={pendingTimestamp}
     pendingText={pendingText}
     setPendingText={setPendingText}
@@ -662,6 +675,12 @@ export default function TrackCard({
     onShare={() => setIsShareOpen(true)}
     onCopy={handleCopy}
     onAddToQueue={handleAddToQueue}
+    showMore
+    isMoreOpen={isMoreOpen}
+    onMoreToggle={() => setIsMoreOpen(v => !v)}
+    onMoreClose={() => setIsMoreOpen(false)}
+    onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
+    onStation={() => {}}   
   />
 
 {/* RIGHT: stats */}
@@ -718,6 +737,34 @@ export default function TrackCard({
         onClose={() => setEditOpen(false)}
         trackId={track.id}
         track={{ title: track.title, artist: track.artist, cover: track.cover }}
+      />
+
+      <AddToPlaylistModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => {
+          setIsPlaylistModalOpen(false);
+          setActiveTab('add');
+        }}
+        activeTab={activeTab}
+        onTabChange={setActiveTab} 
+        addTabProps={{
+          playlists: [],
+          filterValue: '',
+          onFilterChange: () => {},
+          onAddToPlaylist: () => {},
+        }}
+        createTabProps={{
+          playlistTitle: '',
+          onPlaylistTitleChange: () => {},
+          privacy: 'public',
+          onPrivacyChange: () => {},
+          onSave: () => {},
+          currentTrack: {
+            title: track.title,
+            artist: track.artist,
+            coverUrl: track.cover,
+          },
+        }}
       />
     </div>
   );
