@@ -73,7 +73,8 @@ const OTHER_PLAYABLE_TRACK: PlayerTrack = {
 const baseProps = {
   trackId: '1',
   user: {
-    name: 'artist',
+    username: 'artist',
+    displayName: 'Artist',
     avatar: 'https://decibel.test/avatar.jpg',
   },
   track: {

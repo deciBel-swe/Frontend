@@ -177,7 +177,7 @@ export class MockAuthService implements AuthService {
     createMockAuthAccount({
       email: payload.email,
       username:
-        payload.username.trim() || payload.email.split('@')[0] || 'user',
+        payload.displayName.trim() || payload.email.split('@')[0] || 'user',
       password: await sha256Hex(payload.password),
       emailVerified: true,
       tier: 'FREE',

@@ -23,7 +23,7 @@ const toPlaybackAccess = (
 
 export type TrackListItem = {
   trackId: string;
-  user: { name: string; avatar: string };
+  user: { username: string; displayName?: string; avatar: string };
   postedText?: string;
   repostedBy?: string;
   track: {
@@ -104,7 +104,8 @@ export default function TrackList({
     return {
       trackId: String(track.id),
       user: {
-        name: artistName,
+        username: artistName,
+        displayName: track.artist.displayName,
         avatar: artistAvatar || track.coverUrl,
       },
       postedText: 'posted a track',

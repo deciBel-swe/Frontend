@@ -84,7 +84,7 @@ export function useFeedSidebar() {
 
               return {
                 id: user.id,
-                name: publicUser.profile.username,
+                name: publicUser.profile.displayName || publicUser.profile.username,
                 followers: publicUser.profile.followerCount,
                 tracks: publicUser.profile.trackCount,
                 isFollowing: publicUser.profile.isFollowing,

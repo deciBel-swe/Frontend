@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { nullableStringWithDefault } from './user';
 
 // ================================
 // Auth — Shared Types
@@ -53,7 +54,7 @@ export type LoginLocalRequestDTO = z.infer<typeof loginLocalRequestDTOSchema>;
 /** DTO sent to POST /auth/register/local */
 export const registerLocalRequestDTOSchema = z.object({
   email: z.string().trim().email(),
-  username: z.string().trim().min(1),
+  displayName: z.string().trim().min(1),
   password: z.string().min(1),
   dateOfBirth: z.string().trim().min(1),
   gender: z.string().trim().min(1),
@@ -83,6 +84,7 @@ export type GoogleOAuthRequestDTO = z.infer<typeof googleOAuthRequestDTOSchema>;
 export const loginUserDTOSchema = z.object({
   id: z.number().int().nonnegative(),
   username: z.string().trim().min(1),
+  displayName: nullableStringWithDefault('').optional(),
   tier: userTierSchema,
   profileUrl: z.string().trim().min(1).optional(),
   avatarUrl: imageWithDefault(DefaultAvatarUrl),

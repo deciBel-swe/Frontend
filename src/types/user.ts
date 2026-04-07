@@ -22,6 +22,7 @@ export const nullableStringWithDefault = (defaultValue: string) =>
     if (value === null || value === undefined) {
       return defaultValue;
     }
+    return value;
   }, z.string().nullable().optional());
 const userTierSchema = z.enum([
   'FREE',
@@ -32,7 +33,7 @@ const userTierSchema = z.enum([
 ]);
 
 const userProfileSchema = z.object({
-  displayName: z.string().trim().optional().nullable(),
+  displayName: nullableStringWithDefault(''),
   bio: z.string(),
   city: z.string(),
   country: z.string(),
@@ -59,7 +60,7 @@ const userMeLegacySchema = z
     id: z.number().int().nonnegative(),
     email: z.string().trim().email(),
     username: z.string().trim().min(1),
-    displayName: z.string().trim().optional().nullable(),
+    displayName: nullableStringWithDefault('').optional(),
     isBlocked: z.boolean(),
     tier: userTierSchema,
     profile: userProfileSchema,
@@ -391,6 +392,7 @@ export const updateMeRequestSchema = z
   .object({
     bio: z.string().optional(),
     city: z.string().optional(),
+    displayName: z.string().trim().min(2),
     country: z.string().optional(),
     favoriteGenres: z.array(z.string()).optional(),
     socialLinks: userEditedSocialLinksSchema,

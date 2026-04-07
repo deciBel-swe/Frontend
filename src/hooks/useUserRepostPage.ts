@@ -76,7 +76,8 @@ export function useUserRepostPage() {
             return {
               trackId: String(track.id),
               user: {
-                name: artistName,
+                username: artistName,
+                displayName: track.artist?.displayName,
                 avatar: metadata?.coverUrl ?? track.coverUrl,
               },
               repostedBy: user?.username,

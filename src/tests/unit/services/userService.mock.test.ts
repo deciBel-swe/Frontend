@@ -27,6 +27,7 @@ describe('MockUserService', () => {
   };
   it('updates profile and social links', async () => {
     const updatePromise = service.updateMe({
+      displayName: 'Updated Mock User',
       bio: 'updated bio',
       city: 'Giza',
       socialLinks: {
@@ -155,7 +156,7 @@ describe('MockUserService', () => {
 
     const registerPromise = auth.registerLocal({
       email,
-      username: 'session-user',
+      displayName: 'session-user',
       password,
       dateOfBirth: '2001-01-01',
       gender: 'female',

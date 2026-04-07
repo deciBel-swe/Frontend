@@ -81,7 +81,8 @@ export function useListeningHistoryTracks({
             return {
               trackId: String(item.id),
               user: {
-                name: artistName,
+                username: artistName,
+                displayName: metadata?.artist.displayName,
                 avatar: metadata?.coverUrl ?? '/images/default_song_image.png',
               },
               postedText: 'played a track',

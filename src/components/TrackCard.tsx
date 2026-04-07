@@ -42,7 +42,8 @@ type TrackCardProps = {
   isPrivate?: boolean;
   
   user: {
-    name: string;
+    username: string;
+    displayName?: string;
     avatar: string;
   };
   postedText?: string;
@@ -101,7 +102,7 @@ export default function TrackCard({
   showHeader = true,
 
 }: TrackCardProps) {
-  const userSlug = user.name.toLowerCase().replace(/\s+/g, '');
+  const userSlug = user.username.toLowerCase().replace(/\s+/g, '');
   // const trackSlug = track.title.toLowerCase().replace(/\s+/g, '-');
   const [editOpen, setEditOpen] = useState(false);
 
@@ -311,13 +312,13 @@ export default function TrackCard({
               className="w-8 h-8 rounded-full object-cover"
               width ={32}
               height={32}
-              alt={user.name}
+              alt={user.displayName || user.username}
             />
           </Link>
 
         <div>
           <span className="text-text-primary font-medium hover:opacity-40">
-            <Link href={`/${userSlug}`}>{user.name}</Link>
+            <Link href={`/${userSlug}`}>{user.displayName || user.username}</Link>
           </span>{' '}
           {postedText}
         </div>
@@ -463,7 +464,7 @@ export default function TrackCard({
   <WaveformTimedComments
   comments={timedComments} // only old comments
   durationSeconds={waveformDurationSeconds}
-  currentUser={{ name: user.name, avatar: user.avatar }}
+  currentUser={{ name: user.displayName || user.username, avatar: user.avatar }}
   pendingTimestamp={null}   // nothing pending
   pendingText=""             // nothing pending
   setPendingText={() => {}} // noop
@@ -475,7 +476,7 @@ export default function TrackCard({
   <WaveformTimedComments
     comments={[]}  // empty, we only want the new comment
     durationSeconds={waveformDurationSeconds}
-    currentUser={{ name: user.name, avatar: user.avatar }}
+    currentUser={{ name: user.displayName || user.username, avatar: user.avatar }}
     pendingTimestamp={pendingTimestamp}
     pendingText={pendingText}
     setPendingText={setPendingText}

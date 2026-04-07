@@ -202,6 +202,7 @@ export const useEditProfileForm = ({
       bio: nextValues.bio,
       city: nextValues.city,
       country: nextValues.country,
+      displayName: nextValues.displayName,
       favoriteGenres: nextValues.favoriteGenres,
       socialLinks: buildSocialLinksFromFields(nextValues),
     };

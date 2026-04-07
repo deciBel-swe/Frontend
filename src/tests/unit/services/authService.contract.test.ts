@@ -266,7 +266,7 @@ describe('AuthService contract parity', () => {
 
     const registerPromise = mockService.registerLocal({
       email,
-      username: 'newuser',
+      displayName: 'newuser',
       password,
       dateOfBirth: '2000-01-01',
       gender: 'female',
@@ -330,30 +330,6 @@ describe('AuthService contract parity', () => {
 
     const parsed = assertValidLoginResponse(googleLogin);
     expect(parsed.user.username).toBe('google-user');
-
-    jest.useRealTimers();
-  });
-
-  it('rejects registration when username already exists', async () => {
-    jest.useFakeTimers();
-
-    const mockService = new MockAuthService();
-
-    const duplicatePromise = mockService.registerLocal({
-      email: 'unique-email@decibel.test',
-      username: 'mockartist',
-      password: 'Password1',
-      dateOfBirth: '2000-01-01',
-      gender: 'female',
-      captchaToken: 'mock-captcha-token',
-    });
-
-    const duplicateAssertion = expect(duplicatePromise).rejects.toThrow(
-      'Username already exists. Please choose a different username.'
-    );
-
-    await advanceMockDelay();
-    await duplicateAssertion;
 
     jest.useRealTimers();
   });

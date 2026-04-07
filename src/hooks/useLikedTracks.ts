@@ -88,13 +88,14 @@ export function useLikedTracks(
               metadata = null;
             }
 
-            const artistName = track.artist?.username ?? 'unknown';
+            const artistName = track.artist?.displayName || track.artist?.username || 'unknown';
             const durationSeconds = metadata?.durationSeconds;
 
             return {
               trackId: String(track.id),
               user: {
-                name: artistName,
+                username: artistName,
+                displayName: track.artist?.displayName,
                 avatar: metadata?.coverUrl ?? track.coverUrl,
               },
               postedText: 'liked a track',
