@@ -23,7 +23,7 @@ export default function PlaybackModes({
         onClick={onToggleShuffle}
         title="Shuffle" // This creates the native tooltip
         className={`transition-colors duration-200 ${
-          shuffleActive ? "text-orange-500" : "hover:text-neutral-400 text-white cursor-pointer"
+          shuffleActive ? "text-brand-primary" : "hover:text-text-secondary cursor-pointer"
         }`}
       >
         <Shuffle size={15} strokeWidth={2.5} />
@@ -34,7 +34,7 @@ export default function PlaybackModes({
         onClick={onToggleRepeat}
         title="Repeat" // This creates the native tooltip
         className={`transition-colors duration-200 ${
-          repeatActive ? "text-orange-500" : "hover:text-neutral-400 text-white cursor-pointer"
+          repeatActive ? "text-brand-primary" : "hover:text-text-secondary cursor-pointer"
         }`}
       >
         <Repeat size={15} strokeWidth={2.5} />

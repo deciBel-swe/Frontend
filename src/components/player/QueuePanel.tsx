@@ -147,7 +147,7 @@ export default function QueuePanel({
                 onDrop={(event) => handleDrop(event, index)}
                 onDragEnd={handleDragEnd}
                 className={`flex items-center gap-3 px-3 py-2 transition-colors group ${
-                  isSelected ? "bg-interactive-hover/40" : "hover:bg-interactive-hover/20"
+                  isSelected ? "bg-interactive-hover/20" : "hover:bg-interactive-hover/20"
                 } ${
                   dragIndex === index ? "opacity-60" : "opacity-100"
                 } ${
