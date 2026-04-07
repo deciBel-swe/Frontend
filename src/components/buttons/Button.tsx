@@ -23,6 +23,7 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
+  | 'secondary_inverse'
   | 'ghost'
   | 'danger'
   | 'premium'
@@ -48,6 +49,11 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-text-primary text-bg-base font-extrabold',
     'hover:text-text-muted',
     'disabled:bg-brand-muted disabled:cursor-not-allowed',
+  ].join(' '),
+  secondary_inverse: [
+    'bg-surface-raised text-secondary font-extrabold',
+    'hover:bg-surface-raised hover:text-neutral-300',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
   premium: [
     'bg-transparent text-text-primary font-extrabold',

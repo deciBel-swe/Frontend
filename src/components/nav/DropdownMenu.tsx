@@ -19,7 +19,7 @@ import type { FC, ReactNode } from 'react';
 
 export interface DropdownMenuItem {
   label: string;
-  href: string;
+  href?: string;
   /** Optional icon rendered to the left of the label. Should be 16×16. */
   icon?: ReactNode;
   onClick?: () => void;
@@ -40,7 +40,7 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({ items, onClose }) => (
     {items.map((item, i) =>
       item === null ? (
         <div key={i} className="h-px bg-interactive-default my-0.5" />
-      ) : (
+      ) : item.href ? (
         <Link
           key={item.label}
           href={item.href}
@@ -58,6 +58,16 @@ export const DropdownMenu: FC<DropdownMenuProps> = ({ items, onClose }) => (
           )}
           {item.label}
         </Link>
+      ): (
+        <button
+          key={item.label}
+          role="menuitem"
+          onClick={() => { item.onClick?.(); onClose?.(); }}
+          className="flex items-center gap-2.5 w-full px-3.5 py-3 font-extrabold text-[13px] text-text-primary hover:text-text-secondary/80 transition-colors duration-150 cursor-pointer"
+        >
+          {item.icon && <span className="shrink-0 w-4 h-4 flex items-center justify-center">{item.icon}</span>}
+          {item.label}
+        </button>
       )
     )}
   </div>

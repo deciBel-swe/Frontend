@@ -24,6 +24,7 @@ import TimeAgo from '@/components/TimeAgo';
 import CommentInput from '@/components/comments/CommentInput';
 import WaveformTimedComments from '@/components/WaveformTimedComments';
 import { parseDurationToSeconds } from '@/utils/parseDuration';
+import AddToPlaylistModal, { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 
 /**
  * Shallow queue identity check used to avoid resetting queue on every track click.
@@ -109,6 +110,10 @@ export default function TrackCard({
 
   // ── Share modal state
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('add');
 
   // ── Fetch correct URL based on privacy
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
@@ -662,6 +667,12 @@ export default function TrackCard({
     onShare={() => setIsShareOpen(true)}
     onCopy={handleCopy}
     onAddToQueue={handleAddToQueue}
+    showMore
+    isMoreOpen={isMoreOpen}
+    onMoreToggle={() => setIsMoreOpen(v => !v)}
+    onMoreClose={() => setIsMoreOpen(false)}
+    onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
+    onStation={() => {}}   
   />
 
 {/* RIGHT: stats */}
@@ -718,6 +729,34 @@ export default function TrackCard({
         onClose={() => setEditOpen(false)}
         trackId={track.id}
         track={{ title: track.title, artist: track.artist, cover: track.cover }}
+      />
+
+      <AddToPlaylistModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => {
+          setIsPlaylistModalOpen(false);
+          setActiveTab('add');
+        }}
+        activeTab={activeTab}
+        onTabChange={setActiveTab} 
+        addTabProps={{
+          playlists: [],
+          filterValue: '',
+          onFilterChange: () => {},
+          onAddToPlaylist: () => {},
+        }}
+        createTabProps={{
+          playlistTitle: '',
+          onPlaylistTitleChange: () => {},
+          privacy: 'public',
+          onPrivacyChange: () => {},
+          onSave: () => {},
+          currentTrack: {
+            title: track.title,
+            artist: track.artist,
+            coverUrl: track.cover,
+          },
+        }}
       />
     </div>
   );
