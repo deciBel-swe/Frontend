@@ -80,8 +80,8 @@ export function useListeningHistoryTracks({
               metadata = null;
             }
 
-            const artistUsername = metadata?.artist.username ?? 'unknown';
-            const artistDisplayName = metadata?.artist.displayName ?? 'unknown';
+            const artistUsername = metadata?.artist?.username ?? 'unknown';
+            const artistDisplayName = metadata?.artist?.displayName?.trim() || undefined;
             const title = metadata?.title ?? item.title ?? `Track ${item.id}`;
             const durationSeconds = metadata?.durationSeconds;
 

@@ -123,12 +123,12 @@ export function useLikedTracks(
 
             const artistUsername =
               track.artist?.username ||
-              metadata?.artist.username ||
+              metadata?.artist?.username ||
               track.artist?.displayName ||
               'unknown';
             const artistDisplayName = await resolveArtistDisplayName(
               artistUsername,
-              track.artist?.displayName || metadata?.artist.displayName
+              track.artist?.displayName || metadata?.artist?.displayName
             );
             const durationSeconds = metadata?.durationSeconds;
 

@@ -227,7 +227,7 @@ export function TrackPreview({ track }: { track: TrackPreviewData }) {
     <div className="flex gap-3 mb-5">
       <div className="relative w-20 h-20 shrink-0 bg-surface-raised rounded overflow-hidden">
         {track.coverUrl ? (
-          <Image src={track.coverUrl} alt={track.title} width={80} height={80} fill className="object-cover" />
+          <Image src={track.coverUrl} alt={track.title} width={80} height={80} className="object-cover" />
         ) : (
           <div className="w-full h-full bg-surface-raised flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
