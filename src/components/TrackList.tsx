@@ -21,11 +21,14 @@ const toPlaybackAccess = (
   return 'PLAYABLE';
 };
 
+const normalizeIdentity = (value: string | undefined): string =>
+  (value ?? '').trim().toLowerCase();
+
 export type TrackListItem = {
   trackId: string;
   user: { username: string; displayName?: string; avatar: string };
   postedText?: string;
-  repostedBy?: string;
+  repostedBy?: { username: string; displayName?: string };
   track: {
     id: number;
     artist: string;
@@ -77,6 +80,15 @@ export default function TrackList({
   showHeader = true,
 }: TrackListProps) {
   const ownerContext = useProfileOwnerContext();
+  const contextProfileDisplayName =
+    ownerContext?.publicUser?.profile.displayName?.trim() ||
+    ownerContext?.ownerUser?.displayName?.trim() ||
+    undefined;
+  const contextProfileUsername =
+    ownerContext?.publicUser?.profile.username ||
+    ownerContext?.ownerUser?.username ||
+    ownerContext?.routeUsername ||
+    username;
 
   // Only fetch when no external tracks are supplied
   const { tracks: fetchedTracks, isLoading: fetchLoading, isError } = useUserTracks(
@@ -91,11 +103,20 @@ export default function TrackList({
   const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
 
   // Normalize fetched service DTOs into TrackCard + playback mapping shape.
-  const items: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
-    const artistName =
+  const baseItems: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
+    const artistUsername =
       typeof track.artist === 'string'
         ? track.artist
         : track.artist.username;
+    const artistDisplayName =
+      typeof track.artist === 'string'
+        ? undefined
+        : track.artist.displayName?.trim() || undefined;
+    const resolvedArtistDisplayName =
+      artistDisplayName ||
+      (normalizeIdentity(artistUsername) === normalizeIdentity(contextProfileUsername)
+        ? contextProfileDisplayName
+        : undefined);
     const durationSeconds =
       typeof track.durationSeconds === 'number' && track.durationSeconds > 0
         ? track.durationSeconds
@@ -104,14 +125,14 @@ export default function TrackList({
     return {
       trackId: String(track.id),
       user: {
-        username: artistName,
-        displayName: track.artist.displayName,
+        username: artistUsername,
+        displayName: resolvedArtistDisplayName,
         avatar: artistAvatar || track.coverUrl,
       },
       postedText: 'posted a track',
       track: {
         id: track.id,
-        artist: artistName,
+        artist: resolvedArtistDisplayName || artistUsername,
         title: track.title,
         cover: track.coverUrl,
         duration: durationSeconds ? formatDuration(durationSeconds) : '',
@@ -125,6 +146,28 @@ export default function TrackList({
       trackUrl: track.trackUrl,
       access: toPlaybackAccess(track.access),
       waveform: track.waveformData ?? [],
+    };
+  });
+
+  const items: TrackListItem[] = baseItems.map((item) => {
+    if (item.user.displayName?.trim() || !contextProfileDisplayName) {
+      return item;
+    }
+
+    if (normalizeIdentity(item.user.username) !== normalizeIdentity(contextProfileUsername)) {
+      return item;
+    }
+
+    return {
+      ...item,
+      user: {
+        ...item.user,
+        displayName: contextProfileDisplayName,
+      },
+      track: {
+        ...item.track,
+        artist: contextProfileDisplayName,
+      },
     };
   });
   

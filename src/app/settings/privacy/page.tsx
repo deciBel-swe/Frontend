@@ -110,7 +110,7 @@ function BlockedUsersSection() {
       ) : (
         <div className="flex flex-col gap-4 mt-4">
           {users.map((user) => {
-            const profileHref = `/${encodeURIComponent(user.username)}`;
+            const profileHref = `/${user.username}`;
             const isPending = pendingIds.includes(user.id);
 
             return (

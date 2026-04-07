@@ -75,7 +75,7 @@ export default function LibraryOverview() {
                 key={item.trackId}
                 title={item.track.title}
                 coverUrl={item.track.cover}
-                username={item.track.artist}
+                username={item.user.username}
               />
             ))}
       </LibrarySection>

@@ -7,6 +7,7 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
 import type { Metadata } from 'next';
+import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
 /**
@@ -89,6 +90,7 @@ export default function RootLayout({
                       Persistent global player runtime.
                       Mounted once at the app shell so playback survives route changes.
                     */}
+                    <Toaster />
                     <GlobalAudioPlayer />
                   </QueryProvider>
                 </div>

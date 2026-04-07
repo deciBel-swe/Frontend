@@ -38,7 +38,7 @@ import { config } from '@/config';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import { apiErrorDTOSchema, type ApiErrorDTO } from '@/types';
-
+import toast from 'react-hot-toast';
 /**
  * Shared querystring parameter shape for API requests.
  */
@@ -200,6 +200,19 @@ export const attachJwtInterceptor = (
   return requestConfig;
 };
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+
+    if (status === 403) {
+      toast.error('Please log in to continue');
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 apiClient.interceptors.request.use(attachJwtInterceptor);
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
@@ -257,6 +270,7 @@ export const handleAuthRefreshOnUnauthorized = async (
   } catch {
     const { authService } = await import('@/services');
     authService.clearSession();
+    toast.error('Please log in to continue');
     return Promise.reject(error);
   }
 };

@@ -142,9 +142,10 @@ export const API_ENDPOINTS = {
     FOLLOWERS: (userId: number) => `/users/${userId}/followers`,
     FOLLOWING: (userId: number) => `/users/${userId}/following`,
     BLOCK: (userId: number) => `/users/${userId}/block`,
-    WHO_LIKE_TRACK: (trackid: number) => `/tracks/${trackid}/like`, //users who like a track
+    WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
-    WHO_REPOSTED: (trackId: number) => `/tracks/${trackId}/reposters`, //users who reposted a track
+    WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
+    REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
   },
   TRACKS: {
     UPLOAD: '/tracks/upload',
@@ -161,9 +162,9 @@ export const API_ENDPOINTS = {
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
-    GET_REPOSTERS: (trackId: number) => `/tracks/${trackId}/reposters`,
+    GET_REPOSTERS: (trackId: number) => `/users/tracks/${trackId}/reposters`,
     REPOST: (trackId: number) => `/tracks/${trackId}/repost`,
-    LIKE: (trackId: number) => `/tracks/${trackId}/like`,
+    LIKE: (trackId: number) => `/users/tracks/${trackId}/like`,
     COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
   },
   PLAYLISTS: {

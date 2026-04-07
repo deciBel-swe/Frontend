@@ -9,7 +9,8 @@ import { useUserCardHook } from '@/hooks/useUserCardHook';
 
 interface SidebarArtistCardProps {
   id?: number;
-  name: string;
+  username: string;
+  displayName?: string;
   followers: number;
   tracks: number;
   isFollowing?: boolean;
@@ -19,7 +20,8 @@ interface SidebarArtistCardProps {
 
 const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
   id,
-  name,
+  username,
+  displayName,
   followers = 0,
   tracks = 0,
   isFollowing = false,
@@ -32,14 +34,17 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
     handleFollowToggle,
   } = useUserCardHook({
     user: {
-      id: String(id ?? name),
-      username: name,
+      id: String(id ?? username),
+      username,
+      displayName,
       avatarSrc: imageUrl,
       followerCount: followers,
       isFollowing,
     },
   });
 
+  const resolvedDisplayName =
+    resolvedUser.displayName?.trim() || resolvedUser.username;
   const artistSlug = resolvedUser.username.toLowerCase().replace(/\s+/g, '');
   const baseUrl = artistUrl ?? `/${artistSlug}`;
   const canToggleFollow = typeof id === 'number' && id > 0;
@@ -57,7 +62,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
         {resolvedUser.avatarSrc ? (
           <Image
             src={resolvedUser.avatarSrc}
-            alt={resolvedUser.username}
+            alt={resolvedDisplayName}
             className="w-10 h-10 rounded-full object-cover shrink-0"
             width={40}
             height={40}
@@ -74,7 +79,7 @@ const SidebarArtistCard: React.FC<SidebarArtistCardProps> = ({
             href={baseUrl}
             className="text-sm font-medium text-text-primary truncate transition group-hover:text-text-primary"
           >
-            {resolvedUser.username}
+            {resolvedDisplayName}
           </Link>
 
           {/* STATS */}

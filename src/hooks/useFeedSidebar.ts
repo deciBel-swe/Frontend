@@ -8,7 +8,8 @@ import { useListeningHistoryTracks } from '@/hooks/useListeningHistoryTracks';
 
 type SidebarArtist = {
   id?: number;
-  name: string;
+  username: string;
+  displayName?: string;
   followers: number;
   tracks: number;
   isFollowing?: boolean;
@@ -20,6 +21,7 @@ type SidebarHistoryRow = {
   trackId?: string | number;
   image: string;
   artist: string;
+  artistUsername?: string;
   title: string;
   playback?: PlayerTrack;
   stats: {
@@ -64,13 +66,15 @@ export function useFeedSidebar() {
 
         const mappedArtists = await Promise.all(
           suggestedUsers.map(async (user: SearchUser) => {
-            const profileUsername = user.username ?? user.displayName ?? 'unknown';
+            const profileUsername = user.username?.trim() || 'unknown';
+            const profileDisplayName = user.displayName?.trim() || undefined;
             const profilePath = `/${encodeURIComponent(profileUsername)}`;
 
             if (typeof user.id !== 'number') {
               return {
                 id: undefined,
-                name: profileUsername,
+                username: profileUsername,
+                displayName: profileDisplayName,
                 followers: 0,
                 tracks: 0,
                 isFollowing: user.isFollowing ?? false,
@@ -84,7 +88,8 @@ export function useFeedSidebar() {
 
               return {
                 id: user.id,
-                name: publicUser.profile.displayName || publicUser.profile.username,
+                username: publicUser.profile.username,
+                displayName: publicUser.profile.displayName || undefined,
                 followers: publicUser.profile.followerCount,
                 tracks: publicUser.profile.trackCount,
                 isFollowing: publicUser.profile.isFollowing,
@@ -94,7 +99,8 @@ export function useFeedSidebar() {
             } catch {
               return {
                 id: user.id,
-                name: profileUsername,
+                username: profileUsername,
+                displayName: profileDisplayName,
                 followers: 0,
                 tracks: 0,
                 isFollowing: user.isFollowing ?? false,
@@ -151,6 +157,7 @@ export function useFeedSidebar() {
           trackId: track.track.id,
           image: track.track.cover,
           artist: track.track.artist,
+          artistUsername: track.user.username,
           title: track.track.title,
           playback,
           stats: {

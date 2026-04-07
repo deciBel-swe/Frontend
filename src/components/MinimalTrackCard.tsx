@@ -74,7 +74,7 @@ export default function MinimalTrackCard({
 
   const isBlocked = playbackTrack?.access === 'BLOCKED';
 
-  const userSlug = item.track.artist.toLowerCase().replace(/\s+/g, '');
+  const userSlug = item.user.username.toLowerCase().replace(/\s+/g, '');
   const trackLink = `/${userSlug}/${item.track.id}`;
 
   const handlePlayFromCard = () => {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { TrackListItem } from '@/components/TrackList';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
-import { trackService } from '@/services';
+import { trackService, userService } from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
 
 const normalizeUsername = (value: string | undefined): string =>
@@ -64,6 +64,39 @@ export function useLikedTracks(
     const loadLikedTracks = async () => {
       setIsLoading(true);
       setIsError(false);
+      const artistDisplayNameLookups = new Map<string, Promise<string | undefined>>();
+
+      const resolveArtistDisplayName = (
+        artistUsername: string,
+        fallbackDisplayName: string | undefined
+      ): Promise<string | undefined> => {
+        const normalizedFallback = fallbackDisplayName?.trim();
+        if (normalizedFallback) {
+          return Promise.resolve(normalizedFallback);
+        }
+
+        const normalizedUsername = artistUsername.trim();
+        if (normalizedUsername.length === 0 || normalizedUsername === 'unknown') {
+          return Promise.resolve(undefined);
+        }
+
+        const cachedLookup = artistDisplayNameLookups.get(normalizedUsername);
+        if (cachedLookup) {
+          return cachedLookup;
+        }
+
+        const lookup = (async () => {
+          try {
+            const publicUser = await userService.getPublicUserByUsername(normalizedUsername);
+            return publicUser.profile.displayName?.trim() || undefined;
+          } catch {
+            return undefined;
+          }
+        })();
+
+        artistDisplayNameLookups.set(normalizedUsername, lookup);
+        return lookup;
+      };
 
       try {
         if (!isOwner) {
@@ -88,20 +121,28 @@ export function useLikedTracks(
               metadata = null;
             }
 
-            const artistName = track.artist?.displayName || track.artist?.username || 'unknown';
+            const artistUsername =
+              track.artist?.username ||
+              metadata?.artist.username ||
+              track.artist?.displayName ||
+              'unknown';
+            const artistDisplayName = await resolveArtistDisplayName(
+              artistUsername,
+              track.artist?.displayName || metadata?.artist.displayName
+            );
             const durationSeconds = metadata?.durationSeconds;
 
             return {
               trackId: String(track.id),
               user: {
-                username: artistName,
-                displayName: track.artist?.displayName,
+                username: artistUsername,
+                displayName: artistDisplayName,
                 avatar: metadata?.coverUrl ?? track.coverUrl,
               },
               postedText: 'liked a track',
               track: {
                 id: track.id,
-                artist: artistName,
+                artist: artistDisplayName || artistUsername,
                 title: track.title,
                 cover: metadata?.coverUrl ?? track.coverUrl,
                 duration: durationSeconds ? formatDuration(durationSeconds) : '',

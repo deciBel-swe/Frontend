@@ -47,7 +47,6 @@ import {
   paginatedFollowersResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
-  updateImagesJsonRequestSchema,
   updateImagesResponseSchema,
   updateMeRequestSchema,
   updatePrimaryEmailRequestSchema,
@@ -249,10 +248,12 @@ export const API_CONTRACTS = {
     responseSchema: updateTierResponseSchema,
   }),
 
-  USERS_ME_IMAGES_UPDATE: defineContract({
+  USERS_ME_IMAGES_UPDATE: defineContract<
+    FormData,
+    z.infer<typeof updateImagesResponseSchema>
+  >({
     method: 'PATCH',
     url: API_ENDPOINTS.USERS.ME_IMAGES,
-    requestSchema: updateImagesJsonRequestSchema,
     responseSchema: updateImagesResponseSchema,
   }),
 
@@ -626,6 +627,12 @@ export const API_CONTRACTS = {
     defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.USERS.WHO_LIKE_TRACK(trackId),
+      responseSchema: paginatedFollowersResponseSchema,
+    }),
+    USERS_WHO_REPOSTED_TRACK: (trackId: number) =>
+    defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.WHO_REPOSTED(trackId),
       responseSchema: paginatedFollowersResponseSchema,
     }),
   // USERS_LIKED_PLAYLISTS: (userId: number) =>

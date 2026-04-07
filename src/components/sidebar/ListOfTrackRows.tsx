@@ -13,6 +13,7 @@ type ListOfTrackRowsprops ={
     trackId?: string | number;
     image: string;
     artist: string;
+    artistUsername?: string;
     title: string;
     playback?: PlayerTrack;
     stats: {

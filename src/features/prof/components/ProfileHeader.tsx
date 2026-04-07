@@ -23,7 +23,7 @@ const ProfileHeader = ({ username }: ProfileHeaderProps) => {
         <ProfileAvatar avatarUrl={data?.profile.profilePic} />
         <div className="flex flex-col gap-1 items-start">
           <span className="text-2xl font-bold text-neutral-0 bg-surface-overlay/60 backdrop-blur-sm px-2 py-0.5 rounded-md">
-            {username}
+            {data?.profile.displayName || username}
           </span>
           <span className="text-l font-bold text-neutral-0 bg-surface-overlay/60 backdrop-blur-sm px-2 py-0.5 rounded-md">
             {location}
