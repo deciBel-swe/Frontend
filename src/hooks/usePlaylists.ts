@@ -60,6 +60,7 @@ export const useCreatePlaylist = () => {
     onSuccess: () => {
       // Invalidate 'me' playlists so the new playlist instantly appears in lists/modals
       queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };
@@ -85,6 +86,7 @@ export const useUpdatePlaylist = () => {
       // Refresh both the specific playlist page and the user's library lists
       queryClient.invalidateQueries({ queryKey: ['playlists', playlistId] });
       queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };
@@ -101,6 +103,8 @@ export const useDeletePlaylist = () => {
     onSuccess: (_, playlistId) => {
       queryClient.invalidateQueries({ queryKey: ['playlists', playlistId] });
       queryClient.invalidateQueries({ queryKey: ['me', 'playlists'] });
+      // to fix the profile page refresh bug
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };

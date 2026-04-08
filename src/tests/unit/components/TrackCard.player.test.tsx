@@ -5,6 +5,17 @@ import TrackCard from '@/components/TrackCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 
+// Mock the React Query hooks used by the newly added Playlist Modal
+// so they don't crash the test due to a missing QueryClientProvider.
+jest.mock('@/hooks/usePlaylists', () => ({
+  useMePlaylists: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+  useCreatePlaylist: jest.fn().mockReturnValue({ mutate: jest.fn() }),
+  useAddTrackToPlaylist: jest.fn().mockReturnValue({ mutate: jest.fn() }),
+  useDeletePlaylist: jest.fn().mockReturnValue({ mutate: jest.fn() }),
+  useTogglePlaylistLike: jest.fn().mockReturnValue({ mutate: jest.fn() }),
+  useTogglePlaylistRepost: jest.fn().mockReturnValue({ mutate: jest.fn() }),
+}));
+
 jest.mock('@/hooks/useCopyTrackLink', () => ({
   useCopyTrackLink: () => ({ handleCopy: jest.fn() }),
 }));
@@ -23,10 +34,14 @@ jest.mock('@/features/prof/components/ShareModal', () => ({
 
 jest.mock('@/features/tracks/components/EditTrackModal', () => () => null);
 jest.mock('@/components/CompactTrackList', () => () => null);
-jest.mock('@/components/TrackActions', () => () => <div data-testid="track-actions" />);
+jest.mock('@/components/TrackActions', () => () => (
+  <div data-testid="track-actions" />
+));
 jest.mock('@/components/TimeAgo', () => () => <span>ago</span>);
 
-jest.mock('@/components/comments/CommentInput', () => () => <div data-testid="comment-input" />);
+jest.mock('@/components/comments/CommentInput', () => () => (
+  <div data-testid="comment-input" />
+));
 
 jest.mock('@/components/WaveformTimedComments', () => ({
   __esModule: true,
@@ -35,7 +50,11 @@ jest.mock('@/components/WaveformTimedComments', () => ({
 
 jest.mock('@/components/waveform/Waveform', () => ({
   __esModule: true,
-  default: ({ onWaveformClick }: { onWaveformClick?: (percent: number) => void }) => (
+  default: ({
+    onWaveformClick,
+  }: {
+    onWaveformClick?: (percent: number) => void;
+  }) => (
     <button type="button" onClick={() => onWaveformClick?.(0.5)}>
       Waveform
     </button>
@@ -95,17 +114,18 @@ describe('TrackCard playback integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({
-        queue: [],
-        currentTrack: null,
-        isPlaying: false,
-        duration: 0,
-        setQueue: mockSetQueue,
-        playTrack: mockPlayTrack,
-        pause: mockPause,
-        seek: mockSeek,
-      })
+    mockUsePlayerStore.mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          queue: [],
+          currentTrack: null,
+          isPlaying: false,
+          duration: 0,
+          setQueue: mockSetQueue,
+          playTrack: mockPlayTrack,
+          pause: mockPause,
+          seek: mockSeek,
+        })
     );
   });
 
@@ -151,17 +171,18 @@ describe('TrackCard playback integration', () => {
   it('shows pause action and pauses when current track is already playing', async () => {
     const user = userEvent.setup();
 
-    mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({
-        queue: [PLAYABLE_TRACK],
-        currentTrack: PLAYABLE_TRACK,
-        isPlaying: true,
-        duration: 120,
-        setQueue: mockSetQueue,
-        playTrack: mockPlayTrack,
-        pause: mockPause,
-        seek: mockSeek,
-      })
+    mockUsePlayerStore.mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          queue: [PLAYABLE_TRACK],
+          currentTrack: PLAYABLE_TRACK,
+          isPlaying: true,
+          duration: 120,
+          setQueue: mockSetQueue,
+          playTrack: mockPlayTrack,
+          pause: mockPause,
+          seek: mockSeek,
+        })
     );
 
     render(
@@ -198,17 +219,18 @@ describe('TrackCard playback integration', () => {
   it('auto-plays current track when seeking while paused', async () => {
     const user = userEvent.setup();
 
-    mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({
-        queue: [PLAYABLE_TRACK],
-        currentTrack: PLAYABLE_TRACK,
-        isPlaying: false,
-        duration: 120,
-        setQueue: mockSetQueue,
-        playTrack: mockPlayTrack,
-        pause: mockPause,
-        seek: mockSeek,
-      })
+    mockUsePlayerStore.mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          queue: [PLAYABLE_TRACK],
+          currentTrack: PLAYABLE_TRACK,
+          isPlaying: false,
+          duration: 120,
+          setQueue: mockSetQueue,
+          playTrack: mockPlayTrack,
+          pause: mockPause,
+          seek: mockSeek,
+        })
     );
 
     render(
@@ -228,17 +250,18 @@ describe('TrackCard playback integration', () => {
   it('switches to another track and seeks when waveform is clicked', async () => {
     const user = userEvent.setup();
 
-    mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({
-        queue: [OTHER_PLAYABLE_TRACK, PLAYABLE_TRACK],
-        currentTrack: OTHER_PLAYABLE_TRACK,
-        isPlaying: true,
-        duration: 180,
-        setQueue: mockSetQueue,
-        playTrack: mockPlayTrack,
-        pause: mockPause,
-        seek: mockSeek,
-      })
+    mockUsePlayerStore.mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          queue: [OTHER_PLAYABLE_TRACK, PLAYABLE_TRACK],
+          currentTrack: OTHER_PLAYABLE_TRACK,
+          isPlaying: true,
+          duration: 180,
+          setQueue: mockSetQueue,
+          playTrack: mockPlayTrack,
+          pause: mockPause,
+          seek: mockSeek,
+        })
     );
 
     render(
@@ -285,17 +308,18 @@ describe('TrackCard playback integration', () => {
   it('uses global player duration fallback when card duration is missing', async () => {
     const user = userEvent.setup();
 
-    mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({
-        queue: [PLAYABLE_TRACK],
-        currentTrack: PLAYABLE_TRACK,
-        isPlaying: true,
-        duration: 200,
-        setQueue: mockSetQueue,
-        playTrack: mockPlayTrack,
-        pause: mockPause,
-        seek: mockSeek,
-      })
+    mockUsePlayerStore.mockImplementation(
+      (selector: (state: unknown) => unknown) =>
+        selector({
+          queue: [PLAYABLE_TRACK],
+          currentTrack: PLAYABLE_TRACK,
+          isPlaying: true,
+          duration: 200,
+          setQueue: mockSetQueue,
+          playTrack: mockPlayTrack,
+          pause: mockPause,
+          seek: mockSeek,
+        })
     );
 
     render(

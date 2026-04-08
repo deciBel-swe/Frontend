@@ -7,39 +7,36 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DropdownMenu } from '@/components/nav/DropdownMenu';
 
-const mockPlaylists = [
-  {
-    id: 1,
-    title: 'The Beauty of Existence',
-    artist: 'Muhammad Al Muqit',
-    image: 'https://i1.sndcdn.com/artworks-000523960650-2nc5nm-t500x500.jpg',
-  },
-  {
-    id: 2,
-    title: 'A Flower',
-    artist: 'Double Vision',
-    image: 'https://i1.sndcdn.com/artworks-000184761485-dzknun-t500x500.jpg',
-  },
-  {
-    id: 3,
-    title: 'Al-Aqsa',
-    artist: 'Palestine',
-    image: 'https://i1.sndcdn.com/artworks-000034240364-u9zoa8-t500x500.jpg',
-  },
-];
+import { useMePlaylists } from '@/hooks/usePlaylists';
+import type { PlaylistResponse } from '@/types/playlists';
+type UIPlaylist = PlaylistResponse & {
+  cover?: string;
+  coverUrl?: string;
+};
 
 export default function Page() {
-  const [selectedView, setSelectedView] = useState<'All' | 'Created' | 'Liked'>('All');
+  const [selectedView, setSelectedView] = useState<'All' | 'Created' | 'Liked'>(
+    'All'
+  );
   const [filterText, setFilterText] = useState('');
 
+  // Fetch real playlists from the backend
+  const { data: playlists, isLoading } = useMePlaylists();
+
   const filteredItems = useMemo(() => {
-    if (!filterText.trim()) return mockPlaylists;
+    if (!playlists) return [];
+
+    const items = playlists as UIPlaylist[];
+
+    if (!filterText.trim()) return items;
+
     const normalized = filterText.toLowerCase();
-    return mockPlaylists.filter((item) =>
-      item.title.toLowerCase().includes(normalized) ||
-      item.artist.toLowerCase().includes(normalized)
+    return items.filter(
+      (item: PlaylistResponse) =>
+        item.title?.toLowerCase().includes(normalized) ||
+        item.owner?.username?.toLowerCase().includes(normalized)
     );
-  }, [filterText]);
+  }, [playlists, filterText]);
 
   // ─── VIEW MENU DROPDOWN ──────────────────────────────
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
@@ -51,7 +48,10 @@ export default function Page() {
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (viewMenuRef.current && !viewMenuRef.current.contains(event.target as Node)) {
+      if (
+        viewMenuRef.current &&
+        !viewMenuRef.current.contains(event.target as Node)
+      ) {
         closeViewMenu();
       }
     };
@@ -76,73 +76,95 @@ export default function Page() {
 
           <div className="flex items-center gap-2">
             <div className="relative" ref={viewMenuRef}>
-<Button
-  onClick={toggleViewMenu}
-  variant="ghost"
-  size="sm"
-  className="flex items-center gap-2 h-9"
->
-  {selectedView}  {/* Shows the label dynamically */}
-  <ChevronDown
-    size={14}
-    className={`transition-transform duration-200 ${
-      viewMenuOpen ? 'rotate-180' : 'rotate-0'
-    }`}
-  />
-</Button>
+              <Button
+                onClick={toggleViewMenu}
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2 h-9"
+              >
+                {selectedView} {/* Shows the label dynamically */}
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${
+                    viewMenuOpen ? 'rotate-180' : 'rotate-0'
+                  }`}
+                />
+              </Button>
 
-{viewMenuOpen && (
-  <DropdownMenu
-    items={[
-      {
-        label: 'All',
-        href: '#',
-        onClick: () => {
-          setSelectedView('All');
-          closeViewMenu();
-        },
-      },
-      {
-        label: 'Created',
-        href: '#',
-        onClick: () => {
-          setSelectedView('Created');
-          closeViewMenu();
-        },
-      },
-      {
-        label: 'Liked',
-        href: '#',
-        onClick: () => {
-          setSelectedView('Liked');
-          closeViewMenu();
-        },
-      },
-    ]}
-    onClose={closeViewMenu}
-  />
-)}
+              {viewMenuOpen && (
+                <DropdownMenu
+                  items={[
+                    {
+                      label: 'All',
+                      href: '#',
+                      onClick: () => {
+                        setSelectedView('All');
+                        closeViewMenu();
+                      },
+                    },
+                    {
+                      label: 'Created',
+                      href: '#',
+                      onClick: () => {
+                        setSelectedView('Created');
+                        closeViewMenu();
+                      },
+                    },
+                    {
+                      label: 'Liked',
+                      href: '#',
+                      onClick: () => {
+                        setSelectedView('Liked');
+                        closeViewMenu();
+                      },
+                    },
+                  ]}
+                  onClose={closeViewMenu}
+                />
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* GRID */}
-      <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
-        {filteredItems.map((item) =>
-           (
-            <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
-          ) 
-        )}
+      {/* CONTENT AREA */}
+      {isLoading ? (
+        <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={`loading-${i}`}
+              className="w-full aspect-square rounded-lg bg-surface-raised animate-pulse"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
+          {filteredItems.length > 0 ? (
+            // Remove the explicit type here too!
+            filteredItems.map((item) => (
+              <PlaylistCard
+                key={item.id}
+                title={item.title}
+                coverUrl={
+                  item.cover ||
+                  item.coverUrl ||
+                  '/images/default_song_image.png'
+                }
+              />
+            ))
+          ) : (
+            <p className="text-text-muted col-span-full">No playlists found.</p>
+          )}
 
-        {/* EMPTY PLACEHOLDERS */}
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={`empty-${i}`}
-            className="w-full aspect-square rounded-lg bg-surface-dark/70"
-          />
-        ))}
-      </div>
+          {/* EMPTY PLACEHOLDERS */}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="w-full aspect-square rounded-lg bg-transparent"
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
