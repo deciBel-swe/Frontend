@@ -341,10 +341,10 @@ export const API_CONTRACTS = {
     }),
 
   USERS_UNBLOCK: (userId: number) =>
-    defineContract<void, z.infer<typeof messageResponseSchema>>({
+    defineContract({
       method: 'DELETE',
       url: API_ENDPOINTS.USERS.BLOCK(userId),
-      responseSchema: messageResponseSchema,
+      responseSchema: z.object({message: z.string().optional()}).optional()
     }),
 
   USERS_PUBLIC_BY_ID: (userId: number) =>
