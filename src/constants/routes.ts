@@ -164,7 +164,7 @@ export const API_ENDPOINTS = {
     REPORT: (trackId: number) => `/tracks/${trackId}/report`,
     GET_REPOSTERS: (trackId: number) => `/users/tracks/${trackId}/reposters`,
     REPOST: (trackId: number) => `/tracks/${trackId}/repost`,
-    LIKE: (trackId: number) => `/users/tracks/${trackId}/like`,
+    LIKE: (trackId: number) => `/tracks/${trackId}/like`,
     COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
   },
   PLAYLISTS: {
