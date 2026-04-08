@@ -176,7 +176,6 @@ export const attachJwtInterceptor = (
         set: (name: string, value: string) => void;
       }
     ).set('Authorization', `Bearer ${token}`);
-    console.log('Attached JWT token to request via Headers instance');
     return requestConfig;
   }
 
@@ -188,12 +187,11 @@ export const attachJwtInterceptor = (
   const existingAuthorization =
     plainHeaders.Authorization ?? plainHeaders.authorization;
 
-  if (
-    typeof existingAuthorization === 'string' &&
-    existingAuthorization.trim().length > 0
-  ) {
-    return requestConfig;
-  }
+const isRetry = (requestConfig as RetryableRequestConfig)._retry;
+
+if (!isRetry && existingAuthorization) {
+  return requestConfig;
+}
 
   plainHeaders.Authorization = `Bearer ${token}`;
 

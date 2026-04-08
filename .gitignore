@@ -72,4 +72,4 @@ yarn-error.log*
 .tmp
 temp/
 docs/Decibel_API.md
-notes.md
+notes/*
