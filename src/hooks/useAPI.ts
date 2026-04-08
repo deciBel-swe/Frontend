@@ -200,20 +200,6 @@ export const attachJwtInterceptor = (
   return requestConfig;
 };
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const status = error?.response?.status;
-
-    if (status === 403) {
-      toast.error('Please log in to continue');
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-apiClient.interceptors.request.use(attachJwtInterceptor);
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -249,7 +235,6 @@ const refreshSessionToken = async (): Promise<void> => {
       refreshTokenRequest = null;
     });
   }
-
   await refreshTokenRequest;
 };
 
@@ -275,10 +260,6 @@ export const handleAuthRefreshOnUnauthorized = async (
   }
 };
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  handleAuthRefreshOnUnauthorized
-);
 
 const formatZodIssues = (error: z.ZodError): string => {
   return error.issues
@@ -474,3 +455,25 @@ export const useAPI = (): UseAPIResult => {
     []
   );
 };
+
+// attach interceptors
+apiClient.interceptors.request.use(attachJwtInterceptor);
+
+
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  handleAuthRefreshOnUnauthorized
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+
+    if (status === 403) {
+      toast.error('Please log in to continue');
+    }
+    return Promise.reject(error);
+  }
+);

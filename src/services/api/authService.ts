@@ -139,6 +139,7 @@ export class RealAuthService implements AuthService {
     const response = await apiRequest(API_CONTRACTS.AUTH_REFRESH_TOKEN);
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
+    document.cookie = `${AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
     return response;
   }
 

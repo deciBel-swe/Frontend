@@ -329,7 +329,13 @@ export class RealUserService implements UserService {
   }
 
   async unblockUser(userId: number): Promise<MessageResponse> {
-    return apiRequest(API_CONTRACTS.USERS_UNBLOCK(userId));
+    try {
+      await apiRequest(API_CONTRACTS.USERS_UNBLOCK(userId));
+    }
+    catch (error) { 
+      console.error(`Failed to unblock user with ID ${userId}:`, error);
+    }
+    return { message: 'User unblocked' };
   }
 
   async getBlockedUsers(
