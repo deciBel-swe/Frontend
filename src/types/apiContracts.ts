@@ -80,6 +80,11 @@ import {
   updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
+import {
+  messageDTOSchema,
+  paginatedMessageResponseSchema,
+  sendMessageRequestSchema,
+} from './message';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -159,8 +164,11 @@ export const API_CONTRACTS = {
   RESEND_VERIFICATION: defineContract({
     method: 'POST',
     url: API_ENDPOINTS.AUTH.RESEND_VERIFICATION,
-    requestSchema: z.object({ email: z.string().trim().email() , deviceInfo: deviceInfoDTOSchema }),
-    responseSchema: z.object({ 
+    requestSchema: z.object({
+      email: z.string().trim().email(),
+      deviceInfo: deviceInfoDTOSchema,
+    }),
+    responseSchema: z.object({
       message: z.string().trim().min(1),
       coolDown: z.number().int().nonnegative().optional().nullable(),
     }),
@@ -341,7 +349,7 @@ export const API_CONTRACTS = {
     }),
 
   USERS_UNBLOCK: (userId: number) =>
-    defineContract<void,void>({
+    defineContract<void, void>({
       method: 'DELETE',
       url: API_ENDPOINTS.USERS.BLOCK(userId),
       responseSchema: z.undefined(),
@@ -358,6 +366,33 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.USERS.BY_USERNAME(username),
       responseSchema: userPublicSchema,
+    }),
+
+  MESSAGES_INBOX: defineContract<
+    void,
+    z.infer<typeof paginatedMessageResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.MESSAGES.CONVERSATIONS,
+    responseSchema: paginatedMessageResponseSchema,
+  }),
+
+  MESSAGES_CHAT_HISTORY: (userId: number) =>
+    defineContract<void, z.infer<typeof paginatedMessageResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(userId),
+      responseSchema: paginatedMessageResponseSchema,
+    }),
+
+  MESSAGES_SEND: (userId: number) =>
+    defineContract<
+      z.infer<typeof sendMessageRequestSchema>,
+      z.infer<typeof messageDTOSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(userId),
+      requestSchema: sendMessageRequestSchema,
+      responseSchema: messageDTOSchema,
     }),
 
   PLAYLISTS_CREATE: defineContract<
@@ -629,7 +664,7 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.USERS.WHO_LIKE_TRACK(trackId),
       responseSchema: paginatedFollowersResponseSchema,
     }),
-    USERS_WHO_REPOSTED_TRACK: (trackId: number) =>
+  USERS_WHO_REPOSTED_TRACK: (trackId: number) =>
     defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.USERS.WHO_REPOSTED(trackId),

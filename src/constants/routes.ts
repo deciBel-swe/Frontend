@@ -196,6 +196,10 @@ export const API_ENDPOINTS = {
     SUSPEND_USER: (userId: number) => `/admin/users/${userId}/suspend`,
   },
   FEED: '/feed',
+  MESSAGES: {
+    CONVERSATIONS: '/conversations',
+    CONVERSATION_MESSAGES: (userId: number) => `/conversations/${userId}/messages`,
+  },
 } as const;
 /**
  * Helper function to build full API URL
