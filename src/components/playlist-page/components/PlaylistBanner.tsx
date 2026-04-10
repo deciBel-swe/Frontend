@@ -59,7 +59,7 @@ export default function PlaylistBanner({
       {playingTrack && (
         <div className="absolute bottom-8 left-4 right-[220px] md:right-[300px] px-4 pb-2">
             <Waveform
-            data={mockWave(50)}  // Replace with actual waveform data for the playing track
+            data={mockWave(50)}  // TODO:Replace with actual waveform data for the playing track
             // height={70}
             barClassName="bg-neutral-0/40 hover:bg-brand-primary"
             />
@@ -103,6 +103,7 @@ export default function PlaylistBanner({
         </button>
 
         <div className="flex flex-col">
+          {/* TODO: addjust the spacing */}
             <div className="inline-block gap-2">
           <span className="inline-block bg-neutral-950 text-neutral-0 text-3xl font-bold px-2.5 py-1.5 mr-5 w-fit">
             {playlist.title}
@@ -112,6 +113,7 @@ export default function PlaylistBanner({
               Updated <TimeAgo date={playlist.updatedAt} />
             </span>
           )}
+          {/* TODO: add genre component after separating it from trackcard as a separate component */}
           </div>
           
           
