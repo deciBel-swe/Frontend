@@ -46,6 +46,10 @@ import type { MessageService } from './api/messageService';
 import { RealMessageService } from './api/messageService';
 import { MockMessageService } from './mocks/messageService';
 
+import type { AdminService } from './api/adminSerivce';
+import { RealAdminService } from './api/adminSerivce';
+import { MockAdminService } from './mocks/adminService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -136,3 +140,12 @@ const resolveMessageService = (): MessageService => {
 };
 
 export const messageService = resolveMessageService();
+
+const resolveAdminService = (): AdminService => {
+  if (config.api.useMock) {
+    return new MockAdminService();
+  }
+  return new RealAdminService();
+};
+
+export const adminService = resolveAdminService();

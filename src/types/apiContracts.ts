@@ -85,6 +85,16 @@ import {
   paginatedMessageResponseSchema,
   sendMessageRequestSchema,
 } from './message';
+import {
+  adminLoginRequestSchema,
+  adminLoginResponseSchema,
+  adminReportsPageSchema,
+  banUserRequestSchema,
+  emptyActionSchema,
+  platformAnalyticsResponseSchema,
+  reportRequestSchema,
+  updateAdminReportStatusRequestSchema,
+} from './admin';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -545,6 +555,88 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.COMMENTS.DELETE(commentId),
       responseSchema: z.undefined(),
     }),
+
+  TRACK_REPORT: (trackId: number) =>
+    defineContract<
+      z.infer<typeof reportRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.TRACKS.REPORT(trackId),
+      requestSchema: reportRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+
+  COMMENT_REPORT: (commentId: number) =>
+    defineContract<
+      z.infer<typeof reportRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.COMMENTS.REPORT(commentId),
+      requestSchema: reportRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+
+  ADMIN_LOGIN: defineContract<
+    z.infer<typeof adminLoginRequestSchema>,
+    z.infer<typeof adminLoginResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.ADMIN.LOGIN,
+    requestSchema: adminLoginRequestSchema,
+    responseSchema: adminLoginResponseSchema,
+  }),
+
+  ADMIN_REPORTS: defineContract<void, z.infer<typeof adminReportsPageSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.ADMIN.REPORTS,
+    responseSchema: adminReportsPageSchema,
+  }),
+
+  ADMIN_UPDATE_REPORT_STATUS: (reportId: number) =>
+    defineContract<
+      z.infer<typeof updateAdminReportStatusRequestSchema>,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'PUT',
+      url: API_ENDPOINTS.ADMIN.REPORT_BY_ID(reportId),
+      requestSchema: updateAdminReportStatusRequestSchema,
+      responseSchema: messageResponseSchema,
+    }),
+
+  ADMIN_DELETE_TRACK: (trackId: number) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'DELETE',
+      url: API_ENDPOINTS.TRACKS.DELETE(trackId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  ADMIN_BAN_USER: (userId: number) =>
+    defineContract<
+      z.infer<typeof banUserRequestSchema> | undefined,
+      z.infer<typeof messageResponseSchema>
+    >({
+      method: 'PUT',
+      url: API_ENDPOINTS.ADMIN.BAN_USER(userId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  ADMIN_UNBAN_USER: (userId: number) =>
+    defineContract<void, z.infer<typeof messageResponseSchema>>({
+      method: 'PUT',
+      url: API_ENDPOINTS.ADMIN.UNBAN_USER(userId),
+      responseSchema: messageResponseSchema,
+    }),
+
+  ADMIN_ANALYTICS: defineContract<
+    void,
+    z.infer<typeof platformAnalyticsResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.ADMIN.ANALYTICS,
+    responseSchema: platformAnalyticsResponseSchema,
+  }),
 
   TRACKS_UPLOAD: defineContract<
     FormData,

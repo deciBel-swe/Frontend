@@ -166,6 +166,7 @@ export const API_ENDPOINTS = {
     REPOST: (trackId: number) => `/tracks/${trackId}/repost`,
     LIKE: (trackId: number) => `/tracks/${trackId}/like`,
     COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
+    DELETE: (trackId: number) => `/tracks/${trackId}`,
   },
   PLAYLISTS: {
     CREATE: '/playlists',
@@ -191,14 +192,18 @@ export const API_ENDPOINTS = {
     DELETE: (commentId: number) => `/api/comments/${commentId}`, // change when api isn't there following api dogs
   },
   ADMIN: {
+    LOGIN: '/admin/login',
     REPORTS: '/admin/reports',
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
-    SUSPEND_USER: (userId: number) => `/admin/users/${userId}/suspend`,
+    BAN_USER: (userId: number) => `/admin/users/${userId}/ban`,
+    UNBAN_USER: (userId: number) => `/admin/users/${userId}/unban`,
+    ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',
   MESSAGES: {
     CONVERSATIONS: '/conversations',
-    CONVERSATION_MESSAGES: (userId: number) => `/conversations/${userId}/messages`,
+    CONVERSATION_MESSAGES: (userId: number) =>
+      `/conversations/${userId}/messages`,
   },
 } as const;
 /**
