@@ -13,7 +13,6 @@ const MOCK_COUNTRIES = [
   { name: 'Portugal', code: 'PT' },
   { name: 'Spain', code: 'ES' },
   { name: 'Sweden', code: 'SE' },
-  { name: 'Egypt', code: 'EG' },
   { name: 'United States', code: 'US' },
 ];
 
