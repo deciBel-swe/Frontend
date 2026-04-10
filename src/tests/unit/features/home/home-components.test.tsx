@@ -12,7 +12,7 @@ jest.mock('@/components/buttons/Button', () => ({
   default: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
 }));
 
-jest.mock('@/components/playlist/PlaylistCard', () => ({
+jest.mock('@/components/playlist/MinimalPlaylistCard', () => ({
   __esModule: true,
   default: ({ title }: { title: string }) => <div>{title}</div>,
 }));

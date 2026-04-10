@@ -24,7 +24,7 @@ export default function PlaylistHorizontalRoot({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  repostedBy,
+  // repostedBy,
   showEditButton = false,
   track,
   waveform,
@@ -37,12 +37,12 @@ export default function PlaylistHorizontalRoot({
 }: PlaylistHorizontalProps) {
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
-  const repostedBySlug = repostedBy?.username
-    ? toUserSlug(repostedBy.username)
-    : undefined;
-  const repostedByDisplayName = repostedBy
-    ? repostedBy.displayName?.trim() || repostedBy.username
-    : undefined;
+  // const repostedBySlug = repostedBy?.username
+  //   ? toUserSlug(repostedBy.username)
+  //   : undefined;
+  // const repostedByDisplayName = repostedBy
+  //   ? repostedBy.displayName?.trim() || repostedBy.username
+  //   : undefined;
 
   const [editOpen, setEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);

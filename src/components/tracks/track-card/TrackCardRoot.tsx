@@ -23,7 +23,7 @@ export default function TrackCardRoot({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  repostedBy,
+  // repostedBy,
   showEditButton = false,
   track,
   waveform,
