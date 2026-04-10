@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 
 import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
-import PlaylistCard from '@/components/playlist/PlaylistCard';
+import PlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import UserCard from '@/features/social/components/UserCard';

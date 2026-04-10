@@ -1,4 +1,4 @@
-import { Playlist } from '@/features/playlist/components/PlaylistTrackItem';
+import { Playlist } from '@/components/playlist-page/components/PlaylistTrackItem';
 
 export const mockWave = (length = 60) =>
   Array.from({ length }, () => Math.random() * 0.8 + 0.1);

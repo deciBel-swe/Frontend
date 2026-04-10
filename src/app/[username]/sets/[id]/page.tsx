@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { MOCK_PLAYLIST } from '@/app/[username]/sets/[id]/mockdata';
-import { PlaylistTrack } from '@/features/playlist/components/PlaylistTrackItem';
-import PlaylistBanner from '@/features/playlist/components/PlaylistBanner';
-import PlaylistActionBar from '@/features/playlist/components/PlaylistActionBar';
-import PlaylistTrackList from '@/features/playlist/components/PlaylistTrackItem';
-import PlaylistTagsSection from '@/features/playlist/components/PlaylistTagsSection';
+import { PlaylistTrack } from '@/components/playlist-page/components/PlaylistTrackItem';
+import PlaylistBanner from '@/components/playlist-page/components/PlaylistBanner';
+import PlaylistActionBar from '@/components/playlist-page/components/PlaylistActionBar';
+import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTrackItem';
+import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
 import Link from 'next/link';
 import AvatarImage from '@/components/avatars/AvatarImage';
 

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import TrackCard from '@/components/tracks/TrackCard';
+import TrackCard from '@/components/tracks/track-card/TrackCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 

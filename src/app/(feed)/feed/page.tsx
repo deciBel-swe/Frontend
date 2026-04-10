@@ -1,6 +1,6 @@
 'use client';
 
-import TrackCard from '@/components/tracks/TrackCard';
+import TrackCard from '@/components/tracks/track-card/TrackCard';
 import { useFeedTracks } from '@/hooks/useFeedTracks';
 
 /**
