@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { Avatar } from '@/components/nav/Avatar';
+import { Avatar } from '@/components/avatars/Avatar';
 import { Badge } from '@/components/nav/Badge';
 import { DropdownMenu } from '@/components/nav/DropdownMenu';
 import { NavLink } from '@/components/nav/NavLink';

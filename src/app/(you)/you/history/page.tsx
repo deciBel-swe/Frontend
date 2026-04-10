@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
-import TrackList from '@/components/TrackList';
+import TrackList from '@/components/tracks/TrackList';
 import FilterBar from '@/components/nav/FilterBar';
 import { useListeningHistoryTracks } from '@/hooks/useListeningHistoryTracks';
 

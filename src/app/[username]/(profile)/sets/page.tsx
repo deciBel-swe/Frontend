@@ -1,6 +1,6 @@
 'use client';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
-import TrackList from '@/components/TrackList';
+import TrackList from '@/components/tracks/TrackList';
 import { useParams } from 'next/navigation';
 import { Suspense } from 'react';
 const TrackListFallback = () => (

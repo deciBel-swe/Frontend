@@ -1,6 +1,6 @@
 'use client';
 
-import PlaylistCard from '@/components/PlaylistCard';
+import PlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import { SearchBar } from '@/components/nav/SearchBar';
 import Button from '@/components/buttons/Button';
 import { useMemo, useState, useRef, useEffect } from 'react';

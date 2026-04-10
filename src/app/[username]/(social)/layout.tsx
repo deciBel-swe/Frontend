@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, usePathname } from 'next/navigation';
-import PageTabsLayout from '@/components/ui/PageTabsLayout';
-import SocialPageHeader, { ListType } from '@/components/ui/social/SocialPageHeader';
+import PageTabsLayout from '@/components/nav/PageTabsLayout';
+import SocialPageHeader, { ListType } from '@/features/social/components/SocialPageHeader';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 
 const getTabs = (username: string) => [

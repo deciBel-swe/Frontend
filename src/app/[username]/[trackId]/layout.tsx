@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 
-import TrackActionBar from '@/components/TrackActionBar';
-import TrackHero from '@/components/TrackHero';
+import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
+import TrackHero from '@/components/track-page/TrackHero';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
 
 type LayoutProps = {

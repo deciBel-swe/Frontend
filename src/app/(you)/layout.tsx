@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import PageTabsLayout from '@/components/ui/PageTabsLayout';
+import PageTabsLayout from '@/components/nav/PageTabsLayout';
 
 const TABS = [
   { label: 'Overview',  href: '/you/library' },

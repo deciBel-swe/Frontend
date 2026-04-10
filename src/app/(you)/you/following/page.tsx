@@ -2,8 +2,8 @@
 import React from "react";
 
 import FilterBar from "@/components/nav/FilterBar";
-import UserGrid from "@/components/ui/social/UserGrid";
-import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
+import UserGrid from "@/features/social/UserGrid";
+import LoadingSkeleton from "@/features/social/LoadingSkeleton";
 import { useAuth } from '@/features/auth';
 import { useFollowing } from '@/hooks/useFollowing';
 

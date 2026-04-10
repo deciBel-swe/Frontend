@@ -1,6 +1,6 @@
-import ProfileHeader from '@/features/prof/components/ProfileHeader';
-import ProfileSideBar from '@/features/prof/components/ProfileSideBar';
-import MidBar from '@/features/prof/components/MidBar';
+import ProfileHeader from '@/features/prof/components/layout/header/ProfileHeader';
+import ProfileSideBar from '@/features/prof/components/layout/sidebar/ProfileSideBar';
+import MidBar from '@/features/prof/components/layout/MidBar';
 import LayoutContainer from '@/components/LayoutContainer'
 
 const Layout = async ({
