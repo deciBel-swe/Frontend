@@ -36,7 +36,7 @@ describe('MockAdminService', () => {
   });
 
   it('getPlatformReports returns two reports', async () => {
-    const response = await service.getPlatformReports({ page: 0, size: 20 });
+    const response = await service.getPlatformReports();
 
     expect(response.content).toHaveLength(2);
     expect(response.totalElements).toBe(2);

@@ -38,9 +38,7 @@ export class MockAdminService implements AdminService {
     };
   }
 
-  async getPlatformReports(
-    params?: PaginationParams
-  ): Promise<AdminReportsPage> {
+  async getPlatformReports(): Promise<AdminReportsPage> {
     return {
       content: [
         {

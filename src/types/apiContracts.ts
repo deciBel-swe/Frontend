@@ -90,7 +90,6 @@ import {
   adminLoginResponseSchema,
   adminReportsPageSchema,
   banUserRequestSchema,
-  emptyActionSchema,
   platformAnalyticsResponseSchema,
   reportRequestSchema,
   updateAdminReportStatusRequestSchema,
