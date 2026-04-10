@@ -1,4 +1,4 @@
-import { AdminService, PaginationParams } from '../api/adminSerivce';
+import { AdminService } from '../api/adminSerivce';
 import type { MessageResponse } from '@/types/user';
 import type {
   AdminLoginResponse,
