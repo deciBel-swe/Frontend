@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import TrackCard from '@/components/TrackCard';
+import TrackCard from '@/components/tracks/TrackCard';
 import type {
   PlaybackAccess,
   PlayerTrack,

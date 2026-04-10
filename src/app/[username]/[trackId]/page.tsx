@@ -1,5 +1,5 @@
 "use client";
-import TrackPageView from '@/components/TrackPageView';
+import TrackPageView from '@/components/track-page/TrackPageView';
 import { useParams } from 'next/navigation';
 
 export default function TrackPage() {

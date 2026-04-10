@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import type { TrackListItem } from '@/components/TrackList';
+import type { TrackListItem } from '@/components/tracks/TrackList';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { playbackService, trackService} from '@/services';
 import { formatDuration } from '@/utils/formatDuration';

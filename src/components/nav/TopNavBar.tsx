@@ -23,7 +23,7 @@ import RegisterModal from '@/features/auth/components/Forms/RegisterModal';
 
 import { Button } from '@/components/buttons/Button';
 import { useTopNavBar } from './useTopNavBar';
-import { Avatar } from '@/components/nav/Avatar';
+import { Avatar } from '@/components/avatars/Avatar';
 import { Badge } from '@/components/nav/Badge';
 import { DropdownMenu } from '@/components/nav/DropdownMenu';
 import { IconButton } from '@/components/buttons/IconButton';

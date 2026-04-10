@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { commentService, trackService } from '@/services';
 import type { Comment as ApiComment } from '@/types/comments';
-import type { TimedComment } from '@/components/WaveformTimedComments';
+import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
 
 type TopLevelApiComment = ApiComment & { timestampSeconds: number };
 

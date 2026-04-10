@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import HorizontalScroll from '@/components/HorizontalScroll';
+import HorizontalScroll from '@/components/scroll/HorizontalScroll';
 
 interface LibrarySectionProps {
   title: string;

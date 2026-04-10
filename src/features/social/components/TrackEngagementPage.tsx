@@ -1,7 +1,7 @@
 'use client';
 
-import UserGrid from '@/components/ui/social/UserGrid';
-import LoadingSkeleton from '@/components/ui/social/LoadingSkeleton';
+import UserGrid from '@/features/social/UserGrid';
+import LoadingSkeleton from '@/features/social/LoadingSkeleton';
 import { useTrackEngagementPage } from '@/hooks/useTrackEngagementPage';
 
 type TrackEngagementPageProps = {

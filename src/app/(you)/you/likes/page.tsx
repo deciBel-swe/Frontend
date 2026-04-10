@@ -1,11 +1,11 @@
 'use client';
 
 
-import MinimalTrackCard from '@/components/MinimalTrackCard';
-import TrackList from '@/components/TrackList';
+import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
+import TrackList from '@/components/tracks/TrackList';
 import Button from '@/components/buttons/Button';
 import FilterBar from '@/components/nav/FilterBar';
-import LibrarySection from '@/components/ui/library/LibrarySection';
+import LibrarySection from '@/features/library/LibrarySection';
 import { useAuth } from '@/features/auth';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';

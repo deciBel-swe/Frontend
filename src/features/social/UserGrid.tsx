@@ -1,5 +1,5 @@
-import UserCard, { UserCardData } from "./UserCard";
-import EmptyState from "@/components/ui/social/EmptyState";
+import UserCard, { UserCardData } from "./components/UserCard";
+import EmptyState from "@/features/social/EmptyState";
 
 interface UserGridProps {
   users: UserCardData[];

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Play, Pause } from 'lucide-react';
-import TimeAgo from '@/components/TimeAgo';
+import TimeAgo from '@/features/tracks/components/TimeAgo';
 import Waveform from '@/components/waveform/Waveform';
 import { mockWave } from '@/app/[username]/sets/[id]/mockdata';
 

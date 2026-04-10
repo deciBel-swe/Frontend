@@ -1,4 +1,4 @@
-import PlaylistCard from '@/components/PlaylistCard';
+import PlaylistCard from '@/components/playlist/PlaylistCard';
 import Button from '@/components/buttons/Button';
 
 const mockPlaylists = [

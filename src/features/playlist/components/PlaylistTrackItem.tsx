@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
-import TrackActions from '@/components/TrackActions';
+import TrackActions from '@/components/tracks/actions/TrackActions';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 
 export type PlaylistTrack = {

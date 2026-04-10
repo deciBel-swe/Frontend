@@ -4,8 +4,8 @@ import { useParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 import { UserMiniProfile } from '@/components/playlist/UserMiniProfile';
-import CompactTrackItem from '@/components/CompactTrackItem';
-import { Track } from '@/components/CompactTrackList'; // Ensure this is the correct path to your type
+import CompactTrackItem from '@/components/compact-tracks/CompactTrackItem';
+import { Track } from '@/components/compact-tracks/CompactTrackList'; // Ensure this is the correct path to your type
 
 // 1. Apply the Track type to your mock data
 const MOCK_TRACKS: Track[] = [

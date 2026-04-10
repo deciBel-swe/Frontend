@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, GripVertical, Play, Pause } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
-import ScrollableArea from '@/components/ui/ScrollableArea';
+import ScrollableArea from '@/components/scroll/ScrollableArea';
 
 interface QueueItem {
   id: number;

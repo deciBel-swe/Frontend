@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 
-import MinimalTrackCard from '@/components/MinimalTrackCard';
-import PlaylistCard from '@/components/PlaylistCard';
+import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
+import PlaylistCard from '@/components/playlist/PlaylistCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import UserCard from '@/components/ui/social/UserCard';
+import UserCard from '@/features/social/components/UserCard';
 import LibrarySection from './LibrarySection';
 import { useAuth } from '@/features/auth';
 import { useFollowing } from '@/hooks/useFollowing';

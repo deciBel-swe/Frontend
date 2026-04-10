@@ -1,7 +1,7 @@
 'use client';
 
-import TrackList from '@/components/TrackList';
-import { TrackListFallBack } from '@/components/ui/TrackListFallBack';
+import TrackList from '@/components/tracks/TrackList';
+import { TrackListFallBack } from '@/features/tracks/components/TrackListFallBack';
 import { useUserRepostPage } from '@/hooks/useUserRepostPage';
 
 export default function Page() {

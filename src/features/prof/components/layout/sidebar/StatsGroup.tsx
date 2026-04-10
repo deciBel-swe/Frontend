@@ -1,4 +1,4 @@
-import StateItem from '@/features/prof/components/StatItem';
+import StateItem from '@/features/prof/components/layout/sidebar/StatItem';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 

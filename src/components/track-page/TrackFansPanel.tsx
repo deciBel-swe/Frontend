@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import StateItem from '@/features/prof/components/StatItem';
+import StateItem from '@/features/prof/components/layout/sidebar/StatItem';
 
 export type Fan = {
   id: string | number;

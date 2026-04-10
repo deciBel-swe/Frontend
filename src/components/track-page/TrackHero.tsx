@@ -7,7 +7,7 @@ import Waveform from '@/components/waveform/Waveform';
 import Image from 'next/image';
 import WaveformTimedComments, {
   type TimedComment,
-} from '@/components/WaveformTimedComments';
+} from '@/features/tracks/components/WaveformTimedComments';
 
 type Tag = string;
 

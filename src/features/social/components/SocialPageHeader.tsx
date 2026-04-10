@@ -1,4 +1,4 @@
-import AvatarImage from "@/components/ui/AvatarImage";
+import AvatarImage from "@/components/avatars/AvatarImage";
 import { usePublicUser } from "@/features/prof/hooks/usePublicUser";
 import { useParams } from "next/navigation";
 

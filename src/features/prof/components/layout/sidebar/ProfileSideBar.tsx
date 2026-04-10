@@ -1,7 +1,7 @@
 'use client';
 
 //import React, { useEffect, useState } from 'react';
-import { SocialList } from './SocialList';
+import { SocialList } from '../../SocialList';
 import StatsGroup from './StatsGroup';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
 import ListOfTrackRows from '@/components/sidebar/ListOfTrackRows';

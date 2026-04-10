@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Track } from './CompactTrackList';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 import { Play } from 'lucide-react';
-import TrackActions from '@/components/TrackActions'
+import TrackActions from '@/components/tracks/actions/TrackActions'
 
 type CompactTrackItemProps = {
   track: Track;

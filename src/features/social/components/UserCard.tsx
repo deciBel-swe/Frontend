@@ -1,4 +1,4 @@
-import AvatarImage from "@/components/ui/AvatarImage";
+import AvatarImage from "@/components/avatars/AvatarImage";
 import VerifiedBadge from "@/components/icons/VerifiedBadge";
 import FollowButton from "@/components/buttons/FollowButton";    
 import  {UserIcon}  from "@/components/icons/GenrealIcons";

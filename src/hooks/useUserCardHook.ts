@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { UserCardData } from '@/components/ui/social/UserCard';
+import type { UserCardData } from '@/features/social/components/UserCard';
 import { userService } from '@/services';
 
 type UseUserCardHookParams = {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Heart, Repeat2 } from 'lucide-react';
 
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
-import type { TrackListItem } from '@/components/TrackList';
+import type { TrackListItem } from '@/components/tracks/TrackList';
 import type {
   PlayerTrack,
   QueueSource,
@@ -13,7 +13,7 @@ import type {
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { trackService } from '@/services';
-import { Button } from './buttons/Button';
+import { Button } from '../buttons/Button';
 
 const isSameQueue = (currentQueue: PlayerTrack[], incomingQueue: PlayerTrack[]): boolean => {
   if (currentQueue.length !== incomingQueue.length) {

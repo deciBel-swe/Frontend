@@ -3,7 +3,7 @@
 import { useTrackPage } from '@/hooks/useTrackPage';
 import CommentInput from '@/components/comments/CommentInput';
 import CommentList from '@/components/comments/CommentList';
-import TrackFansPanel from '@/components/TrackFansPanel';
+import TrackFansPanel from '@/components/track-page/TrackFansPanel';
 
 type TrackPageViewProps = {
   username: string;

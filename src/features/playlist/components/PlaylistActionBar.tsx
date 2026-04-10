@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import TrackActions from '@/components/TrackActions';
+import TrackActions from '@/components/tracks/actions/TrackActions';
 
 type PlaylistActionBarProps = {
   onShare?: () => void;

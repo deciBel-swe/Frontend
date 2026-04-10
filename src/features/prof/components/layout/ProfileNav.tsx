@@ -1,6 +1,6 @@
 'use client';
 
-import PageTabsLayout from '@/components/ui/PageTabsLayout';
+import PageTabsLayout from '@/components/nav/PageTabsLayout';
 
 interface ProfileNavProps {
   username: string;

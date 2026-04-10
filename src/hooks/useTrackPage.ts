@@ -8,8 +8,8 @@ import { usePlayerStore } from '@/features/player/store/playerStore';
 import { commentService, trackService } from '@/services';
 import type { Comment as ApiComment, ReplyComment as ApiReplyComment } from '@/types/comments';
 import type { Comment as ViewComment, CommentReply as ViewCommentReply } from '@/components/comments/CommentItem';
-import type { TimedComment } from '@/components/WaveformTimedComments';
-import type { Fan } from '@/components/TrackFansPanel';
+import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
+import type { Fan } from '@/components/track-page/TrackFansPanel';
 
 type TopLevelApiComment = ApiComment & { timestampSeconds: number };
 

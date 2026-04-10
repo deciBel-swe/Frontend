@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import ScrollableArea from '@/components/ui/ScrollableArea';
+import ScrollableArea from '@/components/scroll/ScrollableArea';
 import CompactTrackItem from './CompactTrackItem';
 
 export type Track = {

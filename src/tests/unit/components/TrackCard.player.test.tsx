@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import TrackCard from '@/components/TrackCard';
+import TrackCard from '@/components/tracks/TrackCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 
@@ -22,13 +22,13 @@ jest.mock('@/features/prof/components/ShareModal', () => ({
 }));
 
 jest.mock('@/features/tracks/components/EditTrackModal', () => () => null);
-jest.mock('@/components/CompactTrackList', () => () => null);
-jest.mock('@/components/TrackActions', () => () => <div data-testid="track-actions" />);
-jest.mock('@/components/TimeAgo', () => () => <span>ago</span>);
+jest.mock('@/components/compact-tracks/CompactTrackList', () => () => null);
+jest.mock('@/components/tracks/actions/TrackActions', () => () => <div data-testid="track-actions" />);
+jest.mock('@/features/tracks/components/TimeAgo', () => () => <span>ago</span>);
 
 jest.mock('@/components/comments/CommentInput', () => () => <div data-testid="comment-input" />);
 
-jest.mock('@/components/WaveformTimedComments', () => ({
+jest.mock('@/features/tracks/components/WaveformTimedComments', () => ({
   __esModule: true,
   default: () => <div data-testid="timed-comments" />,
 }));

@@ -13,7 +13,7 @@ import { X } from 'lucide-react';
 import { useEditProfileForm } from '@/features/prof/hooks/useEditProfileForm';
 import type { EditProfileFormValues } from '@/types/editProfile';
 import FavoriteGenresSelector from '@/features/prof/components/FavoriteGenresSelector';
-import ScrollableArea from '@/components/ui/ScrollableArea';
+import ScrollableArea from '@/components/scroll/ScrollableArea';
 
 type Props = {
   open: boolean;

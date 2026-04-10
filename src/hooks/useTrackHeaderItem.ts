@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { TimedComment } from '@/components/WaveformTimedComments';
+import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
 import type {
   PlaybackAccess,
   PlayerTrack,

@@ -18,11 +18,11 @@ import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
-import CompactTrackList from '@/components/CompactTrackList';
-import TrackActions from '@/components/TrackActions';
-import TimeAgo from '@/components/TimeAgo';
+import CompactTrackList from '@/components/compact-tracks/CompactTrackList';
+import TrackActions from '@/components/tracks/actions/TrackActions';
+import TimeAgo from '@/features/tracks/components/TimeAgo';
 import CommentInput from '@/components/comments/CommentInput';
-import WaveformTimedComments from '@/components/WaveformTimedComments';
+import WaveformTimedComments from '@/features/tracks/components/WaveformTimedComments';
 import { parseDurationToSeconds } from '@/utils/parseDuration';
 import AddToPlaylistModal, { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 
