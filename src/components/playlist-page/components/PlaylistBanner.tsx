@@ -23,6 +23,8 @@ type Playlist = {
 
 type PlaylistBannerProps = {
   playlist: Playlist;
+  trackCount: number;
+  duration: string;
   playingTrack: PlaylistTrack | null;
   isPlaying: boolean;
   onPlayPause: () => void;
@@ -32,6 +34,8 @@ export default function PlaylistBanner({
   playlist,
   playingTrack,
   isPlaying,
+  trackCount,
+  duration,
   onPlayPause,
 }: PlaylistBannerProps) {
   const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
@@ -122,7 +126,16 @@ export default function PlaylistBanner({
             </span>
           )} */}
         </div>
+         </div>
+                {/* Bottom: Track Badge */}
+                {!playingTrack && (
+<div className="absolute bottom-4 left-4">
+  <div className="flex flex-col items-center justify-center w-20 h-20 rounded-full bg-surface-raised border border-white/10 backdrop-blur-md">
+    <span className="text-xl font-black text-text-primary">{trackCount}</span>
+    <span className="text-[9px] font-bold uppercase tracking-widest text-text-secondary">Tracks</span>
+    <span className="text-[9px] text-text-muted">{duration}</span>
+  </div>
+</div>)}
       </div>
-    </div>
   );
 }

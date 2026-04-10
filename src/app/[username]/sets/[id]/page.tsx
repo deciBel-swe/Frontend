@@ -56,6 +56,8 @@ export default function PlaylistPage() {
       <PlaylistBanner
         playlist={playlist}
         playingTrack={activeTrack}
+        trackCount={3}
+        duration="20:47"
         isPlaying={isPlaying}
         onPlayPause={handleBannerPlayPause}
       />
