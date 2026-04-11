@@ -49,7 +49,7 @@ export default function PlaylistPage() {
     }
   }
 
-  const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
+  // const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
   return (
     <div className="w-full min-w-0">
       {/* ── Banner ── */}
