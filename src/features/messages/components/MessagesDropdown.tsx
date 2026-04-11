@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { InboxItem } from '@/components/messages/types';
 import InboxList from '@/features/messages/inbox/InboxList';
-import {ROUTES} from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
+import DropdownPopup from '@/components/social/DropdownPopup';
 
 interface MessagesDropdownProps {
   items: InboxItem[];
@@ -24,30 +26,30 @@ interface MessagesDropdownProps {
  * )}
  */
 export default function MessagesDropdown({ items, onClose }: MessagesDropdownProps) {
-  return (
-    <div className="absolute top-[calc(100%+2px)] right-0 w-100 bg-bg-base border border-interactive-default rounded z-300 overflow-hidden animate-drop-in">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-default">
-        <div className="text-l text-base font-bold text-text-primary">Messages</div>
-      </div>
+  const router = useRouter();
 
-      {/* Inbox previews */}
+  const handleSelect = (conversationId: string) => {
+    onClose?.();
+    router.push(`${ROUTES.MESSAGES}/${conversationId}`);
+  };
+
+  return (
+    <DropdownPopup
+      header={<div className="text-l text-base font-bold text-text-primary">Messages</div>}
+      footer={
+        <Link
+          href={ROUTES.MESSAGES}
+          onClick={onClose}
+          className="block text-center text-xs font-bold text-text-primary hover:text-text-secondary py-3 transition-colors duration-150 no-underline"
+        >
+          View all messages
+        </Link>
+      }
+    >
       <InboxList
         items={items.slice(0, 3)}
-        onSelect={(_conversationId) => {
-          onClose?.();
-          // Navigation handled by the parent — pass conversationId via router if needed
-        }}
+        onSelect={handleSelect}
       />
-
-      {/* Footer link */}
-      <Link
-        href={ROUTES.MESSAGES}
-        onClick={onClose}
-        className="block text-center text-xs font-bold text-text-primary hover:text-text-secondary py-3 border-t border-border-default transition-colors duration-150 no-underline"
-      >
-        View all messages
-      </Link>
-    </div>
+    </DropdownPopup>
   );
 }
