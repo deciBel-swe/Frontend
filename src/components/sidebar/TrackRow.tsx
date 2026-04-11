@@ -6,6 +6,7 @@ import {
   Heart,
   MessageCircle,
   Repeat,
+  MoreHorizontal,
 } from 'lucide-react';
 import React from 'react';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
@@ -14,6 +15,7 @@ import type {
   QueueSource,
 } from '@/features/player/contracts/playerContracts';
 import { usePlayerStore } from '@/features/player/store/playerStore';
+import { Button } from '@/components/buttons/Button';
 
 interface TrackStats {
   plays: string;
@@ -109,9 +111,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
   };
 
   return (
-    <div className="group flex w-full items-center gap-3 px-2 py-3 rounded-xl transition hover:bg-surface-raised">
+    <div className="group flex w-full items-center gap-3 px-2 py-2 rounded-xl transition hover:bg-surface-raised">
       {/* IMAGE WRAPPER (controls size now) */}
-      <div className="w-12 h-12 md:w-14 md:h-14 shrink-0">
+      <div className="w-12 h-12 md:w-12 md:h-12 shrink-0">
         <HoverPlayImage image={image} alt={title} onClick={handlePlayFromRow} />
       </div>
 
