@@ -15,6 +15,7 @@ export function useTopNavBar() {
   const [isMounted, setIsMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [messagesMenuOpen, setMessagesMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const pathname = usePathname();
@@ -23,6 +24,7 @@ export function useTopNavBar() {
   )?.name ?? null) as ActiveNav | null;
   const userMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  const messagesMenuRef = useRef<HTMLDivElement>(null);
   useRedirectAfterLogin();
   useEffect(() => {
     setIsMounted(true);
@@ -33,6 +35,8 @@ export function useTopNavBar() {
         setUserMenuOpen(false);
       if (!moreMenuRef.current?.contains(e.target as Node))
         setMoreMenuOpen(false);
+      if (!messagesMenuRef.current?.contains(e.target as Node))
+        setMessagesMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -44,6 +48,7 @@ export function useTopNavBar() {
     setRegisterOpen(false);
     setUserMenuOpen(false);
     setMoreMenuOpen(false);
+    setMessagesMenuOpen(false);
   }, [pathname]);
 
   const initials = user
@@ -89,6 +94,10 @@ export function useTopNavBar() {
     toggleMoreMenu: () => setMoreMenuOpen((v) => !v),
     closeMoreMenu: () => setMoreMenuOpen(false),
     moreMenuRef,
+    messagesMenuOpen,
+    toggleMessagesMenu: () => setMessagesMenuOpen((v) => !v),
+    closeMessagesMenu: () => setMessagesMenuOpen(false),
+    messagesMenuRef,
     initials,
     activeNav,
     signInOpen,
