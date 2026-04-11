@@ -2,7 +2,7 @@ import React from 'react';
 // Import your Sidebar and Hero here
 import { PlaylistHero } from '@/components/playlist/PlaylistHero';
 import { ActionToolbar } from '@/components/playlist/ActionToolbar';
-import { Sidebar } from '@/components/playlist-page/components/sidebar';
+import { Sidebar } from '@/components/playlist-page/components/sidebar/sidebar';
 
 export default async function UserProfileLayout({
   children,

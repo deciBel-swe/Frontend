@@ -8,7 +8,7 @@ import PlaylistActionBar from '@/components/playlist-page/components/PlaylistAct
 import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTrackItem';
 import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
 import PlaylistOwnerSidebar from '@/components/playlist-page/components/PlaylistOwnerSidebar';
-import { Sidebar } from '@/components/playlist-page/components/sidebar';
+import { Sidebar } from '@/components/playlist-page/components/sidebar/sidebar';
 
 /**
  * /sets/[id]/page.tsx
