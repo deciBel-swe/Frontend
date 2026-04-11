@@ -6,7 +6,6 @@ import {
   Heart,
   MessageCircle,
   Repeat,
-  MoreHorizontal,
 } from 'lucide-react';
 import React from 'react';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
@@ -15,7 +14,6 @@ import type {
   QueueSource,
 } from '@/features/player/contracts/playerContracts';
 import { usePlayerStore } from '@/features/player/store/playerStore';
-import { Button } from '@/components/buttons/Button';
 
 interface TrackStats {
   plays: string;
