@@ -35,12 +35,14 @@ export default function Page() {
   return (
     <div className="flex h-[calc(100vh-3rem)] bg-bg-base mt-12">
       {/* Sidebar */}
+      <aside className="hidden md:block w-85 shrink-0 min-w-0 mt-3">
       <Sidebar
         items={inboxItems}
         activeConversationId={activeConversationId}
         onSelect={setActiveConversationId}
         onNewMessage={() => setIsNewMessageOpen(true)}
       />
+      </aside>
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">

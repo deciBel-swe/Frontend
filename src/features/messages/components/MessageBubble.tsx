@@ -72,7 +72,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-1.5 max-w-[80%] items-start">
+      <div className="flex flex-col gap-1.5 w-full items-start overflow-hidden">
         {/* Sender name + time */}
         <div className="flex items-center gap-2">
           {isMine ? (
@@ -101,7 +101,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {/* Track cards */}
         {tracks.map((c, i) =>
           c.track ? (
-            <div key={`track-${i}`} className="w-full">
+            <div key={`track-${i}`} className="w-full overflow-hidden">
               <MessageList
                 type="track"
                 trackId={c.track.trackId}
@@ -114,7 +114,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {/* Playlist cards */}
         {playlists.map((c, i) =>
           c.playlist ? (
-            <div key={`playlist-${i}`} className="w-full">
+            <div key={`playlist-${i}`} className="w-full overflow-hidden">
               <MessageList
                 type="playlist"
                 playlistId={c.playlist.playlistId}
