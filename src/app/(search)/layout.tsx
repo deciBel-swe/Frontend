@@ -5,5 +5,5 @@ type LayoutProps = {
 };
 
 export default function Layout({ children }: LayoutProps) {
-  return <>{children}This is a search layout</>;
+  return <>{children}</>;
 }

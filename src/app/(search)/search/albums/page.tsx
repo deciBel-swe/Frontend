@@ -1,3 +1,5 @@
+import SearchShell from '@/features/search/SearchShell';
+
 export default function Page() {
-  return <></>;
+  return <SearchShell tab="albums" />;
 }
