@@ -131,6 +131,7 @@ export const API_ENDPOINTS = {
     ME_BLOCKED: '/users/me/blocked',
     ME_REPOSTs: '/users/me/repost',
     SUGGESTED: '/users/suggested',
+    DEVICE_TOKENS: '/users/me/device-tokens',
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
@@ -204,6 +205,18 @@ export const API_ENDPOINTS = {
     CONVERSATIONS: '/conversations',
     CONVERSATION_MESSAGES: (userId: number) =>
       `/conversations/${userId}/messages`,
+  },
+  SUBSCRIPTION: {
+    CHECKOUT: '/subscriptions/checkout',
+    CANCEL: '/subscription/cancel',
+    STATUS: '/subscription/status',
+    RENEW: '/subscription/renew',
+  },
+  NOTIFICATIONS: {
+    GET_ALL: '/notifications',
+    MARK_ALL_READ: '/notifications/mark-all-read',
+    UNREAD_COUNT: '/notifications/unread-count',
+    SETTINGS: '/notifications/settings',
   },
 } as const;
 /**

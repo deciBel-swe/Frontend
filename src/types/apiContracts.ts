@@ -94,6 +94,19 @@ import {
   reportRequestSchema,
   updateAdminReportStatusRequestSchema,
 } from './admin';
+import {
+  checkoutResponseSchema,
+  cancelSubscriptionResponseSchema,
+  subscriptionStatusDTOSchema,
+  renewSubscriptionResponseSchema,
+} from './subscription';
+
+import {
+  notificationsPageSchema,
+  unreadCountResponseSchema,
+  notificationSettingsDTOSchema,
+  registerDeviceTokenRequestSchema,
+} from './notification';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -635,6 +648,100 @@ export const API_CONTRACTS = {
     method: 'GET',
     url: API_ENDPOINTS.ADMIN.ANALYTICS,
     responseSchema: platformAnalyticsResponseSchema,
+  }),
+
+  // --- SUBSCRIPTIONS ---
+  SUBSCRIPTION_CHECKOUT: defineContract<
+    void,
+    z.infer<typeof checkoutResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.SUBSCRIPTION.CHECKOUT,
+    responseSchema: checkoutResponseSchema,
+  }),
+
+  SUBSCRIPTION_CANCEL: defineContract<
+    void,
+    z.infer<typeof cancelSubscriptionResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.SUBSCRIPTION.CANCEL,
+    responseSchema: cancelSubscriptionResponseSchema,
+  }),
+
+  SUBSCRIPTION_STATUS: defineContract<
+    void,
+    z.infer<typeof subscriptionStatusDTOSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.SUBSCRIPTION.STATUS,
+    responseSchema: subscriptionStatusDTOSchema,
+  }),
+
+  SUBSCRIPTION_RENEW: defineContract<
+    void,
+    z.infer<typeof renewSubscriptionResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.SUBSCRIPTION.RENEW,
+    responseSchema: renewSubscriptionResponseSchema,
+  }),
+
+  // --- NOTIFICATIONS ---
+  NOTIFICATIONS_GET: defineContract<
+    void,
+    z.infer<typeof notificationsPageSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.NOTIFICATIONS.GET_ALL,
+    responseSchema: notificationsPageSchema,
+  }),
+
+  NOTIFICATIONS_MARK_ALL_READ: defineContract<
+    void,
+    z.infer<typeof messageResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ,
+    responseSchema: messageResponseSchema,
+  }),
+
+  NOTIFICATIONS_UNREAD_COUNT: defineContract<
+    void,
+    z.infer<typeof unreadCountResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT,
+    responseSchema: unreadCountResponseSchema,
+  }),
+
+  NOTIFICATIONS_GET_SETTINGS: defineContract<
+    void,
+    z.infer<typeof notificationSettingsDTOSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.NOTIFICATIONS.SETTINGS,
+    responseSchema: notificationSettingsDTOSchema,
+  }),
+
+  NOTIFICATIONS_UPDATE_SETTINGS: defineContract<
+    z.infer<typeof notificationSettingsDTOSchema>,
+    z.infer<typeof notificationSettingsDTOSchema>
+  >({
+    method: 'PATCH',
+    url: API_ENDPOINTS.NOTIFICATIONS.SETTINGS,
+    requestSchema: notificationSettingsDTOSchema,
+    responseSchema: notificationSettingsDTOSchema,
+  }),
+
+  DEVICE_TOKEN_REGISTER: defineContract<
+    z.infer<typeof registerDeviceTokenRequestSchema>,
+    z.infer<typeof messageResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.DEVICE_TOKENS, // Based on POST /users/me/device-tokens
+    requestSchema: registerDeviceTokenRequestSchema,
+    responseSchema: messageResponseSchema,
   }),
 
   TRACKS_UPLOAD: defineContract<
