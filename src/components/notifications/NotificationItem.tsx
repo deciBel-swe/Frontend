@@ -35,7 +35,8 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
     {notification.type === "follow" && "started following you"}{" "}
     {notification.targetTitle && (
       <span className="text-text-secondary">
-        "{notification.targetTitle}"
+        {/* "{notification.targetTitle}" */}
+        &quot;{notification.targetTitle}&quot;
       </span>
     )}
   </p>
