@@ -12,11 +12,14 @@
 
 import TrackCard from '@/components/tracks/track-card/TrackCard';
 import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
+import type { TrackCardUser } from '@/components/tracks/track-card/types';
 import type { ListProps, User } from '@/components/messages/types';
 
 const DEFAULT_COVER = '/images/default_song_image.png';
 
-function toTrackCardUser(u: User): { username: string; displayName?: string; avatar: string } {
+// Maps the messaging User shape to TrackCardUser — the two differ only in
+// avatarUrl (messages) vs avatar (TrackCard).
+function toTrackCardUser(u: User): TrackCardUser {
   return {
     username: u.username,
     displayName: u.displayName,
@@ -26,71 +29,68 @@ function toTrackCardUser(u: User): { username: string; displayName?: string; ava
 
 export default function MessageList({ type, trackId, playlistId, user, track, playlist }: ListProps) {
   if (type === 'track' && track && trackId) {
-    const trackCardTrack = {
-      id: track.id,
-      artist: track.artist,
-      title: track.title,
-      cover: track.cover || DEFAULT_COVER,
-      duration: track.duration || '0:00',
-      plays: track.plays,
-      comments: track.comments,
-      createdAt: track.createdAt,
-      genre: track.genre,
-      isLiked: track.isLiked,
-      isReposted: track.isReposted,
-      likeCount: track.likeCount,
-      repostCount: track.repostCount,
-    };
+    const cardUser: TrackCardUser = user
+      ? toTrackCardUser(user)
+      : {
+          username: track.artist.toLowerCase().replace(/\s+/g, ''),
+          displayName: track.artist,
+          avatar: '',
+        };
+
     return (
-      <div className="w-full my-1">
-        <TrackCard
-          trackId={trackId}
-          track={trackCardTrack}
-          user={user ? toTrackCardUser(user) : {
-            username: track.artist.toLowerCase().replace(/\s+/g, ''),
-            displayName: track.artist,
-            avatar: '',
-          }}
-          waveform={[]}
-          showHeader={false}
-        />
+      <div className="w-full overflow-x-auto rounded-lg">
+        <div className="min-w-[380px]">
+          <TrackCard
+            trackId={trackId}
+            track={{ ...track, cover: track.cover || DEFAULT_COVER }}
+            user={cardUser}
+            waveform={[]}
+            showHeader={false}
+          />
+        </div>
       </div>
     );
   }
 
   if (type === 'playlist' && playlist && playlistId) {
+    const cardUser: TrackCardUser = user
+      ? toTrackCardUser(user)
+      : {
+          username: playlist.owner.toLowerCase().replace(/\s+/g, ''),
+          displayName: playlist.owner,
+          avatar: '',
+        };
+
     return (
-      <div className="w-full my-1">
-        <PlaylistCard
-          trackId={playlistId}
-          track={{
-            id: playlist.id,
-            title: playlist.title,
-            artist: playlist.owner,
-            cover: playlist.cover || DEFAULT_COVER,
-            duration: '0:00',
-            plays: 0,
-            comments: 0,
-            likeCount: 0,
-            repostCount: 0,
-            isLiked: false,
-            isReposted: false,
-          }}
-          user={user ? toTrackCardUser(user) : {
-            username: playlist.owner.toLowerCase().replace(/\s+/g, ''),
-            displayName: playlist.owner,
-            avatar: '',
-          }}
-          relatedTracks={playlist.tracks?.map((t) => ({
-            id: t.id,
-            title: t.title,
-            artist: t.artist,
-            coverUrl: t.cover || DEFAULT_COVER,
-            plays: String(t.plays ?? 0),
-          }))}
-          waveform={[]}
-          showHeader={false}
-        />
+      <div className="w-full overflow-x-auto rounded-lg">
+        <div className="min-w-[380px]">
+          <PlaylistCard
+            trackId={playlistId}
+            track={{
+              id: playlist.id,
+              title: playlist.title,
+              artist: playlist.owner,
+              cover: playlist.cover || DEFAULT_COVER,
+              duration: '0:00',
+              plays: 0,
+              comments: 0,
+              likeCount: 0,
+              repostCount: 0,
+              isLiked: false,
+              isReposted: false,
+            }}
+            user={cardUser}
+            relatedTracks={playlist.tracks?.map((t) => ({
+              id: t.id,
+              title: t.title,
+              artist: t.artist,
+              coverUrl: t.cover || DEFAULT_COVER,
+              plays: String(t.plays ?? 0),
+            }))}
+            waveform={[]}
+            showHeader={false}
+          />
+        </div>
       </div>
     );
   }

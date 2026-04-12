@@ -1,3 +1,7 @@
+import type { TrackCardTrack, TrackCardUser } from '@/components/tracks/track-card/types';
+
+export type { TrackCardTrack, TrackCardUser };
+
 // ─── Core User ────────────────────────────────────────────────────────────────
 
 export interface User {
@@ -7,24 +11,15 @@ export interface User {
   avatarUrl?: string;
 }
 
-// ─── Track & Playlist ─────────────────────────────────────────────────────────
+// ─── Track ────────────────────────────────────────────────────────────────────
 
-export interface TrackData {
-  id: number;
-  trackId: string;
-  title: string;
-  artist: string;
-  cover?: string;
-  duration?: string;
-  genre?: string;
-  plays?: number;
-  comments?: number;
-  likeCount?: number;
-  repostCount?: number;
-  isLiked?: boolean;
-  isReposted?: boolean;
-  createdAt?: string;
+// TrackData extends TrackCardTrack (the single source of truth) with the
+// messaging-specific fields: trackId (string slug) and createdAt.
+export interface TrackData extends TrackCardTrack {
+  trackId: string; // string slug used by the messaging system (TrackCardTrack uses numeric id)
 }
+
+// ─── Playlist ─────────────────────────────────────────────────────────────────
 
 export interface PlaylistData {
   id: number;
