@@ -122,6 +122,120 @@ export type PlaylistSecretLinkRegenerateResponse = z.infer<
 >;
 
 // ================================
+// FullPlaylistDTO (Discovery/Feed)
+// ================================
+
+export const fullPlaylistSchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    playlistSlug: z.string().trim().min(1),
+    isLiked: z.boolean(),
+    description: z.string(),
+    isPrivate: z.boolean(),
+    coverArtUrl: z.string().url(),
+    totalDurationSeconds: z.number().int().nonnegative(),
+    trackCount: z.number().int().nonnegative(),
+    owner: z.object({
+      id: z.number().int().nonnegative(),
+      username: z.string().trim().min(1),
+      displayName: z.string().trim().min(1),
+      avatarUrl: z.string().url(),
+      isFollowing: z.boolean(),
+      followerCount: z.number().int().nonnegative(),
+      trackCount: z.number().int().nonnegative(),
+    }),
+    genre: z.string().trim().min(1),
+    createdAt: z.string().trim().min(1),
+    tracks: z.array(
+      z.object({
+        id: z.number().int().nonnegative(),
+        title: z.string().trim().min(1),
+        trackSlug: z.string().trim().min(1),
+        coverUrl: z.string().url(),
+        trackUrl: z.string().url(),
+        trackPreviewUrl: z.string().url(),
+        artist: z.object({
+          id: z.number().int().nonnegative(),
+          username: z.string().trim().min(1),
+          displayName: z.string().trim().min(1),
+          avatarUrl: z.string().url(),
+          isFollowing: z.boolean(),
+          followerCount: z.number().int().nonnegative(),
+          trackCount: z.number().int().nonnegative(),
+        }),
+        playCount: z.number().int().nonnegative(),
+        likeCount: z.number().int().nonnegative(),
+        repostCount: z.number().int().nonnegative(),
+        commentCount: z.number().int().nonnegative(),
+        isLiked: z.boolean(),
+        isReposted: z.boolean(),
+        secretToken: z.string().trim().min(1),
+        access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
+      })
+    ),
+    secretToken: z.string().trim().min(1),
+    firstTrackWaveformUrl: z.string().url(),
+  })
+  .passthrough();
+export type FullPlaylistDTO = z.infer<typeof fullPlaylistSchema>;
+
+// ================================
+// PlaylistSummaryDTO
+// ================================
+
+export const playlistSummarySchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    playlistSlug: z.string().trim().min(1),
+    isLiked: z.boolean(),
+    isPrivate: z.boolean(),
+    coverArtUrl: z.string().url(),
+    trackCount: z.number().int().nonnegative(),
+    owner: z.object({
+      id: z.number().int().nonnegative(),
+      username: z.string().trim().min(1),
+      displayName: z.string().trim().min(1),
+      avatarUrl: z.string().url(),
+      isFollowing: z.boolean(),
+      followerCount: z.number().int().nonnegative(),
+      trackCount: z.number().int().nonnegative(),
+    }),
+    genre: z.string().trim().min(1),
+    tracks: z.array(
+      z.object({
+        id: z.number().int().nonnegative(),
+        title: z.string().trim().min(1),
+        trackSlug: z.string().trim().min(1),
+        coverUrl: z.string().url(),
+        trackUrl: z.string().url(),
+        trackPreviewUrl: z.string().url(),
+        artist: z.object({
+          id: z.number().int().nonnegative(),
+          username: z.string().trim().min(1),
+          displayName: z.string().trim().min(1),
+          avatarUrl: z.string().url(),
+          isFollowing: z.boolean(),
+          followerCount: z.number().int().nonnegative(),
+          trackCount: z.number().int().nonnegative(),
+        }),
+        playCount: z.number().int().nonnegative(),
+        likeCount: z.number().int().nonnegative(),
+        repostCount: z.number().int().nonnegative(),
+        commentCount: z.number().int().nonnegative(),
+        isLiked: z.boolean(),
+        isReposted: z.boolean(),
+        secretToken: z.string().trim().min(1),
+        access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
+      })
+    ),
+    secretToken: z.string().trim().min(1),
+  })
+  .passthrough();
+export type PlaylistSummaryDTO = z.infer<typeof playlistSummarySchema>;
+
+// ================================
 // Playlist Likes
 // ================================
 

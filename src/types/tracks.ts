@@ -233,6 +233,84 @@ export const trackPreviewSchema = z.object({
 });
 export type TrackPreview = z.infer<typeof trackPreviewSchema>;
 
+// ================================
+// FullTrackDTO (Discovery/Feed)
+// ================================
+
+export const fullTrackSchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    trackSlug: z.string().trim().min(1),
+    artist: z.object({
+      id: z.number().int().nonnegative(),
+      username: z.string().trim().min(1),
+      displayName: z.string().trim().min(1),
+      avatarUrl: z.string().url(),
+      isFollowing: z.boolean(),
+      followerCount: z.number().int().nonnegative(),
+      trackCount: z.number().int().nonnegative(),
+    }),
+    trackUrl: z.string().url(),
+    coverUrl: z.string().url(),
+    waveformUrl: z.string().url(),
+    genre: z.string().trim().min(1),
+    isReposted: z.boolean(),
+    isLiked: z.boolean(),
+    tags: z.array(z.string()),
+    releaseDate: z.string().trim().min(1),
+    playCount: z.number().int().nonnegative(),
+    CompletedPlayCount: z.number().int().nonnegative(),
+    likeCount: z.number().int().nonnegative(),
+    repostCount: z.number().int().nonnegative(),
+    commentCount: z.number().int().nonnegative(),
+    isPrivate: z.boolean(),
+    trackDurationSeconds: z.number().int().nonnegative(),
+    uploadDate: z.string().trim().min(1),
+    description: z.string(),
+    trendingRank: z.number().int().nonnegative(),
+    access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
+    secretToken: z.string().trim().min(1),
+    trackPreviewUrl: z.string().url(),
+  })
+  .passthrough();
+export type FullTrackDTO = z.infer<typeof fullTrackSchema>;
+
+// ================================
+// TrackSummaryDTO
+// ================================
+
+export const trackAccessSchema = z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']);
+
+export const trackSummarySchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    trackSlug: z.string().trim().min(1),
+    coverUrl: z.string().url(),
+    trackUrl: z.string().url(),
+    trackPreviewUrl: z.string().url(),
+    artist: z.object({
+      id: z.number().int().nonnegative(),
+      username: z.string().trim().min(1),
+      displayName: z.string().trim().min(1),
+      avatarUrl: z.string().url(),
+      isFollowing: z.boolean(),
+      followerCount: z.number().int().nonnegative(),
+      trackCount: z.number().int().nonnegative(),
+    }),
+    playCount: z.number().int().nonnegative(),
+    likeCount: z.number().int().nonnegative(),
+    repostCount: z.number().int().nonnegative(),
+    commentCount: z.number().int().nonnegative(),
+    isLiked: z.boolean(),
+    isReposted: z.boolean(),
+    secretToken: z.string().trim().min(1),
+    access: trackAccessSchema,
+  })
+  .passthrough();
+export type TrackSummaryDTO = z.infer<typeof trackSummarySchema>;
+
 /**
  * RepostUser
  */

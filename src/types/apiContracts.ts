@@ -60,6 +60,11 @@ import {
   usersSuggestedResponseSchema,
 } from './user';
 import { paginatedTrackFeedResponseSchema } from './feed';
+import {
+  paginatedSearchResponseSchema,
+  paginatedStationResponseSchema,
+  trendingTracksResponseSchema,
+} from './discovery';
 // import { paginatedPlaylistResponseSchema } from './playlist';
 import {
   createCommentRequestSchema,
@@ -748,6 +753,40 @@ export const API_CONTRACTS = {
     method: 'GET',
     url: API_ENDPOINTS.FEED,
     responseSchema: paginatedTrackFeedResponseSchema,
+  }),
+  SEARCH: defineContract<void, z.infer<typeof paginatedSearchResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.SEARCH,
+    responseSchema: paginatedSearchResponseSchema,
+  }),
+  TRENDING: defineContract<void, z.infer<typeof trendingTracksResponseSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.TRENDING,
+    responseSchema: trendingTracksResponseSchema,
+  }),
+  STATIONS_GENRE: defineContract<
+    void,
+    z.infer<typeof paginatedStationResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.STATIONS.GENRE,
+    responseSchema: paginatedStationResponseSchema,
+  }),
+  STATIONS_ARTIST: defineContract<
+    void,
+    z.infer<typeof paginatedStationResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.STATIONS.ARTIST,
+    responseSchema: paginatedStationResponseSchema,
+  }),
+  STATIONS_LIKES: defineContract<
+    void,
+    z.infer<typeof paginatedStationResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.STATIONS.LIKES,
+    responseSchema: paginatedStationResponseSchema,
   }),
   USERS_WHO_LIKED_TRACK: (trackId: number) =>
     defineContract<void, z.infer<typeof paginatedFollowersResponseSchema>>({
