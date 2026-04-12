@@ -22,11 +22,14 @@ export interface TrendingParams {
   limit?: number;
 }
 
-const toQueryParams = (params?: ApiQueryParams): ApiQueryParams | undefined => {
+const toQueryParams = <T extends object>(
+  params?: T
+): ApiQueryParams | undefined => {
   if (!params) {
     return undefined;
   }
-  return Object.keys(params).length > 0 ? params : undefined;
+
+  return Object.keys(params).length > 0 ? (params as ApiQueryParams) : undefined;
 };
 
 /**
