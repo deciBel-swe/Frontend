@@ -194,7 +194,7 @@ export default function TabFilters({
     case 'people':
       return (
         <div className="mt-5 px-1">
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">
+          <p className="text-medium font-bold  mb-2">
             Filter by location
           </p>
           <p className="text-xs text-text-muted">
