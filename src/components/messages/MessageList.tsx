@@ -27,8 +27,8 @@ function toTrackCardUser(u: User): TrackCardUser {
   };
 }
 
-export default function MessageList({ type, trackId, playlistId, user, track, playlist }: ListProps) {
-  if (type === 'track' && track && trackId) {
+export default function MessageList({ type, user, track, playlist }: ListProps) {
+  if (type === 'track' && track) {
     const cardUser: TrackCardUser = user
       ? toTrackCardUser(user)
       : {
@@ -41,7 +41,7 @@ export default function MessageList({ type, trackId, playlistId, user, track, pl
       <div className="w-full overflow-x-auto rounded-lg">
         <div className="min-w-[380px]">
           <TrackCard
-            trackId={trackId}
+            trackId={String(track.id)}
             track={{ ...track, cover: track.cover || DEFAULT_COVER }}
             user={cardUser}
             waveform={[]}
@@ -52,7 +52,7 @@ export default function MessageList({ type, trackId, playlistId, user, track, pl
     );
   }
 
-  if (type === 'playlist' && playlist && playlistId) {
+  if (type === 'playlist' && playlist) {
     const cardUser: TrackCardUser = user
       ? toTrackCardUser(user)
       : {
@@ -65,7 +65,7 @@ export default function MessageList({ type, trackId, playlistId, user, track, pl
       <div className="w-full overflow-x-auto rounded-lg">
         <div className="min-w-[380px]">
           <PlaylistCard
-            trackId={playlistId}
+            trackId={String(playlist.id)}
             track={{
               id: playlist.id,
               title: playlist.title,

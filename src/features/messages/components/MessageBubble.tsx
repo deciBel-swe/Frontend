@@ -104,7 +104,6 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
             <div key={`track-${i}`} className="w-full overflow-hidden">
               <MessageList
                 type="track"
-                trackId={c.track.trackId}
                 track={c.track}
               />
             </div>

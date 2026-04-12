@@ -14,10 +14,7 @@ export interface User {
 // ─── Track ────────────────────────────────────────────────────────────────────
 
 // TrackData extends TrackCardTrack (the single source of truth) with the
-// messaging-specific fields: trackId (string slug) and createdAt.
-export interface TrackData extends TrackCardTrack {
-  trackId: string; // string slug used by the messaging system (TrackCardTrack uses numeric id)
-}
+export type TrackData = TrackCardTrack;
 
 // ─── Playlist ─────────────────────────────────────────────────────────────────
 

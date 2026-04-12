@@ -18,7 +18,6 @@ export const TEST_USERS: User[] = [
 
 const TRACK_SUMMER_VIBES: TrackData = {
   id: 101,
-  trackId: 'artistone-summervibes',
   title: 'Summer Vibes',
   artist: 'Artist One',
   cover: '/images/default_song_image.png',
@@ -35,7 +34,6 @@ const TRACK_SUMMER_VIBES: TrackData = {
 
 const TRACK_RHYTHMIC_GROOVE: TrackData = {
   id: 102,
-  trackId: 'sam-track',
   title: 'Rhythmic Groove',
   artist: 'Sam Taylor',
   cover: '/images/default_song_image.png',
@@ -57,10 +55,10 @@ const PLAYLIST_MIX: PlaylistData = {
   owner: 'Zeina.sherif27',
   trackCount: 4,
   tracks: [
-    { id: 1, trackId: 'artisttwo-ocean',    title: 'Ocean Waves',    artist: 'Artist Two',   cover: '/images/default_song_image.png', duration: '0:00', plays: 73_500_000,  likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
-    { id: 2, trackId: 'artistthree-beats',  title: 'Rhythmic Beats', artist: 'Artist Three', cover: '/images/default_song_image.png', duration: '0:00', plays: 3_350_000,   likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
-    { id: 3, trackId: 'artistfour-tune',    title: 'Melodic Tune',   artist: 'Artist Four',  cover: '/images/default_song_image.png', duration: '0:00', plays: 2_290_000,   likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
-    { id: 4, trackId: 'artistfive-soul',    title: 'Soulful Song',   artist: 'Artist Five',  cover: '/images/default_song_image.png', duration: '0:00', plays: 345_000,     likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
+    { id: 1,    title: 'Ocean Waves',    artist: 'Artist Two',   cover: '/images/default_song_image.png', duration: '0:00', plays: 73_500_000,  likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
+    { id: 2,    title: 'Rhythmic Beats', artist: 'Artist Three', cover: '/images/default_song_image.png', duration: '0:00', plays: 3_350_000,   likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
+    { id: 3,    title: 'Melodic Tune',   artist: 'Artist Four',  cover: '/images/default_song_image.png', duration: '0:00', plays: 2_290_000,   likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
+    { id: 4,    title: 'Soulful Song',   artist: 'Artist Five',  cover: '/images/default_song_image.png', duration: '0:00', plays: 345_000,     likeCount: 0, repostCount: 0, isLiked: false, isReposted: false },
   ],
 };
 
