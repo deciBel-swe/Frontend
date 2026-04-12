@@ -107,9 +107,7 @@ export default function SearchShell({ tab }: SearchShellProps) {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-[calc(100vh-3rem)] mt-12 bg-bg-base">
-      <aside className="
-        w-full lg:w-[220px] xl:w-[260px] shrink-0 pt-8 pb-8 lg:sticky lg:top-12 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto
-        ">
+      <aside className="w-full lg:w-[220px] xl:w-[260px] shrink-0 pt-8 pb-8 lg:sticky lg:top-12 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
         <SearchSidebar
           currentTab={currentTab}
           query={query}

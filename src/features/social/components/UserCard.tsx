@@ -80,7 +80,7 @@ export default function UserCard({
           <AvatarImage
             src={resolvedUser.avatarSrc}
             alt={resolvedUser.username}
-            size={52}
+            size={160}
             shape="circle"
           />
         </a>
