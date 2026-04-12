@@ -1,18 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { GENRE_OPTIONS, DATE_OPTIONS, LENGTH_OPTIONS } from './constants/FilterData';
+// import { useState } from 'react';
+import { GENRE_OPTIONS} from './constants/FilterData';
 
 /**
  * TabFilters — renders the tab-specific filter sections for search.
- *
- * Matches SoundCloud's filter UI patterns exactly:
- *
- *   Date / Length → collapsible items. The header shows the currently selected
- *                   label (defaults to "Added any time" / "Any length"). Clicking
- *                   the header toggles the sub-list open/closed. Selecting an
- *                   option closes the collapsible and updates the URL param.
- *                   Clicking the active option clears it (passes '').
  *
  *   Genre tags    → `# Tag` bordered pills, no fill. Active state: black border
  *                   + black text (light) / white (dark). Clicking again clears.
@@ -26,10 +18,10 @@ import { GENRE_OPTIONS, DATE_OPTIONS, LENGTH_OPTIONS } from './constants/FilterD
 
 export type SearchTab = 'everything' | 'tracks' | 'people' | 'albums' | 'playlists';
 
-interface FilterOption {
-  label: string;
-  value: string;
-}
+// interface FilterOption {
+//   label: string;
+//   value: string;
+// }
 
 // ── CollapsibleFilter ───────────────────────────────────────────────────────────
 
@@ -41,67 +33,67 @@ interface FilterOption {
  * toggles the list. Selecting an option closes the list and fires
  * `onFilterChange`. Clicking the already-active option clears the filter.
  */
-function CollapsibleFilter({
-  options,
-  filterKey,
-  activeValue,
-  onFilterChange,
-}: {
-  options: FilterOption[];
-  filterKey: string;
-  activeValue?: string;
-  onFilterChange?: (key: string, value: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
+// function CollapsibleFilter({
+//   options,
+//   filterKey,
+//   activeValue,
+//   onFilterChange,
+// }: {
+//   options: FilterOption[];
+//   filterKey: string;
+//   activeValue?: string;
+//   onFilterChange?: (key: string, value: string) => void;
+// }) {
+//   const [open, setOpen] = useState(false);
 
-  // The header label is the currently selected option, or the first option
-  // as the default label (e.g. "Added any time" / "Any length")
-  const selectedOption = options.find((o) => o.value === activeValue) ?? options[0];
+//   // The header label is the currently selected option, or the first option
+//   // as the default label (e.g. "Added any time" / "Any length")
+//   const selectedOption = options.find((o) => o.value === activeValue) ?? options[0];
 
-  const handleSelect = (opt: FilterOption) => {
-    const isActive = activeValue === opt.value;
-    // Clicking active clears; clicking inactive sets
-    onFilterChange?.(filterKey, isActive ? '' : opt.value);
-    setOpen(false);
-  };
+//   const handleSelect = (opt: FilterOption) => {
+//     const isActive = activeValue === opt.value;
+//     // Clicking active clears; clicking inactive sets
+//     onFilterChange?.(filterKey, isActive ? '' : opt.value);
+//     setOpen(false);
+//   };
 
-  return (
-    <div className="px-1 pl-2">
-      {/* Collapsible header — shows selected label, toggles list */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full text-left text-sm text-text-primary font-medium py-1.5 hover:text-text-secondary transition-colors duration-100"
-      >
-        {selectedOption.label}
-      </button>
+//   return (
+//     <div className="px-1 pl-2">
+//       {/* Collapsible header — shows selected label, toggles list */}
+//       <button
+//         type="button"
+//         onClick={() => setOpen((v) => !v)}
+//         className="w-full text-left text-sm text-text-primary font-medium py-1.5 hover:text-text-secondary transition-colors duration-100"
+//       >
+//         {selectedOption.label}
+//       </button>
 
-      {/* Expandable sub-list */}
-      {open && (
-        <ul className="flex flex-col mt-1 mb-2">
-          {options.map((opt) => {
-            const isActive = activeValue === opt.value;
-            return (
-              <li key={opt.value}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(opt)}
-                  className={`w-full text-left text-xs px-2 py-1.5 rounded transition-colors duration-100
-                    ${isActive
-                      ? 'bg-neutral-900 text-neutral-0 dark:bg-neutral-0 dark:text-neutral-900 font-medium'
-                      : 'text-text-secondary hover:text-text-primary'
-                    }`}
-                >
-                  {opt.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
+//       {/* Expandable sub-list */}
+//       {open && (
+//         <ul className="flex flex-col mt-1 mb-2">
+//           {options.map((opt) => {
+//             const isActive = activeValue === opt.value;
+//             return (
+//               <li key={opt.value}>
+//                 <button
+//                   type="button"
+//                   onClick={() => handleSelect(opt)}
+//                   className={`w-full text-left text-xs px-2 py-1.5 rounded transition-colors duration-100
+//                     ${isActive
+//                       ? 'bg-neutral-900 text-neutral-0 dark:bg-neutral-0 dark:text-neutral-900 font-medium'
+//                       : 'text-text-secondary hover:text-text-primary'
+//                     }`}
+//                 >
+//                   {opt.label}
+//                 </button>
+//               </li>
+//             );
+//           })}
+//         </ul>
+//       )}
+//     </div>
+//   );
+// }
 
 // ── GenreSection ──────────────────────────────────────────────────────────────
 
@@ -160,10 +152,10 @@ export default function TabFilters({
     case 'tracks':
       return (
         <div className="mt-5 flex flex-col gap-1">
-          <p className="text-medium font-bold px-1 mb-1">
+          {/* <p className="text-medium font-bold px-1 mb-1">
             Filter results
-          </p>
-          <CollapsibleFilter
+          </p> */}
+          {/* <CollapsibleFilter
             options={DATE_OPTIONS}
             filterKey="date"
             activeValue={activeFilters.date}
@@ -174,7 +166,7 @@ export default function TabFilters({
             filterKey="length"
             activeValue={activeFilters.length}
             onFilterChange={onFilterChange}
-          />
+          /> */}
           <GenreSection
             activeValue={activeFilters.genre}
             onFilterChange={onFilterChange}
@@ -191,17 +183,17 @@ export default function TabFilters({
         />
       );
 
-    case 'people':
-      return (
-        <div className="mt-5 px-1">
-          <p className="text-medium font-bold  mb-2">
-            Filter by location
-          </p>
-          <p className="text-xs text-text-muted">
-            Location filters are driven by search results.
-          </p>
-        </div>
-      );
+    // case 'people':
+    //   return (
+    //     <div className="mt-5 px-1">
+    //       <p className="text-medium font-bold  mb-2">
+    //         Filter by location
+    //       </p>
+    //       <p className="text-xs text-text-muted">
+    //         Location filters are driven by search results.
+    //       </p>
+    //     </div>
+    //   );
 
     case 'everything':
     default:
