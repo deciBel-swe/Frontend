@@ -2,7 +2,6 @@ import React from "react";
 import { Notification } from "@/components/notifications/types/notification";
 import { AvatarImage } from "@/components/notifications/AvatarImage";
 import FollowButton from '@/components/buttons/FollowButton';
-import { BlockBtn } from '@/components/buttons/block-btn';
 import Link from "next/link";
 
 interface Props {

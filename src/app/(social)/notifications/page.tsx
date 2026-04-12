@@ -2,6 +2,7 @@ import React from "react";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 import Link from "next/link";
 import { ArrowToggleButton } from "@/components/notifications/ArrowToggleButton";
+import { SidebarUserCardContainer } from "@/components/notifications/SidebarUserCardContainer";
 
 export default function Page() {
   return (
@@ -26,17 +27,23 @@ export default function Page() {
         </div>
 
         {/* RIGHT SIDEBAR (like image) */}
-        <aside className="w-[280px] hidden lg:block space-y-4">
+        <aside className="w-[280px] hidden lg:block space-y-4 mt-4">
           
-          <div className="bg-surface-default border border-border-default rounded-xl p-4">
-            <h2 className="text-sm font-semibold mb-2">
-              Recent followers
-            </h2>
 
-            <p className="text-xs text-text-muted">
-              Sidebar placeholder (can be expanded later)
-            </p>
+          <div className="w-full flex flex-row"> 
+            <Link href="#" className="text-sm font-bold text-text-primary hover:text-interactive-hover">
+              Recent followers
+            </Link>
+            <Link href="#" className="ml-auto text-xs font-medium text-secondary hover:text-interactive-hover">
+              View all
+            </Link>
           </div>
+          <SidebarUserCardContainer
+  username="akmal"
+  avatarUrl="/images/default_song_image.png"
+  followersCount={120}
+  statsCount={45}
+/>
 
         </aside>
       </div>
