@@ -50,7 +50,10 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
       {/* <button className="px-3 py-1 text-xs bg-surface-default border border-border-default rounded-md hover:bg-surface-raised">
         Following
       </button> */}
-      <FollowButton defaultFollowing={false} />
+      {/* TODO: make the follow appears only when message.type == "follow" */}
+      {notification.type === "follow" && <FollowButton defaultFollowing={false}
+       />}
+       {/* TODO: add blockbtn */}
     </li>
   );
 };
