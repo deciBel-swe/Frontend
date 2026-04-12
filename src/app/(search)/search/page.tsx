@@ -1,11 +1,15 @@
 'use client';
-import SearchPage from '@/features/search/SearchPage';
+import SearchResults from '@/features/search/SearchResults';
+import { useSearchNavigation } from '@/features/search/hooks/useSearchNavigation';
 import { mockTracks, mockPlaylists, mockPeople } from '@/features/search/mock/mockdata';
 
 export default function EverythingPage() {
+  const { query } = useSearchNavigation();
+
   return (
-    <SearchPage
+    <SearchResults
       tab="everything"
+      query={query}
       tracks={mockTracks}
       playlists={mockPlaylists}
       people={mockPeople}
