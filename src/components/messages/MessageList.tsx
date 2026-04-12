@@ -24,7 +24,7 @@ function toTrackCardUser(u: User): { username: string; displayName?: string; ava
   };
 }
 
-export default function List({ type, trackId, playlistId, user, track, playlist }: ListProps) {
+export default function MessageList({ type, trackId, playlistId, user, track, playlist }: ListProps) {
   if (type === 'track' && track && trackId) {
     const trackCardTrack = {
       id: track.id,

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Message } from '@/components/messages/types';
-import List from '../../../components/messages/MessageList';
+import MessageList from '@/components/messages/MessageList';
 
 function getUserSlug(username: string): string {
   return username.toLowerCase().replace(/[.\s]+/g, '-');
@@ -102,7 +102,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {tracks.map((c, i) =>
           c.track ? (
             <div key={`track-${i}`} className="w-full">
-              <List
+              <MessageList
                 type="track"
                 trackId={c.track.trackId}
                 track={c.track}
@@ -115,7 +115,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {playlists.map((c, i) =>
           c.playlist ? (
             <div key={`playlist-${i}`} className="w-full">
-              <List
+              <MessageList
                 type="playlist"
                 playlistId={c.playlist.playlistId}
                 playlist={c.playlist}
