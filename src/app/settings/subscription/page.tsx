@@ -76,7 +76,15 @@ export default function SubscriptionPage() {
               label="Payment method"
               value={`${subscription.cardBrand} •••• ${subscription.cardLast4}`}
             />
+            <div className="py-4">
+              <SubscriptionActions
+                onCancel={() => console.log('Cancel clicked')}
+                onRenew={() => console.log('Renew clicked')}
+                isLoading={false}
+              />
+            </div>
           </>
+          
         )}
 
         {/* For free tier or no subscription, show a simple status message instead */}
@@ -87,13 +95,6 @@ export default function SubscriptionPage() {
           />
         )}
 
-        <div className="py-4">
-          <SubscriptionActions
-            onCancel={() => console.log('Cancel clicked')}
-            onRenew={() => console.log('Renew clicked')}
-            isLoading={false}
-          />
-        </div>
       </SettingsSection>
     </div>
   );
