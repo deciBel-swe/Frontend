@@ -1,7 +1,7 @@
 // TrackActions.tsx
 'use client';
 import React from 'react';
-import { Heart, Repeat2, Share2, Copy, Pencil, Trash2 } from 'lucide-react';
+import { Heart, Repeat2, Share2, Copy, ListPlus, Pencil, Trash2 } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import TrackMoreDropdown from '@/components/nav/TrackMoreDropdown';
 
@@ -104,16 +104,16 @@ export default function TrackActions({
           <Copy size={size} />
         </Button>
       )}
-      {/* {showAddToQueue && (
+      {showAddToQueue && (
         <Button
           variant={variant}
           aria-label="Add to queue"
           onClick={onAddToQueue}
-          disabled={!onAddToQueue}
+          // disabled={!onAddToQueue}
         >
           <ListPlus size={size} />
         </Button>
-      )} */}
+      )}
       {showEdit && onEdit && (
         <Button variant={variant} aria-label="Edit" onClick={onEdit}>
         <Pencil size={size} />
