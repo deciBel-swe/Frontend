@@ -22,6 +22,7 @@ import {
   mockGenreTracks,
   mockMoreTrendingTracks,
 } from '@/features/discover/mock/MockDiscoverData';
+import { useEffect, useState } from 'react';
 
 // ─── DEV TOGGLE ──────────────────────────────────────────────────────────────
 // Set to `true` to preview the authenticated view, `false` for the guest view.
@@ -33,6 +34,9 @@ export default function Page() {
   // TODO: replace with → const { isLoggedIn } = useAuth();
   // const isLoggedIn = MOCK_IS_LOGGED_IN;
   const { isAuthenticated, isLoading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+ 
+  useEffect(() => { setIsMounted(true); }, []);
   // ── Data ─────────────────────────────────────────────────────────────────
   // TODO: replace each mock* value with the corresponding hook result:
   //   const { tracks: trendingTracks,  isLoading: isLoadingTrending } = useTrendingTracks();
@@ -43,17 +47,17 @@ export default function Page() {
 
   return (
     <DiscoverPage
-      isLoggedIn={isAuthenticated}
-      trendingTracks={mockTrendingTracks}
-      likedTracks={mockLikedTracks}
-      recentlyPlayedItems={mockRecentlyPlayedItems}
-      genreTracks={mockGenreTracks}
-      moreTrendingTracks={mockMoreTrendingTracks}
+      isLoggedIn={isMounted ? isAuthenticated : false}
+      trendingTracks={!isMounted || isLoading ? [] : mockTrendingTracks}
+      likedTracks={!isMounted || isLoading ? [] : mockLikedTracks}
+      recentlyPlayedItems={!isMounted || isLoading ? [] : mockRecentlyPlayedItems}
+      genreTracks={!isMounted || isLoading ? [] : mockGenreTracks}
+      moreTrendingTracks={!isMounted || isLoading ? [] : mockMoreTrendingTracks}
       // All loading flags off — mock data is synchronous
-      isLoadingTrending={isLoading}
-      isLoadingLiked={isLoading}
-      isLoadingRecent={isLoading}
-      isLoadingGenre={isLoading}
+      isLoadingTrending={!isMounted || isLoading }
+      isLoadingLiked={!isMounted || isLoading }
+      isLoadingRecent={!isMounted || isLoading }
+      isLoadingGenre={!isMounted || isLoading }
     />
   );
 }

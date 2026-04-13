@@ -98,6 +98,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     closeSignIn,
     openRegister,
     closeRegister,
+    handleSignOut,
   } = useTopNavBar();
 
   return (
@@ -273,6 +274,11 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                                   ) : item.label === 'Sign out' ? (
                                     <SignOutIcon />
                                   ) : undefined,
+
+                                ...(item.label === 'Sign out' && {
+                                  href: ROUTES.HOME,
+                                  onClick: handleSignOut,
+                                }),
                               }
                         )}
                         onClose={closeMoreMenu}

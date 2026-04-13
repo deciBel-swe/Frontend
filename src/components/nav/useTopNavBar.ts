@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { usePathname, useRouter  } from 'next/navigation';
 import type { ActiveNav } from '@/types';
-import { NAV_LINKS } from '@/constants/routes';
+import { NAV_LINKS, ROUTES } from '@/constants/routes';
 import { useAuth } from '@/features/auth';
 import { useRedirectAfterLogin } from '@/hooks';
+
 /**
  * useTopNavBar — manages the user dropdown state, derives activeNav from the URL, and computes initials.
  *
@@ -11,7 +13,7 @@ import { useRedirectAfterLogin } from '@/hooks';
  * has no user-related props.
  */
 export function useTopNavBar() {
-  const { user, isAuthenticated, isLoading, login } = useAuth();
+  const { user, isAuthenticated, isLoading, login, logout } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -23,6 +25,7 @@ export function useTopNavBar() {
   )?.name ?? null) as ActiveNav | null;
   const userMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   useRedirectAfterLogin();
   useEffect(() => {
     setIsMounted(true);
@@ -46,6 +49,11 @@ export function useTopNavBar() {
     setMoreMenuOpen(false);
   }, [pathname]);
 
+  const handleSignOut = useCallback(async () => {
+    await logout();
+    router.push(ROUTES.HOME);
+  }, [logout,router]);
+ 
   const initials = user
     ? user.username
         .split(' ')
@@ -81,6 +89,7 @@ export function useTopNavBar() {
     isAuthLoading: isLoading,
     isMounted,
     login,
+    handleSignOut,
     userMenuOpen,
     toggleUserMenu: () => setUserMenuOpen((v) => !v),
     closeUserMenu: () => setUserMenuOpen(false),
