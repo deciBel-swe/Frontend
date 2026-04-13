@@ -27,6 +27,7 @@ import { Avatar } from '@/components/avatars/Avatar';
 import { Badge } from '@/components/nav/Badge';
 import { DropdownMenu } from '@/components/nav/DropdownMenu';
 import { IconButton } from '@/components/buttons/IconButton';
+import MessagesDropdown from '@/features/messages/components/MessagesDropdown';
 import { NavLink } from '@/components/nav/NavLink';
 import { SearchBar } from '@/components/nav/SearchBar';
 import {
@@ -54,6 +55,7 @@ import {
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
+import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TopNavBarProps {
@@ -90,6 +92,10 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     toggleMoreMenu,
     closeMoreMenu,
     moreMenuRef,
+    messagesMenuOpen,
+    toggleMessagesMenu,
+    closeMessagesMenu,
+    messagesMenuRef,
     initials,
     activeNav,
     signInOpen,
@@ -99,6 +105,8 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     openRegister,
     closeRegister,
   } = useTopNavBar();
+
+  const inboxItems = getInboxItems(TEST_CONVERSATIONS, CURRENT_USER.id);
 
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
@@ -232,19 +240,26 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     <span className="sr-only">Notifications</span>
                   </IconButton>
 
-                  <IconButton
-                    href={ROUTES.MESSAGES}
-                    aria-label="Messages"
-                    prefetch={shouldPrefetch(
-                      ROUTES.MESSAGES,
-                      isAuthenticated,
-                      isAuthLoading
-                    )}
+                  <div
+                    className="relative h-12 flex items-center"
+                    ref={messagesMenuRef}
                   >
-                    <MailIcon />
-                    <Badge count={11} />
-                    <span className="sr-only">Messages</span>
-                  </IconButton>
+                    <IconButton
+                      aria-label="Messages"
+                      onClick={toggleMessagesMenu}
+                    >
+                      <MailIcon />
+                      <Badge count={11} />
+                      <span className="sr-only">Messages</span>
+                    </IconButton>
+
+                    {messagesMenuOpen && (
+                      <MessagesDropdown
+                        items={inboxItems}
+                        onClose={closeMessagesMenu}
+                      />
+                    )}
+                  </div>
 
                   <div
                     className="relative h-12 flex items-center"
