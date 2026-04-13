@@ -13,7 +13,7 @@ import { useFollowing } from '@/hooks/useFollowing';
 import { useLikedTracks } from '@/hooks/useLikedTracks';
 import { useListeningHistoryTracks } from '@/hooks/useListeningHistoryTracks';
 
-function SquareSkeleton() {
+export function SquareSkeleton() {
   return (
     <div className="shrink-0 rounded-lg bg-surface-raised animate-pulse m-2 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40" />
   );

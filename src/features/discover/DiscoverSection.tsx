@@ -1,6 +1,8 @@
 import React from 'react';
 import DiscoverHeader from '@/features/discover/DiscoverHeader';
 import Carousel from '@/components/nav/Carousel';
+import EmptyState from '../social/EmptyState';
+import { SquareSkeleton } from '../library/LibraryOverview';
 
 type DiscoverSectionProps<T> = {
   title: string;
@@ -52,17 +54,15 @@ export default function DiscoverSection<T>({
         /* ── Skeleton state ──────────────────────────────────────────────── */
         <div className="flex gap-0 overflow-hidden">
           {Array.from({ length: skeletonCount }).map((_, i) => (
-            <div
-              key={i}
-              className="shrink-0 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40 rounded-md m-2 bg-surface-default animate-pulse"
-            />
+            <SquareSkeleton key={`likes-skeleton-${i}`} />
           ))}
         </div>
       ) : items.length === 0 ? (
         /* ── Empty state ─────────────────────────────────────────────────── */
-        <p className="text-sm text-text-muted py-4">
-          Nothing here yet — check back soon.
-        </p>
+         <EmptyState
+          title="Nothing here yet"
+          description="Check back soon for new tracks."
+        />
       ) : (
         /* ── Carousel ────────────────────────────────────────────────────── */
         <Carousel scrollStep={scrollStep}>
