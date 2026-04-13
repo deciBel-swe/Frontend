@@ -156,7 +156,7 @@ export default function MinimalTrackCard({
   return (
     <div
       className={`
-        relative
+        relative shrink-0
         w-26 h-26
         md:w-32 md:h-32
         lg:w-40 lg:h-40
