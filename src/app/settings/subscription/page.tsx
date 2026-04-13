@@ -2,26 +2,17 @@
 
 import { SubscriptionActions } from '@/features/pro/components/SubscriptionActions';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Mock data ────────────────────────────────────────
+const mockSubscription = {
+  tier: 'pro',              // change to 'artist' or 'free' to see different badges
+  currency: 'USD',
+  yearlyPrice: 99.99,
+  renewsAt: '2026-01-15T00:00:00Z',
+  cardBrand: 'Visa',
+  cardLast4: '4242',
+};
 
-interface SubscriptionData {
-  tier: 'free' | 'artist' | 'pro';
-  currency: string;
-  yearlyPrice: number;
-  renewsAt: string | number | Date;
-  cardBrand: string;
-  cardLast4: string;
-}
-
-interface SubscriptionPageProps {
-  subscription?: SubscriptionData | null;
-  isLoading?: boolean;
-  onCancel?: () => void;
-  onRenew?: () => void;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+// ─── Helper components (same as yours) ────────────────────────────────────────
 function SettingsRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border-default last:border-0">
@@ -33,11 +24,8 @@ function SettingsRow({ label, value }: { label: string; value: React.ReactNode }
 
 function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={`section-${title.toLowerCase()}`} className="mb-8">
-      <h2
-        id={`section-${title.toLowerCase()}`}
-        className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3"
-      >
+    <section className="mb-8">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">
         {title}
       </h2>
       <div className="rounded-xl border border-border-default bg-bg-base px-5 divide-y divide-border-default">
@@ -47,24 +35,15 @@ function SettingsSection({ title, children }: { title: string; children: React.R
   );
 }
 
-// ─── Plan badge ───────────────────────────────────────────────────────────────
-
 const PLAN_BADGE: Record<string, { label: string; className: string }> = {
   pro:    { label: 'Artist Pro ★', className: 'bg-amber-50 text-amber-700 border border-amber-300' },
   artist: { label: 'Artist',       className: 'bg-violet-50 text-violet-700 border border-violet-300' },
   free:   { label: 'Free',         className: 'bg-bg-subtle text-text-secondary border border-border-default' },
 };
 
-// ─── Stateless Page ───────────────────────────────────────────────────────────
-
-export default function Page({ 
-  subscription, 
-  isLoading = false, 
-  onCancel, 
-  onRenew 
-}: SubscriptionPageProps) {
-  
-  const badge = PLAN_BADGE[subscription?.tier ?? 'pro'] || PLAN_BADGE['free'];
+export default function SubscriptionPage() {
+  const subscription = mockSubscription; 
+  const badge = PLAN_BADGE[subscription.tier];
 
   return (
     <div className="max-w-2xl py-8 px-4">
@@ -78,7 +57,10 @@ export default function Page({
           }
         />
 
-        {subscription && (
+          {/* In a real app, you would conditionally render these rows based on the subscription status.}
+          
+        {/* Only show billing details if subscription is paid (artist or pro) */}
+        {subscription && subscription.tier !== 'free' && (
           <>
             <SettingsRow
               label="Billing cycle"
@@ -97,15 +79,22 @@ export default function Page({
           </>
         )}
 
+        {/* For free tier or no subscription, show a simple status message instead */}
+        {subscription && subscription.tier === 'free' && (
+          <SettingsRow
+            label="Status"
+            value="No active paid plan – upgrade to unlock features"
+          />
+        )}
+
         <div className="py-4">
           <SubscriptionActions
-            onCancel={onCancel || (() => {})}
-            onRenew={onRenew || (() => {})}
-            isLoading={isLoading}
+            onCancel={() => console.log('Cancel clicked')}
+            onRenew={() => console.log('Renew clicked')}
+            isLoading={false}
           />
         </div>
       </SettingsSection>
     </div>
-    
   );
 }
