@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname  } from 'next/navigation';
 import type { ActiveNav } from '@/types';
 import { NAV_LINKS } from '@/constants/routes';
 import { useAuth } from '@/features/auth';
 import { useRedirectAfterLogin } from '@/hooks';
+
 /**
  * useTopNavBar — manages the user dropdown state, derives activeNav from the URL, and computes initials.
  *
@@ -15,6 +16,7 @@ export function useTopNavBar() {
   const [isMounted, setIsMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [messagesMenuOpen, setMessagesMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const pathname = usePathname();
@@ -23,6 +25,7 @@ export function useTopNavBar() {
   )?.name ?? null) as ActiveNav | null;
   const userMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  const messagesMenuRef = useRef<HTMLDivElement>(null);
   useRedirectAfterLogin();
   useEffect(() => {
     setIsMounted(true);
@@ -33,6 +36,8 @@ export function useTopNavBar() {
         setUserMenuOpen(false);
       if (!moreMenuRef.current?.contains(e.target as Node))
         setMoreMenuOpen(false);
+      if (!messagesMenuRef.current?.contains(e.target as Node))
+        setMessagesMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -44,6 +49,7 @@ export function useTopNavBar() {
     setRegisterOpen(false);
     setUserMenuOpen(false);
     setMoreMenuOpen(false);
+    setMessagesMenuOpen(false);
   }, [pathname]);
 
   const initials = user
@@ -89,6 +95,10 @@ export function useTopNavBar() {
     toggleMoreMenu: () => setMoreMenuOpen((v) => !v),
     closeMoreMenu: () => setMoreMenuOpen(false),
     moreMenuRef,
+    messagesMenuOpen,
+    toggleMessagesMenu: () => setMessagesMenuOpen((v) => !v),
+    closeMessagesMenu: () => setMessagesMenuOpen(false),
+    messagesMenuRef,
     initials,
     activeNav,
     signInOpen,

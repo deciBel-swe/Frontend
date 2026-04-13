@@ -25,7 +25,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ title, coverUrl, username, 
   return (
     <div
       className="
-        relative
+        relative shrink-0
         w-28 h-28
         w-[6.5rem] h-[6.5rem]      /* default (half screen) */
         md:w-[8rem] md:h-[8rem] /* medium screen */

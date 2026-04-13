@@ -109,9 +109,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
   };
 
   return (
-    <div className="group flex w-full items-center gap-3 px-2 py-3 rounded-xl transition hover:bg-surface-raised">
+    <div className="group flex w-full items-center gap-3 px-2 py-2 rounded-xl transition hover:bg-surface-raised">
       {/* IMAGE WRAPPER (controls size now) */}
-      <div className="w-12 h-12 md:w-14 md:h-14 shrink-0">
+      <div className="w-12 h-12 md:w-12 md:h-12 shrink-0">
         <HoverPlayImage image={image} alt={title} onClick={handlePlayFromRow} />
       </div>
 
