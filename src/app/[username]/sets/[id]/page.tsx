@@ -7,8 +7,8 @@ import PlaylistBanner from '@/components/playlist-page/components/PlaylistBanner
 import PlaylistActionBar from '@/components/playlist-page/components/PlaylistActionBar';
 import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTrackItem';
 import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
-import Link from 'next/link';
-import AvatarImage from '@/components/avatars/AvatarImage';
+import PlaylistOwnerSidebar from '@/components/playlist-page/components/PlaylistOwnerSidebar';
+import { Sidebar } from '@/components/playlist-page/components/sidebar/sidebar';
 
 /**
  * /sets/[id]/page.tsx
@@ -49,17 +49,20 @@ export default function PlaylistPage() {
     }
   }
 
-  const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
+  // const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
   return (
     <div className="w-full min-w-0">
       {/* ── Banner ── */}
       <PlaylistBanner
         playlist={playlist}
         playingTrack={activeTrack}
+        trackCount={3}
+        duration="20:47"
         isPlaying={isPlaying}
         onPlayPause={handleBannerPlayPause}
       />
 
+      {/* TODO: make the playlistactionbar not take full width over the sider */}
       {/* ── Action bar ── */}
       <PlaylistActionBar
         onShare={() => console.log('share')}
@@ -72,22 +75,7 @@ export default function PlaylistPage() {
         
       <div className="flex flex-col md:flex-row gap-0">
         {/* LEFT SIDEBAR — avatar + owner info */}
-        <aside className="hidden md:flex flex-col items-center gap-3 w-44 shrink-0 px-4 py-6 ">
-            <Link href={`/${ownerSlug}`} className="hover:opacity-80 transition-opacity">
-                <AvatarImage
-                    src={playlist.owner.avatarUrl}
-                    alt={playlist.owner.username}
-                    size={80}
-                    shape="circle"
-                />
-            </Link>
-            <Link
-                href={`/${ownerSlug}`}
-                className="text-sm font-bold text-text-primary hover:opacity-60 transition-opacity text-center"
-            >
-                {playlist.owner.username}
-            </Link>
-        </aside>
+        <PlaylistOwnerSidebar owner={playlist.owner} />
 
         {/* LEFT — tracks + tags */}
         <div className="flex-1 min-w-0 px-4 py-5 space-y-5">
@@ -111,12 +99,14 @@ export default function PlaylistPage() {
         </div>
 
         {/* RIGHT — sidebar placeholder (wire up your own sidebar here) */}
-        <aside className="hidden md:block w-64 px-4 py-5 shrink-0">
-          {/* <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3">
+        {/* <aside className="hidden md:block w-64 px-4 py-5 shrink-0">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-3">
             You might also like
-          </p> */}
-        </aside>
-      </div>
+          </p>
+        </aside> */}
+          {/* RIGHT SIDEBAR */}
+    <Sidebar />
+                </div>
     </div>
   );
 }
