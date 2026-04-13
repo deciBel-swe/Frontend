@@ -4,6 +4,7 @@ import type { ActiveNav } from '@/types';
 import { NAV_LINKS } from '@/constants/routes';
 import { useAuth } from '@/features/auth';
 import { useRedirectAfterLogin } from '@/hooks';
+import { useUpgradeModal } from '@/features/pro/hooks/useUpgradeModal';
 
 /**
  * useTopNavBar — manages the user dropdown state, derives activeNav from the URL, and computes initials.
@@ -19,6 +20,7 @@ export function useTopNavBar() {
   const [messagesMenuOpen, setMessagesMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const { upgradeOpen, openUpgrade, closeUpgrade } = useUpgradeModal();
   const pathname = usePathname();
   const activeNav = (NAV_LINKS.find(
     ({ href }) => pathname === href || pathname.startsWith(href + '/')
@@ -50,7 +52,8 @@ export function useTopNavBar() {
     setUserMenuOpen(false);
     setMoreMenuOpen(false);
     setMessagesMenuOpen(false);
-  }, [pathname]);
+    closeUpgrade();
+  }, [pathname, closeUpgrade]);
 
   const initials = user
     ? user.username
@@ -107,5 +110,8 @@ export function useTopNavBar() {
     closeSignIn,
     openRegister,
     closeRegister,
+    upgradeOpen,
+    openUpgrade,
+    closeUpgrade,
   };
 }

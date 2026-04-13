@@ -56,6 +56,7 @@ import {
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
 import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
+import { UpgradeModal } from '@/features/pro/components/UpgradeModal';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TopNavBarProps {
@@ -104,6 +105,9 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     closeSignIn,
     openRegister,
     closeRegister,
+    openUpgrade,
+    upgradeOpen,
+    closeUpgrade,
   } = useTopNavBar();
 
   const inboxItems = getInboxItems(TEST_CONVERSATIONS, CURRENT_USER.id);
@@ -161,6 +165,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     variant="premium"
                     size="sm"
                     className="mr-0.5 px-2.5"
+                    onClick={openUpgrade}
                   >
                     Upgrade now
                   </Button>
@@ -327,6 +332,8 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
         <SignInModal open={signInOpen} onClose={closeSignIn} />
         <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
+
+       <UpgradeModal open={upgradeOpen} onClose={closeUpgrade} />
     </header>
   );
 };
