@@ -16,7 +16,7 @@ export default function LogoutPage() {
 
   useEffect(() => {
     logout().then(() => {
-      router.replace(ROUTES.SIGNIN);
+      router.replace(ROUTES.HOME);
     });
   }, [router, logout]);
 

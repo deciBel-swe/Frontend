@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname  } from 'next/navigation';
 import type { ActiveNav } from '@/types';
 import { NAV_LINKS } from '@/constants/routes';
 import { useAuth } from '@/features/auth';
 import { useRedirectAfterLogin } from '@/hooks';
+
 /**
  * useTopNavBar — manages the user dropdown state, derives activeNav from the URL, and computes initials.
  *
