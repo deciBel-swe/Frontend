@@ -54,16 +54,7 @@ export default function DiscoverSection<T>({
           {Array.from({ length: skeletonCount }).map((_, i) => (
             <div
               key={i}
-              className="
-                shrink-0
-                w-26 h-26
-                md:w-32 md:h-32
-                lg:w-40 lg:h-40
-                rounded-md
-                m-2
-                bg-surface-default
-                animate-pulse
-              "
+              className="shrink-0 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40 rounded-md m-2 bg-surface-default animate-pulse"
             />
           ))}
         </div>

@@ -86,7 +86,7 @@ export default function DiscoverPage({
     return (
       <div className="w-full">
         <DiscoverSection<DiscoverTrackItem>
-          title="Trending"
+          title={isLoadingTrending ? "" : "Trending "}
           items={trendingTracks}
           isLoading={isLoadingTrending}
           renderItem={(discoverItem, index) => (
