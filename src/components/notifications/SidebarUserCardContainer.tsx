@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { SidebarUserCard } from "./SidebarUserCard";
 
 type Props = React.ComponentProps<typeof SidebarUserCard>;
