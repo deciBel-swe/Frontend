@@ -47,6 +47,8 @@ export default function NotificationsDropdown({ onClose }: NotificationsDropdown
     >
       <NotificationsList
         // onSelect={handleSelect}
+        hoverable = {true}
+        maxItems = {3}
       />
       
     </DropdownPopup>
