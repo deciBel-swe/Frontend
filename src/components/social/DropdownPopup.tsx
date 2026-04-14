@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import ScrollableArea from '../scroll/ScrollableArea';
 
 interface DropdownProps {
   children: React.ReactNode;
@@ -30,9 +31,10 @@ export default function DropdownPopup({ children, header, footer, className = ''
           {header}
         </div>
       )}
-
+      <ScrollableArea>
       {/* Content */}
       {children}
+      </ScrollableArea>
 
       {/* Footer */}
       {footer && (

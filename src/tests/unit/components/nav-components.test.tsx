@@ -165,7 +165,7 @@ describe('TopNavBar', () => {
       screen.getByRole('button', { name: 'Upgrade now' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Notifications' })
+      screen.getByRole('button', { name: 'Notifications' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Profile' })

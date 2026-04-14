@@ -56,6 +56,7 @@ import {
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
 import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
+import NotificationsDropdown from '../notifications/NotificationsDropdown';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TopNavBarProps {
@@ -96,6 +97,10 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     toggleMessagesMenu,
     closeMessagesMenu,
     messagesMenuRef,
+    notificationsMenuOpen,
+    notificationsMenuRef,
+    toggleNotificationsMenu,
+    closeNotificationsMenu,
     initials,
     activeNav,
     signInOpen,
@@ -226,20 +231,30 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     )}
                   </div>
 
+                    <div
+                    className="relative h-12 flex items-center"
+                    ref={notificationsMenuRef}
+                  >
                   <IconButton
-                    href={ROUTES.NOTIFICATIONS}
                     aria-label="Notifications"
                     prefetch={shouldPrefetch(
                       ROUTES.NOTIFICATIONS,
                       isAuthenticated,
                       isAuthLoading
                     )}
+                    onClick={toggleNotificationsMenu}
                   >
                     <BellIcon />
                     <Badge count={0} />
                     <span className="sr-only">Notifications</span>
                   </IconButton>
 
+                  {notificationsMenuOpen&&(
+                    <NotificationsDropdown
+                    onClose={closeNotificationsMenu}
+                    />
+                  )}
+                  </div>
                   <div
                     className="relative h-12 flex items-center"
                     ref={messagesMenuRef}
