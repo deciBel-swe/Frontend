@@ -16,7 +16,7 @@ export default function Page() {
           
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <Link href="/notifications" className="text-xl font-extrabold hover:text-interactive-hover">
+            <Link href="/notifications" className="text-2xl font-extrabold hover:text-interactive-hover">
               Notifications
             </Link>
 
@@ -27,7 +27,7 @@ export default function Page() {
         </div>
 
         {/* RIGHT SIDEBAR (like image) */}
-        <aside className="w-[280px] hidden lg:block space-y-4 mt-4">
+        <aside className="w-[300px] hidden lg:block space-y-4 mt-4">
           
 
           <div className="w-full flex flex-row"> 
