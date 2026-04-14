@@ -18,6 +18,7 @@ export function useTopNavBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [messagesMenuOpen, setMessagesMenuOpen] = useState(false);
+  const [notificationsMenuOpen, setNotificationsMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const { upgradeOpen, openUpgrade, closeUpgrade } = useUpgradeModal();
@@ -28,6 +29,7 @@ export function useTopNavBar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const messagesMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsMenuRef = useRef<HTMLDivElement>(null);
   useRedirectAfterLogin();
   useEffect(() => {
     setIsMounted(true);
@@ -40,6 +42,8 @@ export function useTopNavBar() {
         setMoreMenuOpen(false);
       if (!messagesMenuRef.current?.contains(e.target as Node))
         setMessagesMenuOpen(false);
+      if (!notificationsMenuRef.current?.contains(e.target as Node))       
+        setNotificationsMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -52,8 +56,10 @@ export function useTopNavBar() {
     setUserMenuOpen(false);
     setMoreMenuOpen(false);
     setMessagesMenuOpen(false);
+    setNotificationsMenuOpen(false);
     closeUpgrade();
   }, [pathname, closeUpgrade]);
+
 
   const initials = user
     ? user.username
@@ -102,6 +108,10 @@ export function useTopNavBar() {
     toggleMessagesMenu: () => setMessagesMenuOpen((v) => !v),
     closeMessagesMenu: () => setMessagesMenuOpen(false),
     messagesMenuRef,
+    notificationsMenuOpen,
+    toggleNotificationsMenu: () => setNotificationsMenuOpen((v) => !v),
+    closeNotificationsMenu: () => setNotificationsMenuOpen(false),
+    notificationsMenuRef,
     initials,
     activeNav,
     signInOpen,
