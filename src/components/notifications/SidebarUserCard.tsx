@@ -4,14 +4,15 @@ import React from "react";
 import { Users, BarChart3 } from "lucide-react";
 import AvatarImage from "@/components/avatars/AvatarImage";
 import Link from "next/link";
+import FollowButton from '@/components/buttons/FollowButton';
 
 interface SidebarUserCardProps {
   username: string;
   avatarUrl: string;
   followersCount: number;
   statsCount: number;
-  isFollowing?: boolean;
-  onFollowToggle?: () => void;
+  // isFollowing?: boolean;
+  // onFollowToggle?: () => void;
 }
 
 export const SidebarUserCard: React.FC<SidebarUserCardProps> = ({
@@ -19,8 +20,8 @@ export const SidebarUserCard: React.FC<SidebarUserCardProps> = ({
   avatarUrl,
   followersCount,
   statsCount,
-  isFollowing = true,
-  onFollowToggle,
+  // isFollowing = true,
+  // onFollowToggle,
 }) => {
   return (
     <div className="flex items-center justify-between p-3 rounded-xl bg-surface-default border border-border-default">
@@ -65,17 +66,19 @@ export const SidebarUserCard: React.FC<SidebarUserCardProps> = ({
       </div>
 
       {/* RIGHT: button */}
-      <button
+      {/* <button
         onClick={onFollowToggle}
         className={`
           px-3 py-1.5 text-xs rounded-md font-medium transition
           ${isFollowing
             ? "bg-surface-raised text-text-primary hover:bg-surface-hover"
-            : "bg-interactive-default text-white hover:bg-interactive-hover"}
+            : "bg-interactive-default hover:bg-interactive-hover"}
         `}
       >
         {isFollowing ? "Following" : "Follow"}
-      </button>
+      </button> */}
+            <FollowButton defaultFollowing={false} size="sm"/>
+      {/* TODO: add block btn */}
     </div>
   );
 };
