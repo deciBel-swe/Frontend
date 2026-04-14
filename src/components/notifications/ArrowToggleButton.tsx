@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react"; // Added useRef and useEffect
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useToggleArrow } from "@/components/notifications/useToggleArrow";
 
@@ -13,7 +13,22 @@ export const ArrowToggleButton = ({
   label = "All notifications",
   initialOpen = false,
 }: ArrowToggleButtonProps) => {
-  const { open, toggle } = useToggleArrow(initialOpen);
+  const { open, toggle } = useToggleArrow(initialOpen); 
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Only close if it's currently open
+        if (open) toggle(); 
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, toggle]);
 
   const menuItems = [
     "All notifications",
@@ -24,8 +39,7 @@ export const ArrowToggleButton = ({
   ];
 
   return (
-    <div className="relative inline-block">
-      {/* Button: Smaller size, mapped to your Decibel Design Tokens */}
+    <div className="relative inline-block" ref={containerRef}>
       <button
         onClick={toggle}
         className="px-3 py-1.5 text-sm font-bold text-text-primary bg-surface-raised hover:bg-interactive-hover transition-all rounded-md flex items-center gap-2 cursor-pointer"
@@ -38,7 +52,6 @@ export const ArrowToggleButton = ({
         )}
       </button>
 
-      {/* Dropdown: Uses animate-drop-in from your globals.css */}
       {open && (
         <div
           className="
@@ -57,6 +70,7 @@ export const ArrowToggleButton = ({
               "
               onClick={() => {
                 console.log("Selected:", item);
+                toggle(); // Optional: Close the menu after selecting an item
               }}
             >
               {item}
