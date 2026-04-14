@@ -40,7 +40,7 @@ export const notificationsMock: Notification[] = [
     type: "like",
     actor: {
       id: "u1",
-      username: "Ahmed10salah222",
+      username: "Jasmin Ahmed",
       avatarUrl: "https://a1.sndcdn.com/images/default_avatar_large.png",
     },
     targetTitle: "test",
