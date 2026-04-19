@@ -137,6 +137,7 @@ export default function TrackList({
         cover: track.coverUrl,
         duration: durationSeconds ? formatDuration(durationSeconds) : '',
         createdAt: track.releaseDate,
+        genre: track.genre,    
         durationSeconds,
         isLiked: track.isLiked,
         isReposted: track.isReposted,

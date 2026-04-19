@@ -18,6 +18,7 @@ type TrackHeroProps = {
   coverUrl: string;
   timeAgo: string;
   tags: Tag[];
+  genre: string;  
   waveformUrl: string;  // JSON string "[0.1, 0.4, ...]"
   duration: string;
   currentUserAvatar?: string;
@@ -52,6 +53,7 @@ export default function TrackHero({
   coverUrl,
   timeAgo,
   tags,
+  genre,
   waveformUrl,
   duration,
   currentUserAvatar,
@@ -103,12 +105,22 @@ export default function TrackHero({
                 >
                   {artistName}
                 </Link>
+               <div className="flex items-center gap-2 shrink-0">
                 <span className="shrink-0 text-xs">{timeAgo}</span>
               </div>
 
-              <h1 className="text-lg sm:text-xl font-bold text-text-primary leading-tight truncate">
-                {title}
-              </h1>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm text-text-muted mb-0.5">
+                <h1 className="text-lg sm:text-xl font-bold text-text-primary leading-tight truncate">
+                  {title}
+                </h1>
+                {/* Genre pill */}
+                  {genre && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-interactive-default text-brand-primary border border-brand-primary font-semibold cursor-pointer transition-colors hover:bg-brand-primary hover:text-white">
+                      # {genre}
+                    </span>
+                  )}
+              </div>
 
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
