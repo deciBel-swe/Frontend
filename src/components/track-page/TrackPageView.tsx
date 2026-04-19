@@ -17,6 +17,7 @@ export default function TrackPageView({
   currentUserAvatar,
 }: TrackPageViewProps) {
   const {
+    track,
     comments,
     fans,
     commentText,
@@ -54,6 +55,12 @@ export default function TrackPageView({
       <div className="flex flex-col lg:flex-row gap-8 mt-6">
         {/* Left Side: Comments Area */}
         <div className="flex-1 min-w-0 flex flex-col gap-6">
+           {/* Track description */}
+          {track?.description && track.description.trim().length > 0 && (
+            <p className="text-sm text-text-primary whitespace-pre-wrap">
+              {track.description}
+            </p>
+          )}
           <div className="flex items-center gap-2 text-xs text-text-muted">
             <span className="font-mono">Comment timestamp: {activeTimestampLabel}</span>
             {pendingTimestamp !== null && (
