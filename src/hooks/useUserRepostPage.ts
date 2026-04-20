@@ -112,7 +112,7 @@ export function useUserRepostPage(routeUsername?: string) {
           size: 100,
         });
 
-        const mappedItems = response.content.flatMap((resource, index) => {
+        const mappedItems = response.content.flatMap((resource, index): UserRepostPageItem[] => {
           const repostedBy = (
             resource as { repostedBy?: RepostedByShape }
           ).repostedBy;
@@ -159,6 +159,8 @@ export function useUserRepostPage(routeUsername?: string) {
 
         if (!isCancelled) {
           setItems(mappedItems);
+          setIsLoading(false);
+          setIsError(false);
         }
       } catch {
         if (!isCancelled) {

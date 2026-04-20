@@ -487,7 +487,10 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolvePlaylistOwner(playlistId)) {
       throw new Error('Playlist not found');
     }
-
+    const resolved = resolvePlaylistOwner(playlistId);
+    if (!resolved) {
+      throw new Error('Playlist not found');
+    }
     const playlist = resolved.playlist;
 
     const existing = playlist.tracks.some(
@@ -519,7 +522,8 @@ export class MockPlaylistService implements PlaylistService {
   ): Promise<void> {
     await delay();
 
-    if (!resolvePlaylistOwner(playlistId)) {
+    const resolved = resolvePlaylistOwner(playlistId);
+    if (!resolved) {
       throw new Error('Playlist not found');
     }
 

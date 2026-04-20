@@ -737,6 +737,9 @@ export class MockUserService implements UserService {
           isLiked: user.likedPlaylists.includes(playlist.id),
           owner: { id: owner.id, username: owner.username },
           tracks: playlist.tracks,
+          isReposted: user.repostedPlaylists.includes(playlist.id),
+          likeCount: playlistLikeCount(playlist.id),
+          repostCount: playlistRepostCount(playlist.id),
         });
       }
     }
@@ -896,6 +899,9 @@ export class MockUserService implements UserService {
         title: playlist.title,
         type: toPlaylistType(playlist.type),
         isLiked: true,
+        isReposted: user.repostedPlaylists.includes(playlist.id),
+        likeCount: playlistLikeCount(playlist.id),
+        repostCount: playlistRepostCount(playlist.id),
         owner: {
           id: playlist.owner.id,
           username: playlist.owner.username,
