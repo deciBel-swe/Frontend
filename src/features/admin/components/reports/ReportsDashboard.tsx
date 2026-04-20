@@ -56,6 +56,7 @@ export const ReportTableRow: FC<ReportTableRowProps> = ({
       <div className="flex items-center gap-2">
         <Button
           size="sm"
+          id="view"
           variant="secondary"
           onClick={() => onView?.(id)}
         >
@@ -63,6 +64,7 @@ export const ReportTableRow: FC<ReportTableRowProps> = ({
         </Button>
         <Button
           size="sm"
+          id="dismiss"
           variant="danger"
           onClick={() => onDismiss?.(id)}
         >

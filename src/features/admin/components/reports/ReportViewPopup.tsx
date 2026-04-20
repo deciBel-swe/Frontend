@@ -5,9 +5,10 @@
 
 import { FC, JSX } from 'react';
 import { ReportDetail, ReportType } from '@/features/admin/types/types';
-import { ActionButton, ReportStatusBadge } from '@/features/admin/shared';
+import { ReportStatusBadge } from '@/features/admin/shared';
 import { ReportedTrackPanel } from './ReportedTrackPannel';
 import { ReportedCommentPanel } from './ReportedCommentPannel';
+import Button from '@/components/buttons/Button';
 
 // ─── Report Info Panel ────────────────────────────────────────────────────────
 
@@ -60,9 +61,32 @@ interface ActionBarProps {
 const ActionBar: FC<ActionBarProps> = ({ onRemove, onDismiss, onSuspendUser }) => (
   <div className="flex items-center gap-3 pt-4 mt-4 border-t border-border-default">
     <span className="text-brand-primary text-sm font-semibold">Action:</span>
-    <ActionButton label="remove" variant="default" onClick={onRemove} />
-    <ActionButton label="dismiss" variant="yellow" onClick={onDismiss} />
-    <ActionButton label="suspend user" variant="red" onClick={onSuspendUser} />
+    <Button 
+      variant="secondary_inverse" 
+      id="dismiss"
+      size="sm" 
+      onClick={onDismiss}
+    >
+      dismiss
+    </Button>
+
+    <Button 
+      variant="secondary" 
+      id="remove"
+      size="sm" 
+      onClick={onRemove}
+    >
+      remove
+    </Button>
+
+    <Button 
+      variant="danger" 
+      id= "suspend"
+      size="sm" 
+      onClick={onSuspendUser}
+    >
+      suspend user
+    </Button>
   </div>
 );
 

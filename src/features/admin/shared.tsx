@@ -111,37 +111,4 @@ export const UserStatusBadge: FC<UserStatusBadgeProps> = ({ status }) => (
   </span>
 );
 
-// ─── Action Button ────────────────────────────────────────────────────────────
-
-type ActionVariant = 'green' | 'red' | 'yellow' | 'default';
-
-const ACTION_STYLES: Record<ActionVariant, string> = {
-  green: 'bg-green-600 hover:bg-green-700 text-white',
-  red: 'bg-red-500 hover:bg-red-600 text-white',
-  yellow: 'bg-yellow-400 hover:bg-yellow-500 text-neutral-900',
-  default: 'bg-interactive-default hover:bg-interactive-hover text-text-primary border border-border-default',
-};
-
-interface ActionButtonProps {
-  label: string;
-  variant?: ActionVariant;
-  onClick?: () => void;
-}
-
-/**
- * ActionButton - Small pill-shaped action button used in table rows and popups.
- */
-export const ActionButton: FC<ActionButtonProps> = ({
-  label,
-  variant = 'default',
-  onClick,
-}) => (
-  <button
-    onClick={onClick}
-    className='px-3 py-1 rounded text-xs font-medium transition-colors duration-150 cursor-pointer'
-    style={{ backgroundColor: ACTION_STYLES[variant].split(' ')[0], color: ACTION_STYLES[variant].split(' ')[1] }}
-  >
-    {label}
-  </button>
-);
 

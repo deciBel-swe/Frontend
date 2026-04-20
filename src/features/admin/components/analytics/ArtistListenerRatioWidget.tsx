@@ -30,7 +30,7 @@ export const ArtistListenerRatioWidget: FC<ArtistListenerRatio> = ({
             cy="50"
             r={radius}
             fill="none"
-            stroke="var(--color-border-default)"
+            stroke="var(--color-text-primary)"
             strokeWidth="16"
           />
           {/* Artist segment */}
@@ -57,7 +57,7 @@ export const ArtistListenerRatioWidget: FC<ArtistListenerRatio> = ({
           </span>
         </li>
         <li className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-border-default shrink-0" />
+          <span className="w-3 h-3 rounded-sm bg-text-primary shrink-0" />
           <span className="text-text-secondary">
             Listener{' '}
             <span className="text-text-primary font-semibold">{listenerPercent}%</span>
