@@ -1,10 +1,13 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AddToPlaylistModal, {
   type ActiveTab,
 } from '@/components/playlist/AddToPlaylistModal';
+import type { PlaylistItem } from '@/components/playlist/AddToPlaylistTab';
 import { ShareModal } from '@/features/prof/components/ShareModal';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
+import { playlistService, userService } from '@/services';
 
 type TrackCardModalsProps = {
   trackId: string;
@@ -40,6 +43,124 @@ export default function TrackCardModals({
   setIsPlaylistModalOpen,
   setActiveTab,
 }: TrackCardModalsProps) {
+  const [filterValue, setFilterValue] = useState('');
+  const [playlistTitle, setPlaylistTitle] = useState('');
+  const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
+  const [playlists, setPlaylists] = useState<PlaylistItem[]>([]);
+
+  const loadPlaylists = useCallback(async () => {
+    try {
+      const mePlaylists = await userService.getMePlaylists({
+        page: 0,
+        size: 100,
+      });
+
+      const hydrated = await Promise.all(
+        mePlaylists.map(async (playlist) => {
+          try {
+            const detailed = await playlistService.getPlaylist(playlist.id);
+            return {
+              id: String(detailed.id),
+              title: detailed.title,
+              trackCount: detailed.trackCount ?? detailed.tracks?.length ?? 0,
+              isPrivate: detailed.isPrivate,
+              coverUrl: detailed.coverArtUrl,
+            } satisfies PlaylistItem;
+          } catch {
+            return {
+              id: String(playlist.id),
+              title: playlist.title,
+              trackCount: 0,
+            } satisfies PlaylistItem;
+          }
+        })
+      );
+
+      setPlaylists(hydrated);
+    } catch {
+      setPlaylists([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaylistModalOpen) {
+      return;
+    }
+
+    void loadPlaylists();
+  }, [isPlaylistModalOpen, loadPlaylists]);
+
+  const filteredPlaylists = useMemo(() => {
+    const query = filterValue.trim().toLowerCase();
+    if (!query) {
+      return playlists;
+    }
+
+    return playlists.filter((playlist) =>
+      playlist.title.toLowerCase().includes(query)
+    );
+  }, [filterValue, playlists]);
+
+  const closePlaylistModal = useCallback(() => {
+    setIsPlaylistModalOpen(false);
+    setActiveTab('add');
+    setFilterValue('');
+    setPlaylistTitle('');
+    setPrivacy('public');
+  }, [setActiveTab, setIsPlaylistModalOpen]);
+
+  const handleAddToPlaylist = useCallback(
+    async (playlistId: string) => {
+      const parsedPlaylistId = Number(playlistId);
+      if (!Number.isFinite(parsedPlaylistId)) {
+        return;
+      }
+
+      try {
+        await playlistService.addTrackToPlaylist(parsedPlaylistId, {
+          trackId: trackNumericId,
+        });
+        closePlaylistModal();
+      } catch {
+        // Keep modal open so users can try another playlist.
+      }
+    },
+    [closePlaylistModal, trackNumericId]
+  );
+
+  const handleCreatePlaylist = useCallback(async () => {
+    const title = playlistTitle.trim();
+    if (!title) {
+      return;
+    }
+
+    try {
+      const created = await playlistService.createPlaylist({
+        title,
+        description: '',
+        type: 'PLAYLIST',
+        isPrivate: privacy === 'private',
+        CoverArt: track.cover,
+      });
+
+      await playlistService.addTrackToPlaylist(created.id, {
+        trackId: trackNumericId,
+      });
+
+      closePlaylistModal();
+      await loadPlaylists();
+    } catch {
+      // Keep modal open so users can adjust and retry.
+    }
+  }, [
+    closePlaylistModal,
+    loadPlaylists,
+    playlistTitle,
+    privacy,
+    track.cover,
+    trackNumericId,
+  ]);
+
   return (
     <>
       <ShareModal
@@ -65,24 +186,25 @@ export default function TrackCardModals({
 
       <AddToPlaylistModal
         isOpen={isPlaylistModalOpen}
-        onClose={() => {
-          setIsPlaylistModalOpen(false);
-          setActiveTab('add');
-        }}
+        onClose={closePlaylistModal}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         addTabProps={{
-          playlists: [],
-          filterValue: '',
-          onFilterChange: () => {},
-          onAddToPlaylist: () => {},
+          playlists: filteredPlaylists,
+          filterValue,
+          onFilterChange: setFilterValue,
+          onAddToPlaylist: (playlistId) => {
+            void handleAddToPlaylist(playlistId);
+          },
         }}
         createTabProps={{
-          playlistTitle: '',
-          onPlaylistTitleChange: () => {},
-          privacy: 'public',
-          onPrivacyChange: () => {},
-          onSave: () => {},
+          playlistTitle,
+          onPlaylistTitleChange: setPlaylistTitle,
+          privacy,
+          onPrivacyChange: setPrivacy,
+          onSave: () => {
+            void handleCreatePlaylist();
+          },
           currentTrack: {
             title: track.title,
             artist: track.artist,

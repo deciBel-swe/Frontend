@@ -89,6 +89,7 @@ describe('RealPlaylistService', () => {
 
   it('regenerates secret link via PLAYLISTS_SECRET_LINK_REGENERATE contract', async () => {
     mockedApiRequest.mockResolvedValue({
+      secretToken: 'abc',
       secretUrl: '/playlists/token/abc',
       expiresAt: '2026-01-01T00:00:00.000Z',
     });
@@ -118,12 +119,53 @@ describe('RealPlaylistService', () => {
   });
 
   it('fetches playlist secret link via PLAYLISTS_SECRET_LINK contract', async () => {
-    mockedApiRequest.mockResolvedValue({ SecretLink: 'secret-xyz' });
+    mockedApiRequest.mockResolvedValue({ secretToken: 'secret-xyz' });
 
     await service.getPlaylistSecretLink(42);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_SECRET_LINK(42)
+    );
+  });
+
+  it('fetches paginated playlist tracks via PLAYLISTS_TRACKS contract', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 0,
+      totalPages: 0,
+      isLast: true,
+    });
+
+    await service.getPlaylistTracks(42, { page: 1, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_TRACKS(42),
+      {
+        params: {
+          page: 1,
+          size: 5,
+        },
+      }
+    );
+  });
+
+  it('resolves playlist slug via PLAYLISTS_RESOLVE contract', async () => {
+    mockedApiRequest.mockResolvedValue({
+      resourceType: 'PLAYLIST',
+      resourceId: 11,
+    });
+
+    await service.resolvePlaylistSlug('late-night-set-11');
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_RESOLVE,
+      {
+        params: {
+          playlistSlug: 'late-night-set-11',
+        },
+      }
     );
   });
 

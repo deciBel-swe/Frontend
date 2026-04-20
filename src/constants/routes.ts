@@ -150,6 +150,7 @@ export const API_ENDPOINTS = {
   },
   TRACKS: {
     UPLOAD: '/tracks/upload',
+    RESOLVE: '/tracks/resolve',
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
     COVER: (trackId: number) => `/tracks/${trackId}/cover`,
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
@@ -171,6 +172,7 @@ export const API_ENDPOINTS = {
   },
   PLAYLISTS: {
     CREATE: '/playlists',
+    RESOLVE: '/playlists/resolve',
     BY_ID: (playlistId: number) => `/playlists/${playlistId}`,
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
     DELETE: (playlistId: number) => `/playlists/${playlistId}`,

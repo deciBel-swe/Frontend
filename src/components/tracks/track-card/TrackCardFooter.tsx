@@ -13,6 +13,7 @@ type TrackCardFooterProps = {
   repostCount: number;
   plays?: number;
   comments?: number;
+  commentsHref?: string;
   canAddToQueue: boolean;
   isMoreOpen: boolean;
   onEdit: () => void;
@@ -38,6 +39,7 @@ export default function TrackCardFooter({
   repostCount,
   plays,
   comments,
+  commentsHref,
   canAddToQueue,
   isMoreOpen,
   onEdit,
@@ -83,6 +85,7 @@ export default function TrackCardFooter({
         repostCount={repostCount}
         plays={plays}
         comments={comments}
+        commentsHref={commentsHref}
       />
     </div>
   );

@@ -190,6 +190,22 @@ export const useEditProfileForm = ({
     setSubmitError(undefined);
     const imagesPayload = new FormData();
 
+    const shouldRemoveProfilePic =
+      selectedImage === null &&
+      nextValues.avatar === null &&
+      Boolean(initialValues?.avatar);
+    const shouldRemoveCoverPic =
+      selectedCoverImage === null &&
+      nextValues.coverImage === null &&
+      Boolean(initialValues?.coverImage);
+
+    if (shouldRemoveProfilePic) {
+      imagesPayload.append('removeProfilePic', 'true');
+    }
+    if (shouldRemoveCoverPic) {
+      imagesPayload.append('removeCoverPic', 'true');
+    }
+
     if (selectedImage) {
       imagesPayload.append('profilePic', selectedImage);
     }
@@ -209,7 +225,12 @@ export const useEditProfileForm = ({
     try {
       await editMe(payload);
 
-      if (selectedImage || selectedCoverImage) {
+      if (
+        selectedImage ||
+        selectedCoverImage ||
+        shouldRemoveProfilePic ||
+        shouldRemoveCoverPic
+      ) {
         await userService.updateImages(imagesPayload);
       }
 
@@ -225,6 +246,7 @@ export const useEditProfileForm = ({
     editMe,
     editMeError,
     formValues,
+    initialValues,
     onSubmit,
     selectedImage,
     selectedCoverImage,

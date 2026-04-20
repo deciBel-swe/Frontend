@@ -34,9 +34,10 @@ import {
   repostResponseSchema,
   secretTokenResponseSchema,
   trackDetailsResponseSchema,
+  trackResourceRefSchema,
   trackUpdateResponseSchema,
   updateTrackVisibilityDtoSchema,
-  uploadTrackResponseSchema,
+  uploadTrackAcceptedResponseSchema,
   paginatedTracksResponseSchema,
 } from './tracks';
 import {
@@ -80,7 +81,9 @@ import {
   playlistSecretLinkResponseSchema,
   playlistSecretLinkRegenerateResponseSchema,
   playlistLikeResponseSchema,
+  playlistResourceRefSchema,
   paginatedPlaylistsResponseSchema,
+  paginatedPlaylistTracksResponseSchema,
   reorderPlaylistTracksRequestSchema,
   updatePlaylistRequestSchema,
   playlistResponseSchema,
@@ -486,6 +489,13 @@ export const API_CONTRACTS = {
       responseSchema: playlistUpdateResponseSchema,
     }),
 
+  PLAYLISTS_TRACKS: (playlistId: number) =>
+    defineContract<void, z.infer<typeof paginatedPlaylistTracksResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
+      responseSchema: paginatedPlaylistTracksResponseSchema,
+    }),
+
   PLAYLISTS_EMBED: (playlistId: number) =>
     defineContract<void, z.infer<typeof playlistEmbedResponseSchema>>({
       method: 'GET',
@@ -516,6 +526,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.PLAYLISTS.TOKEN(token),
       responseSchema: playlistResponseSchema,
     }),
+
+  PLAYLISTS_RESOLVE: defineContract<void, z.infer<typeof playlistResourceRefSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.PLAYLISTS.RESOLVE,
+    responseSchema: playlistResourceRefSchema,
+  }),
 
   PLAYLISTS_LIKE: (playlistId: number) =>
     defineContract<void, z.infer<typeof playlistLikeResponseSchema>>({
@@ -751,11 +767,16 @@ export const API_CONTRACTS = {
 
   TRACKS_UPLOAD: defineContract<
     FormData,
-    z.infer<typeof uploadTrackResponseSchema>
+    z.infer<typeof uploadTrackAcceptedResponseSchema>
   >({
     method: 'POST',
     url: API_ENDPOINTS.TRACKS.UPLOAD,
-    responseSchema: uploadTrackResponseSchema,
+    responseSchema: uploadTrackAcceptedResponseSchema,
+  }),
+  TRACKS_RESOLVE: defineContract<void, z.infer<typeof trackResourceRefSchema>>({
+    method: 'GET',
+    url: API_ENDPOINTS.TRACKS.RESOLVE,
+    responseSchema: trackResourceRefSchema,
   }),
   TRACK_LIKE: (trackId: number) =>
     defineContract<void, z.infer<typeof likeResponseSchema>>({

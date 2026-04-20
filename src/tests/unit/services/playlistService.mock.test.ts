@@ -130,11 +130,12 @@ describe('MockPlaylistService', () => {
     const linkPromise = service.getPlaylistSecretLink(created.id);
     await advance();
     const link = await linkPromise;
-    expect(link.SecretLink.length).toBeGreaterThan(0);
+    expect(link.secretToken.length).toBeGreaterThan(0);
 
     const regenPromise = service.regeneratePlaylistSecretLink(created.id);
     await advance();
     const regenerated = await regenPromise;
+    expect((regenerated.secretToken ?? '').length).toBeGreaterThan(0);
     expect(regenerated.secretUrl).toContain('/playlists/token/');
 
     const token = regenerated.secretUrl.split('/').pop() ?? '';
@@ -174,7 +175,13 @@ describe('MockPlaylistService', () => {
     });
     await advance();
     const reordered = await reorderedPromise;
-    expect(reordered.tracks?.[0]?.trackId).toBe(102);
+    const reorderedFirstTrack = reordered.tracks?.[0];
+    const reorderedFirstTrackId = reorderedFirstTrack
+      ? 'id' in reorderedFirstTrack
+        ? reorderedFirstTrack.id
+        : reorderedFirstTrack.trackId
+      : undefined;
+    expect(reorderedFirstTrackId).toBe(102);
 
     const removePromise = service.removeTrackFromPlaylist(created.id, 102);
     await advance();
@@ -183,9 +190,11 @@ describe('MockPlaylistService', () => {
     const afterRemovePromise = service.getPlaylist(created.id);
     await advance();
     const afterRemove = await afterRemovePromise;
-    expect(afterRemove.tracks?.some((track) => track.trackId === 102)).toBe(
-      false
-    );
+    const hasRemovedTrack = afterRemove.tracks?.some((track) => {
+      const trackId = 'id' in track ? track.id : track.trackId;
+      return trackId === 102;
+    });
+    expect(hasRemovedTrack).toBe(false);
   });
 
   it('likes and unlikes a playlist', async () => {
@@ -229,5 +238,42 @@ describe('MockPlaylistService', () => {
     await advance();
     const embed = await embedPromise;
     expect(embed.embedCode).toContain('<iframe');
+  });
+
+  it('returns paginated playlist tracks and resolves playlist slugs', async () => {
+    const service = new MockPlaylistService();
+
+    const createPromise = service.createPlaylist({
+      title: 'Slug Playlist',
+      description: '',
+      type: 'PLAYLIST',
+      isPrivate: false,
+      CoverArt: '',
+    });
+    await advance();
+    const created = await createPromise;
+
+    const addTrackPromise = service.addTrackToPlaylist(created.id, {
+      trackId: 101,
+    });
+    await advance();
+    await addTrackPromise;
+
+    const tracksPagePromise = service.getPlaylistTracks(created.id, {
+      page: 0,
+      size: 10,
+    });
+    await advance();
+    const tracksPage = await tracksPagePromise;
+    expect(tracksPage.content.length).toBe(1);
+    expect(tracksPage.content[0].id).toBe(101);
+
+    const resolvePromise = service.resolvePlaylistSlug(created.playlistSlug ?? '');
+    await advance();
+    const resolved = await resolvePromise;
+    expect(resolved).toEqual({
+      resourceType: 'PLAYLIST',
+      resourceId: created.id,
+    });
   });
 });

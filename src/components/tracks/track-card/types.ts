@@ -19,6 +19,7 @@ export type TrackCardTrack = {
   title: string;
   cover: string;
   duration: string;
+  waveformUrl?: string;
   plays?: number;
   comments?: number;
   createdAt?: string;

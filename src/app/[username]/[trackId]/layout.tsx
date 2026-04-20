@@ -49,6 +49,7 @@ export default function Layout({ children }: LayoutProps) {
             tags={hero.tags}
             genre={hero.genre}
             waveformUrl={hero.waveformUrl}
+            waveformData={hero.waveformData}
             duration={hero.duration}
             waveformComments={waveformComments}
             waveformCurrentTime={waveformCurrentTime}

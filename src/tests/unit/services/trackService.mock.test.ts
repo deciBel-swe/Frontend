@@ -130,6 +130,19 @@ describe('MockTrackService', () => {
     expect(regenerated.secretLink).not.toBe(first.secretLink);
   });
 
+  it('resolves track slug to id', async () => {
+    const service = new MockTrackService();
+
+    const resolvePromise = service.resolveTrackSlug('neon-skylines-101');
+    await advance(400);
+    const resolved = await resolvePromise;
+
+    expect(resolved).toEqual({
+      resourceType: 'TRACK',
+      resourceId: 101,
+    });
+  });
+
   it('throws for invalid and missing track references', async () => {
     const service = new MockTrackService();
 

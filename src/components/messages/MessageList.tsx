@@ -42,7 +42,11 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
         <div className="min-w-[380px]">
           <TrackCard
             trackId={String(track.id)}
-            track={{ ...track, cover: track.cover || DEFAULT_COVER }}
+            track={{
+              ...track,
+              cover: track.cover || DEFAULT_COVER,
+              waveformUrl: track.waveformUrl,
+            }}
             user={cardUser}
             waveform={[]}
             showHeader={false}
@@ -72,8 +76,9 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
               artist: playlist.owner,
               cover: playlist.cover || DEFAULT_COVER,
               duration: '0:00',
+              waveformUrl: playlist.tracks?.[0]?.waveformUrl,
               plays: 0,
-              comments: 0,
+              comments: undefined,
               likeCount: 0,
               repostCount: 0,
               isLiked: false,

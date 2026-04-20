@@ -253,7 +253,6 @@ export function useTrackPage({
           return;
         }
 
-        const waveformData = trackMetadata.waveformData ?? [];
         const trackCreatedAt =
           trackMetadata.releaseDate && trackMetadata.releaseDate.trim().length > 0
             ? trackMetadata.releaseDate
@@ -268,8 +267,8 @@ export function useTrackPage({
           coverUrl: trackMetadata.coverUrl,
           timeAgo: formatTimeAgo(trackCreatedAt),
           tags: trackMetadata.tags,
-          genre: trackMetadata.genre, 
-          waveformUrl: JSON.stringify(waveformData),
+          genre: trackMetadata.genre,
+          waveformUrl: trackMetadata.waveformUrl ?? '',
           duration: formatDuration(trackMetadata.durationSeconds),
           plays: trackMetadata.playCount ?? 0,
           description: trackMetadata.description ?? '',

@@ -32,11 +32,40 @@ const nullableStringWithDefault = (defaultValue: string) =>
 export const uploadTrackResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
+  trackSlug: z.string().trim().min(1).optional(),
   trackUrl: z.string().trim().min(1),
+  trackPreviewUrl: z.string().trim().min(1).optional(),
   coverUrl: trackImageWithDefault,
-  durationSeconds: z.number().int().nonnegative(),
+  durationSeconds: z.number().int().nonnegative().optional(),
+  access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
 });
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;
+
+export const uploadTrackSessionStatusSchema = z.enum([
+  'QUEUED',
+  'PROCESSING',
+  'COMPLETED',
+  'FAILED',
+]);
+export type UploadTrackSessionStatus = z.infer<
+  typeof uploadTrackSessionStatusSchema
+>;
+
+export const uploadTrackSessionResponseSchema = z.object({
+  uploadSessionId: z.string().trim().min(1),
+  status: uploadTrackSessionStatusSchema,
+});
+export type UploadTrackSessionResponse = z.infer<
+  typeof uploadTrackSessionResponseSchema
+>;
+
+export const uploadTrackAcceptedResponseSchema = z.union([
+  uploadTrackSessionResponseSchema,
+  uploadTrackResponseSchema,
+]);
+export type UploadTrackAcceptedResponse = z.infer<
+  typeof uploadTrackAcceptedResponseSchema
+>;
 
 // ================================
 // Track Visibility
@@ -146,11 +175,15 @@ export const trackUpdateResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   coverUrl: trackImageWithDefault,
   title: z.string().trim().min(1),
+  trackSlug: z.string().trim().min(1).optional(),
+  trackPreviewUrl: z.string().trim().min(1).optional(),
   genre: z.string().trim().min(1),
   description: nullableStringWithDefault(' '),
   isPrivate: z.boolean(),
   tags: z.array(z.string()),
   releaseDate: z.string().trim().min(1),
+  commentCount: z.number().int().nonnegative().optional(),
+  access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
 });
 export type TrackUpdateResponse = z.infer<typeof trackUpdateResponseSchema>;
 
@@ -310,6 +343,14 @@ export const trackSummarySchema = z
   })
   .passthrough();
 export type TrackSummaryDTO = z.infer<typeof trackSummarySchema>;
+
+export const trackResourceRefSchema = z
+  .object({
+    resourceType: z.literal('TRACK'),
+    resourceId: z.number().int().nonnegative(),
+  })
+  .passthrough();
+export type TrackResourceRefDTO = z.infer<typeof trackResourceRefSchema>;
 
 /**
  * RepostUser

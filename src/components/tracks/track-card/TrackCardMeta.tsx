@@ -10,6 +10,7 @@ type TrackCardMetaProps = {
   artistName: string;
   trackId: number;
   title: string;
+  contentHref?: string;
   genre?: string;
   createdAt?: string;
   // repostedBySlug?: string;
@@ -25,6 +26,7 @@ export default function TrackCardMeta({
   artistName,
   trackId,
   title,
+  contentHref,
   genre,
   createdAt,
   // repostedBySlug,
@@ -34,6 +36,8 @@ export default function TrackCardMeta({
   isCurrentTrackPlaying,
   onPlayClick,
 }: TrackCardMetaProps) {
+  const resolvedHref = contentHref ?? `/${userSlug}/${trackId}`;
+
   return (
     <div className="flex h-12 items-center gap-3 px-2">
       <TrackCardPlaybackButton
@@ -87,7 +91,7 @@ export default function TrackCardMeta({
 
         <div className="flex w-full">
           <Link
-            href={`/${userSlug}/${trackId}`}
+            href={resolvedHref}
             className="inline-block w-fit font-semibold text-text-primary hover:opacity-40"
           >
             {title}

@@ -5,6 +5,7 @@ import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
+import { useWaveformData } from '@/hooks/useWaveformData';
 import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import TrackCardArtwork from './TrackCardArtwork';
 import TrackCardFooter from './TrackCardFooter';
@@ -104,6 +105,8 @@ export default function TrackCardRoot({
     onExternalTrackChange: clearPendingCommentSelection,
   });
 
+  const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
+
   if (isDeleted) {
     return null;
   }
@@ -153,7 +156,7 @@ export default function TrackCardRoot({
           />
 
           <TrackCardWaveformSection
-            waveform={waveform}
+            waveform={resolvedWaveform}
             isBlocked={isBlocked}
             waveformCurrentTime={waveformCurrentTime}
             waveformDurationSeconds={waveformDurationSeconds}

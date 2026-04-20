@@ -74,14 +74,17 @@ export class MockFeedService implements FeedService {
         coverUrl: track.coverImageDataUrl ?? track.coverUrl,
         waveformUrl: track.waveformUrl,
         genre: track.genre,
-        isReposted: track.reposters.has(currentUserId),
-        isLiked: track.likes.has(currentUserId),
+        isReposted:
+          currentUser?.reposts.some((repost) => repost.id === track.id) ?? false,
+        isLiked:
+          currentUser?.likedTracks.some((likedTrack) => likedTrack.id === track.id) ??
+          false,
         tags: [...track.tags],
         releaseDate: track.releaseDate,
-        playCount: track.likes.size * 25,
+        playCount: track.likes * 25,
         CompletedPlayCount: 0,
-        likeCount: track.likes.size,
-        repostCount: track.reposters.size,
+        likeCount: track.likes,
+        repostCount: track.reposters,
         commentCount: 0,
         isPrivate: track.isPrivate,
         trackDurationSeconds: track.durationSeconds ?? 0,

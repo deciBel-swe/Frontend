@@ -175,7 +175,15 @@ export default function UploadView() {
       );
       setUploadComplete(true);
       setIsUploading(false);
-      setUploadedTrackUrl(`${config.urls.domainName}/${user?.username}/${response.id}`);
+      if ('id' in response) {
+        setUploadedTrackUrl(
+          `${config.urls.domainName}/${user?.username}/${response.id}`
+        );
+      } else {
+        setUploadedTrackUrl(
+          `${config.urls.domainName}/upload?session=${response.uploadSessionId}`
+        );
+      }
     } catch (err) {
       setError(getWaveformParseErrorMessage(err));
       setIsUploading(false);

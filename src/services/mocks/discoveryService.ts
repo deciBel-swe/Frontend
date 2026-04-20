@@ -104,9 +104,9 @@ const buildTrackSummary = (trackId: number): TrackSummaryDTO => {
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
     artist: buildUserSummary(track.artist.id),
-    playCount: track.likes.size * 25,
-    likeCount: track.likes.size,
-    repostCount: track.reposters.size,
+    playCount: track.likes * 25,
+    likeCount: track.likes,
+    repostCount: track.reposters,
     commentCount: 0,
     isLiked: false,
     isReposted: false,
@@ -167,10 +167,10 @@ const buildResourceForTrack = (trackId: number): ResourceRefFullDTO => ({
     isLiked: false,
     tags: getMockTracksStore().find((t) => t.id === trackId)?.tags ?? [],
     releaseDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
-    playCount: getMockTracksStore().find((t) => t.id === trackId)?.likes.size ?? 0,
+    playCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
     CompletedPlayCount: 0,
-    likeCount: getMockTracksStore().find((t) => t.id === trackId)?.likes.size ?? 0,
-    repostCount: getMockTracksStore().find((t) => t.id === trackId)?.reposters.size ?? 0,
+    likeCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
+    repostCount: getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
     commentCount: 0,
     isPrivate: false,
     trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
@@ -285,7 +285,7 @@ export class MockDiscoveryService implements DiscoveryService {
     const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
 
     const tracks = [...getMockTracksStore()]
-      .sort((a, b) => b.likes.size - a.likes.size)
+      .sort((a, b) => b.likes - a.likes)
       .slice(0, limit)
       .map((track, index) => {
         const resource = buildResourceForTrack(track.id);

@@ -1,10 +1,11 @@
 import { config } from '@/config';
 import type { TrackService } from '@/services/api/trackService';
-import type { UploadTrackResponse } from '@/types';
 import type {
   paginationRepostUser,
   SecretLink,
   TrackMetaData,
+  TrackResourceRefDTO,
+  UploadTrackResponse,
   TrackUpdateResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
@@ -30,6 +31,19 @@ const delay = (ms = MOCK_DELAY_MS) =>
 const FALLBACK_AUDIO_TRACK_URL =
   'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3';
 
+const UPLOADED_TRACK_WAVEFORM_URL =
+  'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json';
+
+const DEFAULT_TRACK_DURATION_SECONDS_BY_ID: Record<number, number> = {
+  101: 201,
+  102: 188,
+  103: 216,
+  104: 174,
+  105: 223,
+  106: 195,
+  204: 182,
+};
+
 const resolvePlayableTrackUrl = (
   formData: FormData,
   currentTrackUrl?: string
@@ -48,10 +62,24 @@ const buildCoverUrl = (trackId: number): string =>
 const buildWaveformUrl = (trackId: number): string =>
   `${config.api.appUrl}/mock/waveforms/${trackId}.json`;
 
+const toTrackSlug = (title: string, id: number): string => {
+  const normalized = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return `${normalized || 'track'}-${id}`;
+};
+
 const createSecretToken = (): string => Math.random().toString(36).slice(2, 10);
 
 const cloneTrack = (track: MockTrackRecord): MockTrackRecord => ({
-  ...track,
+  ...(function () {
+    const {...withoutLegacyWaveform } =
+      track as MockTrackRecord & { waveformData?: number[] };
+    return withoutLegacyWaveform;
+  })(),
   artist: { ...track.artist },
   tags: [...track.tags],
 });
@@ -79,30 +107,152 @@ const parseWaveformPayload = (value: unknown): number[] => {
   return [];
 };
 
-const toMetadata = (track: MockTrackRecord): TrackMetaData => ({
-  ...(function () {
-    const currentUserId = resolveCurrentMockUserId();
-    return {
-      isLiked: track.likes.has(currentUserId),
-      isReposted: track.reposters.has(currentUserId),
-      likeCount: track.likes.size,
-      repostCount: track.reposters.size,
-      playCount: 0,
-      uploadDate: track.releaseDate,
-    };
-  })(),
-  id: track.id,
-  title: track.title,
-  artist: { ...track.artist },
-  trackUrl: track.trackUrl,
-  coverUrl: track.coverImageDataUrl ?? track.coverUrl,
-  waveformUrl: track.waveformUrl,
-  waveformData: parseWaveformPayload(track.waveformData),
-  genre: track.genre,
-  tags: [...track.tags],
-  description: track.description ?? '',
-  releaseDate: track.releaseDate,
-});
+const parseWaveformPayloadFromForm = (formData: FormData): number[] | undefined => {
+  const waveformEntries = formData.getAll('waveformData');
+  if (waveformEntries.length === 0) {
+    return undefined;
+  }
+
+  const waveformJson =
+    waveformEntries.length === 1 && typeof waveformEntries[0] === 'string'
+      ? (waveformEntries[0] as string)
+      : JSON.stringify(
+          waveformEntries
+            .filter((entry): entry is string => typeof entry === 'string')
+            .map((entry) => Number(entry))
+            .filter((value) => Number.isFinite(value))
+        );
+
+  return parseWaveformPayload(waveformJson);
+};
+
+const getWaveformSampleCountFromForm = (formData: FormData): number => {
+  const waveformEntries = formData.getAll('waveformData');
+
+  if (
+    waveformEntries.length === 1 &&
+    typeof waveformEntries[0] === 'string' &&
+    waveformEntries[0].trim().startsWith('[')
+  ) {
+    try {
+      const parsed = JSON.parse(waveformEntries[0] as string);
+      if (Array.isArray(parsed)) {
+        return parsed.length;
+      }
+    } catch {
+      return 0;
+    }
+  }
+
+  return waveformEntries.length;
+};
+
+const waveformPayloadToUrl = (trackId: number, waveformData: number[]): string => {
+  if (waveformData.length === 0) {
+    return buildWaveformUrl(trackId);
+  }
+
+  const serialized = encodeURIComponent(JSON.stringify(waveformData));
+  return `data:application/json,${serialized}`;
+};
+
+const parseWaveformDataUrl = (waveformUrl: string): number[] | null => {
+  if (!waveformUrl.startsWith('data:')) {
+    return null;
+  }
+
+  const commaIndex = waveformUrl.indexOf(',');
+  if (commaIndex < 0) {
+    return [];
+  }
+
+  const encoded = waveformUrl.slice(commaIndex + 1);
+
+  try {
+    return parseWaveformPayload(decodeURIComponent(encoded));
+  } catch {
+    return [];
+  }
+};
+
+const fetchWaveformPayloadFromUrl = async (waveformUrl: string): Promise<number[]> => {
+  const embedded = parseWaveformDataUrl(waveformUrl);
+  if (embedded) {
+    return embedded;
+  }
+
+  if (typeof fetch !== 'function') {
+    return [];
+  }
+
+  try {
+    const response = await fetch(waveformUrl);
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = (await response.json()) as unknown;
+    return parseWaveformPayload(payload);
+  } catch {
+    return [];
+  }
+};
+
+const resolveDurationSeconds = (
+  track: MockTrackRecord,
+  waveformData: number[]
+): number => {
+  if (
+    typeof track.durationSeconds === 'number' &&
+    Number.isFinite(track.durationSeconds) &&
+    track.durationSeconds > 0
+  ) {
+    return Math.round(track.durationSeconds);
+  }
+
+  const seededDuration = DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id];
+  if (typeof seededDuration === 'number' && seededDuration > 0) {
+    return seededDuration;
+  }
+
+  if (waveformData.length > 0) {
+    return Math.max(30, Math.min(1200, waveformData.length * 2));
+  }
+
+  return 180;
+};
+
+const toMetadata = async (track: MockTrackRecord): Promise<TrackMetaData> => {
+  const currentUserId = resolveCurrentMockUserId();
+  const waveformDataFromUrl = await fetchWaveformPayloadFromUrl(track.waveformUrl);
+  const waveformData =
+    waveformDataFromUrl.length > 0
+      ? waveformDataFromUrl
+      : parseWaveformPayload(track.waveformData ?? []);
+  const durationSeconds = resolveDurationSeconds(track, waveformData);
+
+  return {
+    id: track.id,
+    title: track.title,
+    artist: { ...track.artist },
+    trackUrl: track.trackUrl,
+    durationSeconds,
+    coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+    waveformUrl: track.waveformUrl,
+    waveformData,
+    genre: track.genre,
+    tags: [...track.tags],
+    description: track.description ?? '',
+    releaseDate: track.releaseDate,
+    isLiked: isTrackLikedByUser(track.id, currentUserId),
+    isReposted: isTrackRepostedByUser(track.id, currentUserId),
+    likeCount: track.likes,
+    repostCount: track.reposters,
+    playCount: 0,
+    uploadDate: track.releaseDate,
+    access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+  };
+};
 
 const readTracks = (): MockTrackRecord[] => {
   return getMockTracksStore().map(cloneTrack);
@@ -255,6 +405,28 @@ const getSessionArtist = (): { id: number; username: string } | null => {
   };
 };
 
+const getUserById = (userId: number) =>
+  getMockUsersStore().find((user) => user.id === userId);
+
+const hasTrackInCollection = (
+  collection: Array<{ id: number }>,
+  trackId: number
+): boolean => collection.some((item) => item.id === trackId);
+
+const isTrackLikedByUser = (trackId: number, userId: number): boolean => {
+  const user = getUserById(userId);
+  return Boolean(user && hasTrackInCollection(user.likedTracks, trackId));
+};
+
+const isTrackRepostedByUser = (trackId: number, userId: number): boolean => {
+  const user = getUserById(userId);
+  return Boolean(user && hasTrackInCollection(user.reposts, trackId));
+};
+
+const incrementCounter = (value: number): number => Math.max(0, value) + 1;
+
+const decrementCounter = (value: number): number => Math.max(0, value - 1);
+
 export class MockTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
@@ -280,34 +452,8 @@ export class MockTrackService implements TrackService {
             ? Math.max(...tracks.map((track) => track.id)) + 1
             : 1;
 
-        const waveformEntries = formData.getAll('waveformData');
-        const waveformJson =
-          waveformEntries.length === 1 && typeof waveformEntries[0] === 'string'
-            ? (waveformEntries[0] as string)
-            : JSON.stringify(
-                waveformEntries
-                  .filter((entry): entry is string => typeof entry === 'string')
-                  .map((entry) => Number(entry))
-                  .filter((value) => Number.isFinite(value))
-              );
-        const waveformSampleCount = (() => {
-          if (
-            waveformEntries.length === 1 &&
-            typeof waveformEntries[0] === 'string' &&
-            waveformEntries[0].trim().startsWith('[')
-          ) {
-            try {
-              const parsed = JSON.parse(waveformEntries[0] as string);
-              if (Array.isArray(parsed)) {
-                return parsed.length;
-              }
-            } catch {
-              return 0;
-            }
-          }
-
-          return waveformEntries.length;
-        })();
+        const waveformSamples = parseWaveformPayloadFromForm(formData) ?? [];
+        const waveformSampleCount = getWaveformSampleCountFromForm(formData);
         const durationSeconds =
           waveformSampleCount > 0
             ? Math.max(30, Math.min(1200, waveformSampleCount * 2))
@@ -348,8 +494,8 @@ export class MockTrackService implements TrackService {
             trackUrl: resolvePlayableTrackUrl(formData),
             coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
             coverImageDataUrl,
-            waveformUrl: buildWaveformUrl(nextId),
-            waveformData: parseWaveformPayload(waveformJson),
+            waveformUrl: UPLOADED_TRACK_WAVEFORM_URL,
+            waveformData: waveformSamples,
             genre,
             description,
             tags,
@@ -357,8 +503,8 @@ export class MockTrackService implements TrackService {
             isPrivate,
             durationSeconds,
             secretLink: isPrivate ? createSecretToken() : undefined,
-            likes: new Set(),
-            reposters: new Set(),
+            likes: 0,
+            reposters: 0,
           };
 
           const updated = [uploaded, ...tracks];
@@ -382,15 +528,36 @@ export class MockTrackService implements TrackService {
           resolve({
             id: uploaded.id,
             title: uploaded.title,
+            trackSlug: toTrackSlug(uploaded.title, uploaded.id),
             trackUrl: uploaded.trackUrl,
+            trackPreviewUrl: uploaded.trackUrl,
             coverUrl: uploaded.coverUrl,
-            durationSeconds: uploaded.durationSeconds?? 0,
+            durationSeconds: uploaded.durationSeconds ?? 0,
+            access: uploaded.isPrivate ? 'PREVIEW' : 'PLAYABLE',
           });
         };
 
         void finalizeUpload().catch(reject);
       }, 120);
     });
+  }
+
+  async resolveTrackSlug(trackSlug: string): Promise<TrackResourceRefDTO> {
+    await delay();
+
+    const normalizedSlug = trackSlug.trim().toLowerCase();
+    const track = readTracks().find(
+      (item) => toTrackSlug(item.title, item.id) === normalizedSlug
+    );
+
+    if (!track) {
+      throw new Error('Track not found');
+    }
+
+    return {
+      resourceType: 'TRACK',
+      resourceId: track.id,
+    };
   }
 
   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
@@ -404,26 +571,28 @@ export class MockTrackService implements TrackService {
     const currentUserId = resolveCurrentMockUserId();
     const isOwner = currentUserId === userId;
 
-    return readTracks()
+    const visibleTracks = readTracks()
       .filter((track) => track.artist.id === userId)
-      .filter((track) => isOwner || !track.isPrivate)
-      .map(toMetadata);
+      .filter((track) => isOwner || !track.isPrivate);
+
+    return Promise.all(visibleTracks.map((track) => toMetadata(track)));
   }
 
   async getMyTracks(): Promise<TrackMetaData[]> {
     await delay();
     const currentUserId = resolveCurrentMockUserId();
 
-    return readTracks()
-      .filter((track) => track.artist.id === currentUserId)
-      .map(toMetadata);
+    const ownTracks = readTracks().filter(
+      (track) => track.artist.id === currentUserId
+    );
+
+    return Promise.all(ownTracks.map((track) => toMetadata(track)));
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {
     await delay();
-    return readTracks()
-      .filter((track) => !track.isPrivate)
-      .map(toMetadata);
+    const publicTracks = readTracks().filter((track) => !track.isPrivate);
+    return Promise.all(publicTracks.map((track) => toMetadata(track)));
   }
   async updateTrack(
     trackId: number,
@@ -448,6 +617,7 @@ export class MockTrackService implements TrackService {
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
     const removeCover = getOptionalBooleanField(formData, 'removeCover');
+    const nextWaveformSamples = parseWaveformPayloadFromForm(formData);
     const coverImageEntry = formData.get('coverImage');
     const coverImageDataUrl =
       coverImageEntry instanceof File
@@ -480,6 +650,18 @@ export class MockTrackService implements TrackService {
         ? { ...current.artist, username: artistName }
         : current.artist,
       trackUrl: nextTrackUrl,
+      waveformUrl:
+        nextWaveformSamples !== undefined
+          ? waveformPayloadToUrl(trackId, nextWaveformSamples)
+          : current.waveformUrl,
+      waveformData:
+        nextWaveformSamples !== undefined
+          ? nextWaveformSamples
+          : current.waveformData,
+      durationSeconds:
+        nextWaveformSamples !== undefined
+          ? Math.max(30, Math.min(1200, nextWaveformSamples.length * 2))
+          : current.durationSeconds,
       isPrivate: nextIsPrivate,
       secretLink: nextSecretLink,
       coverUrl: nextCoverUrl,
@@ -677,15 +859,22 @@ export class MockTrackService implements TrackService {
           reject(new Error('Track not found'));
           return;
         }
-        getMockUsersStore()
-          .find((item) => item.id === currentUserId)
-          ?.likedTracks.push({
+
+        const user = getUserById(currentUserId);
+        const alreadyLiked = isTrackLikedByUser(trackId, currentUserId);
+
+        if (user && !alreadyLiked) {
+          user.likedTracks.push({
             id: trackId,
             title: track.title,
             genre: track.genre,
           });
+        }
 
-        track.likes.add(currentUserId);
+        if (!alreadyLiked) {
+          track.likes = incrementCounter(track.likes);
+        }
+
         persistMockSystemState();
 
         resolve({
@@ -705,15 +894,20 @@ export class MockTrackService implements TrackService {
           reject(new Error('Track not found'));
           return;
         }
-        const user = getMockUsersStore().find(
-          (item) => item.id === currentUserId
-        );
+
+        const user = getUserById(currentUserId);
+        const wasLiked = isTrackLikedByUser(trackId, currentUserId);
+
         if (user) {
           user.likedTracks = user.likedTracks.filter(
             (likedTrack) => likedTrack.id !== trackId
           );
         }
-        track.likes.delete(currentUserId);
+
+        if (wasLiked) {
+          track.likes = decrementCounter(track.likes);
+        }
+
         persistMockSystemState();
         resolve({
           isLiked: false,
@@ -736,7 +930,7 @@ export class MockTrackService implements TrackService {
           reject(new Error('Track not found'));
           return;
         }
-        track.reposters.add(currentUserId);
+
         const usersStore = getMockUsersStore();
         const user = usersStore.find((item) => item.id === currentUserId);
         if (!user) {
@@ -752,6 +946,8 @@ export class MockTrackService implements TrackService {
           title: track.title,
           genre: track.genre,
         });
+        track.reposters = incrementCounter(track.reposters);
+
         persistMockSystemState();
         resolve({
           isReposted: true,
@@ -785,7 +981,8 @@ export class MockTrackService implements TrackService {
           return;
         }
         user.reposts.splice(repostIndex, 1);
-        track.reposters.delete(currentUserId);
+        track.reposters = decrementCounter(track.reposters);
+
         persistMockSystemState();
         resolve({
           isReposted: false,
@@ -801,25 +998,39 @@ export class MockTrackService implements TrackService {
     return new Promise((resolve) => {
       setTimeout(() => {
         const currentUserId = resolveCurrentMockUserId();
+        const currentUser = getUserById(currentUserId);
         const tracksStore = getMockTracksStore();
-        const likedTracks = tracksStore.filter((track) =>
-          track.likes.has(currentUserId)
-        );
+
+        const likedTrackIds = currentUser?.likedTracks.map((track) => track.id) ?? [];
+        const likedTracks = likedTrackIds
+          .map((trackId) => tracksStore.find((track) => track.id === trackId))
+          .filter((track): track is MockTrackRecord => Boolean(track));
+
         const content = likedTracks.map((track) => ({
+          trackDurationSeconds:
+            track.durationSeconds ??
+            DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id] ??
+            180,
           artist: { ...track.artist },
           coverUrl: track.coverImageDataUrl ?? track.coverUrl,
           description: track.description ?? '',
           genre: track.genre,
           id: track.id,
+          trackSlug: toTrackSlug(track.title, track.id),
           isLiked: true,
-          isReposted: track.reposters.has(currentUserId),
-          likeCount: track.likes.size,
+          isReposted: isTrackRepostedByUser(track.id, currentUserId),
+          likeCount: track.likes,
           playCount: 0, //since it is a mock, number won't matter that much
+          commentCount: 0,
           releaseDate: new Date(track.releaseDate),
-          repostCount: track.reposters.size,
+          repostCount: track.reposters,
+          access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+          secretToken: track.secretLink ?? '',
           tags: [...track.tags],
           title: track.title,
           trackUrl: track.trackUrl,
+          trackPreviewUrl: track.trackUrl,
+          trendingRank: 0,
           uploadDate: new Date(track.releaseDate),
           waveformUrl: track.waveformUrl,
         }));
@@ -835,29 +1046,45 @@ export class MockTrackService implements TrackService {
     });
   }
 
-  async getMyRepostedTracks(): Promise<paginatedTrackResponse> {
+  async getMyRepostedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
     return new Promise((resolve) => {
       setTimeout(() => {
         const currentUserId = resolveCurrentMockUserId();
+        const currentUser = getUserById(currentUserId);
         const tracksStore = getMockTracksStore();
-        const repostedTracks = tracksStore.filter((track) =>
-          track.reposters.has(currentUserId)
-        );
+
+        const repostedTrackIds = currentUser?.reposts.map((track) => track.id) ?? [];
+        const repostedTracks = repostedTrackIds
+          .map((trackId) => tracksStore.find((track) => track.id === trackId))
+          .filter((track): track is MockTrackRecord => Boolean(track));
+
         const content = repostedTracks.map((track) => ({
+          trackDurationSeconds:
+            track.durationSeconds ??
+            DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id] ??
+            180,
           artist: { ...track.artist },
           coverUrl: track.coverImageDataUrl ?? track.coverUrl,
           description: track.description ?? '',
           genre: track.genre,
           id: track.id,
-          isLiked: track.likes.has(currentUserId),
+          trackSlug: toTrackSlug(track.title, track.id),
+          isLiked: isTrackLikedByUser(track.id, currentUserId),
           isReposted: true,
-          likeCount: track.likes.size,
+          likeCount: track.likes,
           playCount: 0,
+          commentCount: 0,
           releaseDate: new Date(track.releaseDate),
-          repostCount: track.reposters.size,
+          repostCount: track.reposters,
+          access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+          secretToken: track.secretLink ?? '',
           tags: [...track.tags],
           title: track.title,
           trackUrl: track.trackUrl,
+          trackPreviewUrl: track.trackUrl,
+          trendingRank: 0,
           uploadDate: new Date(track.releaseDate),
           waveformUrl: track.waveformUrl,
         }));
@@ -865,8 +1092,8 @@ export class MockTrackService implements TrackService {
         resolve({
           content,
           isLast: true,
-          pageNumber: 0,
-          pageSize: content.length,
+          pageNumber: params?.page ?? 0,
+          pageSize: params?.size ?? content.length,
           totalElements: content.length,
           totalPages: 1,
         });

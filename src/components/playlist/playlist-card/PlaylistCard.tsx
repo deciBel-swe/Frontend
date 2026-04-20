@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
-import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
-import { useTrackVisibility } from '@/hooks/useTrackVisibility';
+import { useWaveformData } from '@/hooks/useWaveformData';
 import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import TrackCardArtwork from '@/components/tracks/track-card/TrackCardArtwork';
 import TrackCardFooter from '@/components/tracks/track-card/TrackCardFooter';
@@ -23,7 +21,7 @@ export default function PlaylistHorizontalRoot({
   trackId,
   isPrivate = false,
   user,
-  postedText = 'posted a track',
+  postedText = 'posted a set',
   // repostedBy,
   showEditButton = false,
   track,
@@ -37,6 +35,7 @@ export default function PlaylistHorizontalRoot({
 }: PlaylistHorizontalProps) {
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
+  const playlistHref = `/${userSlug}/sets/${trackId}`;
   // const repostedBySlug = repostedBy?.username
   //   ? toUserSlug(repostedBy.username)
   //   : undefined;
@@ -50,16 +49,19 @@ export default function PlaylistHorizontalRoot({
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('add');
 
-  const { visibility } = useTrackVisibility(Number(trackId));
-  const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
-  const { handleCopy } = useCopyTrackLink({
-    trackId,
-    isPrivate: resolvedIsPrivate,
-    secretUrl,
-    artistName: track.artist,
-    trackTitle: track.title,
-  });
+  const resolvedIsPrivate = isPrivate;
+
+  const handleCopy = () => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      return;
+    }
+
+    const baseUrl =
+      typeof window !== 'undefined' ? window.location.origin : '';
+    const shareLink = `${baseUrl}${playlistHref}`;
+
+    void navigator.clipboard.writeText(shareLink).catch(() => {});
+  };
 
   const {
     timedComments,
@@ -106,6 +108,8 @@ export default function PlaylistHorizontalRoot({
     onExternalTrackChange: clearPendingCommentSelection,
   });
 
+  const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
+
   if (isDeleted) {
     return null;
   }
@@ -136,6 +140,7 @@ export default function PlaylistHorizontalRoot({
           trackId={track.id}
           coverUrl={track.cover}
           title={track.title}
+          contentHref={playlistHref}
         />
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -144,6 +149,7 @@ export default function PlaylistHorizontalRoot({
             artistName={track.artist}
             trackId={track.id}
             title={track.title}
+            contentHref={playlistHref}
             genre={track.genre}
             createdAt={track.createdAt}
             // repostedBySlug={repostedBySlug}
@@ -155,7 +161,7 @@ export default function PlaylistHorizontalRoot({
           />
 
           <TrackCardWaveformSection
-            waveform={waveform}
+            waveform={resolvedWaveform}
             isBlocked={isBlocked}
             waveformCurrentTime={waveformCurrentTime}
             waveformDurationSeconds={waveformDurationSeconds}
@@ -184,7 +190,7 @@ export default function PlaylistHorizontalRoot({
             likeCount={likeCount}
             repostCount={repostCount}
             plays={track.plays}
-            comments={track.comments}
+            comments={undefined}
             canAddToQueue={Boolean(playback)}
             isMoreOpen={isMoreOpen}
             onEdit={() => setEditOpen(true)}

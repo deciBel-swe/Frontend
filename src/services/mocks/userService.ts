@@ -109,10 +109,28 @@ const toSearchUser = (
 ): SearchUser => ({
   id: target.id,
   username: target.username,
+  displayName: target.displayName,
   avatarUrl: target.profile.profilePic,
   tier: target.tier,
   isFollowing: viewer.following.has(target.id),
 });
+
+const mergeDefinedSocialLinks = (
+  current: MockUserRecord['socialLinks'],
+  updates: Partial<MockUserRecord['socialLinks']>
+): MockUserRecord['socialLinks'] => {
+  const merged = { ...current };
+
+  for (const [key, value] of Object.entries(updates) as Array<
+    [keyof MockUserRecord['socialLinks'], string | undefined]
+  >) {
+    if (typeof value === 'string') {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
+};
 
 const toUserPublic = (
   user: MockUserRecord,
@@ -122,7 +140,7 @@ const toUserPublic = (
     id: user.id,
     email: user.email,
     username: user.username,
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     tier: user.tier,
     followerCount: user.followers.size,
     followingCount: user.following.size,
@@ -153,11 +171,11 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
   username: user.username,
-  displayName: user.username,
+  displayName: user.displayName || user.username,
   isBlocked: false,
   tier: user.tier,
   profile: {
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     bio: user.profile.bio,
     city: user.profile.city,
     country: user.profile.country,
@@ -221,6 +239,10 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
 
+    if (payload.displayName !== undefined && payload.displayName.trim().length > 0) {
+      me.displayName = payload.displayName.trim();
+    }
+
     if (payload.bio !== undefined) me.profile.bio = payload.bio;
     if (payload.city !== undefined) me.profile.city = payload.city;
     if (payload.country !== undefined) me.profile.country = payload.country;
@@ -229,10 +251,7 @@ export class MockUserService implements UserService {
     }
 
     if (payload.socialLinks) {
-      me.socialLinks = {
-        ...me.socialLinks,
-        ...payload.socialLinks,
-      };
+      me.socialLinks = mergeDefinedSocialLinks(me.socialLinks, payload.socialLinks);
     }
 
     commitMockUserState();
@@ -276,10 +295,7 @@ export class MockUserService implements UserService {
   ): Promise<PrivateSocialLinks> {
     await delay();
     const me = getCurrentUser();
-    me.socialLinks = {
-      ...me.socialLinks,
-      ...payload,
-    };
+    me.socialLinks = mergeDefinedSocialLinks(me.socialLinks, payload);
     commitMockUserState();
 
     return {
@@ -317,9 +333,25 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
 
+    const removeProfilePic = payload.get('removeProfilePic');
+    if (
+      typeof removeProfilePic === 'string' &&
+      removeProfilePic.toLowerCase() === 'true'
+    ) {
+      me.profile.profilePic = '';
+    }
+
     const profilePic = payload.get('profilePic');
     if (profilePic instanceof File) {
       me.profile.profilePic = await readFileAsDataUrl(profilePic);
+    }
+
+    const removeCoverPic = payload.get('removeCoverPic');
+    if (
+      typeof removeCoverPic === 'string' &&
+      removeCoverPic.toLowerCase() === 'true'
+    ) {
+      me.profile.coverPic = '';
     }
 
     const coverPic = payload.get('coverPic');
@@ -547,9 +579,9 @@ export class MockUserService implements UserService {
     if (!track) {
       throw new Error('Track not found');
     }
-    const usersWhoLiked = [...track.likes]
-      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
-      .filter((user): user is MockUserRecord => Boolean(user))
+
+    const usersWhoLiked = inMemoryUsers
+      .filter((user) => user.likedTracks.some((likedTrack) => likedTrack.id === trackId))
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoLiked, params);
@@ -599,9 +631,9 @@ export class MockUserService implements UserService {
     if (!track) {
       throw new Error('Track not found');
     }
-    const usersWhoReposted = [...track.reposters]
-      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
-      .filter((user): user is MockUserRecord => Boolean(user))
+
+    const usersWhoReposted = inMemoryUsers
+      .filter((user) => user.reposts.some((repost) => repost.id === trackId))
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoReposted, params);

@@ -20,6 +20,41 @@ const toDuration = (seconds?: number): string => {
   return formatDuration(seconds);
 };
 
+const toWaveform = (value: unknown): number[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => Number(entry))
+      .filter((entry) => Number.isFinite(entry))
+      .map((entry) => Math.max(0, Math.min(1, entry)));
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return [];
+    }
+
+    try {
+      return toWaveform(JSON.parse(trimmed));
+    } catch {
+      return [];
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const payload = value as Record<string, unknown>;
+    if ('waveformData' in payload) {
+      return toWaveform(payload.waveformData);
+    }
+
+    if ('samples' in payload) {
+      return toWaveform(payload.samples);
+    }
+  }
+
+  return [];
+};
+
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ) => {
@@ -105,6 +140,9 @@ export function mapTrackResourceToTrackCard(
   const track = resource.track;
   const artistName = track.artist.displayName || track.artist.username;
   const cover = track.coverUrl || DEFAULT_IMAGE;
+  const waveform = toWaveform(
+    (track as { waveformData?: unknown }).waveformData
+  );
 
   const playback = playerTrackMappers.fromAdapterInput(
     {
@@ -127,7 +165,7 @@ export function mapTrackResourceToTrackCard(
     trackId: String(track.id),
     user: {
       username: track.artist.username,
-      displayName: track.artist.displayName,
+      displayName: track.artist.displayName || track.artist.username,
       avatar: track.artist.avatarUrl || DEFAULT_IMAGE,
     },
     showHeader: true,
@@ -137,6 +175,7 @@ export function mapTrackResourceToTrackCard(
       title: track.title,
       cover,
       duration: toDuration(track.trackDurationSeconds),
+      waveformUrl: track.waveformUrl,
       plays: track.playCount,
       comments: track.commentCount,
       genre: track.genre,
@@ -146,7 +185,7 @@ export function mapTrackResourceToTrackCard(
       repostCount: track.repostCount,
       createdAt: track.uploadDate,
     },
-    waveform: [],
+    waveform,
     playback,
   };
 }
@@ -165,9 +204,10 @@ export function mapPlaylistResourceToPlaylistCard(
 
   return {
     trackId: String(playlist.id),
+    postedText: 'posted a set',
     user: {
       username: playlist.owner.username,
-      displayName: playlist.owner.displayName,
+      displayName: playlist.owner.displayName || playlist.owner.username,
       avatar: playlist.owner.avatarUrl || DEFAULT_IMAGE,
     },
     showHeader: true,
@@ -177,21 +217,23 @@ export function mapPlaylistResourceToPlaylistCard(
       title: playlist.title,
       cover,
       duration: toDuration(playlist.totalDurationSeconds),
+      waveformUrl: playlist.firstTrackWaveformUrl,
       plays: playlist.trackCount,
-      comments: playlist.tracks.length,
       genre: playlist.genre,
       isLiked: playlist.isLiked,
       isReposted: false,
-      likeCount: 0,
-      repostCount: 0,
+      likeCount: (playlist as { likeCount?: number }).likeCount ?? 0,
+      repostCount: (playlist as { repostCount?: number }).repostCount ?? 0,
       createdAt: playlist.createdAt,
     },
-    waveform: [],
+    waveform: toWaveform(
+      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData
+    ),
     relatedTracks: playlist.tracks.slice(0, 5).map((track) => ({
       id: track.id,
       title: track.title,
       artist: track.artist.displayName || track.artist.username,
-      coverUrl: track.coverUrl,
+      coverUrl: track.coverUrl || DEFAULT_IMAGE,
       plays: track.playCount.toLocaleString(),
     })),
   };
