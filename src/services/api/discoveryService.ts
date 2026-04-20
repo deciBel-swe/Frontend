@@ -22,6 +22,10 @@ export interface TrendingParams {
   limit?: number;
 }
 
+export interface SearchRequestOptions {
+  signal?: AbortSignal;
+}
+
 const toQueryParams = <T extends object>(
   params?: T
 ): ApiQueryParams | undefined => {
@@ -36,7 +40,10 @@ const toQueryParams = <T extends object>(
  * Discovery service contract.
  */
 export interface DiscoveryService {
-  search(params: SearchParams): Promise<PaginatedSearchResponseDTO>;
+  search(
+    params: SearchParams,
+    options?: SearchRequestOptions
+  ): Promise<PaginatedSearchResponseDTO>;
   getTrending(params?: TrendingParams): Promise<TrendingTracksResponseDTO>;
   getGenreStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
   getArtistStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
@@ -44,9 +51,13 @@ export interface DiscoveryService {
 }
 
 export class RealDiscoveryService implements DiscoveryService {
-  async search(params: SearchParams): Promise<PaginatedSearchResponseDTO> {
+  async search(
+    params: SearchParams,
+    options?: SearchRequestOptions
+  ): Promise<PaginatedSearchResponseDTO> {
     return apiRequest(API_CONTRACTS.SEARCH, {
       params: toQueryParams(params),
+      ...(options?.signal ? { signal: options.signal } : {}),
     });
   }
 

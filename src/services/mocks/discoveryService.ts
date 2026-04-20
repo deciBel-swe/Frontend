@@ -1,6 +1,7 @@
 import type {
   DiscoveryService,
   PaginationParams,
+  SearchRequestOptions,
   SearchParams,
   TrendingParams,
 } from '@/services/api/discoveryService';
@@ -207,13 +208,14 @@ const buildResourceForUser = (userId: number): ResourceRefFullDTO => ({
 });
 
 export class MockDiscoveryService implements DiscoveryService {
-  async search(params: SearchParams): Promise<PaginatedSearchResponseDTO> {
+  async search(
+    params: SearchParams,
+    _options?: SearchRequestOptions
+  ): Promise<PaginatedSearchResponseDTO> {
     await delay();
 
     const query = params.q.trim().toLowerCase();
     const type = params.type ?? 'ALL';
-
-    const results: ResourceRefFullDTO[] = [];
 
     const trackMatches = getMockTracksStore().filter((track) => {
       const titleMatch = track.title.toLowerCase().includes(query);
@@ -233,22 +235,45 @@ export class MockDiscoveryService implements DiscoveryService {
         playlist.title.toLowerCase().includes(query)
       );
 
-    if (type === 'ALL' || type === 'TRACKS') {
-      trackMatches.forEach((track) => {
-        results.push(buildResourceForTrack(track.id));
-      });
+    const trackResources = trackMatches.map((track) =>
+      buildResourceForTrack(track.id)
+    );
+    const userResources = userMatches.map((user) => buildResourceForUser(user.id));
+    const playlistResources = playlistMatches.map((playlist) =>
+      buildResourceForPlaylist(playlist.id)
+    );
+
+    if (type === 'TRACKS') {
+      return paginate(trackResources, params);
     }
 
-    if (type === 'ALL' || type === 'USERS') {
-      userMatches.forEach((user) => {
-        results.push(buildResourceForUser(user.id));
-      });
+    if (type === 'USERS') {
+      return paginate(userResources, params);
     }
 
-    if (type === 'ALL' || type === 'PLAYLISTS') {
-      playlistMatches.forEach((playlist) => {
-        results.push(buildResourceForPlaylist(playlist.id));
-      });
+    if (type === 'PLAYLISTS') {
+      return paginate(playlistResources, params);
+    }
+
+    const results: ResourceRefFullDTO[] = [];
+    const maxLength = Math.max(
+      trackResources.length,
+      userResources.length,
+      playlistResources.length
+    );
+
+    for (let index = 0; index < maxLength; index += 1) {
+      if (trackResources[index]) {
+        results.push(trackResources[index]);
+      }
+
+      if (userResources[index]) {
+        results.push(userResources[index]);
+      }
+
+      if (playlistResources[index]) {
+        results.push(playlistResources[index]);
+      }
     }
 
     return paginate(results, params);
