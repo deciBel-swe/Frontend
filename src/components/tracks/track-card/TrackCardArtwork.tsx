@@ -8,6 +8,7 @@ type TrackCardArtworkProps = {
   trackId: number;
   coverUrl: string;
   title: string;
+  contentHref?: string;
 };
 
 export default function TrackCardArtwork({
@@ -15,10 +16,13 @@ export default function TrackCardArtwork({
   trackId,
   coverUrl,
   title,
+  contentHref,
 }: TrackCardArtworkProps) {
+  const resolvedHref = contentHref ?? `/${userSlug}/${trackId}`;
+
   return (
     <Link
-      href={`/${userSlug}/${trackId}`}
+      href={resolvedHref}
       className="aspect-square w-24 shrink-0 -mt-1 sm:w-28 md:w-36"
     >
       <Image

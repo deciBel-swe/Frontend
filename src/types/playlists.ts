@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { paginatedResponseSchema } from './pagination';
+import { trackSummarySchema } from './tracks';
 
 // ================================
 // Playlist Create
@@ -27,26 +29,47 @@ export type CreatePlaylistRequest = z.infer<
 export const playlistOwnerSchema = z.object({
   id: z.number().int(),
   username: z.string(),
+  displayName: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  isFollowing: z.boolean().optional(),
+  followerCount: z.number().int().nonnegative().optional(),
+  trackCount: z.number().int().nonnegative().optional(),
 });
 export type PlaylistOwner = z.infer<typeof playlistOwnerSchema>;
 
-export const playlistTrackSchema = z.object({
+export const legacyPlaylistTrackSchema = z.object({
   trackId: z.number().int(),
   title: z.string(),
   durationSeconds: z.number().int(),
   trackUrl: z.string().url(),
 });
+export const playlistTrackSchema = z
+  .union([legacyPlaylistTrackSchema, trackSummarySchema]);
 export type PlaylistTrack = z.infer<typeof playlistTrackSchema>;
 
 /** DTO returned by POST /playlists */
 export const playlistResponseSchema = z
   .object({
-    id: z.number().int(),
-    title: z.string(),
-    type: playlistTypeSchema,
-    isLiked: z.boolean(),
+    id: z.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    type: playlistTypeSchema.optional(),
+    isLiked: z.boolean().optional().default(false),
+    isReposted: z.boolean().optional().default(false),
+    likeCount: z.number().int().nonnegative().optional(),
+    repostCount: z.number().int().nonnegative().optional(),
     owner: playlistOwnerSchema.optional(),
-    tracks: z.array(playlistTrackSchema).optional(),
+    tracks: z.array(playlistTrackSchema).optional().default([]),
+    playlistSlug: z.string().trim().min(1).optional(),
+    description: z.string().optional(),
+    isPrivate: z.boolean().optional(),
+    coverArtUrl: z.string().optional(),
+    totalDurationSeconds: z.number().int().nonnegative().optional(),
+    trackCount: z.number().int().nonnegative().optional(),
+    genre: z.string().optional(),
+    createdAt: z.string().optional(),
+    secretToken: z.string().trim().min(1).optional(),
+    firstTrackWaveformUrl: z.string().optional(),
+    firstTrackWaveformData: z.unknown().optional(),
   })
   .passthrough();
 export type PlaylistResponse = z.infer<typeof playlistResponseSchema>;
@@ -68,16 +91,7 @@ export type UpdatePlaylistRequest = z.infer<
 >;
 
 /** DTO returned by PATCH /playlists/:playlistId */
-export const playlistUpdateResponseSchema = z
-  .object({
-    id: z.number().int().optional(),
-    title: z.string().optional(),
-    type: playlistTypeSchema.optional(),
-    isLiked: z.boolean(),
-    owner: playlistOwnerSchema.optional(),
-    tracks: z.array(playlistTrackSchema).optional(),
-  })
-  .passthrough();
+export const playlistUpdateResponseSchema = playlistResponseSchema;
 export type PlaylistUpdateResponse = z.infer<
   typeof playlistUpdateResponseSchema
 >;
@@ -102,10 +116,18 @@ export type PlaylistEmbedResponse = z.infer<
 
 /** DTO returned by GET /playlists/:playlistId/secret-link */
 export const playlistSecretLinkResponseSchema = z
-  .object({
-    SecretLink: z.string().trim().min(1),
-  })
-  .passthrough();
+  .union([
+    z.object({
+      secretToken: z.string().trim().min(1),
+    }),
+    z.object({
+      SecretLink: z.string().trim().min(1),
+    }),
+  ])
+  .transform((payload) => ({
+    secretToken:
+      'secretToken' in payload ? payload.secretToken : payload.SecretLink,
+  }));
 export type PlaylistSecretLinkResponse = z.infer<
   typeof playlistSecretLinkResponseSchema
 >;
@@ -113,6 +135,7 @@ export type PlaylistSecretLinkResponse = z.infer<
 /** DTO returned by POST /playlists/:playlistId/secret-link/regenerate */
 export const playlistSecretLinkRegenerateResponseSchema = z
   .object({
+    secretToken: z.string().trim().min(1).optional(),
     secretUrl: z.string().trim().min(1),
     expiresAt: z.string().trim().min(1),
   })
@@ -131,6 +154,9 @@ export const fullPlaylistSchema = z
     title: z.string().trim().min(1),
     playlistSlug: z.string().trim().min(1),
     isLiked: z.boolean(),
+    isReposted: z.boolean().optional(),
+    likeCount: z.number().int().nonnegative().optional(),
+    repostCount: z.number().int().nonnegative().optional(),
     description: z.string(),
     isPrivate: z.boolean(),
     coverArtUrl: z.string().url(),
@@ -176,6 +202,7 @@ export const fullPlaylistSchema = z
     ),
     secretToken: z.string().trim().min(1),
     firstTrackWaveformUrl: z.string().url(),
+    firstTrackWaveformData: z.unknown().optional(),
   })
   .passthrough();
 export type FullPlaylistDTO = z.infer<typeof fullPlaylistSchema>;
@@ -247,6 +274,14 @@ export const playlistLikeResponseSchema = z
   .passthrough();
 export type PlaylistLikeResponse = z.infer<typeof playlistLikeResponseSchema>;
 
+export const playlistRepostResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    isReposted: z.boolean(),
+  })
+  .passthrough();
+export type PlaylistRepostResponse = z.infer<typeof playlistRepostResponseSchema>;
+
 // ================================
 // Playlist Pagination
 // ================================
@@ -262,6 +297,20 @@ export const paginatedPlaylistsResponseSchema = z.object({
 export type PaginatedPlaylistsResponse = z.infer<
   typeof paginatedPlaylistsResponseSchema
 >;
+
+export const paginatedPlaylistTracksResponseSchema =
+  paginatedResponseSchema(trackSummarySchema);
+export type PaginatedPlaylistTracksResponse = z.infer<
+  typeof paginatedPlaylistTracksResponseSchema
+>;
+
+export const playlistResourceRefSchema = z
+  .object({
+    resourceType: z.literal('PLAYLIST'),
+    resourceId: z.number().int().nonnegative(),
+  })
+  .passthrough();
+export type PlaylistResourceRef = z.infer<typeof playlistResourceRefSchema>;
 
 // ================================
 // Playlist Tracks

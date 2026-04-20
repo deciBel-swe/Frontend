@@ -11,12 +11,12 @@ import { GENRE_OPTIONS} from './constants/FilterData';
  *
  * The active tab determines which filters are shown:
  *   - `tracks`               → date collapsible + length collapsible + genre pills
- *   - `albums` / `playlists` → genre pills only
+ *   - `playlists` → genre pills only
  *   - `people`               → location guidance note
  *   - `everything`           → no filters
  */
 
-export type SearchTab = 'everything' | 'tracks' | 'people' | 'albums' | 'playlists';
+export type SearchTab = 'everything' | 'tracks' | 'people' | 'playlists';
 
 // interface FilterOption {
 //   label: string;
@@ -174,7 +174,6 @@ export default function TabFilters({
         </div>
       );
 
-    case 'albums':
     case 'playlists':
       return (
         <GenreSection

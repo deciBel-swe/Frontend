@@ -18,7 +18,6 @@ export const TAB_TO_PATH: Record<SearchTab, string> = {
   everything: '/search',
   tracks:     '/search/sounds',
   people:     '/search/people',
-  albums:     '/search/albums',
   playlists:  '/search/sets',
 };
 
@@ -26,7 +25,6 @@ export const PATH_TO_TAB: Record<string, SearchTab> = {
   '/search':        'everything',
   '/search/sounds': 'tracks',
   '/search/people': 'people',
-  '/search/albums': 'albums',
   '/search/sets':   'playlists',
 };
 

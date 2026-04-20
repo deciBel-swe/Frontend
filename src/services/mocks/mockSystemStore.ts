@@ -17,6 +17,7 @@ export type MockAuthAccount = {
 export type MockUserRecord = {
   id: number;
   username: string;
+  displayName: string;
   email: string;
   emailVerified: boolean;
   role: MockRole;
@@ -44,6 +45,7 @@ export type MockUserRecord = {
   blocked: Set<number>;
   playlists: MockPlaylistRecord[];
   likedPlaylists: number[];
+  repostedPlaylists: number[];
   tracks: Array<{ id: number; title: string; genre: string }>;
   likedTracks: Array<{ id: number; title: string; genre: string }>;
   reposts: Array<{ id: number; title: string; genre: string }>;
@@ -70,8 +72,8 @@ export type MockTrackRecord = {
   isPrivate: boolean;
   durationSeconds?: number;
   secretLink?: string;
-  reposters: Set<number>;
-  likes: Set<number>;
+  reposters: number;
+  likes: number;
 };
 
 export type MockPlaylistRecord = {
@@ -82,6 +84,7 @@ export type MockPlaylistRecord = {
   isPrivate: boolean;
   CoverArt?: string;
   isLiked: boolean;
+  isReposted?: boolean;
   owner: {
     id: number;
     username: string;
@@ -117,7 +120,6 @@ const MOCK_SYSTEM_STORAGE_KEY = 'decibel_mock_system_state_v1';
 const MAX_PERSISTED_DATA_URL_LENGTH = 100_000;
 
 type PersistOptions = {
-  stripWaveformData?: boolean;
   stripLargeImages?: boolean;
 };
 
@@ -237,6 +239,7 @@ const seedUsers = (): MockUserRecord[] => [
   {
     id: 1,
     username: 'mockuser',
+    displayName: 'Mock User',
     email: 'mockuser@email.com',
     emailVerified: true,
     role: 'ARTIST',
@@ -287,6 +290,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [1003],
+    repostedPlaylists: [1003],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
@@ -304,6 +308,7 @@ const seedUsers = (): MockUserRecord[] => [
   {
     id: 2,
     username: 'listenertwo',
+    displayName: 'Listener Two',
     email: 'listenertwo@email.com',
     emailVerified: true,
     role: 'LISTENER',
@@ -343,6 +348,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [1001, 1002],
+    repostedPlaylists: [1001],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     likedTracks: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
@@ -352,6 +358,7 @@ const seedUsers = (): MockUserRecord[] => [
   {
     id: 3,
     username: 'beatpilot',
+    displayName: 'Beat Pilot',
     email: 'beatpilot@email.com',
     emailVerified: false,
     role: 'ARTIST',
@@ -391,6 +398,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [],
+    repostedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     likedTracks: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
@@ -407,13 +415,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-101/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Electronic',
     tags: ['synthwave', 'night-drive'],
     releaseDate: '2025-10-25',
     isPrivate: false,
-    reposters: new Set([2]),
-    likes: new Set([2, 3]),
+    reposters: 1,
+    likes: 2,
+    durationSeconds:2075
+
   },
   {
     id: 102,
@@ -422,14 +431,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-102/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Lo-Fi',
     tags: ['chill', 'study'],
     releaseDate: '2025-10-25',
     isPrivate: true,
     secretLink: 'c8n2x3ya',
-    reposters: new Set(),
-    likes: new Set([1]),
+    reposters: 0,
+    likes: 1,
+    durationSeconds: 2075
   },
   {
     id: 103,
@@ -438,13 +447,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-103/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'House',
     tags: ['club', 'warmup'],
     releaseDate: '2025-10-25',
     isPrivate: false,
-    reposters: new Set([3]),
-    likes: new Set([1, 2]),
+    reposters: 1,
+    likes: 2,
+    durationSeconds:2075
+
   },
   {
     id: 204,
@@ -453,13 +463,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-204/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Lo-Fi',
     tags: ['study', 'late-night'],
     releaseDate: '2025-10-25',
     isPrivate: false,
-    reposters: new Set([1]),
-    likes: new Set([1]),
+    reposters: 1,
+    likes: 1,
+    durationSeconds:2075
+
   },
   {
     id: 104,
@@ -468,14 +479,15 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-104/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Ambient',
     tags: ['meditation', 'sleep'],
     releaseDate: '2025-10-25',
     isPrivate: true,
     secretLink: 'f4m0qt9b',
-    reposters: new Set(),
-    likes: new Set([2]),
+    reposters: 0,
+    likes: 1,
+    durationSeconds:2075
+
   },
   {
     id: 105,
@@ -484,13 +496,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-105/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Breakbeat',
     tags: ['drums', 'vinyl'],
     releaseDate: '2025-10-25',
     isPrivate: false,
-    reposters: new Set(),
-    likes: new Set([1, 3]),
+    reposters: 0,
+    likes: 2,
+    durationSeconds:2075
+
   },
   {
     id: 106,
@@ -499,13 +512,14 @@ const seedTracks = (): MockTrackRecord[] => [
     trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
     coverUrl: 'https://picsum.photos/seed/decibel-cover-106/640/640',
     waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    waveformData: [0.12,0.06,0.08,0.08,0.08,0.09,0.08,0.09,0.09,0.1,0.09,0.11,0.1,0.1,0.1,0.1,0.1,0.11,0.12,0.12,0.11,0.14,0.13,0.11,0.11,0.11,0.11,0.08,0.1,0.1,0.1,0.1,0.11,0.11,0.12,0.12,0.13,0.13,0.13,0.14,0.16,0.13,0.12,0.12,0.12,0.12,0.15,0.13,0.12,0.12,0.12,0.12,0.13,0.11,0.11,0.13,0.14,0.13,0.13,0.14,0.13,0.14,0.13,0.14,0.14,0.13,0.12,0.09,0.09,0.11,0.1,0.11,0.13,0.14,0.17,0.18,0.19,0.18,0.17,0.17,0.21,0.2,0.19,0.21,0.2,0.22,0.18,0.24,0.24,0.2,0.18,0.17,0.18,0.17,0.16,0.12,0.14,0.13,0.11,0.12,0.14,0.16,0.17,0.14,0.16,0.14,0.13,0.13,0.14,0.12,0.13,0.12,0.12,0.12,0.13,0.13,0.13,0.09,0.1,0.09,0.11,0.12,0.11,0.12,0.11,0.1,0.12,0.13,0.15,0.18,0.15,0.16,0.18,0.17,0.18,0.16,0.17,0.17,0.17,0.17,0.15,0.15,0.17,0.18,0.18,0.17,0.14,0.17,0.22,0.2,0.15,0.06,0.15,0.16,0.11,0.15,0.17,0.13,0.17,0.12,0.14,0.13,0.14,0.11,0.15,0.11,0.11,0.08,0.08,0.08,0.09,0.08,0.09,0.1,0.1,0.12,0.12,0.13,0.14,0.15,0.14,0.13,0.11,0.13,0.12,0.12,0.12,0.12,0.14,0.14,0.12,0.14,0.12,0.15,0.14,0.14,0.13,0.12,0.1,0.1],
     genre: 'Downtempo',
     tags: ['sunrise', 'focus'],
     releaseDate: '2025-10-25',
     isPrivate: false,
-    reposters: new Set(),
-    likes: new Set(),
+    reposters: 0,
+    likes: 0,
+    durationSeconds:2075
+
   },
 ];
 
@@ -560,6 +574,22 @@ const isOversizedDataUrl = (value: string | undefined): boolean => {
 const getFallbackCoverUrl = (trackId: number): string =>
   `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`;
 
+const toEngagementCount = (value: unknown): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, Math.floor(value));
+  }
+
+  if (Array.isArray(value)) {
+    return value.length;
+  }
+
+  if (value instanceof Set) {
+    return value.size;
+  }
+
+  return 0;
+};
+
 const compactImageForPersistence = (
   value: string | undefined,
   fallback = ''
@@ -589,12 +619,53 @@ const compactTrackForPersistence = (
     ? compactImageForPersistence(track.coverUrl, getFallbackCoverUrl(track.id))
     : track.coverUrl;
 
+  const {
+    likes: rawLikes,
+    reposters: rawReposters,
+    ...trackWithoutLegacyWaveformData
+  } = track as MockTrackRecord & {
+    waveformData?: number[];
+    likes?: unknown;
+    reposters?: unknown;
+  };
+
   return {
-    ...track,
+    ...trackWithoutLegacyWaveformData,
     coverUrl,
     coverImageDataUrl,
-    waveformData: options?.stripWaveformData ? [] : track.waveformData,
+    likes: toEngagementCount(rawLikes),
+    reposters: toEngagementCount(rawReposters),
   };
+};
+
+const syncTrackEngagementCounts = (): void => {
+  if (!state) {
+    return;
+  }
+
+  const likesByTrackId = new Map<number, number>();
+  const repostsByTrackId = new Map<number, number>();
+
+  for (const user of state.users) {
+    for (const likedTrack of user.likedTracks) {
+      likesByTrackId.set(
+        likedTrack.id,
+        (likesByTrackId.get(likedTrack.id) ?? 0) + 1
+      );
+    }
+
+    for (const repostedTrack of user.reposts) {
+      repostsByTrackId.set(
+        repostedTrack.id,
+        (repostsByTrackId.get(repostedTrack.id) ?? 0) + 1
+      );
+    }
+  }
+
+  for (const track of state.tracks) {
+    track.likes = likesByTrackId.get(track.id) ?? 0;
+    track.reposters = repostsByTrackId.get(track.id) ?? 0;
+  }
 };
 
 const serializeUser = (
@@ -622,7 +693,9 @@ const serializeUser = (
 
 const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
+  displayName: user.displayName?.trim() || user.username,
   likedPlaylists: user.likedPlaylists ?? [],
+  repostedPlaylists: user.repostedPlaylists ?? [],
   followers: new Set(user.followers ?? []),
   following: new Set(user.following ?? []),
   blocked: new Set(user.blocked ?? []),
@@ -652,7 +725,9 @@ const toRuntimeState = (
   return {
     authAccountsByEmail,
     users: (persisted.users ?? []).map(deserializeUser),
-    tracks: persisted.tracks ?? [],
+    tracks: (persisted.tracks ?? []).map((track) =>
+      compactTrackForPersistence(track)
+    ),
     comments: persisted.comments ?? [],
     emailVerification: persisted.emailVerification ?? {},
   };
@@ -734,7 +809,6 @@ export const persistMockSystemState = (): void => {
     try {
       const fallbackPayload = JSON.stringify(
         toPersistedState(state, {
-          stripWaveformData: true,
           stripLargeImages: true,
         })
       );
@@ -782,6 +856,7 @@ const createDefaultUserFromAccount = (
 ): MockUserRecord => ({
   id: account.id,
   username: account.username,
+  displayName: account.username,
   email: account.email,
   emailVerified: account.emailVerified,
   role: 'LISTENER',
@@ -809,6 +884,7 @@ const createDefaultUserFromAccount = (
   blocked: new Set(),
   playlists: [],
   likedPlaylists: [],
+  repostedPlaylists: [],
   likedTracks: [],
   tracks: [],
   reposts: [],
@@ -832,8 +908,15 @@ const ensureUserFromAccount = (account: MockAuthAccount): MockUserRecord => {
   const existing = current.users.find((user) => user.id === account.id);
 
   if (existing) {
+    const previousUsername = existing.username;
     existing.email = account.email;
     existing.username = account.username;
+    if (
+      !existing.displayName?.trim() ||
+      existing.displayName === previousUsername
+    ) {
+      existing.displayName = account.username;
+    }
     existing.emailVerified = account.emailVerified;
     existing.tier = account.tier;
     if (account.avatarUrl) {
@@ -934,9 +1017,12 @@ export const getMockSystemState = (): MockSystemState => {
     };
   }
 
+  state.tracks = state.tracks.map((track) => compactTrackForPersistence(track));
+
   syncUserProfilesWithCredentials();
   syncTracksWithCredentialUsers();
   syncCommentsWithCredentialUsers();
+  syncTrackEngagementCounts();
 
   persistMockSystemState();
   if (!state) {
@@ -971,8 +1057,13 @@ export const getMockPlaylistsStore = (): MockPlaylistRecord[] => {
 
 export const replaceMockTracksStore = (tracks: MockTrackRecord[]): void => {
   const current = getMockSystemState();
-  current.tracks.splice(0, current.tracks.length, ...tracks);
+  current.tracks.splice(
+    0,
+    current.tracks.length,
+    ...tracks.map((track) => compactTrackForPersistence(track))
+  );
   syncTracksWithCredentialUsers();
+  syncTrackEngagementCounts();
   persistMockSystemState();
 };
 
@@ -1105,6 +1196,7 @@ export const updateMockAuthEmailVerification = (
 export const syncAuthAccountsToMockUsers = (): void => {
   syncUserProfilesWithCredentials();
   syncTracksWithCredentialUsers();
+  syncTrackEngagementCounts();
   persistMockSystemState();
 };
 

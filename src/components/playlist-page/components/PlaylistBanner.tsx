@@ -5,21 +5,20 @@ import Image from 'next/image';
 import { Play, Pause } from 'lucide-react';
 import TimeAgo from '@/features/tracks/components/TimeAgo';
 import Waveform from '@/components/waveform/Waveform';
-import { mockWave } from '@/app/[username]/sets/[id]/mockdata';
 import GenrePill from "@/components/GenrePill";
 
 type PlaylistTrack = {
-  trackId: number;
+  id: number;
   title: string;
   coverUrl?: string;
-  durationSeconds: number;
+  durationSeconds?: number;
 };
 
 type Playlist = {
   title: string;
   updatedAt?: string;
   tracks: PlaylistTrack[];
-  owner: { username: string };
+  owner: { username: string; displayName?: string };
   genre?: string;
 };
 
@@ -28,6 +27,7 @@ type PlaylistBannerProps = {
   trackCount: number;
   duration: string;
   playingTrack: PlaylistTrack | null;
+  waveform?: number[];
   isPlaying: boolean;
   onPlayPause: () => void;
 };
@@ -38,13 +38,15 @@ export default function PlaylistBanner({
   isPlaying,
   trackCount,
   duration,
+  waveform,
   onPlayPause,
 }: PlaylistBannerProps) {
   const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
+  const ownerDisplayName = playlist.owner.displayName || playlist.owner.username;
   const coverToShow = playingTrack?.coverUrl ?? playlist.tracks[0]?.coverUrl;
 
   return (
-    <div className="relative w-full h-[260px] md:h-[300px] overflow-hidden bg-surface-raised">
+    <div className="relative w-full h-65 md:h-75 overflow-hidden bg-surface-raised">
 
       {/* Blurred background */}
       <div
@@ -59,17 +61,17 @@ export default function PlaylistBanner({
       />
 
       {/* Waveform */}
-      {playingTrack && (
-        <div className="absolute bottom-8 left-4 right-[220px] md:right-[300px] px-4 pb-2">
+      {waveform && waveform.length > 0 ? (
+        <div className="absolute bottom-8 left-4 right-55 md:right-75 px-4 pb-2">
           <Waveform
-            data={mockWave(50)}
+            data={waveform}
             barClassName="bg-neutral-0/40 hover:bg-brand-primary"
           />
         </div>
-      )}
+      ) : null}
 
       {/* Cover (RIGHT SIDE) */}
-      <div className="absolute top-0 right-0 w-[220px] md:w-[300px] h-full group cursor-pointer">
+      <div className="absolute top-0 right-0 w-55 md:w-75 h-full group cursor-pointer">
         {coverToShow ? (
           <Image
             src={coverToShow}
@@ -93,18 +95,18 @@ export default function PlaylistBanner({
       </div>
 
       {/* LEFT CONTENT */}
-      <div className="absolute top-4 left-4 right-[220px] md:right-[300px] flex items-start gap-3">
+      <div className="absolute top-4 left-4 right-55 md:right-75 flex items-start gap-3">
 
         {/* PLAY BUTTON */}
         <button
           onClick={onPlayPause}
-          className="w-18 h-18 rounded-full bg-neutral-950 flex items-center justify-center hover:bg-neutral-800 transition-colors flex-shrink-0"
+          className="w-18 h-18 rounded-full bg-neutral-950 flex items-center justify-center hover:bg-neutral-800 transition-colors shrink-0"
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
             <Pause size={25} fill="white" />
           ) : (
-            <Play size={25} fill="white" className="translate-x-[1px]" />
+            <Play size={25} fill="white" className="translate-x-px" />
           )}
         </button>
 
@@ -117,7 +119,7 @@ export default function PlaylistBanner({
 
           <Link href={`/${ownerSlug}`}>
             <span className="inline-block bg-neutral-950 text-neutral-0 text-xl font-semibold px-2.5 py-1.5 w-fit hover:opacity-70 transition-opacity">
-              {playlist.owner.username}
+              {ownerDisplayName}
             </span>
           </Link>
 
@@ -132,7 +134,7 @@ export default function PlaylistBanner({
             </span>
           )}
 
-          <GenrePill genre={playlist.genre ?? 'allak'} />
+          <GenrePill genre={playlist.genre ?? 'Unknown'} />
 
         </div>
 

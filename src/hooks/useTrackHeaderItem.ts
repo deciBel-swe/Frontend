@@ -38,6 +38,7 @@ type TrackHeroHeader = {
   tags: string[];
   genre: string;
   waveformUrl: string;
+  waveformData: number[];
   duration: string;
   plays: number;
 };
@@ -198,7 +199,8 @@ export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemPara
           timeAgo: formatTimeAgo(trackMetadata.releaseDate),
           tags: trackMetadata.tags,
           genre: trackMetadata.genre,
-          waveformUrl: JSON.stringify(trackMetadata.waveformData ?? []),
+          waveformUrl: trackMetadata.waveformUrl ?? '',
+          waveformData: trackMetadata.waveformData ?? [],
           duration: durationSeconds ? formatDuration(durationSeconds) : '0:00',
           plays: trackMetadata.playCount ?? 0,
         });

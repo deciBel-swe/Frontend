@@ -10,6 +10,7 @@ type TrackCardStatsProps = {
   repostCount: number;
   plays?: number;
   comments?: number;
+  commentsHref?: string;
 };
 
 export default function TrackCardStats({
@@ -19,7 +20,10 @@ export default function TrackCardStats({
   repostCount,
   plays,
   comments,
+  commentsHref,
 }: TrackCardStatsProps) {
+  const resolvedCommentsHref = commentsHref ?? `/${userSlug}/${trackId}/comments`;
+
   return (
     <div className="ml-auto flex items-center gap-4 text-xs font-semibold text-text-muted">
       <div className="flex items-center gap-1">
@@ -39,9 +43,9 @@ export default function TrackCardStats({
         </div>
       ) : null}
 
-      {comments ? (
+      {typeof comments === 'number' && comments > 0 ? (
         <Link
-          href={`/${userSlug}/${trackId}/comments`}
+          href={resolvedCommentsHref}
           className="flex items-center gap-1 hover:underline"
         >
           <MessageCircle size={14} />

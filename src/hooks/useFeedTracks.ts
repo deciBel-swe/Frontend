@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { trackService } from '@/services';
+import { formatDuration } from '@/utils/formatDuration';
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -54,7 +55,6 @@ export function useFeedTracks() {
       setIsError(false);
       try {
         const data = await trackService.getAllTracks();
-        console.log('Fetched tracks:', data);
         if (!isCancelled) {
           setTracks(data);
         }
@@ -88,25 +88,43 @@ export function useFeedTracks() {
 
   // Map service DTOs into existing TrackCard presentation shape plus playback hooks.
   const feedTracks = tracks.map((track) => {
-    const artistName =
-      typeof track.artist === 'string' ? track.artist : track.artist.username;
+    const artistUsername =
+      typeof track.artist === 'string'
+        ? track.artist
+        : (track.artist.username ?? 'unknown-artist');
+    const artistDisplayName =
+      typeof track.artist === 'string'
+        ? track.artist
+        : (track.artist.displayName?.trim() || artistUsername);
+    const duration =
+      track.durationSeconds && track.durationSeconds > 0
+        ? formatDuration(track.durationSeconds)
+        : '0:00';
 
     return {
       id: track.id,
       isPrivate: false,
       user: {
-        username: artistName,
-        displayName: track.artist.displayName,
+        username: artistUsername,
+        displayName: artistDisplayName,
         avatar: '/images/default_song_image.png', //use this until API provides it
       },
       postedText: 'posted a track' as const,
       timeAgo: '',
       track: {
         id: track.id,
-        artist: artistName,
+        artist: artistDisplayName,
         title: track.title,
         cover: track.coverUrl,
-        duration: '',
+        duration,
+        waveformUrl: track.waveformUrl,
+        plays: track.playCount ?? 0,
+        genre: track.genre,
+        createdAt: track.uploadDate,
+        isLiked: track.isLiked,
+        isReposted: track.isReposted,
+        likeCount: track.likeCount ?? 0,
+        repostCount: track.repostCount ?? 0,
       },
       waveform: track.waveformData ?? [],
       playback: queueMap.get(track.id),

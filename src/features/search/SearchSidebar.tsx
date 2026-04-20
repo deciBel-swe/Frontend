@@ -15,7 +15,6 @@ import { useSearchNavigation } from "./hooks/useSearchNavigation";
  * - **Everything** → `/search` (combined results from all types)
  * - **Tracks** → `/search/sounds` (individual tracks)
  * - **People** → `/search/people` (user profiles)
- * - **Albums** → `/search/albums` (album collections)
  * - **Playlists** → `/search/sets` (user-created playlists)
  *
  * ## Query Display
@@ -25,7 +24,7 @@ import { useSearchNavigation } from "./hooks/useSearchNavigation";
  * ## Dynamic Filters
  * Filter sections adapt based on the current tab:
  * - **Tracks**: Date added (collapsible), length (collapsible), genre tags
- * - **Albums/Playlists**: Genre tags only
+ * - **Playlists**: Genre tags only
  * - **People**: Location guidance note (filters populated by search results)
  * - **Everything**: No filters (shows combined results)
  *
@@ -44,7 +43,7 @@ import { useSearchNavigation } from "./hooks/useSearchNavigation";
  * the `useSearchNavigation` hook, making it a pure presentation component.
  */
 
-export type SearchTab = 'everything' | 'tracks' | 'people' | 'albums' | 'playlists';
+export type SearchTab = 'everything' | 'tracks' | 'people' | 'playlists';
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -52,7 +51,6 @@ const TABS: { id: SearchTab; label: string }[] = [
   { id: 'everything', label: 'Everything' },
   { id: 'tracks',     label: 'Tracks'     },
   { id: 'people',     label: 'People'     },
-  { id: 'albums',     label: 'Albums'     },
   { id: 'playlists',  label: 'Playlists'  },
 ];
 
@@ -72,7 +70,7 @@ export default function SearchSidebar() {
         <nav className="flex flex-col w-full" aria-label="Search navigation">
         {query ? (
             <div className="mb-6 px-1">
-            <p className="text-xl font-bold text-text-primary break-words mb-1">
+            <p className="text-xl font-bold text-text-primary wrap-break-word mb-1">
                 Search results for <span>&ldquo;{query}&rdquo;</span>
             </p>
             {/* <p className="text-base font-bold text-text-primary break-words">

@@ -1,13 +1,14 @@
 import { config } from '@/config';
 import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
-import type { UploadTrackResponse } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   paginatedTrackResponse,
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
+  TrackResourceRefDTO,
   TrackUpdateResponse,
+  UploadTrackAcceptedResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
   likeResponse,
@@ -48,7 +49,10 @@ export interface TrackService {
   uploadTrack(
     formData: FormData,
     onProgress: (progress: number) => void
-  ): Promise<UploadTrackResponse>;
+  ): Promise<UploadTrackAcceptedResponse>;
+
+  /** Resolve track slug to internal id (GET /tracks/resolve?trackSlug=...). */
+  resolveTrackSlug(trackSlug: string): Promise<TrackResourceRefDTO>;
 
   /** Read a track payload normalized for view/share UI (GET /tracks/:trackId) */
   getTrackMetadata(trackId: number): Promise<TrackMetaData>;
@@ -234,7 +238,7 @@ export class RealTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
     onProgress: (progress: number) => void
-  ): Promise<UploadTrackResponse> {
+  ): Promise<UploadTrackAcceptedResponse> {
     return apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
       payload: formData,
       headers: {
@@ -248,6 +252,12 @@ export class RealTrackService implements TrackService {
         const progress = Math.round((event.loaded / event.total) * 100);
         onProgress(progress);
       },
+    });
+  }
+
+  async resolveTrackSlug(trackSlug: string): Promise<TrackResourceRefDTO> {
+    return apiRequest(API_CONTRACTS.TRACKS_RESOLVE, {
+      params: { trackSlug },
     });
   }
 

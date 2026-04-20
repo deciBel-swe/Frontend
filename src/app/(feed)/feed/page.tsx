@@ -57,11 +57,7 @@ export default function FeedPage() {
           postedText={item.postedText}
           // timeAgo={item.timeAgo}
           showEditButton={false}
-          track={{
-            ...item.track,
-            duration: '2:41', // Add duration for testing
-            genre: 'Electronic', // Add genre for testing
-          }}
+          track={item.track}
           waveform={item.waveform}
           playback={item.playback}
           queueTracks={item.queueTracks}

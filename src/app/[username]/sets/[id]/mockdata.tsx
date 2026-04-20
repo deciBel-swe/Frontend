@@ -18,7 +18,7 @@ export const MOCK_PLAYLIST: Playlist = {
   },
   tracks: [
     {
-      trackId: 1,
+      id: 1,
       title: 'Intro to Ambient Music',
       artist: 'The Sound Lab',
       coverUrl: 'https://picsum.photos/seed/music/400',
@@ -28,7 +28,7 @@ export const MOCK_PLAYLIST: Playlist = {
       available: true,
     },
     {
-      trackId: 2,
+      id: 2,
       title: 'How Streaming Changed Everything',
       artist: 'Podcast',
       coverUrl: 'https://picsum.photos/seed/podcast1/400',
@@ -38,7 +38,7 @@ export const MOCK_PLAYLIST: Playlist = {
       available: true,
     },
     {
-      trackId: 3,
+      id: 3,
       title: 'Sunset Drive',
       artist: 'Nora Vance',
       coverUrl: 'https://picsum.photos/seed/sunset/400',
@@ -48,7 +48,7 @@ export const MOCK_PLAYLIST: Playlist = {
       available: true,
     },
     {
-      trackId: 4,
+      id: 4,
       title: 'The Future of AI in Audio Production',
       artist: 'Waveform Weekly',
       coverUrl: 'https://picsum.photos/seed/aiwave/400',

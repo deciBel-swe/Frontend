@@ -78,6 +78,28 @@ describe('RealTrackService', () => {
     expect(onProgress).toHaveBeenCalledWith(25);
   });
 
+  it('resolves track slugs via TRACKS_RESOLVE contract', async () => {
+    mockedApiRequest.mockResolvedValue({
+      resourceType: 'TRACK',
+      resourceId: 77,
+    });
+
+    const resolved = await service.resolveTrackSlug('nocturne-77');
+
+    expect(resolved).toEqual({
+      resourceType: 'TRACK',
+      resourceId: 77,
+    });
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACKS_RESOLVE,
+      {
+        params: {
+          trackSlug: 'nocturne-77',
+        },
+      }
+    );
+  });
+
   it('preserves absolute URLs and falls back to unknown artist fields with explicit duration', async () => {
     const payload: TrackDetailsResponse = {
       id: 55,

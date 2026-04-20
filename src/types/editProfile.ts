@@ -42,8 +42,8 @@ const favoriteGenreSchema = z
     `Favorite genre must be ${MAX_FAVORITE_GENRE_LENGTH} characters or fewer`
   )
   .regex(
-    /^[a-z0-9-]+$/,
-    'Favorite genres can only contain lowercase letters, numbers, and hyphens'
+    /^[a-zA-Z0-9-]+$/,
+    'Favorite genres can only contain lowercase/uppercase letters, numbers, and hyphens'
   );
 
 const isValidOptionalUrl = (value: string): boolean => {
@@ -157,11 +157,24 @@ export const buildSocialLinksFromFields = (
     return trimmed.length > 0 ? trimmed : undefined;
   };
 
-  return {
-    instagram: normalizeOptional(values.instagram),
-    twitter: normalizeOptional(values.twitter),
-    website: normalizeOptional(values.website),
-  };
+  const socialLinks: NonNullable<UpdateMeRequest['socialLinks']> = {};
+
+  const instagram = normalizeOptional(values.instagram);
+  if (instagram !== undefined) {
+    socialLinks.instagram = instagram;
+  }
+
+  const twitter = normalizeOptional(values.twitter);
+  if (twitter !== undefined) {
+    socialLinks.twitter = twitter;
+  }
+
+  const website = normalizeOptional(values.website);
+  if (website !== undefined) {
+    socialLinks.website = website;
+  }
+
+  return socialLinks;
 };
 
 export const emptyEditProfileFormValues: EditProfileFormValues = {

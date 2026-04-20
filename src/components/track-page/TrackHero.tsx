@@ -8,6 +8,7 @@ import Image from 'next/image';
 import WaveformTimedComments, {
   type TimedComment,
 } from '@/features/tracks/components/WaveformTimedComments';
+import { useWaveformData } from '@/hooks/useWaveformData';
 
 type Tag = string;
 
@@ -18,8 +19,9 @@ type TrackHeroProps = {
   coverUrl: string;
   timeAgo: string;
   tags: Tag[];
-  genre: string;  
-  waveformUrl: string;  // JSON string "[0.1, 0.4, ...]"
+  genre: string;
+  waveformUrl?: string;
+  waveformData?: number[];
   duration: string;
   currentUserAvatar?: string;
   currentUserName?: string;
@@ -32,20 +34,6 @@ type TrackHeroProps = {
   onWaveformSeek?: (progress: number) => void;
 };
 
-function parseWaveform(value: string | undefined): number[] {
-  if (!value || value.trim().length === 0) return [];
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((e) => Number(e))
-      .filter((e) => Number.isFinite(e))
-      .map((e) => Math.max(0, Math.min(1, e)));
-  } catch {
-    return [];
-  }
-}
-
 export default function TrackHero({
   title,
   artistName,
@@ -55,6 +43,7 @@ export default function TrackHero({
   tags,
   genre,
   waveformUrl,
+  waveformData,
   duration,
   currentUserAvatar,
   currentUserName,
@@ -66,7 +55,7 @@ export default function TrackHero({
   onPlayPause,
   onWaveformSeek,
 }: TrackHeroProps) {
-  const waveform = parseWaveform(waveformUrl);
+  const waveform = useWaveformData(waveformData, waveformUrl);
 
   return (
     <div className="relative w-full bg-surface-default rounded-lg overflow-hidden">

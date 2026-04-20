@@ -13,6 +13,7 @@ type TrackCardFooterProps = {
   repostCount: number;
   plays?: number;
   comments?: number;
+  commentsHref?: string;
   canAddToQueue: boolean;
   isMoreOpen: boolean;
   onEdit: () => void;
@@ -24,8 +25,8 @@ type TrackCardFooterProps = {
   onAddToQueue: () => void;
   onMoreToggle: () => void;
   onMoreClose: () => void;
-  onAddToPlaylist: () => void;
-  onStation: () => void;
+  onAddToPlaylist?: () => void;
+  onStation?: () => void;
 };
 
 export default function TrackCardFooter({
@@ -38,6 +39,7 @@ export default function TrackCardFooter({
   repostCount,
   plays,
   comments,
+  commentsHref,
   canAddToQueue,
   isMoreOpen,
   onEdit,
@@ -83,6 +85,7 @@ export default function TrackCardFooter({
         repostCount={repostCount}
         plays={plays}
         comments={comments}
+        commentsHref={commentsHref}
       />
     </div>
   );

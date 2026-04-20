@@ -89,6 +89,7 @@ describe('RealPlaylistService', () => {
 
   it('regenerates secret link via PLAYLISTS_SECRET_LINK_REGENERATE contract', async () => {
     mockedApiRequest.mockResolvedValue({
+      secretToken: 'abc',
       secretUrl: '/playlists/token/abc',
       expiresAt: '2026-01-01T00:00:00.000Z',
     });
@@ -117,13 +118,114 @@ describe('RealPlaylistService', () => {
     );
   });
 
+  it('calls PLAYLISTS_ME_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 5,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getMePlaylists({ page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_ME_PLAYLISTS,
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
+  it('calls PLAYLISTS_USER_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserPlaylists(7, { page: 0, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(7),
+      {
+        params: { page: 0, size: 10 },
+      }
+    );
+  });
+
+  it('calls PLAYLISTS_USER_LIKED_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 5,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserLikedPlaylists('mockartist', { page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_USER_LIKED_PLAYLISTS('mockartist'),
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
   it('fetches playlist secret link via PLAYLISTS_SECRET_LINK contract', async () => {
-    mockedApiRequest.mockResolvedValue({ SecretLink: 'secret-xyz' });
+    mockedApiRequest.mockResolvedValue({ secretToken: 'secret-xyz' });
 
     await service.getPlaylistSecretLink(42);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_SECRET_LINK(42)
+    );
+  });
+
+  it('fetches paginated playlist tracks via PLAYLISTS_TRACKS contract', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 0,
+      totalPages: 0,
+      isLast: true,
+    });
+
+    await service.getPlaylistTracks(42, { page: 1, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_TRACKS(42),
+      {
+        params: {
+          page: 1,
+          size: 5,
+        },
+      }
+    );
+  });
+
+  it('resolves playlist slug via PLAYLISTS_RESOLVE contract', async () => {
+    mockedApiRequest.mockResolvedValue({
+      resourceType: 'PLAYLIST',
+      resourceId: 11,
+    });
+
+    await service.resolvePlaylistSlug('late-night-set-11');
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_RESOLVE,
+      {
+        params: {
+          playlistSlug: 'late-night-set-11',
+        },
+      }
     );
   });
 
@@ -182,6 +284,25 @@ describe('RealPlaylistService', () => {
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_UNLIKE(13)
+    );
+  });
+
+  it('reposts and unreposts via PLAYLISTS_REPOST contracts', async () => {
+    mockedApiRequest.mockResolvedValue({ message: 'Reposted', isReposted: true });
+    await service.repostPlaylist(13);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_REPOST(13)
+    );
+
+    mockedApiRequest.mockResolvedValue({
+      message: 'Unreposted',
+      isReposted: false,
+    });
+    await service.unrepostPlaylist(13);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_UNREPOST(13)
     );
   });
 

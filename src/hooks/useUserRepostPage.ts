@@ -1,119 +1,170 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { TrackListItem } from '@/components/tracks/TrackList';
-import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
+import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
+import type { TrackCardProps } from '@/components/tracks/track-card';
 import { useAuth } from '@/features/auth';
-import { trackService } from '@/services';
-import { formatDuration } from '@/utils/formatDuration';
+import {
+  mapPlaylistResourceToPlaylistCard,
+  mapTrackResourceToTrackCard,
+} from '@/features/search/mappers/searchResultMappers';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { userService } from '@/services';
 
-const toPlaybackAccess = (
-  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
-): PlaybackAccess | undefined => {
-  if (!access) {
+const normalizeIdentity = (value: string | undefined): string =>
+  (value ?? '').trim().toLowerCase();
+
+type RepostedByShape = {
+  username?: string;
+  displayName?: string;
+};
+
+export type UserRepostPageItem =
+  | {
+      kind: 'track';
+      id: string;
+      card: TrackCardProps;
+    }
+  | {
+      kind: 'playlist';
+      id: string;
+      card: PlaylistHorizontalProps;
+    };
+
+const toRepostedBy = (
+  repostedBy: RepostedByShape | undefined,
+  fallbackUsername: string
+): TrackCardProps['repostedBy'] | undefined => {
+  if (repostedBy?.username) {
+    return {
+      username: repostedBy.username,
+      displayName: repostedBy.displayName,
+    };
+  }
+
+  const normalizedFallback = fallbackUsername.trim();
+  if (!normalizedFallback) {
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
-    return 'BLOCKED';
-  }
-
-  return 'PLAYABLE';
+  return {
+    username: normalizedFallback,
+    displayName: undefined,
+  };
 };
 
-const asIsoDate = (value: unknown): string | undefined => {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  if (typeof value === 'string' && value.trim().length > 0) {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed.toISOString();
-    }
-  }
-
-  return undefined;
-};
-
-export function useUserRepostPage() {
+export function useUserRepostPage(routeUsername?: string) {
   const { user } = useAuth();
-  const [tracks, setTracks] = useState<TrackListItem[]>([]);
+  const ownerContext = useProfileOwnerContext();
+  const [items, setItems] = useState<UserRepostPageItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
 
-    const loadRepostedTracks = async () => {
+    const loadReposts = async () => {
+      const targetUsername =
+        routeUsername?.trim() ||
+        ownerContext?.routeUsername?.trim() ||
+        user?.username?.trim() ||
+        '';
+
+      if (!targetUsername) {
+        if (!isCancelled) {
+          setItems([]);
+          setIsLoading(false);
+          setIsError(false);
+        }
+        return;
+      }
+
       setIsLoading(true);
       setIsError(false);
 
       try {
-        const response = await trackService.getMyRepostedTracks({ page: 0, size: 100 });
-        const repostedTracks = response.content ?? [];
+        let targetUserId: number | undefined;
 
-        const mappedTracks = await Promise.all(
-          repostedTracks.map(async (track) => {
-            let metadata:
-              | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
-              | null = null;
-            try {
-              metadata = await trackService.getTrackMetadata(track.id);
-            } catch {
-              metadata = null;
+        const contextUsername = ownerContext?.routeUsername;
+        const contextUserId = ownerContext?.publicUser?.profile.id;
+
+        if (
+          contextUserId &&
+          normalizeIdentity(contextUsername) === normalizeIdentity(targetUsername)
+        ) {
+          targetUserId = contextUserId;
+        } else if (
+          user?.id !== undefined &&
+          normalizeIdentity(user.username) === normalizeIdentity(targetUsername)
+        ) {
+          targetUserId = user.id;
+        } else {
+          const publicUser = await userService.getPublicUserByUsername(targetUsername);
+          targetUserId = publicUser.profile.id;
+        }
+
+        if (!targetUserId) {
+          throw new Error('Unable to resolve repost owner id.');
+        }
+
+        const response = await userService.getUserReposts(targetUserId, {
+          page: 0,
+          size: 100,
+        });
+
+        const mappedItems = response.content.flatMap((resource, index): UserRepostPageItem[] => {
+          const repostedBy = (
+            resource as { repostedBy?: RepostedByShape }
+          ).repostedBy;
+
+          if (resource.resourceType === 'TRACK') {
+            const trackCard = mapTrackResourceToTrackCard(resource);
+            if (!trackCard) {
+              return [];
             }
 
-            const artistName =
-              (typeof track.artist === 'string'
-                ? track.artist
-                : track.artist?.username) ??
-              metadata?.artist.username ??
-              'unknown';
+            return [
+              {
+                kind: 'track',
+                id: `track-${resource.resourceId}-${index}`,
+                card: {
+                  ...trackCard,
+                  postedText: 'reposted a track',
+                  repostedBy: toRepostedBy(repostedBy, targetUsername),
+                },
+              } satisfies UserRepostPageItem,
+            ];
+          }
 
-            const durationSeconds = metadata?.durationSeconds;
+          if (resource.resourceType === 'PLAYLIST') {
+            const playlistCard = mapPlaylistResourceToPlaylistCard(resource);
+            if (!playlistCard) {
+              return [];
+            }
 
-            return {
-              trackId: String(track.id),
-              user: {
-                username: artistName,
-                displayName: track.artist?.displayName,
-                avatar: metadata?.coverUrl ?? track.coverUrl,
-              },
-              repostedBy: user?.username
-                ? {
-                    username: user.username,
-                    displayName: user.displayName ?? undefined,
-                  }
-                : undefined,
-              track: {
-                id: track.id,
-                artist: artistName,
-                title: track.title,
-                cover: metadata?.coverUrl ?? track.coverUrl,
-                duration: durationSeconds ? formatDuration(durationSeconds) : '',
-                plays: track.playCount,
-                createdAt: asIsoDate(track.releaseDate),
-                genre: track.genre,
-                durationSeconds,
-                isLiked: track.isLiked,
-                isReposted: track.isReposted,
-                likeCount: track.likeCount,
-                repostCount: track.repostCount,
-              },
-              trackUrl: metadata?.trackUrl ?? track.trackUrl,
-              access: toPlaybackAccess(metadata?.access),
-              waveform: metadata?.waveformData ?? [],
-            } satisfies TrackListItem;
-          })
-        );
+            return [
+              {
+                kind: 'playlist',
+                id: `playlist-${resource.resourceId}-${index}`,
+                card: {
+                  ...playlistCard,
+                  postedText: 'reposted a set',
+                },
+              } satisfies UserRepostPageItem,
+            ];
+          }
+
+          return [];
+        });
 
         if (!isCancelled) {
-          setTracks(mappedTracks);
+          setItems(mappedItems);
+          setIsLoading(false);
+          setIsError(false);
         }
       } catch {
         if (!isCancelled) {
-          setTracks([]);
+          setItems([]);
           setIsError(true);
         }
       } finally {
@@ -123,15 +174,21 @@ export function useUserRepostPage() {
       }
     };
 
-    void loadRepostedTracks();
+    void loadReposts();
 
     return () => {
       isCancelled = true;
     };
-  }, [user?.displayName, user?.username]);
+  }, [
+    ownerContext?.publicUser?.profile.id,
+    ownerContext?.routeUsername,
+    routeUsername,
+    user?.id,
+    user?.username,
+  ]);
 
   return {
-    tracks,
+    items,
     isLoading,
     isError,
   };

@@ -2,19 +2,23 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play } from 'lucide-react';
+import { GripVertical, Play } from 'lucide-react';
 import TrackActions from '@/components/tracks/actions/TrackActions';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 
 export type PlaylistTrack = {
-  trackId: number;
+  id: number;
   title: string;
   artist?: string;
   coverUrl?: string;
-  durationSeconds: number;
+  durationSeconds?: number;
   plays?: string;
-  trackUrl: string;
+  trackUrl?: string;
   available?: boolean;
+  isLiked?: boolean;
+  isReposted?: boolean;
+  likeCount?: number;
+  repostCount?: number;
 };
 
 export type Playlist = {
@@ -55,7 +59,16 @@ type PlaylistTrackItemProps = {
   index: number;
   isPlaying: boolean;
   isActive: boolean;
+  isDragTarget?: boolean;
+  isDragging?: boolean;
+  draggable?: boolean;
   onPlay: () => void;
+  onLike?: () => void;
+  onRepost?: () => void;
+  onDragStart?: (event: React.DragEvent<HTMLLIElement>) => void;
+  onDragOver?: (event: React.DragEvent<HTMLLIElement>) => void;
+  onDrop?: (event: React.DragEvent<HTMLLIElement>) => void;
+  onDragEnd?: () => void;
 };
 
 export default function PlaylistTrackItem({
@@ -63,7 +76,16 @@ export default function PlaylistTrackItem({
   index,
   isPlaying,
   isActive,
+  isDragTarget = false,
+  isDragging = false,
+  draggable = false,
   onPlay,
+  onLike,
+  onRepost,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: PlaylistTrackItemProps) {
   const [hovered, setHovered] = useState(false);
   const artistSlug = (track.artist ?? '').toLowerCase().replace(/\s+/g, '-');
@@ -75,11 +97,27 @@ export default function PlaylistTrackItem({
         relative flex items-center gap-3 px-3 py-2 rounded cursor-pointer select-none transition-colors
         ${unavailable ? 'opacity-40 pointer-events-none' : ''}
         ${hovered ? 'hover:bg-surface-raised' : ''}
+        ${isDragTarget ? 'ring-1 ring-brand-primary/60' : ''}
+        ${isDragging ? 'opacity-60' : 'opacity-100'}
       `}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onPlay}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
     >
+      <div
+        className={`text-text-muted cursor-grab active:cursor-grabbing ${
+          draggable ? 'opacity-100' : 'opacity-40'
+        }`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <GripVertical size={14} className="opacity-60" />
+      </div>
+
       {/* Cover */}
       <div className="shrink-0 w-8 h-8">
         <HoverPlayImage image={track.coverUrl ?? ''} alt={track.title} />
@@ -105,7 +143,7 @@ export default function PlaylistTrackItem({
             </>
         )}
         <Link
-          href={`/${artistSlug}/${track.trackId}`}
+          href={`/${artistSlug}/${track.id}`}
             onClick={(e) => e.stopPropagation()}
             className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >
@@ -118,10 +156,14 @@ export default function PlaylistTrackItem({
         <div onClick={(e) => e.stopPropagation()}>
           <TrackActions
             size={13}
-            showRepost={false}
+            showRepost
             showEdit={false}
-            onLike={() => console.log('liked', track.trackId)}
-            onCopy={() => console.log('copy', track.trackId)}
+            isLiked={track.isLiked ?? false}
+            isReposted={track.isReposted ?? false}
+            onLike={onLike}
+            onRepost={onRepost}
+            showShare={false}
+            showCopy={false}
           />
         </div>
       ) : (
