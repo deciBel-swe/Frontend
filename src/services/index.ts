@@ -53,6 +53,14 @@ import type { AdminService } from './api/adminSerivce';
 import { RealAdminService } from './api/adminSerivce';
 import { MockAdminService } from './mocks/adminService';
 
+import type { SubscriptionService } from './api/subscriptionService';
+import { RealSubscriptionService } from './api/subscriptionService';
+import { MockSubscriptionService } from './mocks/subscriptionService';
+
+import type { NotificationService } from './api/notificationService';
+import { RealNotificationService } from './api/notificationService';
+import { MockNotificationService } from './mocks/notificationService';
+
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
     return new MockTrackService();
@@ -161,3 +169,23 @@ const resolveAdminService = (): AdminService => {
 };
 
 export const adminService = resolveAdminService();
+
+// --- Subscription Service ---
+const resolveSubscriptionService = (): SubscriptionService => {
+  if (config.api.useMock) {
+    return new MockSubscriptionService();
+  }
+  return new RealSubscriptionService();
+};
+
+export const subscriptionService = resolveSubscriptionService();
+
+// --- Notification Service ---
+const resolveNotificationService = (): NotificationService => {
+  if (config.api.useMock) {
+    return new MockNotificationService();
+  }
+  return new RealNotificationService();
+};
+
+export const notificationService = resolveNotificationService();
