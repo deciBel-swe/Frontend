@@ -47,6 +47,7 @@ export default function Layout({ children }: LayoutProps) {
             coverUrl={hero.coverUrl}
             timeAgo={hero.timeAgo}
             tags={hero.tags}
+            genre={hero.genre}
             waveformUrl={hero.waveformUrl}
             duration={hero.duration}
             waveformComments={waveformComments}

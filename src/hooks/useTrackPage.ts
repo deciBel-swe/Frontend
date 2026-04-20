@@ -21,6 +21,7 @@ export type TrackPageData = {
   coverUrl: string;
   timeAgo: string;
   tags: string[];
+  genre?: string;  
   waveformUrl: string;
   duration: string;
   plays: number;
@@ -267,6 +268,7 @@ export function useTrackPage({
           coverUrl: trackMetadata.coverUrl,
           timeAgo: formatTimeAgo(trackCreatedAt),
           tags: trackMetadata.tags,
+          genre: trackMetadata.genre, 
           waveformUrl: JSON.stringify(waveformData),
           duration: formatDuration(trackMetadata.durationSeconds),
           plays: trackMetadata.playCount ?? 0,

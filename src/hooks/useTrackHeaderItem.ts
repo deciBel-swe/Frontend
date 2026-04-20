@@ -36,6 +36,7 @@ type TrackHeroHeader = {
   coverUrl: string;
   timeAgo: string;
   tags: string[];
+  genre: string;
   waveformUrl: string;
   duration: string;
   plays: number;
@@ -196,6 +197,7 @@ export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemPara
           coverUrl: trackMetadata.coverUrl,
           timeAgo: formatTimeAgo(trackMetadata.releaseDate),
           tags: trackMetadata.tags,
+          genre: trackMetadata.genre,
           waveformUrl: JSON.stringify(trackMetadata.waveformData ?? []),
           duration: durationSeconds ? formatDuration(durationSeconds) : '0:00',
           plays: trackMetadata.playCount ?? 0,
