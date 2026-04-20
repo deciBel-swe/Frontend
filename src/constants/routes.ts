@@ -200,6 +200,13 @@ export const API_ENDPOINTS = {
     ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',
+  SEARCH: '/search',
+  TRENDING: '/explore/trending',
+  STATIONS: {
+    GENRE: '/stations/genre',
+    ARTIST: '/stations/artist',
+    LIKES: '/stations/likes',
+  },
   MESSAGES: {
     CONVERSATIONS: '/conversations',
     CONVERSATION_MESSAGES: (userId: number) =>

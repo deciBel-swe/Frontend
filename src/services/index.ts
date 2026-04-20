@@ -31,6 +31,9 @@ import type { UserService } from './api/userService';
 import { RealUserService } from './api/userService';
 import { MockUserService } from './mocks/userService';
 
+import type { DiscoveryService } from './api/discoveryService';
+import { RealDiscoveryService } from './api/discoveryService';
+import { MockDiscoveryService } from './mocks/discoveryService';
 import { RealFeedService } from '@/services/api/feedService';
 import { MockFeedService } from './mocks/feedService';
 import { FeedService } from './api/feedService';
@@ -105,6 +108,15 @@ const resolveUserService = (): UserService => {
 };
 
 export const userService = resolveUserService();
+
+const resolveDiscoveryService = (): DiscoveryService => {
+  if (config.api.useMock) {
+    return new MockDiscoveryService();
+  }
+  return new RealDiscoveryService();
+};
+
+export const discoveryService = resolveDiscoveryService();
 
 const resolveFeedService = (): FeedService => {
   if (config.api.useMock) {

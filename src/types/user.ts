@@ -188,6 +188,23 @@ export const userPublicSchema = z
 export type UserPublic = z.infer<typeof userPublicSchema>;
 
 // ================================
+// UserSummaryDTO
+// ================================
+
+export const userSummarySchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    username: z.string().trim().min(1),
+    displayName: z.string().trim().min(1),
+    avatarUrl: z.string().url(),
+    isFollowing: z.boolean(),
+    followerCount: z.number().int().nonnegative(),
+    trackCount: z.number().int().nonnegative(),
+  })
+  .passthrough();
+export type UserSummaryDTO = z.infer<typeof userSummarySchema>;
+
+// ================================
 // User API DTOs
 // ================================
 

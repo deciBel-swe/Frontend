@@ -1,4 +1,8 @@
 import { PaginatedTrackFeedResponse } from '@/types/feed';
+import type { FeedItemDTO, ResourceRefFullDTO } from '@/types/discovery';
+import type { UserSummaryDTO } from '@/types/user';
+import type { FullTrackDTO } from '@/types/tracks';
+import type { FullPlaylistDTO } from '@/types/playlists';
 import { FeedService, PaginationParams } from '../api/feedService';
 import {
   getMockTracksStore,
@@ -28,63 +32,224 @@ export class MockFeedService implements FeedService {
     const followedUsers = getMockUsersStore().filter((user) =>
       currentUser?.following.has(user.id)
     );
-    const followedUserIds = new Set(followedUsers.map((user) => user.id));
-    const followedUsernames = new Set(
-      followedUsers.map((user) => user.username.toLowerCase())
-    );
     const blockedUserIds = currentUser?.blocked ?? new Set<number>();
-    const blockedUsernames = new Set(
-      getMockUsersStore()
-        .filter((user) => blockedUserIds.has(user.id))
-        .map((user) => user.username.toLowerCase())
-    );
-    const repostedIds = new Set(
-      currentUser?.reposts.map((track) => track.id) ?? []
-    );
 
-    const followedUsersTracks = getMockTracksStore()
-      .filter((track) => {
-        const artistId = track.artist.id;
-        const artistUsername = track.artist.username.toLowerCase();
-        const isFollowedArtist =
-          followedUserIds.has(artistId) ||
-          followedUsernames.has(artistUsername);
+    const userSummaryFromId = (userId: number): UserSummaryDTO => {
+      const user = getMockUsersStore().find((item) => item.id === userId);
+      if (!user) {
+        return {
+          id: userId,
+          username: 'unknown',
+          displayName: 'unknown',
+          avatarUrl: '',
+          isFollowing: false,
+          followerCount: 0,
+          trackCount: 0,
+        };
+      }
 
-        if (!isFollowedArtist) {
-          return false;
-        }
+      return {
+        id: user.id,
+        username: user.username,
+        displayName: user.username,
+        avatarUrl: user.profile.profilePic ?? '',
+        isFollowing: currentUser?.following.has(user.id) ?? false,
+        followerCount: user.followers.size,
+        trackCount: user.tracks.length,
+      };
+    };
 
-        const isBlockedArtist =
-          blockedUserIds.has(artistId) || blockedUsernames.has(artistUsername);
-        return !isBlockedArtist;
-      })
-      .map((track) => ({
+    const buildFullTrack = (trackId: number): FullTrackDTO | null => {
+      const track = getMockTracksStore().find((item) => item.id === trackId);
+      if (!track) {
+        return null;
+      }
+
+      return {
         id: track.id,
         title: track.title,
-        artist: {
-          id: track.artist.id,
-          username: track.artist.username,
-        },
+        trackSlug: `${track.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${track.id}`,
+        artist: userSummaryFromId(track.artist.id),
         trackUrl: track.trackUrl,
         coverUrl: track.coverImageDataUrl ?? track.coverUrl,
         waveformUrl: track.waveformUrl,
         genre: track.genre,
-        tags: [...track.tags],
-        description: track.description,
-        releaseDate: track.releaseDate,
-        uploadDate: track.releaseDate,
-        likeCount: track.likes.size,
-        repostCount: repostedIds.has(track.id) ? 1 : 0,
-        playCount: track.likes.size * 25,
+        isReposted: track.reposters.has(currentUserId),
         isLiked: track.likes.has(currentUserId),
-        isReposted: repostedIds.has(track.id),
-      }));
+        tags: [...track.tags],
+        releaseDate: track.releaseDate,
+        playCount: track.likes.size * 25,
+        CompletedPlayCount: 0,
+        likeCount: track.likes.size,
+        repostCount: track.reposters.size,
+        commentCount: 0,
+        isPrivate: track.isPrivate,
+        trackDurationSeconds: track.durationSeconds ?? 0,
+        uploadDate: track.releaseDate,
+        description: track.description ?? '',
+        trendingRank: 0,
+        access: 'PLAYABLE',
+        secretToken: track.secretLink ?? '',
+        trackPreviewUrl: track.trackUrl,
+      };
+    };
 
-    const totalElements = followedUsersTracks.length;
+    const buildFullPlaylist = (playlistId: number): FullPlaylistDTO | null => {
+      const users = getMockUsersStore();
+      for (const user of users) {
+        const playlist = user.playlists.find((item) => item.id === playlistId);
+        if (!playlist) {
+          continue;
+        }
+
+        const totalDurationSeconds = playlist.tracks.reduce(
+          (sum, item) => sum + (item.durationSeconds ?? 0),
+          0
+        );
+
+        return {
+          id: playlist.id,
+          title: playlist.title,
+          playlistSlug: `${playlist.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${playlist.id}`,
+          isLiked: playlist.isLiked,
+          description: playlist.description ?? '',
+          isPrivate: playlist.isPrivate,
+          coverArtUrl: playlist.CoverArt ?? '',
+          totalDurationSeconds,
+          trackCount: playlist.tracks.length,
+          owner: userSummaryFromId(user.id),
+          genre: 'playlist-genre',
+          createdAt: new Date().toISOString(),
+          tracks: [],
+          secretToken: playlist.secretLink ?? '',
+          firstTrackWaveformUrl:
+            playlist.tracks.length > 0 ? playlist.tracks[0].trackUrl : '',
+        };
+      }
+
+      return null;
+    };
+
+    const buildResource = (
+      type: 'TRACK' | 'PLAYLIST',
+      id: number
+    ): ResourceRefFullDTO | null => {
+      if (type === 'TRACK') {
+        const track = buildFullTrack(id);
+        if (!track) {
+          return null;
+        }
+        return {
+          resourceType: 'TRACK',
+          resourceId: id,
+          playlist: null,
+          track,
+          user: null,
+        };
+      }
+
+      const playlist = buildFullPlaylist(id);
+      if (!playlist) {
+        return null;
+      }
+      return {
+        resourceType: 'PLAYLIST',
+        resourceId: id,
+        playlist,
+        track: null,
+        user: null,
+      };
+    };
+
+    const feedItems: FeedItemDTO[] = [];
+    let index = 0;
+    const nextDate = () =>
+      new Date(Date.now() - index++ * 60000).toISOString();
+
+    for (const user of followedUsers) {
+      if (blockedUserIds.has(user.id)) {
+        continue;
+      }
+
+      const userTracks = getMockTracksStore().filter(
+        (track) => track.artist.id === user.id
+      );
+      for (const track of userTracks) {
+        const resource = buildResource('TRACK', track.id);
+        if (!resource) {
+          continue;
+        }
+        feedItems.push({
+          id: track.id,
+          type: 'TRACK_POSTED',
+          resource,
+          createdAt: nextDate(),
+        });
+      }
+
+      for (const playlist of user.playlists) {
+        const resource = buildResource('PLAYLIST', playlist.id);
+        if (!resource) {
+          continue;
+        }
+        feedItems.push({
+          id: playlist.id,
+          type: 'PLAYLIST_POSTED',
+          resource,
+          createdAt: nextDate(),
+        });
+      }
+
+      for (const likedTrack of user.likedTracks) {
+        const resource = buildResource('TRACK', likedTrack.id);
+        if (!resource) {
+          continue;
+        }
+        feedItems.push({
+          id: likedTrack.id,
+          type: 'TRACK_LIKED',
+          resource,
+          createdAt: nextDate(),
+        });
+      }
+
+      for (const repost of user.reposts) {
+        const resource = buildResource('TRACK', repost.id);
+        if (!resource) {
+          continue;
+        }
+        feedItems.push({
+          id: repost.id,
+          type: 'TRACK_REPOSTED',
+          resource,
+          repostedBy: userSummaryFromId(user.id),
+          createdAt: nextDate(),
+        });
+      }
+
+      for (const likedPlaylistId of user.likedPlaylists) {
+        const resource = buildResource('PLAYLIST', likedPlaylistId);
+        if (!resource) {
+          continue;
+        }
+        feedItems.push({
+          id: likedPlaylistId,
+          type: 'PLAYLIST_LIKED',
+          resource,
+          createdAt: nextDate(),
+        });
+      }
+    }
+
+    const sorted = [...feedItems].sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt)
+    );
+
+    const totalElements = sorted.length;
     const totalPages =
       totalElements === 0 ? 1 : Math.ceil(totalElements / pageSize);
     const start = pageNumber * pageSize;
-    const content = followedUsersTracks.slice(start, start + pageSize);
+    const content = sorted.slice(start, start + pageSize);
     const isLast = pageNumber >= totalPages - 1;
 
     return {
