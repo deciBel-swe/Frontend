@@ -128,6 +128,5 @@ export interface UserRow {
 
 export interface UsersDashboardData {
   suspendedCount: number;
-  totalUsers: number;
   users: UserRow[];
 }
