@@ -52,7 +52,6 @@ const TABS: { id: SearchTab; label: string }[] = [
   { id: 'everything', label: 'Everything' },
   { id: 'tracks',     label: 'Tracks'     },
   { id: 'people',     label: 'People'     },
-  { id: 'albums',     label: 'Albums'     },
   { id: 'playlists',  label: 'Playlists'  },
 ];
 
