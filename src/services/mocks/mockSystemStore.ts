@@ -45,6 +45,7 @@ export type MockUserRecord = {
   blocked: Set<number>;
   playlists: MockPlaylistRecord[];
   likedPlaylists: number[];
+  repostedPlaylists: number[];
   tracks: Array<{ id: number; title: string; genre: string }>;
   likedTracks: Array<{ id: number; title: string; genre: string }>;
   reposts: Array<{ id: number; title: string; genre: string }>;
@@ -83,6 +84,7 @@ export type MockPlaylistRecord = {
   isPrivate: boolean;
   CoverArt?: string;
   isLiked: boolean;
+  isReposted?: boolean;
   owner: {
     id: number;
     username: string;
@@ -288,6 +290,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [1003],
+    repostedPlaylists: [1003],
     tracks: [
       { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
       { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
@@ -345,6 +348,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [1001, 1002],
+    repostedPlaylists: [1001],
     tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
     likedTracks: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
     reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
@@ -394,6 +398,7 @@ const seedUsers = (): MockUserRecord[] => [
       },
     ],
     likedPlaylists: [],
+    repostedPlaylists: [],
     tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
     likedTracks: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
     reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
@@ -690,6 +695,7 @@ const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
   displayName: user.displayName?.trim() || user.username,
   likedPlaylists: user.likedPlaylists ?? [],
+  repostedPlaylists: user.repostedPlaylists ?? [],
   followers: new Set(user.followers ?? []),
   following: new Set(user.following ?? []),
   blocked: new Set(user.blocked ?? []),
@@ -878,6 +884,7 @@ const createDefaultUserFromAccount = (
   blocked: new Set(),
   playlists: [],
   likedPlaylists: [],
+  repostedPlaylists: [],
   likedTracks: [],
   tracks: [],
   reposts: [],

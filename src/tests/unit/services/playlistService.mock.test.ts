@@ -221,6 +221,30 @@ describe('MockPlaylistService', () => {
     expect(unliked.isLiked).toBe(false);
   });
 
+  it('reposts and unreposts a playlist', async () => {
+    const service = new MockPlaylistService();
+
+    const createPromise = service.createPlaylist({
+      title: 'Repost Me',
+      description: '',
+      type: 'PLAYLIST',
+      isPrivate: false,
+      CoverArt: '',
+    });
+    await advance();
+    const created = await createPromise;
+
+    const repostPromise = service.repostPlaylist(created.id);
+    await advance();
+    const reposted = await repostPromise;
+    expect(reposted.isReposted).toBe(true);
+
+    const unrepostPromise = service.unrepostPlaylist(created.id);
+    await advance();
+    const unreposted = await unrepostPromise;
+    expect(unreposted.isReposted).toBe(false);
+  });
+
   it('returns embed code for a playlist', async () => {
     const service = new MockPlaylistService();
 

@@ -15,6 +15,10 @@ export type PlaylistTrack = {
   plays?: string;
   trackUrl?: string;
   available?: boolean;
+  isLiked?: boolean;
+  isReposted?: boolean;
+  likeCount?: number;
+  repostCount?: number;
 };
 
 export type Playlist = {
@@ -59,6 +63,8 @@ type PlaylistTrackItemProps = {
   isDragging?: boolean;
   draggable?: boolean;
   onPlay: () => void;
+  onLike?: () => void;
+  onRepost?: () => void;
   onDragStart?: (event: React.DragEvent<HTMLLIElement>) => void;
   onDragOver?: (event: React.DragEvent<HTMLLIElement>) => void;
   onDrop?: (event: React.DragEvent<HTMLLIElement>) => void;
@@ -74,6 +80,8 @@ export default function PlaylistTrackItem({
   isDragging = false,
   draggable = false,
   onPlay,
+  onLike,
+  onRepost,
   onDragStart,
   onDragOver,
   onDrop,
@@ -148,10 +156,14 @@ export default function PlaylistTrackItem({
         <div onClick={(e) => e.stopPropagation()}>
           <TrackActions
             size={13}
-            showRepost={false}
+            showRepost
             showEdit={false}
-            onLike={() => console.log('liked', track.id)}
-            onCopy={() => console.log('copy', track.id)}
+            isLiked={track.isLiked ?? false}
+            isReposted={track.isReposted ?? false}
+            onLike={onLike}
+            onRepost={onRepost}
+            showShare={false}
+            showCopy={false}
           />
         </div>
       ) : (

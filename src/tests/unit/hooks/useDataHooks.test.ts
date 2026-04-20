@@ -24,6 +24,7 @@ jest.mock('@/services', () => ({
     unblockUser: jest.fn(),
     getPublicUserByUsername: jest.fn(),
     getPublicUserById: jest.fn(),
+    getUserReposts: jest.fn(),
     getFollowers: jest.fn(),
     getFollowing: jest.fn(),
     getUsersWhoLikedTrack: jest.fn(),
@@ -445,56 +446,169 @@ describe('low-coverage data hooks', () => {
   });
 
   describe('useUserRepostPage', () => {
-    it('loads and maps reposted tracks', async () => {
-      mockTrackService.getMyRepostedTracks.mockResolvedValue({
+    it('loads and maps mixed repost resources', async () => {
+      mockUserService.getPublicUserByUsername.mockResolvedValue({
+        profile: { id: 99 },
+      } as any);
+
+      mockUserService.getUserReposts.mockResolvedValue({
         content: [
           {
-            id: 11,
-            title: 'Repost One',
-            artist: { username: 'artist-r' },
-            coverUrl: '/r-cover.png',
-            playCount: 13,
-            releaseDate: '2025-01-01T00:00:00.000Z',
-            genre: 'drum and bass',
-            isLiked: true,
-            isReposted: true,
-            likeCount: 10,
-            repostCount: 5,
-            trackUrl: 'https://r1.mp3',
+            resourceType: 'TRACK',
+            resourceId: 11,
+            track: {
+              id: 11,
+              title: 'Repost One',
+              trackSlug: 'repost-one-11',
+              artist: {
+                id: 3,
+                username: 'artist-r',
+                displayName: 'Artist R',
+                avatarUrl: '/artist-r.png',
+                isFollowing: false,
+                followerCount: 10,
+                trackCount: 5,
+              },
+              trackUrl: 'https://r1.mp3',
+              coverUrl: '/r-cover.png',
+              waveformUrl: 'https://r1-waveform.json',
+              genre: 'drum and bass',
+              isReposted: true,
+              isLiked: true,
+              tags: [],
+              releaseDate: '2025-01-01T00:00:00.000Z',
+              playCount: 13,
+              CompletedPlayCount: 0,
+              likeCount: 10,
+              repostCount: 5,
+              commentCount: 0,
+              isPrivate: false,
+              trackDurationSeconds: 80,
+              uploadDate: '2025-01-01T00:00:00.000Z',
+              description: '',
+              trendingRank: 0,
+              access: 'PLAYABLE',
+              secretToken: 'token',
+              trackPreviewUrl: 'https://r1.mp3',
+            },
+            playlist: null,
+            user: null,
+            repostedBy: { username: 'owner-user', displayName: 'Owner User' },
+          },
+          {
+            resourceType: 'PLAYLIST',
+            resourceId: 22,
+            track: null,
+            user: null,
+            playlist: {
+              id: 22,
+              title: 'Reposted Set',
+              playlistSlug: 'reposted-set-22',
+              isLiked: true,
+              isReposted: true,
+              description: '',
+              isPrivate: false,
+              coverArtUrl: 'https://playlist-cover.png',
+              totalDurationSeconds: 140,
+              trackCount: 1,
+              owner: {
+                id: 9,
+                username: 'playlist-owner',
+                displayName: 'Playlist Owner',
+                avatarUrl: 'https://playlist-owner.png',
+                isFollowing: false,
+                followerCount: 3,
+                trackCount: 1,
+              },
+              genre: 'house',
+              createdAt: '2025-01-01T00:00:00.000Z',
+              tracks: [
+                {
+                  id: 110,
+                  title: 'Playlist Track',
+                  trackSlug: 'playlist-track-110',
+                  coverUrl: 'https://playlist-track.png',
+                  trackUrl: 'https://playlist-track.mp3',
+                  trackPreviewUrl: 'https://playlist-track.mp3',
+                  artist: {
+                    id: 9,
+                    username: 'playlist-owner',
+                    displayName: 'Playlist Owner',
+                    avatarUrl: 'https://playlist-owner.png',
+                    isFollowing: false,
+                    followerCount: 3,
+                    trackCount: 1,
+                  },
+                  playCount: 5,
+                  likeCount: 2,
+                  repostCount: 1,
+                  commentCount: 0,
+                  isLiked: false,
+                  isReposted: false,
+                  secretToken: 'token',
+                  access: 'PLAYABLE',
+                },
+              ],
+              secretToken: 'playlist-token',
+              firstTrackWaveformUrl: 'https://playlist-waveform.json',
+              firstTrackWaveformData: [0.2, 0.4, 0.1],
+            },
+            repostedBy: { username: 'owner-user', displayName: 'Owner User' },
           },
         ],
       } as any);
 
-      mockTrackService.getTrackMetadata.mockResolvedValue({
-        durationSeconds: 80,
-        access: 'BLOCKED',
-        waveformData: [0.3],
-        coverUrl: '/meta-r-cover.png',
-        trackUrl: 'https://meta-r1.mp3',
-      } as any);
-
-      const { result } = renderHook(() => useUserRepostPage());
+      const { result } = renderHook(() => useUserRepostPage('owner-user'));
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      expect(result.current.tracks).toHaveLength(1);
-      expect(result.current.tracks[0].repostedBy).toEqual({
-        username: 'owner-user',
-        displayName: undefined,
+      expect(mockUserService.getPublicUserByUsername).toHaveBeenCalledWith(
+        'owner-user'
+      );
+      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(99, {
+        page: 0,
+        size: 100,
       });
-      expect(result.current.tracks[0].access).toBe('BLOCKED');
+      expect(result.current.items).toHaveLength(2);
+      expect(result.current.items[0]).toMatchObject({
+        kind: 'track',
+        card: {
+          postedText: 'reposted a track',
+          repostedBy: {
+            username: 'owner-user',
+            displayName: 'Owner User',
+          },
+          track: {
+            id: 11,
+            title: 'Repost One',
+          },
+        },
+      });
+      expect(result.current.items[1]).toMatchObject({
+        kind: 'playlist',
+        card: {
+          postedText: 'reposted a set',
+          track: {
+            id: 22,
+            title: 'Reposted Set',
+          },
+        },
+      });
       expect(result.current.isError).toBe(false);
     });
 
     it('sets error state when fetching reposts fails', async () => {
-      mockTrackService.getMyRepostedTracks.mockRejectedValue(new Error('bad'));
+      mockUserService.getPublicUserByUsername.mockResolvedValue({
+        profile: { id: 77 },
+      } as any);
+      mockUserService.getUserReposts.mockRejectedValue(new Error('bad'));
 
-      const { result } = renderHook(() => useUserRepostPage());
+      const { result } = renderHook(() => useUserRepostPage('owner-user'));
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.isError).toBe(true);
-      expect(result.current.tracks).toEqual([]);
+      expect(result.current.items).toEqual([]);
     });
   });
 

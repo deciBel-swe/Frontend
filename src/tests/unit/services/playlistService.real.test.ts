@@ -287,6 +287,25 @@ describe('RealPlaylistService', () => {
     );
   });
 
+  it('reposts and unreposts via PLAYLISTS_REPOST contracts', async () => {
+    mockedApiRequest.mockResolvedValue({ message: 'Reposted', isReposted: true });
+    await service.repostPlaylist(13);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_REPOST(13)
+    );
+
+    mockedApiRequest.mockResolvedValue({
+      message: 'Unreposted',
+      isReposted: false,
+    });
+    await service.unrepostPlaylist(13);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_UNREPOST(13)
+    );
+  });
+
   it('gets embed code via PLAYLISTS_EMBED contract', async () => {
     mockedApiRequest.mockResolvedValue({
       embedCode: '<iframe />',

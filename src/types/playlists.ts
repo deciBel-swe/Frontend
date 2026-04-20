@@ -54,6 +54,9 @@ export const playlistResponseSchema = z
     title: z.string().trim().min(1),
     type: playlistTypeSchema.optional(),
     isLiked: z.boolean().optional().default(false),
+    isReposted: z.boolean().optional().default(false),
+    likeCount: z.number().int().nonnegative().optional(),
+    repostCount: z.number().int().nonnegative().optional(),
     owner: playlistOwnerSchema.optional(),
     tracks: z.array(playlistTrackSchema).optional().default([]),
     playlistSlug: z.string().trim().min(1).optional(),
@@ -66,6 +69,7 @@ export const playlistResponseSchema = z
     createdAt: z.string().optional(),
     secretToken: z.string().trim().min(1).optional(),
     firstTrackWaveformUrl: z.string().optional(),
+    firstTrackWaveformData: z.unknown().optional(),
   })
   .passthrough();
 export type PlaylistResponse = z.infer<typeof playlistResponseSchema>;
@@ -150,6 +154,9 @@ export const fullPlaylistSchema = z
     title: z.string().trim().min(1),
     playlistSlug: z.string().trim().min(1),
     isLiked: z.boolean(),
+    isReposted: z.boolean().optional(),
+    likeCount: z.number().int().nonnegative().optional(),
+    repostCount: z.number().int().nonnegative().optional(),
     description: z.string(),
     isPrivate: z.boolean(),
     coverArtUrl: z.string().url(),
@@ -195,6 +202,7 @@ export const fullPlaylistSchema = z
     ),
     secretToken: z.string().trim().min(1),
     firstTrackWaveformUrl: z.string().url(),
+    firstTrackWaveformData: z.unknown().optional(),
   })
   .passthrough();
 export type FullPlaylistDTO = z.infer<typeof fullPlaylistSchema>;
@@ -265,6 +273,14 @@ export const playlistLikeResponseSchema = z
   })
   .passthrough();
 export type PlaylistLikeResponse = z.infer<typeof playlistLikeResponseSchema>;
+
+export const playlistRepostResponseSchema = z
+  .object({
+    message: z.string().min(1),
+    isReposted: z.boolean(),
+  })
+  .passthrough();
+export type PlaylistRepostResponse = z.infer<typeof playlistRepostResponseSchema>;
 
 // ================================
 // Playlist Pagination

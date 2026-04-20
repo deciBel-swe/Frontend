@@ -264,9 +264,9 @@ export function mapPlaylistResourceToPlaylistCard(
       plays: playlist.trackCount,
       genre: playlist.genre,
       isLiked: playlist.isLiked,
-      isReposted: false,
-      likeCount: (playlist as { likeCount?: number }).likeCount ?? 0,
-      repostCount: (playlist as { repostCount?: number }).repostCount ?? 0,
+      isReposted: playlist.isReposted ?? false,
+      likeCount: playlist.likeCount ?? 0,
+      repostCount: playlist.repostCount ?? 0,
       createdAt: playlist.createdAt,
     },
     waveform: toWaveform(

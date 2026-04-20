@@ -8,6 +8,7 @@ import type {
   PlaylistEmbedResponse,
   PlaylistResponse,
   PlaylistLikeResponse,
+  PlaylistRepostResponse,
   PlaylistResourceRef,
   PlaylistSecretLinkRegenerateResponse,
   PlaylistSecretLinkResponse,
@@ -123,6 +124,12 @@ export interface PlaylistService {
 
   /** Unlike a playlist (DELETE /tracks/:playlistId/like). */
   unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse>;
+
+  /** Repost a playlist (POST /playlists/:playlistId/repost). */
+  repostPlaylist(playlistId: number): Promise<PlaylistRepostResponse>;
+
+  /** Remove repost for a playlist (DELETE /playlists/:playlistId/repost). */
+  unrepostPlaylist(playlistId: number): Promise<PlaylistRepostResponse>;
 }
 
 /** Real implementation backed by centralized axios + Zod API template. */
@@ -244,5 +251,13 @@ export class RealPlaylistService implements PlaylistService {
 
   async unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_UNLIKE(playlistId));
+  }
+
+  async repostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_REPOST(playlistId));
+  }
+
+  async unrepostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_UNREPOST(playlistId));
   }
 }

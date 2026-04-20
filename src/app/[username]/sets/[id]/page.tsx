@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PlaylistTrack } from '@/components/playlist-page/components/PlaylistTrackItem';
 import PlaylistBanner from '@/components/playlist-page/components/PlaylistBanner';
 import PlaylistActionBar from '@/components/playlist-page/components/PlaylistActionBar';
@@ -14,7 +14,7 @@ import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerCont
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { useWaveformData } from '@/hooks/useWaveformData';
-import { playlistService } from '@/services';
+import { playlistService, trackService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
 
@@ -144,6 +144,38 @@ const resolveTrackPlays = (track: PlaylistTrackDto): string | undefined => {
   return undefined;
 };
 
+const resolveTrackLiked = (track: PlaylistTrackDto): boolean => {
+  if ('isLiked' in track && typeof track.isLiked === 'boolean') {
+    return track.isLiked;
+  }
+
+  return false;
+};
+
+const resolveTrackReposted = (track: PlaylistTrackDto): boolean => {
+  if ('isReposted' in track && typeof track.isReposted === 'boolean') {
+    return track.isReposted;
+  }
+
+  return false;
+};
+
+const resolveTrackLikeCount = (track: PlaylistTrackDto): number => {
+  if ('likeCount' in track && typeof track.likeCount === 'number') {
+    return track.likeCount;
+  }
+
+  return 0;
+};
+
+const resolveTrackRepostCount = (track: PlaylistTrackDto): number => {
+  if ('repostCount' in track && typeof track.repostCount === 'number') {
+    return track.repostCount;
+  }
+
+  return 0;
+};
+
 const mapPlaylistTracksToItems = (
   tracks: PlaylistResponse['tracks'] | undefined,
   fallbackArtist: string
@@ -171,6 +203,10 @@ const mapPlaylistTracksToItems = (
         durationSeconds: resolveTrackDurationSeconds(track),
         trackUrl,
         available: access !== 'BLOCKED' && access !== 'PREVIEW',
+        isLiked: resolveTrackLiked(track),
+        isReposted: resolveTrackReposted(track),
+        likeCount: resolveTrackLikeCount(track),
+        repostCount: resolveTrackRepostCount(track),
         ...(plays ? { plays } : {}),
       };
 
@@ -188,6 +224,7 @@ const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number): T[] => {
 export default function PlaylistPage() {
   const { username, id } = useParams<{ username: string; id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const ownerContext = useProfileOwnerContext();
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
@@ -265,6 +302,19 @@ export default function PlaylistPage() {
     };
   }, [isPlaylistIdValid, playlistId, username]);
 
+  const loadPlaylistById = async (targetPlaylistId: number): Promise<PlaylistResponse> => {
+    const data = await playlistService.getPlaylist(targetPlaylistId);
+    setPlaylist(data);
+    setOrderedTracks(
+      mapPlaylistTracksToItems(
+        data.tracks,
+        data.owner?.displayName?.trim() || data.owner?.username || username
+      )
+    );
+
+    return data;
+  };
+
   useEffect(() => {
     if (!playlist) {
       return;
@@ -272,6 +322,17 @@ export default function PlaylistPage() {
 
     setOrderedTracks(mapPlaylistTracksToItems(playlist.tracks, ownerDisplayName));
   }, [ownerDisplayName, playlist]);
+
+  useEffect(() => {
+    if (!playlist || !canEditPlaylist) {
+      return;
+    }
+
+    if (searchParams.get('edit') === '1') {
+      setIsEditModalOpen(true);
+      router.replace(`/${username}/sets/${id}`);
+    }
+  }, [canEditPlaylist, id, playlist, router, searchParams, username]);
 
   const queueTracks = useMemo(() => {
     return orderedTracks.flatMap((track) => {
@@ -435,6 +496,126 @@ export default function PlaylistPage() {
     }
   };
 
+  const updateTrackState = (
+    trackId: number,
+    updater: (track: PlaylistTrack) => PlaylistTrack
+  ) => {
+    setOrderedTracks((previous) =>
+      previous.map((track) => (track.id === trackId ? updater(track) : track))
+    );
+  };
+
+  const handleLikeTrack = async (trackId: number) => {
+    const current = orderedTracks.find((track) => track.id === trackId);
+    if (!current) {
+      return;
+    }
+
+    const nextLiked = !(current.isLiked ?? false);
+    const delta = nextLiked ? 1 : -1;
+
+    updateTrackState(trackId, (track) => ({
+      ...track,
+      isLiked: nextLiked,
+      likeCount: Math.max(0, (track.likeCount ?? 0) + delta),
+    }));
+
+    try {
+      if (nextLiked) {
+        await trackService.likeTrack(trackId);
+      } else {
+        await trackService.unlikeTrack(trackId);
+      }
+    } catch {
+      updateTrackState(trackId, (track) => ({
+        ...track,
+        isLiked: current.isLiked,
+        likeCount: current.likeCount,
+      }));
+    }
+  };
+
+  const handleRepostTrack = async (trackId: number) => {
+    const current = orderedTracks.find((track) => track.id === trackId);
+    if (!current) {
+      return;
+    }
+
+    const nextReposted = !(current.isReposted ?? false);
+    const delta = nextReposted ? 1 : -1;
+
+    updateTrackState(trackId, (track) => ({
+      ...track,
+      isReposted: nextReposted,
+      repostCount: Math.max(0, (track.repostCount ?? 0) + delta),
+    }));
+
+    try {
+      if (nextReposted) {
+        await trackService.repostTrack(trackId);
+      } else {
+        await trackService.unrepostTrack(trackId);
+      }
+    } catch {
+      updateTrackState(trackId, (track) => ({
+        ...track,
+        isReposted: current.isReposted,
+        repostCount: current.repostCount,
+      }));
+    }
+  };
+
+  const handleModalReorder = async (trackIds: number[]) => {
+    if (!playlist) {
+      return;
+    }
+
+    const previousOrder = orderedTracks;
+    const tracksById = new Map(previousOrder.map((track) => [track.id, track]));
+    const nextOrder = trackIds
+      .map((trackId) => tracksById.get(trackId))
+      .filter((track): track is PlaylistTrack => Boolean(track));
+
+    if (nextOrder.length === previousOrder.length) {
+      setOrderedTracks(nextOrder);
+    }
+
+    setIsReorderSaving(true);
+
+    try {
+      const updated = await playlistService.reorderPlaylistTracks(playlist.id, {
+        trackIds,
+      });
+      setPlaylist(updated);
+      setOrderedTracks(mapPlaylistTracksToItems(updated.tracks, ownerDisplayName));
+    } catch {
+      setOrderedTracks(previousOrder);
+      throw new Error('Unable to reorder playlist tracks.');
+    } finally {
+      setIsReorderSaving(false);
+    }
+  };
+
+  const handleModalRemoveTrack = async (trackId: number) => {
+    if (!playlist) {
+      return;
+    }
+
+    const previousOrder = orderedTracks;
+    setOrderedTracks((tracks) => tracks.filter((track) => track.id !== trackId));
+    setIsReorderSaving(true);
+
+    try {
+      await playlistService.removeTrackFromPlaylist(playlist.id, trackId);
+      await loadPlaylistById(playlist.id);
+    } catch {
+      setOrderedTracks(previousOrder);
+      throw new Error('Unable to remove track from playlist.');
+    } finally {
+      setIsReorderSaving(false);
+    }
+  };
+
   const handleDragStart = (index: number) => {
     if (!canEditPlaylist || orderedTracks.length < 2) {
       return;
@@ -546,7 +727,25 @@ export default function PlaylistPage() {
         onShare={handleCopyLink}
         onCopyLink={handleCopyLink}
         onAddToQueue={handleAddToQueue}
-        onEdit={canEditPlaylist ? () => setIsEditModalOpen(true) : undefined}
+        onEdit={
+          canEditPlaylist
+            ? () => {
+                void (async () => {
+                  if (!playlist) {
+                    return;
+                  }
+
+                  setIsEditSaving(true);
+                  try {
+                    await loadPlaylistById(playlist.id);
+                    setIsEditModalOpen(true);
+                  } finally {
+                    setIsEditSaving(false);
+                  }
+                })();
+              }
+            : undefined
+        }
         onDelete={canEditPlaylist ? handleDeletePlaylist : undefined}
       />
 
@@ -587,6 +786,12 @@ export default function PlaylistPage() {
                 isDragging={dragIndex === index}
                 draggable={canEditPlaylist && orderedTracks.length > 1}
                 onPlay={() => handlePlayTrack(track.id)}
+                onLike={() => {
+                  void handleLikeTrack(track.id);
+                }}
+                onRepost={() => {
+                  void handleRepostTrack(track.id);
+                }}
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(event) => handleDragOver(event, index)}
                 onDrop={(event) => {
@@ -621,8 +826,17 @@ export default function PlaylistPage() {
           isPrivate: playlist.isPrivate,
           coverArtUrl: playlist.coverArtUrl,
         }}
+        tracks={orderedTracks.map((track) => ({
+          id: track.id,
+          title: track.title,
+          artist: track.artist,
+          coverUrl: track.coverUrl,
+        }))}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveMetadata}
+        isTrackMutationPending={isReorderSaving}
+        onReorderTracks={handleModalReorder}
+        onRemoveTrack={handleModalRemoveTrack}
       />
     </div>
   );

@@ -130,6 +130,7 @@ export const API_ENDPOINTS = {
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
     ME_REPOSTs: '/users/me/repost',
+    ME_REPOSTS: '/users/me/repost',
     SUGGESTED: '/users/suggested',
     DEVICE_TOKENS: '/users/me/device-tokens',
     BY_ID: (userId: number) => `/users/${userId}`,
@@ -146,6 +147,7 @@ export const API_ENDPOINTS = {
     WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
     WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
+    REPOSTS: (userId: number) => `/users/${userId}/repost`,
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
   },
   TRACKS: {
@@ -177,6 +179,7 @@ export const API_ENDPOINTS = {
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
     DELETE: (playlistId: number) => `/playlists/${playlistId}`,
     LIKE: (playlistId: number) => `/playlists/${playlistId}/like`, //this should be changed in backend currently tracks/playlists/:id/like but should be playlists/:id/like
+    REPOST: (playlistId: number) => `/playlists/${playlistId}/repost`,
     TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
     TRACK: (playlistId: number, trackId: number) =>
       `/playlists/${playlistId}/tracks/${trackId}`,

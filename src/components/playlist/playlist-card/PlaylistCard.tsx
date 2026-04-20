@@ -1,18 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useTrackCard } from '@/hooks/useTrackCard';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWaveformData } from '@/hooks/useWaveformData';
-import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import TrackCardArtwork from '@/components/tracks/track-card/TrackCardArtwork';
 import TrackCardFooter from '@/components/tracks/track-card/TrackCardFooter';
 import TrackCardHeader from '@/components/tracks/track-card/TrackCardHeader';
 import TrackCardMeta from '@/components/tracks/track-card/TrackCardMeta';
-import TrackCardModals from '@/components/tracks/track-card/TrackCardModals';
 import PlaylistTracks from '@/components/playlist/playlist-card/PlaylistTracks';
 import TrackCardWaveformSection from '@/components/tracks/track-card/TrackCardWaveformSection';
 import { useTrackCardPlayback } from '@/components/tracks/track-card/useTrackCardPlayback';
 import { usePlayerStore } from '@/features/player/store/playerStore';
+import { playlistService } from '@/services';
 import type { PlaylistHorizontalProps } from './types';
 
 const toUserSlug = (value: string): string =>
@@ -20,10 +19,8 @@ const toUserSlug = (value: string): string =>
 
 export default function PlaylistHorizontalRoot({
   trackId,
-  isPrivate = false,
   user,
   postedText = 'posted a set',
-  // repostedBy,
   showEditButton = false,
   track,
   waveform,
@@ -34,24 +31,30 @@ export default function PlaylistHorizontalRoot({
   showHeader = true,
   relatedTracks,
 }: PlaylistHorizontalProps) {
+  const router = useRouter();
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
   const playlistHref = `/${userSlug}/sets/${trackId}`;
-  // const repostedBySlug = repostedBy?.username
-  //   ? toUserSlug(repostedBy.username)
-  //   : undefined;
-  // const repostedByDisplayName = repostedBy
-  //   ? repostedBy.displayName?.trim() || repostedBy.username
-  //   : undefined;
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [isShareOpen, setIsShareOpen] = useState(false);
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('add');
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
-  const resolvedIsPrivate = isPrivate;
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [isDeletePending, setIsDeletePending] = useState(false);
+  const [isLikePending, setIsLikePending] = useState(false);
+  const [isRepostPending, setIsRepostPending] = useState(false);
+
+  const [isLiked, setIsLiked] = useState(Boolean(track.isLiked));
+  const [isReposted, setIsReposted] = useState(Boolean(track.isReposted));
+  const [likeCount, setLikeCount] = useState(track.likeCount ?? 0);
+  const [repostCount, setRepostCount] = useState(track.repostCount ?? 0);
+
+  useEffect(() => {
+    setIsLiked(Boolean(track.isLiked));
+    setIsReposted(Boolean(track.isReposted));
+    setLikeCount(track.likeCount ?? 0);
+    setRepostCount(track.repostCount ?? 0);
+    setIsDeleted(false);
+  }, [track.id, track.isLiked, track.isReposted, track.likeCount, track.repostCount]);
 
   const handleCopy = () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
@@ -66,34 +69,6 @@ export default function PlaylistHorizontalRoot({
   };
 
   const {
-    timedComments,
-    pendingText,
-    pendingTimestamp,
-    showCommentInput,
-    waveformTimedCommentsVisible,
-    isDeleted,
-    likeCount,
-    repostCount,
-    isLiked,
-    isReposted,
-    isDeletePending,
-    setPendingText,
-    selectTimestamp,
-    onCommentInputFocus,
-    clearPendingCommentSelection,
-    submitTimedComment,
-    onLike,
-    onRepost,
-    onDeleteTrack,
-  } = useTrackCard({
-    trackId: track.id,
-    initialIsLiked: track.isLiked,
-    initialIsReposted: track.isReposted,
-    initialLikeCount: track.likeCount,
-    initialRepostCount: track.repostCount,
-  });
-
-  const {
     isBlocked,
     isCurrentTrackPlaying,
     waveformCurrentTime,
@@ -106,8 +81,8 @@ export default function PlaylistHorizontalRoot({
     playback,
     queueTracks,
     queueSource,
-    onSeekSelect: selectTimestamp,
-    onExternalTrackChange: clearPendingCommentSelection,
+    onSeekSelect: () => {},
+    onExternalTrackChange: () => {},
   });
 
   const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
@@ -119,6 +94,88 @@ export default function PlaylistHorizontalRoot({
     }
 
     handleAddToQueue();
+  };
+
+  const handleLike = async () => {
+    if (isLikePending) {
+      return;
+    }
+
+    const previousLiked = isLiked;
+    const previousLikeCount = likeCount;
+    const nextLiked = !previousLiked;
+
+    setIsLikePending(true);
+    setIsLiked(nextLiked);
+    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
+
+    try {
+      const response = nextLiked
+        ? await playlistService.likePlaylist(track.id)
+        : await playlistService.unlikePlaylist(track.id);
+
+      if (typeof response.isLiked === 'boolean') {
+        setIsLiked(response.isLiked);
+      }
+    } catch {
+      setIsLiked(previousLiked);
+      setLikeCount(previousLikeCount);
+    } finally {
+      setIsLikePending(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (isRepostPending) {
+      return;
+    }
+
+    const previousReposted = isReposted;
+    const previousRepostCount = repostCount;
+    const nextReposted = !previousReposted;
+
+    setIsRepostPending(true);
+    setIsReposted(nextReposted);
+    setRepostCount((count) => Math.max(0, count + (nextReposted ? 1 : -1)));
+
+    try {
+      const response = nextReposted
+        ? await playlistService.repostPlaylist(track.id)
+        : await playlistService.unrepostPlaylist(track.id);
+
+      if (typeof response.isReposted === 'boolean') {
+        setIsReposted(response.isReposted);
+      }
+    } catch {
+      setIsReposted(previousReposted);
+      setRepostCount(previousRepostCount);
+    } finally {
+      setIsRepostPending(false);
+    }
+  };
+
+  const handleDeletePlaylist = async () => {
+    if (!showEditButton || isDeletePending) {
+      return;
+    }
+
+    const confirmed =
+      typeof window === 'undefined'
+        ? false
+        : window.confirm('Delete this playlist?');
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeletePending(true);
+
+    try {
+      await playlistService.deletePlaylist(track.id);
+      setIsDeleted(true);
+    } finally {
+      setIsDeletePending(false);
+    }
   };
 
   if (isDeleted) {
@@ -163,8 +220,6 @@ export default function PlaylistHorizontalRoot({
             contentHref={playlistHref}
             genre={track.genre}
             createdAt={track.createdAt}
-            // repostedBySlug={repostedBySlug}
-            // repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
@@ -176,18 +231,16 @@ export default function PlaylistHorizontalRoot({
             isBlocked={isBlocked}
             waveformCurrentTime={waveformCurrentTime}
             waveformDurationSeconds={waveformDurationSeconds}
-            timedComments={timedComments}
+            timedComments={[]}
             currentUser={currentUser}
-            pendingTimestamp={pendingTimestamp}
-            pendingText={pendingText}
-            showCommentInput={showCommentInput}
-            waveformTimedCommentsVisible={waveformTimedCommentsVisible}
+            pendingTimestamp={null}
+            pendingText=""
+            showCommentInput={false}
+            waveformTimedCommentsVisible={false}
             onWaveformClick={handleWaveformClick}
-            onCommentInputFocus={onCommentInputFocus}
-            setPendingText={setPendingText}
-            onSubmitTimedComment={(text) => {
-              void submitTimedComment(text);
-            }}
+            onCommentInputFocus={() => {}}
+            setPendingText={() => {}}
+            onSubmitTimedComment={() => {}}
           />
 
           <PlaylistTracks showTrackList tracks={relatedTracks} />
@@ -204,30 +257,25 @@ export default function PlaylistHorizontalRoot({
             comments={undefined}
             canAddToQueue={Boolean(playback) || Boolean(queueTracks?.length)}
             isMoreOpen={isMoreOpen}
-            onEdit={() => setEditOpen(true)}
+            onEdit={() => {
+              if (!showEditButton) {
+                return;
+              }
+
+              router.push(`${playlistHref}?edit=1`);
+            }}
             onDelete={() => {
-              if (!showEditButton || isDeletePending) {
-                return;
-              }
-
-              const confirmed =
-                typeof window === 'undefined'
-                  ? false
-                  : window.confirm('Delete this track?');
-
-              if (!confirmed) {
-                return;
-              }
-
-              void onDeleteTrack();
+              void handleDeletePlaylist();
             }}
             onLike={() => {
-              void onLike();
+              void handleLike();
             }}
             onRepost={() => {
-              void onRepost();
+              void handleRepost();
             }}
-            onShare={() => setIsShareOpen(true)}
+            onShare={() => {
+              handleCopy();
+            }}
             onCopy={handleCopy}
             onAddToQueue={handleAddPlaylistTracksToQueue}
             onMoreToggle={() => setIsMoreOpen((value) => !value)}
@@ -237,21 +285,6 @@ export default function PlaylistHorizontalRoot({
           <div className="pt-1 text-xs text-text-muted">{track.duration}</div>
         </div>
       </div>
-
-      <TrackCardModals
-        trackId={trackId}
-        trackNumericId={track.id}
-        isPrivate={resolvedIsPrivate}
-        track={track}
-        editOpen={editOpen}
-        isShareOpen={isShareOpen}
-        isPlaylistModalOpen={isPlaylistModalOpen}
-        activeTab={activeTab}
-        setEditOpen={setEditOpen}
-        setIsShareOpen={setIsShareOpen}
-        setIsPlaylistModalOpen={setIsPlaylistModalOpen}
-        setActiveTab={setActiveTab}
-      />
     </div>
   );
 }

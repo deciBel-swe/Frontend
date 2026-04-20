@@ -184,20 +184,33 @@ const buildResourceForTrack = (trackId: number): ResourceRefFullDTO => ({
   user: null,
 });
 
-const buildResourceForPlaylist = (playlistId: number): ResourceRefFullDTO => ({
-  resourceType: 'PLAYLIST',
-  resourceId: playlistId,
-  playlist: {
-    ...(buildPlaylistSummary(playlistId) as unknown as FullPlaylistDTO),
-    description: '',
-    totalDurationSeconds: 0,
-    createdAt: new Date().toISOString(),
-    tracks: buildPlaylistSummary(playlistId).tracks,
-    firstTrackWaveformUrl: '',
-  },
-  track: null,
-  user: null,
-});
+const buildResourceForPlaylist = (playlistId: number): ResourceRefFullDTO => {
+  const playlistSummary = buildPlaylistSummary(playlistId);
+  const firstTrack = playlistSummary.tracks[0];
+  const firstTrackRecord = getMockTracksStore().find(
+    (track) => track.id === firstTrack?.id
+  );
+
+  return {
+    resourceType: 'PLAYLIST',
+    resourceId: playlistId,
+    playlist: {
+      ...(playlistSummary as unknown as FullPlaylistDTO),
+      description: '',
+      totalDurationSeconds: 0,
+      createdAt: new Date().toISOString(),
+      tracks: playlistSummary.tracks,
+      isReposted: false,
+      likeCount: (playlistSummary as { likeCount?: number }).likeCount ?? 0,
+      repostCount: (playlistSummary as { repostCount?: number }).repostCount ?? 0,
+      firstTrackWaveformUrl:
+        firstTrackRecord?.waveformUrl ?? '/images/default-waveform.json',
+      firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
+    },
+    track: null,
+    user: null,
+  };
+};
 
 const buildResourceForUser = (userId: number): ResourceRefFullDTO => ({
   resourceType: 'USER',

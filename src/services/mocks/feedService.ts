@@ -110,6 +110,15 @@ export class MockFeedService implements FeedService {
           0
         );
 
+        const playlistTracks = playlist.tracks
+          .map((item) => buildFullTrack(item.trackId))
+          .filter((item): item is FullTrackDTO => Boolean(item));
+
+        const firstTrack = playlistTracks[0];
+        const firstTrackRecord = getMockTracksStore().find(
+          (track) => track.id === playlist.tracks[0]?.trackId
+        );
+
         return {
           id: playlist.id,
           title: playlist.title,
@@ -119,14 +128,15 @@ export class MockFeedService implements FeedService {
           isPrivate: playlist.isPrivate,
           coverArtUrl: playlist.CoverArt ?? '',
           totalDurationSeconds,
-          trackCount: playlist.tracks.length,
+          trackCount: playlistTracks.length,
           owner: userSummaryFromId(user.id),
           genre: 'playlist-genre',
           createdAt: new Date().toISOString(),
-          tracks: [],
+          tracks: playlistTracks,
           secretToken: playlist.secretLink ?? '',
           firstTrackWaveformUrl:
-            playlist.tracks.length > 0 ? playlist.tracks[0].trackUrl : '',
+            firstTrack?.waveformUrl ?? '/images/default-waveform.json',
+          firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
         };
       }
 
@@ -224,6 +234,21 @@ export class MockFeedService implements FeedService {
         feedItems.push({
           id: repost.id,
           type: 'TRACK_REPOSTED',
+          resource,
+          repostedBy: userSummaryFromId(user.id),
+          createdAt: nextDate(),
+        });
+      }
+
+      for (const repostedPlaylistId of user.repostedPlaylists ?? []) {
+        const resource = buildResource('PLAYLIST', repostedPlaylistId);
+        if (!resource) {
+          continue;
+        }
+
+        feedItems.push({
+          id: repostedPlaylistId,
+          type: 'PLAYLIST_REPOSTED',
           resource,
           repostedBy: userSummaryFromId(user.id),
           createdAt: nextDate(),

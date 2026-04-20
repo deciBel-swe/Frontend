@@ -10,6 +10,7 @@ import type {
   PlaylistEmbedResponse,
   PlaylistResponse,
   PlaylistLikeResponse,
+  PlaylistRepostResponse,
   PlaylistResourceRef,
   PlaylistSecretLinkRegenerateResponse,
   PlaylistSecretLinkResponse,
@@ -117,6 +118,31 @@ const isTrackRepostedByUser = (trackId: number, userId: number): boolean => {
   return Boolean(viewer?.reposts.some((track) => track.id === trackId));
 };
 
+const isPlaylistLikedByUser = (playlistId: number, userId: number): boolean => {
+  const viewer = getMockUsersStore().find((user) => user.id === userId);
+  return Boolean(viewer?.likedPlaylists.includes(playlistId));
+};
+
+const isPlaylistRepostedByUser = (
+  playlistId: number,
+  userId: number
+): boolean => {
+  const viewer = getMockUsersStore().find((user) => user.id === userId);
+  return Boolean(viewer?.repostedPlaylists?.includes(playlistId));
+};
+
+const playlistLikeCount = (playlistId: number): number => {
+  return getMockUsersStore().filter((user) =>
+    user.likedPlaylists.includes(playlistId)
+  ).length;
+};
+
+const playlistRepostCount = (playlistId: number): number => {
+  return getMockUsersStore().filter((user) =>
+    user.repostedPlaylists?.includes(playlistId)
+  ).length;
+};
+
 const toTrackSummary = (
   trackId: number,
   currentUserId: number
@@ -204,12 +230,17 @@ const toPlaylistResponse = (
   const firstTrackRecord = getMockTracksStore().find(
     (track) => track.id === playlist.tracks[0]?.trackId
   );
+  const likeCount = playlistLikeCount(playlist.id);
+  const repostCount = playlistRepostCount(playlist.id);
 
   return {
     id: playlist.id,
     title: playlist.title,
     type: playlist.type,
-    isLiked: playlist.isLiked,
+    isLiked: isPlaylistLikedByUser(playlist.id, currentUserId),
+    isReposted: isPlaylistRepostedByUser(playlist.id, currentUserId),
+    likeCount,
+    repostCount,
     playlistSlug: toSlug(playlist.title, playlist.id, 'playlist'),
     description: playlist.description ?? '',
     isPrivate: playlist.isPrivate,
@@ -231,7 +262,8 @@ const toPlaylistResponse = (
     secretToken: playlist.secretLink ?? '',
     firstTrackWaveformUrl:
       firstTrackRecord?.waveformUrl ??
-      'http://localhost:3000/images/default-waveform.json',
+      '/images/default-waveform.json',
+    firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
   };
 };
 
@@ -452,8 +484,7 @@ export class MockPlaylistService implements PlaylistService {
   ): Promise<{ message: string }> {
     await delay();
 
-    const resolved = resolvePlaylistOwner(playlistId);
-    if (!resolved) {
+    if (!resolvePlaylistOwner(playlistId)) {
       throw new Error('Playlist not found');
     }
 
@@ -488,8 +519,7 @@ export class MockPlaylistService implements PlaylistService {
   ): Promise<void> {
     await delay();
 
-    const resolved = resolvePlaylistOwner(playlistId);
-    if (!resolved) {
+    if (!resolvePlaylistOwner(playlistId)) {
       throw new Error('Playlist not found');
     }
 
@@ -666,13 +696,9 @@ export class MockPlaylistService implements PlaylistService {
       throw new Error('Playlist not found');
     }
 
-    const playlist = resolved.playlist;
-
     if (!currentUser.likedPlaylists.includes(playlistId)) {
       currentUser.likedPlaylists.push(playlistId);
     }
-
-    playlist.isLiked = true;
     persistMockSystemState();
 
     return { message: 'Playlist liked', isLiked: true };
@@ -694,14 +720,61 @@ export class MockPlaylistService implements PlaylistService {
       throw new Error('Playlist not found');
     }
 
-    const playlist = resolved.playlist;
-
     currentUser.likedPlaylists = currentUser.likedPlaylists.filter(
       (id) => id !== playlistId
     );
-    playlist.isLiked = false;
     persistMockSystemState();
 
     return { message: 'Playlist unliked', isLiked: false };
+  }
+
+  async repostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const currentUserId = resolveCurrentMockUserId();
+    const currentUser = users.find((user) => user.id === currentUserId);
+
+    if (!currentUser) {
+      throw new Error('Current user not found');
+    }
+
+    const resolved = resolvePlaylistOwner(playlistId);
+    if (!resolved) {
+      throw new Error('Playlist not found');
+    }
+
+    if (!currentUser.repostedPlaylists.includes(playlistId)) {
+      currentUser.repostedPlaylists.push(playlistId);
+    }
+
+    persistMockSystemState();
+
+    return { message: 'Playlist reposted', isReposted: true };
+  }
+
+  async unrepostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {
+    await delay();
+
+    const users = getMockUsersStore();
+    const currentUserId = resolveCurrentMockUserId();
+    const currentUser = users.find((user) => user.id === currentUserId);
+
+    if (!currentUser) {
+      throw new Error('Current user not found');
+    }
+
+    const resolved = resolvePlaylistOwner(playlistId);
+    if (!resolved) {
+      throw new Error('Playlist not found');
+    }
+
+    currentUser.repostedPlaylists = currentUser.repostedPlaylists.filter(
+      (id) => id !== playlistId
+    );
+
+    persistMockSystemState();
+
+    return { message: 'Playlist unreposted', isReposted: false };
   }
 }
