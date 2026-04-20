@@ -305,7 +305,7 @@ const seedUsers = (): MockUserRecord[] => [
   {
     id: 2,
     username: 'listenertwo',
-    displayName: 'listenertwo',
+    displayName: 'Listener Two',
     email: 'listenertwo@email.com',
     emailVerified: true,
     role: 'LISTENER',
@@ -354,7 +354,7 @@ const seedUsers = (): MockUserRecord[] => [
   {
     id: 3,
     username: 'beatpilot',
-    displayName: 'beatpilot',
+    displayName: 'Beat Pilot',
     email: 'beatpilot@email.com',
     emailVerified: false,
     role: 'ARTIST',

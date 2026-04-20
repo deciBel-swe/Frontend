@@ -1,17 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Lock, X } from 'lucide-react';
 
 type PlaylistTagsSectionProps = {
   isPrivate?: boolean;
   tags?: string[];
+  editable?: boolean;
 };
 
-export default function PlaylistTagsSection({ isPrivate, tags = [] }: PlaylistTagsSectionProps) {
+export default function PlaylistTagsSection({
+  isPrivate,
+  tags = [],
+  editable = true,
+}: PlaylistTagsSectionProps) {
   const [tagInput, setTagInput] = useState('');
   const [localTags, setLocalTags] = useState<string[]>(tags);
   const [showTagInput, setShowTagInput] = useState(tags.length === 0);
+
+  useEffect(() => {
+    setLocalTags(tags);
+    setShowTagInput(tags.length === 0);
+  }, [tags]);
 
   function addTag() {
     const trimmed = tagInput.trim().replace(/^#/, '');
@@ -31,7 +41,7 @@ export default function PlaylistTagsSection({ isPrivate, tags = [] }: PlaylistTa
       {/* Privacy badge */}
       {isPrivate && (
         <div className="flex items-center gap-2 px-3 py-2.5 rounded bg-surface-raised border border-border-default text-sm text-text-muted">
-          <Lock size={13} className="flex-shrink-0" />
+          <Lock size={13} className="shrink-0" />
           <span>This playlist is private.</span>
         </div>
       )}
@@ -45,20 +55,22 @@ export default function PlaylistTagsSection({ isPrivate, tags = [] }: PlaylistTa
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-interactive-default text-text-primary text-xs font-semibold hover:bg-interactive-hover transition-colors"
             >
               #{tag}
-              <button
-                onClick={() => removeTag(tag)}
-                aria-label={`Remove tag ${tag}`}
-                className="hover:text-brand-primary transition-colors"
-              >
-                <X size={10} />
-              </button>
+              {editable ? (
+                <button
+                  onClick={() => removeTag(tag)}
+                  aria-label={`Remove tag ${tag}`}
+                  className="hover:text-brand-primary transition-colors"
+                >
+                  <X size={10} />
+                </button>
+              ) : null}
             </span>
           ))}
         </div>
       )}
 
       {/* Tag input or add button */}
-      {showTagInput ? (
+      {editable && showTagInput ? (
         <div className="space-y-2">
           <p className="text-sm font-bold text-text-primary">Here are some tags to get you started.</p>
           <p className="text-xs text-text-muted">
@@ -87,14 +99,14 @@ export default function PlaylistTagsSection({ isPrivate, tags = [] }: PlaylistTa
             </button>
           </div>
         </div>
-      ) : (
+      ) : editable ? (
         <button
           onClick={() => setShowTagInput(true)}
           className="text-xs font-bold text-brand-primary hover:opacity-60 transition-opacity"
         >
           + Add tags
         </button>
-      )}
+      ) : null}
     </div>
   );
 }

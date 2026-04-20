@@ -118,6 +118,66 @@ describe('RealPlaylistService', () => {
     );
   });
 
+  it('calls PLAYLISTS_ME_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 5,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getMePlaylists({ page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_ME_PLAYLISTS,
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
+  it('calls PLAYLISTS_USER_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserPlaylists(7, { page: 0, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(7),
+      {
+        params: { page: 0, size: 10 },
+      }
+    );
+  });
+
+  it('calls PLAYLISTS_USER_LIKED_PLAYLISTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 5,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserLikedPlaylists('mockartist', { page: 0, size: 5 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.PLAYLISTS_USER_LIKED_PLAYLISTS('mockartist'),
+      {
+        params: { page: 0, size: 5 },
+      }
+    );
+  });
+
   it('fetches playlist secret link via PLAYLISTS_SECRET_LINK contract', async () => {
     mockedApiRequest.mockResolvedValue({ secretToken: 'secret-xyz' });
 

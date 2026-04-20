@@ -12,6 +12,7 @@ import TrackCardModals from '@/components/tracks/track-card/TrackCardModals';
 import PlaylistTracks from '@/components/playlist/playlist-card/PlaylistTracks';
 import TrackCardWaveformSection from '@/components/tracks/track-card/TrackCardWaveformSection';
 import { useTrackCardPlayback } from '@/components/tracks/track-card/useTrackCardPlayback';
+import { usePlayerStore } from '@/features/player/store/playerStore';
 import type { PlaylistHorizontalProps } from './types';
 
 const toUserSlug = (value: string): string =>
@@ -48,6 +49,7 @@ export default function PlaylistHorizontalRoot({
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('add');
+  const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const resolvedIsPrivate = isPrivate;
 
@@ -84,7 +86,7 @@ export default function PlaylistHorizontalRoot({
     onRepost,
     onDeleteTrack,
   } = useTrackCard({
-    trackId: Number(playback?.id ?? track.id),
+    trackId: track.id,
     initialIsLiked: track.isLiked,
     initialIsReposted: track.isReposted,
     initialLikeCount: track.likeCount,
@@ -109,6 +111,15 @@ export default function PlaylistHorizontalRoot({
   });
 
   const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
+
+  const handleAddPlaylistTracksToQueue = () => {
+    if (queueTracks && queueTracks.length > 0) {
+      addPlaylistToQueue(queueTracks);
+      return;
+    }
+
+    handleAddToQueue();
+  };
 
   if (isDeleted) {
     return null;
@@ -191,7 +202,7 @@ export default function PlaylistHorizontalRoot({
             repostCount={repostCount}
             plays={track.plays}
             comments={undefined}
-            canAddToQueue={Boolean(playback)}
+            canAddToQueue={Boolean(playback) || Boolean(queueTracks?.length)}
             isMoreOpen={isMoreOpen}
             onEdit={() => setEditOpen(true)}
             onDelete={() => {
@@ -218,11 +229,9 @@ export default function PlaylistHorizontalRoot({
             }}
             onShare={() => setIsShareOpen(true)}
             onCopy={handleCopy}
-            onAddToQueue={handleAddToQueue}
+            onAddToQueue={handleAddPlaylistTracksToQueue}
             onMoreToggle={() => setIsMoreOpen((value) => !value)}
             onMoreClose={() => setIsMoreOpen(false)}
-            onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
-            onStation={() => {}}
           />
 
           <div className="pt-1 text-xs text-text-muted">{track.duration}</div>

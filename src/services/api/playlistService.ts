@@ -3,6 +3,7 @@ import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   CreatePlaylistRequest,
   AddPlaylistTrackRequest,
+  PaginatedPlaylistsResponse,
   PaginatedPlaylistTracksResponse,
   PlaylistEmbedResponse,
   PlaylistResponse,
@@ -49,6 +50,21 @@ export interface PlaylistService {
 
   /** Get a playlist with tracks (GET /playlists/:playlistId). */
   getPlaylist(playlistId: number): Promise<PlaylistResponse>;
+
+  /** Get a user's public playlists (GET /users/{userId}/playlists). */
+  getUserPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse>;
+
+  /** Get current user's playlists (GET /users/me/playlists). */
+  getMePlaylists(params?: PaginationParams): Promise<PaginatedPlaylistsResponse>;
+
+  /** Get playlists liked by username (GET /users/{username}/liked-playlists). */
+  getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse>;
 
   /** Update a playlist (PATCH /playlists/:playlistId). */
   updatePlaylist(
@@ -119,6 +135,32 @@ export class RealPlaylistService implements PlaylistService {
 
   async getPlaylist(playlistId: number): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_BY_ID(playlistId));
+  }
+
+  async getUserPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(userId), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getMePlaylists(
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_ME_PLAYLISTS, {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_LIKED_PLAYLISTS(username), {
+      params: toQueryParams(params),
+    });
   }
 
   async updatePlaylist(

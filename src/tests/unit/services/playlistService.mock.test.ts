@@ -276,4 +276,32 @@ describe('MockPlaylistService', () => {
       resourceId: created.id,
     });
   });
+
+  it('returns paginated user, me, and liked playlist listings', async () => {
+    const service = new MockPlaylistService();
+
+    const myPlaylistsPromise = service.getMePlaylists({ page: 0, size: 5 });
+    await advance();
+    const myPlaylists = await myPlaylistsPromise;
+    expect(Array.isArray(myPlaylists.content)).toBe(true);
+    expect(myPlaylists.pageSize).toBe(5);
+
+    const userPlaylistsPromise = service.getUserPlaylists(1, {
+      page: 0,
+      size: 5,
+    });
+    await advance();
+    const userPlaylists = await userPlaylistsPromise;
+    expect(Array.isArray(userPlaylists.content)).toBe(true);
+    expect(userPlaylists.pageSize).toBe(5);
+
+    const likedPlaylistsPromise = service.getUserLikedPlaylists('listenertwo', {
+      page: 0,
+      size: 5,
+    });
+    await advance();
+    const likedPlaylists = await likedPlaylistsPromise;
+    expect(Array.isArray(likedPlaylists.content)).toBe(true);
+    expect(likedPlaylists.pageSize).toBe(5);
+  });
 });

@@ -4,6 +4,7 @@ import type {
 } from '@/services/api/playlistService';
 import type {
   CreatePlaylistRequest,
+  PaginatedPlaylistsResponse,
   AddPlaylistTrackRequest,
   PaginatedPlaylistTracksResponse,
   PlaylistEmbedResponse,
@@ -257,6 +258,29 @@ const paginateTracks = (
   };
 };
 
+const paginatePlaylists = (
+  playlists: PlaylistResponse[],
+  params?: PaginationParams
+): PaginatedPlaylistsResponse => {
+  const pageNumber = Math.max(0, params?.page ?? 0);
+  const pageSize = Math.max(1, params?.size ?? 20);
+  const start = pageNumber * pageSize;
+  const end = start + pageSize;
+  const content = playlists.slice(start, end);
+  const totalElements = playlists.length;
+  const totalPages = Math.ceil(totalElements / pageSize);
+  const isLast = totalPages === 0 ? true : pageNumber >= totalPages - 1;
+
+  return {
+    content,
+    pageNumber,
+    pageSize,
+    totalElements,
+    totalPages,
+    isLast,
+  };
+};
+
 export class MockPlaylistService implements PlaylistService {
   async createPlaylist(
     payload: CreatePlaylistRequest
@@ -316,6 +340,68 @@ export class MockPlaylistService implements PlaylistService {
       resolved.playlist,
       resolveCurrentMockUserId()
     );
+  }
+
+  async getUserPlaylists(
+    userId: number,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+
+    const viewerId = resolveCurrentMockUserId();
+    const owner = getMockUsersStore().find((user) => user.id === userId);
+
+    if (!owner) {
+      throw new Error('User not found');
+    }
+
+    const playlists = owner.playlists
+      .filter((playlist) => !playlist.isPrivate || owner.id === viewerId)
+      .map((playlist) => toPlaylistResponse(owner, playlist, viewerId));
+
+    return paginatePlaylists(playlists, params);
+  }
+
+  async getMePlaylists(
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+
+    const viewerId = resolveCurrentMockUserId();
+    const owner = getMockUsersStore().find((user) => user.id === viewerId);
+
+    if (!owner) {
+      throw new Error('Current user not found');
+    }
+
+    const playlists = owner.playlists.map((playlist) =>
+      toPlaylistResponse(owner, playlist, viewerId)
+    );
+
+    return paginatePlaylists(playlists, params);
+  }
+
+  async getUserLikedPlaylists(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedPlaylistsResponse> {
+    await delay();
+
+    const viewerId = resolveCurrentMockUserId();
+    const users = getMockUsersStore();
+    const user = users.find((item) => item.username === username);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const likedPlaylists = user.likedPlaylists
+      .map((likedPlaylistId) => resolvePlaylistOwner(likedPlaylistId))
+      .filter((resolved): resolved is NonNullable<typeof resolved> => Boolean(resolved))
+      .filter(({ owner, playlist }) => !playlist.isPrivate || owner.id === viewerId)
+      .map(({ owner, playlist }) => toPlaylistResponse(owner, playlist, viewerId));
+
+    return paginatePlaylists(likedPlaylists, params);
   }
 
   async updatePlaylist(

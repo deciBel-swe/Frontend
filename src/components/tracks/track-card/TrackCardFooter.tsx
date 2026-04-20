@@ -25,8 +25,8 @@ type TrackCardFooterProps = {
   onAddToQueue: () => void;
   onMoreToggle: () => void;
   onMoreClose: () => void;
-  onAddToPlaylist: () => void;
-  onStation: () => void;
+  onAddToPlaylist?: () => void;
+  onStation?: () => void;
 };
 
 export default function TrackCardFooter({

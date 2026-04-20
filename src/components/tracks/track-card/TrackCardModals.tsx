@@ -7,7 +7,7 @@ import AddToPlaylistModal, {
 import type { PlaylistItem } from '@/components/playlist/AddToPlaylistTab';
 import { ShareModal } from '@/features/prof/components/ShareModal';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
-import { playlistService, userService } from '@/services';
+import { playlistService } from '@/services';
 
 type TrackCardModalsProps = {
   trackId: string;
@@ -50,31 +50,20 @@ export default function TrackCardModals({
 
   const loadPlaylists = useCallback(async () => {
     try {
-      const mePlaylists = await userService.getMePlaylists({
+      const response = await playlistService.getMePlaylists({
         page: 0,
         size: 100,
       });
 
-      const hydrated = await Promise.all(
-        mePlaylists.map(async (playlist) => {
-          try {
-            const detailed = await playlistService.getPlaylist(playlist.id);
-            return {
-              id: String(detailed.id),
-              title: detailed.title,
-              trackCount: detailed.trackCount ?? detailed.tracks?.length ?? 0,
-              isPrivate: detailed.isPrivate,
-              coverUrl: detailed.coverArtUrl,
-            } satisfies PlaylistItem;
-          } catch {
-            return {
-              id: String(playlist.id),
-              title: playlist.title,
-              trackCount: 0,
-            } satisfies PlaylistItem;
-          }
-        })
-      );
+      const hydrated = response.content.map((playlist) => {
+        return {
+          id: String(playlist.id),
+          title: playlist.title,
+          trackCount: playlist.trackCount ?? playlist.tracks?.length ?? 0,
+          isPrivate: playlist.isPrivate,
+          coverUrl: playlist.coverArtUrl,
+        } satisfies PlaylistItem;
+      });
 
       setPlaylists(hydrated);
     } catch {

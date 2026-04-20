@@ -65,6 +65,29 @@ const toPlaybackAccess = (
   return 'PLAYABLE' as const;
 };
 
+const toTrackDurationSeconds = (track: unknown): number | undefined => {
+  const payload = track as {
+    trackDurationSeconds?: number;
+    durationSeconds?: number;
+  };
+
+  if (
+    typeof payload.trackDurationSeconds === 'number' &&
+    payload.trackDurationSeconds > 0
+  ) {
+    return payload.trackDurationSeconds;
+  }
+
+  if (
+    typeof payload.durationSeconds === 'number' &&
+    payload.durationSeconds > 0
+  ) {
+    return payload.durationSeconds;
+  }
+
+  return undefined;
+};
+
 const mergeUniqueBy = <T>(
   previous: T[],
   incoming: T[],
@@ -201,6 +224,26 @@ export function mapPlaylistResourceToPlaylistCard(
   const ownerDisplayName =
     playlist.owner.displayName || playlist.owner.username;
   const cover = playlist.coverArtUrl || DEFAULT_IMAGE;
+  const queueTracks = playlist.tracks.map((track) => {
+    const artistDisplayName = track.artist.displayName || track.artist.username;
+
+    return playerTrackMappers.fromAdapterInput(
+      {
+        id: track.id,
+        title: track.title,
+        trackUrl: track.trackUrl,
+        artist: track.artist,
+        durationSeconds: toTrackDurationSeconds(track),
+        coverUrl: track.coverUrl || DEFAULT_IMAGE,
+        waveformData: toWaveform((track as { waveformData?: unknown }).waveformData),
+      },
+      {
+        access: toPlaybackAccess(track.access),
+        fallbackArtistName: artistDisplayName,
+      }
+    );
+  });
+  const playback = queueTracks[0];
 
   return {
     trackId: String(playlist.id),
@@ -229,6 +272,9 @@ export function mapPlaylistResourceToPlaylistCard(
     waveform: toWaveform(
       (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData
     ),
+    playback,
+    queueTracks,
+    queueSource: 'playlist',
     relatedTracks: playlist.tracks.slice(0, 5).map((track) => ({
       id: track.id,
       title: track.title,

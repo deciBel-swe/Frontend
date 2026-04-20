@@ -442,6 +442,29 @@ export const API_CONTRACTS = {
       responseSchema: playlistResponseSchema,
     }),
 
+  PLAYLISTS_USER_PLAYLISTS: (userId: number) =>
+    defineContract<void, z.infer<typeof paginatedPlaylistsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.PLAYLISTS(userId),
+      responseSchema: paginatedPlaylistsResponseSchema,
+    }),
+
+  PLAYLISTS_ME_PLAYLISTS: defineContract<
+    void,
+    z.infer<typeof paginatedPlaylistsResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.USERS.ME_PLAYLISTS,
+    responseSchema: paginatedPlaylistsResponseSchema,
+  }),
+
+  PLAYLISTS_USER_LIKED_PLAYLISTS: (username: string) =>
+    defineContract<void, z.infer<typeof paginatedPlaylistsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.LIKED_PLAYLISTS(username),
+      responseSchema: paginatedPlaylistsResponseSchema,
+    }),
+
   PLAYLISTS_UPDATE: (playlistId: number) =>
     defineContract<
       z.infer<typeof updatePlaylistRequestSchema>,

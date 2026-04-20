@@ -1,31 +1,374 @@
 'use client';
-import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
-import TrackList from '@/components/tracks/TrackList';
+
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Suspense } from 'react';
-const TrackListFallback = () => (
+import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
+import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import type {
+  PlaybackAccess,
+  PlayerTrack,
+} from '@/features/player/contracts/playerContracts';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
+import { playlistService, userService } from '@/services';
+import type { PlaylistResponse } from '@/types/playlists';
+import { formatDuration } from '@/utils/formatDuration';
+
+const DEFAULT_IMAGE = '/images/default_song_image.png';
+const PLAYLIST_PAGE_SIZE = 24;
+
+type PlaylistTrack = NonNullable<PlaylistResponse['tracks']>[number];
+
+const normalizeIdentity = (value: string | undefined): string =>
+  (value ?? '').trim().toLowerCase();
+
+const toPlaybackAccess = (
+  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
+): PlaybackAccess => {
+  if (access === 'BLOCKED' || access === 'PREVIEW') {
+    return 'BLOCKED';
+  }
+
+  return 'PLAYABLE';
+};
+
+const toWaveform = (value: unknown): number[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => Number(entry))
+      .filter((entry) => Number.isFinite(entry))
+      .map((entry) => Math.max(0, Math.min(1, entry)));
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return [];
+    }
+
+    try {
+      return toWaveform(JSON.parse(trimmed));
+    } catch {
+      return [];
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const payload = value as Record<string, unknown>;
+    if ('waveformData' in payload) {
+      return toWaveform(payload.waveformData);
+    }
+
+    if ('samples' in payload) {
+      return toWaveform(payload.samples);
+    }
+  }
+
+  return [];
+};
+
+const resolveTrackId = (track: PlaylistTrack): number | null => {
+  if ('id' in track && typeof track.id === 'number') {
+    return track.id;
+  }
+
+  if ('trackId' in track && typeof track.trackId === 'number') {
+    return track.trackId;
+  }
+
+  return null;
+};
+
+const resolveTrackTitle = (track: PlaylistTrack): string => {
+  if (typeof track.title === 'string' && track.title.trim().length > 0) {
+    return track.title;
+  }
+
+  return 'Untitled Track';
+};
+
+const resolveTrackUrl = (track: PlaylistTrack): string | null => {
+  if ('trackUrl' in track && typeof track.trackUrl === 'string') {
+    return track.trackUrl;
+  }
+
+  return null;
+};
+
+const resolveTrackCover = (track: PlaylistTrack): string => {
+  if ('coverUrl' in track && typeof track.coverUrl === 'string') {
+    return track.coverUrl;
+  }
+
+  return DEFAULT_IMAGE;
+};
+
+const resolveTrackArtist = (track: PlaylistTrack, fallbackArtist: string): string => {
+  if ('artist' in track && track.artist) {
+    return track.artist.displayName || track.artist.username;
+  }
+
+  return fallbackArtist;
+};
+
+const resolveTrackAccess = (
+  track: PlaylistTrack
+): 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined => {
+  if ('access' in track) {
+    return track.access;
+  }
+
+  return undefined;
+};
+
+const resolveTrackDurationSeconds = (track: PlaylistTrack): number | undefined => {
+  if ('durationSeconds' in track && typeof track.durationSeconds === 'number') {
+    return track.durationSeconds;
+  }
+
+  if (
+    'trackDurationSeconds' in track &&
+    typeof track.trackDurationSeconds === 'number'
+  ) {
+    return track.trackDurationSeconds;
+  }
+
+  return undefined;
+};
+
+const resolveTrackPlayCount = (track: PlaylistTrack): string | undefined => {
+  if ('playCount' in track && typeof track.playCount === 'number') {
+    return track.playCount.toLocaleString();
+  }
+
+  return undefined;
+};
+
+const mapPlaylistToCard = (
+  playlist: PlaylistResponse,
+  options: {
+    fallbackUsername: string;
+    fallbackAvatar?: string;
+    showEditButton: boolean;
+  }
+): PlaylistHorizontalProps => {
+  const ownerUsername =
+    playlist.owner?.username?.trim() || options.fallbackUsername;
+  const ownerDisplayName =
+    playlist.owner?.displayName?.trim() || ownerUsername;
+  const ownerAvatar =
+    playlist.owner?.avatarUrl || options.fallbackAvatar || DEFAULT_IMAGE;
+  const tracks = playlist.tracks ?? [];
+
+  const queueTracks: PlayerTrack[] = tracks.flatMap((playlistTrack) => {
+    const id = resolveTrackId(playlistTrack);
+    const trackUrl = resolveTrackUrl(playlistTrack);
+
+    if (id === null || !trackUrl) {
+      return [];
+    }
+
+    const artistName = resolveTrackArtist(playlistTrack, ownerDisplayName);
+
+    return [
+      playerTrackMappers.fromAdapterInput(
+        {
+          id,
+          title: resolveTrackTitle(playlistTrack),
+          trackUrl,
+          artist: artistName,
+          durationSeconds: resolveTrackDurationSeconds(playlistTrack),
+          coverUrl: resolveTrackCover(playlistTrack),
+          waveformData: toWaveform(
+            (playlistTrack as { waveformData?: unknown }).waveformData
+          ),
+        },
+        {
+          access: toPlaybackAccess(resolveTrackAccess(playlistTrack)),
+          fallbackArtistName: artistName,
+        }
+      ),
+    ];
+  });
+
+  const totalDurationSeconds =
+    playlist.totalDurationSeconds ??
+    tracks.reduce(
+      (total, playlistTrack) =>
+        total + (resolveTrackDurationSeconds(playlistTrack) ?? 0),
+      0
+    );
+
+  return {
+    trackId: String(playlist.id),
+    postedText: 'posted a set',
+    showEditButton: options.showEditButton,
+    user: {
+      username: ownerUsername,
+      displayName: ownerDisplayName,
+      avatar: ownerAvatar,
+    },
+    showHeader: true,
+    track: {
+      id: playlist.id,
+      artist: ownerDisplayName,
+      title: playlist.title,
+      cover:
+        playlist.coverArtUrl ||
+        (tracks[0] ? resolveTrackCover(tracks[0]) : DEFAULT_IMAGE),
+      duration: formatDuration(Math.max(0, totalDurationSeconds)),
+      waveformUrl: playlist.firstTrackWaveformUrl,
+      plays: playlist.trackCount ?? tracks.length,
+      genre: playlist.genre,
+      isLiked: playlist.isLiked,
+      isReposted: false,
+      likeCount: (playlist as { likeCount?: number }).likeCount ?? 0,
+      repostCount: (playlist as { repostCount?: number }).repostCount ?? 0,
+      createdAt: playlist.createdAt,
+    },
+    waveform: toWaveform(
+      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData
+    ),
+    playback: queueTracks[0],
+    queueTracks,
+    queueSource: 'playlist',
+    relatedTracks: tracks.slice(0, 5).map((playlistTrack, index) => {
+      const id = resolveTrackId(playlistTrack);
+      const title = resolveTrackTitle(playlistTrack);
+      const artist = resolveTrackArtist(playlistTrack, ownerDisplayName);
+
+      return {
+        id: id ?? index,
+        title,
+        artist,
+        coverUrl: resolveTrackCover(playlistTrack),
+        plays: resolveTrackPlayCount(playlistTrack) ?? '0',
+      };
+    }),
+  };
+};
+
+const PlaylistListFallback = () => (
   <>
-    {Array.from({ length: 10 }).map((_, i) => (
+    {Array.from({ length: 6 }).map((_, index) => (
       <div
-        key={i}
+        key={index}
         className="bg-surface-default rounded-lg h-40 animate-pulse"
       />
     ))}
   </>
 );
+
 export default function Page() {
   const { username } = useParams<{ username: string }>();
-  // Fetch the profile data to grab the real avatar
-  const { data: profileData } = usePublicUser(username);
+  const ownerContext = useProfileOwnerContext();
+  const [playlists, setPlaylists] = useState<PlaylistResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  const isOwnedProfile = Boolean(ownerContext?.isOwner);
+  const routeUsername = username;
+  const profileUsername =
+    ownerContext?.publicUser?.profile.username ||
+    ownerContext?.ownerUser?.username ||
+    routeUsername;
+  const profileAvatar =
+    ownerContext?.publicUser?.profile.profilePic ||
+    ownerContext?.ownerUser?.profile.profilePic ||
+    undefined;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadPlaylists = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        if (isOwnedProfile) {
+          const response = await playlistService.getMePlaylists({
+            page: 0,
+            size: PLAYLIST_PAGE_SIZE,
+          });
+
+          if (!isCancelled) {
+            setPlaylists(response.content);
+          }
+          return;
+        }
+
+        let resolvedUserId = ownerContext?.publicUser?.profile.id;
+
+        if (!resolvedUserId) {
+          const publicUser = await userService.getPublicUserByUsername(routeUsername);
+          resolvedUserId = publicUser.profile.id;
+        }
+
+        const response = await playlistService.getUserPlaylists(resolvedUserId, {
+          page: 0,
+          size: PLAYLIST_PAGE_SIZE,
+        });
+
+        if (!isCancelled) {
+          setPlaylists(response.content);
+        }
+      } catch {
+        if (!isCancelled) {
+          setPlaylists([]);
+          setIsError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadPlaylists();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    isOwnedProfile,
+    ownerContext?.publicUser?.profile.id,
+    ownerContext?.publicUser?.profile.username,
+    routeUsername,
+  ]);
+
+  const cards = useMemo(() => {
+    return playlists.map((playlist) =>
+      mapPlaylistToCard(playlist, {
+        fallbackUsername: profileUsername,
+        fallbackAvatar: profileAvatar,
+        showEditButton:
+          isOwnedProfile &&
+          normalizeIdentity(profileUsername) === normalizeIdentity(routeUsername),
+      })
+    );
+  }, [isOwnedProfile, playlists, profileAvatar, profileUsername, routeUsername]);
+
+  if (isLoading) {
+    return <PlaylistListFallback />;
+  }
+
+  if (isError) {
+    return (
+      <p className="text-text-muted text-sm">
+        Failed to load playlists. Please try again later.
+      </p>
+    );
+  }
+
+  if (cards.length === 0) {
+    return <p className="text-text-muted text-sm">No playlists published yet.</p>;
+  }
+
   return (
     <div className="w-full min-w-0">
-      <Suspense fallback={<TrackListFallback />}>
-        <TrackList
-          username={username}
-          artistAvatar={profileData?.profile.profilePic}
-          showTrackList= {true}
-        />
-      </Suspense>
+      {cards.map((item) => (
+        <PlaylistCard key={item.trackId} {...item} />
+      ))}
     </div>
   );
 }
