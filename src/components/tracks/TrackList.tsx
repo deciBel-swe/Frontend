@@ -28,14 +28,19 @@ export type TrackListItem = {
   trackId: string;
   user: { username: string; displayName?: string; avatar: string };
   postedText?: string;
-  repostedBy?: { username: string; displayName?: string };
+  repostedBy?: { username: string; displayName?: string , avatar: string};
   track: {
     id: number;
-    artist: string;
+    artist:{
+      username: string;
+      displayName?: string;
+      avatar: string;
+    }
     title: string;
     cover: string;
     duration: string;
     plays?: number;
+    trackSlug?: string;
     comments?: number;
     createdAt?: string;
     genre?: string;
@@ -69,7 +74,6 @@ type TrackListProps = {
 export default function TrackList({
   userId,
   username,
-  artistAvatar,
   showTrackList = false,
 
   tracks: externalTracks,
@@ -104,35 +108,19 @@ export default function TrackList({
 
   // Normalize fetched service DTOs into TrackCard + playback mapping shape.
   const baseItems: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
-    const artistUsername =
-      typeof track.artist === 'string'
-        ? track.artist
-        : track.artist.username;
-    const artistDisplayName =
-      typeof track.artist === 'string'
-        ? undefined
-        : track.artist.displayName?.trim() || undefined;
-    const resolvedArtistDisplayName =
-      artistDisplayName ||
-      (normalizeIdentity(artistUsername) === normalizeIdentity(contextProfileUsername)
-        ? contextProfileDisplayName
-        : undefined);
     const durationSeconds =
       typeof track.durationSeconds === 'number' && track.durationSeconds > 0
         ? track.durationSeconds
         : undefined;
-
     return {
       trackId: String(track.id),
       user: {
-        username: artistUsername,
-        displayName: resolvedArtistDisplayName,
-        avatar: artistAvatar || track.coverUrl,
       },
       postedText: 'posted a track',
       track: {
         id: track.id,
-        artist: resolvedArtistDisplayName || artistUsername,
+        trackSlug: track.trackSlug,
+        artist:{},
         title: track.title,
         cover: track.coverUrl,
         duration: durationSeconds ? formatDuration(durationSeconds) : '',

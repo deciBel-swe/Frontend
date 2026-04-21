@@ -69,6 +69,7 @@ const toLoginUser = (
     id: account.id,
     username: account.username,
     tier: account.tier,
+    displayName: account.displayName,
     avatarUrl: account.avatarUrl?.trim() || "/images/default_song_image.png",
   };
 };
@@ -279,7 +280,6 @@ export class MockAuthService implements AuthService {
     }
 
     const user = toLoginUser(account);
-
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);

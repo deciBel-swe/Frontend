@@ -9,6 +9,7 @@ type TrackCardMetaProps = {
   userSlug: string;
   artistName: string;
   trackId: number;
+  routeTrackId?: string;
   title: string;
   contentHref?: string;
   genre?: string;
@@ -25,6 +26,7 @@ export default function TrackCardMeta({
   userSlug,
   artistName,
   trackId,
+  routeTrackId,
   title,
   contentHref,
   genre,
@@ -36,7 +38,7 @@ export default function TrackCardMeta({
   isCurrentTrackPlaying,
   onPlayClick,
 }: TrackCardMetaProps) {
-  const resolvedHref = contentHref ?? `/${userSlug}/${trackId}`;
+  const resolvedHref = contentHref ?? `/${userSlug}/${routeTrackId ?? trackId}`;
 
   return (
     <div className="flex h-12 items-center gap-3 px-2">

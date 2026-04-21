@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 
 interface UseCopyTrackLinkProps {
   trackId: string | number;
+  routeTrackId?: string;
   isPrivate: boolean;
   secretUrl: string | null;
   artistName?: string;
@@ -10,6 +11,7 @@ interface UseCopyTrackLinkProps {
 
 export function useCopyTrackLink({
   trackId,
+  routeTrackId,
   isPrivate,
   secretUrl,
   artistName,
@@ -18,6 +20,7 @@ export function useCopyTrackLink({
 
   const handleCopy = useCallback(async () => {
     let urlToCopy = '';
+    const routeId = routeTrackId?.trim() || String(trackId);
 
     if (isPrivate && secretUrl) {
       if (artistName) {
@@ -26,7 +29,7 @@ export function useCopyTrackLink({
           const secretToken = parsed.searchParams.get('s');
           if (secretToken) {
             const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-            urlToCopy = `${window.location.origin}/${userSlug}/${String(trackId)}?s=${secretToken}`;
+            urlToCopy = `${window.location.origin}/${userSlug}/${routeId}?s=${secretToken}`;
           }
         } catch {
           // fall back to service formatted URL if parsing fails
@@ -38,7 +41,7 @@ export function useCopyTrackLink({
       }
     } else if (!isPrivate && artistName) {
       const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-      urlToCopy = `${window.location.origin}/${userSlug}/${String(trackId)}`;
+      urlToCopy = `${window.location.origin}/${userSlug}/${routeId}`;
     }
 
     if (!urlToCopy) return;
@@ -46,7 +49,7 @@ export function useCopyTrackLink({
     await navigator.clipboard.writeText(urlToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [isPrivate, secretUrl, artistName, trackId]);
+  }, [artistName, isPrivate, routeTrackId, secretUrl, trackId]);
 
   return { copied, handleCopy };
 }

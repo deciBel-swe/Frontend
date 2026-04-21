@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth';
 import type { PlaybackAccess, PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
@@ -10,6 +10,7 @@ import type { Comment as ApiComment, ReplyComment as ApiReplyComment } from '@/t
 import type { Comment as ViewComment, CommentReply as ViewCommentReply } from '@/components/comments/CommentItem';
 import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
 import type { Fan } from '@/components/track-page/TrackFansPanel';
+import { resolveTrackIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
 
 type TopLevelApiComment = ApiComment & { timestampSeconds: number };
 
@@ -31,6 +32,7 @@ export type TrackPageData = {
 type UseTrackPageParams = {
   username: string;
   trackId: string | number;
+  secretToken?: string | null;
   currentUserAvatar?: string;
 };
 
@@ -190,6 +192,7 @@ const mapApiCommentToWaveform = (comment: ApiComment): TimedComment => {
 export function useTrackPage({
   username,
   trackId,
+  secretToken,
   currentUserAvatar: explicitCurrentUserAvatar,
 }: UseTrackPageParams): UseTrackPageResult {
   const { user } = useAuth();
@@ -226,8 +229,6 @@ export function useTrackPage({
   const playerCurrentTime = usePlayerStore((state) => state.currentTime);
   const playerDuration = usePlayerStore((state) => state.duration);
 
-  const parsedTrackId = useMemo(() => Number(trackId), [trackId]);
-
   const currentUserAvatar = explicitCurrentUserAvatar ?? user?.avatarUrl;
 
   useEffect(() => {
@@ -239,14 +240,29 @@ export function useTrackPage({
       setErrorMessage(null);
 
       try {
-        if (!Number.isInteger(parsedTrackId) || parsedTrackId <= 0) {
-          throw new Error('Invalid track id');
+        const normalizedIdentifier = String(trackId ?? '').trim();
+        if (normalizedIdentifier.length === 0) {
+          throw new Error('Invalid track identifier');
         }
+
+        const resolvedTrackMetadata = secretToken
+          ? await trackService.getTrackByToken(secretToken)
+          : await (async () => {
+              const resolvedTrackId = await resolveTrackIdFromIdentifier(
+                normalizedIdentifier
+              );
+              return trackService.getTrackMetadata(resolvedTrackId);
+            })();
+
+        const resolvedTrackId = resolvedTrackMetadata.id;
 
         const [trackMetadata, commentsResponse] =
           await Promise.all([
-            trackService.getTrackMetadata(parsedTrackId),
-            commentService.getTrackComments(parsedTrackId, { page: 0, size: 100 }),
+            Promise.resolve(resolvedTrackMetadata),
+            commentService.getTrackComments(resolvedTrackId, {
+              page: 0,
+              size: 100,
+            }),
           ]);
 
         if (isCancelled) {
@@ -371,7 +387,7 @@ export function useTrackPage({
     return () => {
       isCancelled = true;
     };
-  }, [parsedTrackId, user, username]);
+  }, [secretToken, trackId, user, username]);
 
   const isPlaying =
     playerTrack?.id !== undefined &&

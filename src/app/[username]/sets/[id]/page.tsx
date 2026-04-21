@@ -17,6 +17,10 @@ import { useWaveformData } from '@/hooks/useWaveformData';
 import { playlistService, trackService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
+import {
+  getSecretTokenFromQuery,
+  resolvePlaylistIdFromIdentifier,
+} from '@/utils/resourceIdentifierResolvers';
 
 /**
  * /sets/[id]/page.tsx
@@ -153,6 +157,25 @@ const resolveTrackArtist = (track: PlaylistTrackDto, fallbackArtist: string): st
   return fallbackArtist;
 };
 
+const resolveTrackArtistUsername = (
+  track: PlaylistTrackDto
+): string | undefined => {
+  if ('artist' in track && track.artist?.username) {
+    return track.artist.username;
+  }
+
+  return undefined;
+};
+
+const resolveTrackSlug = (track: PlaylistTrackDto): string | undefined => {
+  if ('trackSlug' in track && typeof track.trackSlug === 'string') {
+    const normalized = track.trackSlug.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  return undefined;
+};
+
 const resolveTrackDurationSeconds = (track: PlaylistTrackDto): number => {
   if ('durationSeconds' in track && typeof track.durationSeconds === 'number') {
     return track.durationSeconds;
@@ -239,6 +262,8 @@ const mapPlaylistTracksToItems = (
 
       const item: PlaylistTrack = {
         id,
+        trackSlug: resolveTrackSlug(track),
+        artistUsername: resolveTrackArtistUsername(track),
         title: resolveTrackTitle(track),
         artist: resolveTrackArtist(track, fallbackArtist),
         coverUrl,
@@ -268,6 +293,7 @@ export default function PlaylistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const ownerContext = useProfileOwnerContext();
+  const secretToken = getSecretTokenFromQuery(searchParams);
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
   const [orderedTracks, setOrderedTracks] = useState<PlaylistTrack[]>([]);
@@ -288,9 +314,6 @@ export default function PlaylistPage() {
   const pausePlayback = usePlayerStore((state) => state.pause);
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
-  const playlistId = Number(id);
-  const isPlaylistIdValid = Number.isFinite(playlistId);
-
   const ownerUsername = playlist?.owner?.username || username;
   const ownerDisplayName =
     playlist?.owner?.displayName?.trim() ||
@@ -301,12 +324,6 @@ export default function PlaylistPage() {
     normalizeIdentity(ownerUsername) === normalizeIdentity(username);
 
   useEffect(() => {
-    if (!isPlaylistIdValid) {
-      setIsLoading(false);
-      setIsError(true);
-      return;
-    }
-
     let isCancelled = false;
 
     const loadPlaylist = async () => {
@@ -314,9 +331,19 @@ export default function PlaylistPage() {
       setIsError(false);
 
       try {
-        const data = normalizePlaylistResponse(
-          await playlistService.getPlaylist(playlistId)
-        );
+        const data = await (async (): Promise<PlaylistResponse> => {
+          if (secretToken) {
+            return normalizePlaylistResponse(
+              await playlistService.getPlaylistByToken(secretToken)
+            );
+          }
+
+          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(id);
+          return normalizePlaylistResponse(
+            await playlistService.getPlaylist(resolvedPlaylistId)
+          );
+        })();
+
         if (isCancelled) {
           return;
         }
@@ -346,7 +373,7 @@ export default function PlaylistPage() {
     return () => {
       isCancelled = true;
     };
-  }, [isPlaylistIdValid, playlistId, username]);
+  }, [id, secretToken, username]);
 
   const loadPlaylistById = async (targetPlaylistId: number): Promise<PlaylistResponse> => {
     const data = normalizePlaylistResponse(
@@ -866,6 +893,7 @@ export default function PlaylistPage() {
     ? ((playlist as { tags?: unknown[] }).tags ?? [])
         .filter((tag): tag is string => typeof tag === 'string')
     : [];
+  const playlistPathId = playlist.playlistSlug?.trim() || id;
 
   const bannerPlaylist = {
     title: playlist.title,
@@ -996,7 +1024,7 @@ export default function PlaylistPage() {
         {/* RIGHT SIDEBAR */}
         <PlaylistEngagementSidebar
           username={username}
-          playlistId={playlist.id}
+          playlistPathId={playlistPathId}
           likesCount={playlist.likeCount ?? 0}
           repostsCount={playlist.repostCount ?? 0}
         />

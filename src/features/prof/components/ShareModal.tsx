@@ -31,6 +31,7 @@ interface ShareModalBaseProps {
 interface TrackShareModalProps extends ShareModalBaseProps {
   variant: 'track';
   trackId: string;
+  sharePathId?: string;
   isPrivate: boolean;
   track?: TrackPreviewData;
 }
@@ -99,9 +100,11 @@ function ProfileShareContent({ profileUrl }: { profileUrl: string }) {
 /** Private track share — secret link + reset */
 function PrivateShareContent({
   trackId,
+  sharePathId,
   track,
 }: {
   trackId: string;
+  sharePathId?: string;
   track: TrackPreviewData;
 }) {
   const { secretUrl, secretToken, isLoading, isError, regenerate, isRegenerating } =
@@ -109,9 +112,10 @@ function PrivateShareContent({
   const [copied, setCopied] = useState(false);
 
   const userSlug = track.artist.toLowerCase().replace(/\s+/g, '');
+  const routeTrackId = sharePathId?.trim() || trackId;
   const urlToUse =
     secretToken && typeof window !== 'undefined'
-      ? `${window.location.origin}/${userSlug}/${trackId}?s=${secretToken}`
+      ? `${window.location.origin}/${userSlug}/${routeTrackId}?s=${secretToken}`
       : secretUrl;
 
   const handleCopy = async () => {
@@ -182,12 +186,15 @@ function PrivateShareContent({
 function PublicTrackShareContent({
   artist,
   trackId,
+  sharePathId,
 }: {
   artist: string;
   trackId: string;
+  sharePathId?: string;
 }) {
   const userSlug = artist.toLowerCase().replace(/\s+/g, '');
-  const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${trackId}`;
+  const routeTrackId = sharePathId?.trim() || trackId;
+  const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${routeTrackId}`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -362,9 +369,17 @@ export function ShareModal(props: ShareModalProps) {
     } else {
       const track = props.track ?? PLACEHOLDER_TRACK;
       shareContent = props.isPrivate ? (
-        <PrivateShareContent trackId={props.trackId} track={track} />
+        <PrivateShareContent
+          trackId={props.trackId}
+          sharePathId={props.sharePathId}
+          track={track}
+        />
       ) : (
-        <PublicTrackShareContent artist={track.artist} trackId={props.trackId} />
+        <PublicTrackShareContent
+          artist={track.artist}
+          trackId={props.trackId}
+          sharePathId={props.sharePathId}
+        />
       );
     }
   } else if (activeTab === 'embed') {

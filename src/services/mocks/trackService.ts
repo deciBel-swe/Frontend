@@ -1,4 +1,3 @@
-import { config } from '@/config';
 import type { TrackService } from '@/services/api/trackService';
 import type {
   paginationRepostUser,
@@ -45,22 +44,14 @@ const DEFAULT_TRACK_DURATION_SECONDS_BY_ID: Record<number, number> = {
 };
 
 const resolvePlayableTrackUrl = (
-  formData: FormData,
-  currentTrackUrl?: string
+  _formData: FormData,
+  _currentTrackUrl?: string
 ): string => {
-  const providedTrackUrl = getOptionalStringField(formData, 'trackUrl');
-  if (providedTrackUrl) {
-    return providedTrackUrl;
-  }
-
-  return currentTrackUrl ?? FALLBACK_AUDIO_TRACK_URL;
+  return FALLBACK_AUDIO_TRACK_URL;
 };
 
-const buildCoverUrl = (trackId: number): string =>
-  `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`;
-
-const buildWaveformUrl = (trackId: number): string =>
-  `${config.api.appUrl}/mock/waveforms/${trackId}.json`;
+const buildCoverUrl = (_trackId: number): string =>
+  '/images/default_song_image.png';
 
 const toTrackSlug = (title: string, id: number): string => {
   const normalized = title
@@ -147,14 +138,8 @@ const getWaveformSampleCountFromForm = (formData: FormData): number => {
   return waveformEntries.length;
 };
 
-const waveformPayloadToUrl = (trackId: number, waveformData: number[]): string => {
-  if (waveformData.length === 0) {
-    return buildWaveformUrl(trackId);
-  }
-
-  const serialized = encodeURIComponent(JSON.stringify(waveformData));
-  return `data:application/json,${serialized}`;
-};
+const waveformPayloadToUrl = (_trackId: number, _waveformData: number[]): string =>
+  UPLOADED_TRACK_WAVEFORM_URL;
 
 const parseWaveformDataUrl = (waveformUrl: string): number[] | null => {
   if (!waveformUrl.startsWith('data:')) {
@@ -203,11 +188,11 @@ const resolveDurationSeconds = (
   waveformData: number[]
 ): number => {
   if (
-    typeof track.durationSeconds === 'number' &&
-    Number.isFinite(track.durationSeconds) &&
-    track.durationSeconds > 0
+    typeof track.trackDurationSeconds === 'number' &&
+    Number.isFinite(track.trackDurationSeconds) &&
+    track.trackDurationSeconds > 0
   ) {
-    return Math.round(track.durationSeconds);
+    return Math.round(track.trackDurationSeconds);
   }
 
   const seededDuration = DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id];
@@ -219,7 +204,7 @@ const resolveDurationSeconds = (
     return Math.max(30, Math.min(1200, waveformData.length * 2));
   }
 
-  return 180;
+  return 2745;
 };
 
 const toMetadata = async (track: MockTrackRecord): Promise<TrackMetaData> => {
@@ -234,6 +219,7 @@ const toMetadata = async (track: MockTrackRecord): Promise<TrackMetaData> => {
   return {
     id: track.id,
     title: track.title,
+    trackSlug: toTrackSlug(track.title, track.id),
     artist: { ...track.artist },
     trackUrl: track.trackUrl,
     durationSeconds,
@@ -268,6 +254,15 @@ const parseTrackId = (trackId: string): number => {
     throw new Error('Invalid track id');
   }
   return parsed;
+};
+
+const resolveTrackBySecretToken = (token: string): MockTrackRecord | undefined => {
+  const normalizedToken = token.trim();
+  if (normalizedToken.length === 0) {
+    return undefined;
+  }
+
+  return readTracks().find((track) => track.secretLink === normalizedToken);
 };
 
 const getStringField = (
@@ -375,15 +370,12 @@ const getOptionalTagsField = (formData: FormData): string[] | undefined => {
   return getTagsField(formData);
 };
 
-const readFileAsDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-
-const getSessionArtist = (): { id: number; username: string } | null => {
+const getSessionArtist = (): {
+  id: number;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+} | null => {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -402,6 +394,8 @@ const getSessionArtist = (): { id: number; username: string } | null => {
   return {
     id: user.id,
     username: user.username,
+    displayName: user.displayName,
+    avatarUrl: user.profile.profilePic,
   };
 };
 
@@ -478,34 +472,52 @@ export class MockTrackService implements TrackService {
         const artistId = sessionArtist?.id ?? 7;
 
         const finalizeUpload = async () => {
-          const coverImageEntry = formData.get('coverImage');
-          const coverImageDataUrl =
-            coverImageEntry instanceof File
-              ? await readFileAsDataUrl(coverImageEntry)
-              : undefined;
+          const coverImageDataUrl = undefined;
 
           const uploaded: MockTrackRecord = {
             id: nextId,
             title,
+            trackSlug: toTrackSlug(title, nextId),
             artist: {
               id: artistId,
               username: artistName,
+              displayName: sessionArtist?.displayName ?? artistName,
+              avatarUrl: sessionArtist?.avatarUrl ?? '/images/default_avatar_image_1.png',
             },
             trackUrl: resolvePlayableTrackUrl(formData),
-            coverUrl: coverImageDataUrl ?? buildCoverUrl(nextId),
+            coverUrl: buildCoverUrl(nextId),
             coverImageDataUrl,
             waveformUrl: UPLOADED_TRACK_WAVEFORM_URL,
             waveformData: waveformSamples,
             genre,
+            isReposted: false,
+            isLiked: false,
             description,
             tags,
             releaseDate,
+            uploadDate: releaseDate,
+            playCount: 0,
+            completedPlayCount: 0,
+            likeCount: 0,
+            repostCount: 0,
+            commentCount: 0,
             isPrivate,
+            trackDurationSeconds: durationSeconds,
+            trendingRank: 0,
+            access: isPrivate ? 'PREVIEW' : 'PLAYABLE',
+            trackPreviewUrl: FALLBACK_AUDIO_TRACK_URL,
             durationSeconds,
-            secretLink: isPrivate ? createSecretToken() : undefined,
+            secretLink: undefined,
+            secretToken: undefined,
             likes: 0,
             reposters: 0,
           };
+
+          if (isPrivate) {
+            const token = createSecretToken();
+            uploaded.secretLink = token;
+            uploaded.secretToken = token;
+          }
 
           const updated = [uploaded, ...tracks];
           writeTracks(updated);
@@ -566,6 +578,17 @@ export class MockTrackService implements TrackService {
     return toMetadata(track);
   }
 
+  async getTrackByToken(token: string): Promise<TrackMetaData> {
+    await delay();
+
+    const track = resolveTrackBySecretToken(token);
+    if (!track) {
+      throw new Error('Track not found');
+    }
+
+    return toMetadata(track);
+  }
+
   async getUserTracks(userId: number): Promise<TrackMetaData[]> {
     await delay();
     const currentUserId = resolveCurrentMockUserId();
@@ -618,23 +641,14 @@ export class MockTrackService implements TrackService {
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
     const removeCover = getOptionalBooleanField(formData, 'removeCover');
     const nextWaveformSamples = parseWaveformPayloadFromForm(formData);
-    const coverImageEntry = formData.get('coverImage');
-    const coverImageDataUrl =
-      coverImageEntry instanceof File
-        ? await readFileAsDataUrl(coverImageEntry)
-        : undefined;
 
     const nextIsPrivate = isPrivate ?? current.isPrivate;
     const nextSecretLink = nextIsPrivate
       ? (current.secretLink ?? createSecretToken())
       : current.secretLink;
 
-    const nextCoverUrl = removeCover
-      ? buildCoverUrl(trackId)
-      : (coverImageDataUrl ?? current.coverUrl);
-    const nextCoverImageDataUrl = removeCover
-      ? undefined
-      : (coverImageDataUrl ?? current.coverImageDataUrl);
+    const nextCoverUrl = removeCover ? buildCoverUrl(trackId) : buildCoverUrl(trackId);
+    const nextCoverImageDataUrl = undefined;
 
     const nextTrackUrl = resolvePlayableTrackUrl(formData, current.trackUrl);
 
@@ -872,7 +886,8 @@ export class MockTrackService implements TrackService {
         }
 
         if (!alreadyLiked) {
-          track.likes = incrementCounter(track.likes);
+          track.likes = incrementCounter(track.likes ?? 0);
+          track.likeCount = track.likes;
         }
 
         persistMockSystemState();
@@ -905,7 +920,8 @@ export class MockTrackService implements TrackService {
         }
 
         if (wasLiked) {
-          track.likes = decrementCounter(track.likes);
+          track.likes = decrementCounter(track.likes ?? 0);
+          track.likeCount = track.likes;
         }
 
         persistMockSystemState();
@@ -946,7 +962,8 @@ export class MockTrackService implements TrackService {
           title: track.title,
           genre: track.genre,
         });
-        track.reposters = incrementCounter(track.reposters);
+        track.reposters = incrementCounter(track.reposters ?? 0);
+        track.repostCount = track.reposters;
 
         persistMockSystemState();
         resolve({
@@ -981,7 +998,8 @@ export class MockTrackService implements TrackService {
           return;
         }
         user.reposts.splice(repostIndex, 1);
-        track.reposters = decrementCounter(track.reposters);
+        track.reposters = decrementCounter(track.reposters ?? 0);
+        track.repostCount = track.reposters;
 
         persistMockSystemState();
         resolve({
@@ -1019,11 +1037,11 @@ export class MockTrackService implements TrackService {
           trackSlug: toTrackSlug(track.title, track.id),
           isLiked: true,
           isReposted: isTrackRepostedByUser(track.id, currentUserId),
-          likeCount: track.likes,
+          likeCount: track.likes ?? track.likeCount,
           playCount: 0, //since it is a mock, number won't matter that much
           commentCount: 0,
           releaseDate: new Date(track.releaseDate),
-          repostCount: track.reposters,
+          repostCount: track.reposters ?? track.repostCount,
           access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
           secretToken: track.secretLink ?? '',
           tags: [...track.tags],
@@ -1073,11 +1091,11 @@ export class MockTrackService implements TrackService {
           trackSlug: toTrackSlug(track.title, track.id),
           isLiked: isTrackLikedByUser(track.id, currentUserId),
           isReposted: true,
-          likeCount: track.likes,
+          likeCount: track.likes ?? track.likeCount,
           playCount: 0,
           commentCount: 0,
           releaseDate: new Date(track.releaseDate),
-          repostCount: track.reposters,
+          repostCount: track.reposters ?? track.repostCount,
           access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
           secretToken: track.secretLink ?? '',
           tags: [...track.tags],

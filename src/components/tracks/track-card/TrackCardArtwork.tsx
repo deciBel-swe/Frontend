@@ -6,6 +6,7 @@ import Link from 'next/link';
 type TrackCardArtworkProps = {
   userSlug: string;
   trackId: number;
+  routeTrackId?: string;
   coverUrl: string;
   title: string;
   contentHref?: string;
@@ -14,11 +15,12 @@ type TrackCardArtworkProps = {
 export default function TrackCardArtwork({
   userSlug,
   trackId,
+  routeTrackId,
   coverUrl,
   title,
   contentHref,
 }: TrackCardArtworkProps) {
-  const resolvedHref = contentHref ?? `/${userSlug}/${trackId}`;
+  const resolvedHref = contentHref ?? `/${userSlug}/${routeTrackId ?? trackId}`;
 
   return (
     <Link

@@ -42,7 +42,8 @@ export default function PlaylistHorizontalRoot({
   const repostedByDisplayName = repostedBy
     ? repostedBy.displayName?.trim() || repostedBy.username
     : undefined;
-  const playlistHref = `/${userSlug}/sets/${trackId}`;
+  const playlistPathId = track.playlistSlug?.trim() || trackId;
+  const playlistHref = `/${userSlug}/sets/${playlistPathId}`;
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -214,6 +215,7 @@ export default function PlaylistHorizontalRoot({
         <TrackCardArtwork
           userSlug={userSlug}
           trackId={track.id}
+          routeTrackId={playlistPathId}
           coverUrl={track.cover}
           title={track.title}
           contentHref={playlistHref}
@@ -224,6 +226,7 @@ export default function PlaylistHorizontalRoot({
             userSlug={userSlug}
             artistName={track.artist}
             trackId={track.id}
+            routeTrackId={playlistPathId}
             title={track.title}
             contentHref={playlistHref}
             genre={track.genre}
@@ -258,6 +261,7 @@ export default function PlaylistHorizontalRoot({
           <TrackCardFooter
             userSlug={userSlug}
             trackId={track.id}
+            routeTrackId={playlistPathId}
             showEditButton={showEditButton}
             isLiked={isLiked}
             isReposted={isReposted}

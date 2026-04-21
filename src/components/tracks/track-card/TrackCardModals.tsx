@@ -11,6 +11,7 @@ import { playlistService } from '@/services';
 
 type TrackCardModalsProps = {
   trackId: string;
+  routeTrackId?: string;
   trackNumericId: number;
   isPrivate: boolean;
   track: {
@@ -31,6 +32,7 @@ type TrackCardModalsProps = {
 
 export default function TrackCardModals({
   trackId,
+  routeTrackId,
   trackNumericId,
   isPrivate,
   track,
@@ -157,6 +159,7 @@ export default function TrackCardModals({
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}
+        sharePathId={routeTrackId}
         isPrivate={isPrivate}
         track={{
           title: track.title,

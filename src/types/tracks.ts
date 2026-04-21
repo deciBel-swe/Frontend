@@ -119,6 +119,7 @@ export const trackArtistSchema = z
     id: z.number().optional(),
     username: z.string().optional(),
     displayName: nullableStringWithDefault('').optional(),
+    avatarUrl: z.string().url().optional().nullable(),
   })
   .passthrough();
 export type TrackArtist = z.infer<typeof trackArtistSchema>;
@@ -128,6 +129,7 @@ export const trackMetadataArtistSchema = z.object({
   id: z.number(),
   username: z.string(),
   displayName: z.string().optional(),
+  avatarUrl: z.string().url().optional().nullable(),
 });
 export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 
@@ -135,7 +137,15 @@ export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
+  trackSlug: z.string().trim().min(1).optional(),
+  slug: z.string().trim().min(1).optional(),
   durationSeconds: z.coerce.number().int().nonnegative().optional().nullable(),
+  trackDurationSeconds: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .nullable(),
   genre: z.string().trim().optional().default('Unknown'),
   description: nullableStringWithDefault(' '),
   releaseDate: z.string().trim().optional().nullable(),
@@ -143,7 +153,7 @@ export const trackDetailsResponseSchema = z.object({
   tags: z.array(z.string()).optional().default([]),
   trackUrl: z.string().trim().min(1).optional().nullable(),
   coverUrl: trackImageWithDefault,
-  coverImage: trackImageWithDefault,
+  coverImage: trackImageWithDefault.optional(),
   waveformUrl: z.string().trim().min(1).optional().nullable(),
   waveformData: z.union([z.string(), z.array(z.number())]).optional(),
   artist: trackArtistSchema.partial().optional(),
@@ -191,6 +201,7 @@ export type TrackUpdateResponse = z.infer<typeof trackUpdateResponseSchema>;
 export const trackMetadataSchema = z.object({
   id: z.number(),
   title: z.string(),
+  trackSlug: z.string().trim().min(1).optional(),
   artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
   durationSeconds: z.number().int().nonnegative().optional(),

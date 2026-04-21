@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { UserCardData } from '@/features/social/components/UserCard';
 import { trackService, userService } from '@/services';
 import type { SearchUser } from '@/types/user';
+import { resolveTrackIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
 
 type EngagementType = 'likes' | 'reposts';
 
@@ -58,10 +59,7 @@ export function useTrackEngagementPage({
       setIsError(false);
 
       try {
-        const parsedTrackId = Number(trackId);
-        if (!Number.isInteger(parsedTrackId) || parsedTrackId <= 0) {
-          throw new Error('Invalid track id');
-        }
+        const parsedTrackId = await resolveTrackIdFromIdentifier(trackId);
 
         if (isCancelled) {
           return;

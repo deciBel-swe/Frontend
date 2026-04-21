@@ -35,6 +35,7 @@ export default function TrackCardRoot({
   showHeader = true,
 }: TrackCardProps) {
   const userSlug = toUserSlug(user.username);
+  const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
   const repostedBySlug = repostedBy?.username
     ? toUserSlug(repostedBy.username)
@@ -54,6 +55,7 @@ export default function TrackCardRoot({
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
   const { handleCopy } = useCopyTrackLink({
     trackId,
+    routeTrackId,
     isPrivate: resolvedIsPrivate,
     secretUrl,
     artistName: track.artist,
@@ -135,6 +137,7 @@ export default function TrackCardRoot({
         <TrackCardArtwork
           userSlug={userSlug}
           trackId={track.id}
+          routeTrackId={routeTrackId}
           coverUrl={track.cover}
           title={track.title}
         />
@@ -144,6 +147,7 @@ export default function TrackCardRoot({
             userSlug={userSlug}
             artistName={track.artist}
             trackId={track.id}
+            routeTrackId={routeTrackId}
             title={track.title}
             genre={track.genre}
             createdAt={track.createdAt}
@@ -177,6 +181,7 @@ export default function TrackCardRoot({
           <TrackCardFooter
             userSlug={userSlug}
             trackId={track.id}
+            routeTrackId={routeTrackId}
             showEditButton={showEditButton}
             isLiked={isLiked}
             isReposted={isReposted}
@@ -224,6 +229,7 @@ export default function TrackCardRoot({
 
       <TrackCardModals
         trackId={trackId}
+        routeTrackId={routeTrackId}
         trackNumericId={track.id}
         isPrivate={resolvedIsPrivate}
         track={track}

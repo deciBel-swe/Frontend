@@ -15,6 +15,9 @@ export type TrackCardUser = {
 
 export type TrackCardTrack = {
   id: number;
+  trackSlug?: string;
+  playlistSlug?: string;
+  artistUsername?: string;
   artist: string;
   title: string;
   cover: string;

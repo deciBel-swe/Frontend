@@ -70,6 +70,8 @@ const mapTrackResourceToDiscoverTrack = (
     postedText: 'posted a track',
     track: {
       id: track.id,
+      trackSlug: track.trackSlug,
+      artistUsername: track.artist.username,
       artist: artistDisplayName,
       title: track.title,
       cover: track.coverUrl,
@@ -128,6 +130,8 @@ const mapStationTrackToDiscoverTrack = (
     postedText: 'posted a track',
     track: {
       id: track.id,
+      trackSlug: track.trackSlug,
+      artistUsername: track.artist.username,
       artist: artistDisplayName,
       title: track.title,
       cover: track.coverUrl,
@@ -382,6 +386,8 @@ export default function Page() {
             postedText: 'posted a track',
             track: {
               id: entry.track.id,
+              trackSlug: entry.track.trackSlug,
+              artistUsername: entry.track.artist.username,
               artist:
                 entry.track.artist.displayName || entry.track.artist.username,
               title: entry.track.title,

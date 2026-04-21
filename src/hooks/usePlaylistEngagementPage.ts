@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { UserCardData } from '@/features/social/components/UserCard';
 import { feedService } from '@/services';
 import type { FeedItemDTO } from '@/types/discovery';
+import { resolvePlaylistIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
 
 type EngagementType = 'likes' | 'reposts';
 
@@ -91,10 +92,9 @@ export function usePlaylistEngagementPage({
       setIsError(false);
 
       try {
-        const parsedPlaylistId = Number(playlistId);
-        if (!Number.isInteger(parsedPlaylistId) || parsedPlaylistId <= 0) {
-          throw new Error('Invalid playlist id');
-        }
+        const parsedPlaylistId = await resolvePlaylistIdFromIdentifier(
+          playlistId
+        );
 
         const actorsById = new Map<string, LooseUser>();
 

@@ -8,12 +8,14 @@ import TrackFansPanel from '@/components/track-page/TrackFansPanel';
 type TrackPageViewProps = {
   username: string;
   trackId: string;
+  secretToken?: string | null;
   currentUserAvatar?: string;
 };
 
 export default function TrackPageView({
   username,
   trackId,
+  secretToken,
   currentUserAvatar,
 }: TrackPageViewProps) {
   const {
@@ -35,7 +37,7 @@ export default function TrackPageView({
     clearPendingTimestamp,
     onCommentSubmit,
     onReplySubmit,
-  } = useTrackPage({ username, trackId, currentUserAvatar });
+  } = useTrackPage({ username, trackId, secretToken, currentUserAvatar });
 
   if (isLoading) {
     return <div className="w-full mt-4 text-sm text-text-muted">Loading track...</div>;

@@ -6,18 +6,18 @@ import StateItem from '@/features/prof/components/layout/sidebar/StatItem';
 
 type PlaylistEngagementSidebarProps = {
   username: string;
-  playlistId: number;
+  playlistPathId: string;
   likesCount: number;
   repostsCount: number;
 };
 
 export default function PlaylistEngagementSidebar({
   username,
-  playlistId,
+  playlistPathId,
   likesCount,
   repostsCount,
 }: PlaylistEngagementSidebarProps) {
-  const basePath = `/${username}/sets/${playlistId}`;
+  const basePath = `/${username}/sets/${playlistPathId}`;
 
   return (
     <aside className="hidden w-72 shrink-0 py-5 pl-4 md:block">

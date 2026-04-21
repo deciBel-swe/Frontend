@@ -194,6 +194,8 @@ export function mapTrackResourceToTrackCard(
     showHeader: true,
     track: {
       id: track.id,
+      trackSlug: track.trackSlug,
+      artistUsername: track.artist.username,
       artist: artistName,
       title: track.title,
       cover,
@@ -256,6 +258,8 @@ export function mapPlaylistResourceToPlaylistCard(
     showHeader: true,
     track: {
       id: playlist.id,
+      playlistSlug: playlist.playlistSlug,
+      artistUsername: playlist.owner.username,
       artist: ownerDisplayName,
       title: playlist.title,
       cover,
