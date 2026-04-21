@@ -10,6 +10,10 @@ type CarouselProps = {
    * Defaults to 320 — roughly 2 card widths at the base size.
    */
   scrollStep?: number;
+  onPrevPage?: () => void;
+  onNextPage?: () => void;
+  canPrevPage?: boolean;
+  canNextPage?: boolean;
 };
 
 /**
@@ -18,7 +22,14 @@ type CarouselProps = {
  * manages horizontal pagination via left/right buttons.
  * only handles the scroll container.
  */
-export default function Carousel({ children, scrollStep = 320 }: CarouselProps) {
+export default function Carousel({
+  children,
+  scrollStep = 320,
+  onPrevPage,
+  onNextPage,
+  canPrevPage = true,
+  canNextPage = true,
+}: CarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -31,12 +42,22 @@ export default function Carousel({ children, scrollStep = 320 }: CarouselProps) 
   }, []);
 
   const scrollLeft = useCallback(() => {
+    if (onPrevPage) {
+      onPrevPage();
+      return;
+    }
+
     trackRef.current?.scrollBy({ left: -scrollStep, behavior: 'smooth' });
-  }, [scrollStep]);
+  }, [onPrevPage, scrollStep]);
 
   const scrollRight = useCallback(() => {
+    if (onNextPage) {
+      onNextPage();
+      return;
+    }
+
     trackRef.current?.scrollBy({ left: scrollStep, behavior: 'smooth' });
-  }, [scrollStep]);
+  }, [onNextPage, scrollStep]);
 
   return (
     <div className="relative group/carousel">
@@ -51,7 +72,9 @@ export default function Carousel({ children, scrollStep = 320 }: CarouselProps) 
           'flex items-center justify-center',
           'shadow-md transition-all duration-200',
           'hover:bg-surface-hover hover:border-border-default',
-          canScrollLeft ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+          (onPrevPage ? canPrevPage : canScrollLeft)
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none',
         ].join(' ')}
       >
         <ChevronLeft size={18} className="text-text-primary" />
@@ -78,7 +101,9 @@ export default function Carousel({ children, scrollStep = 320 }: CarouselProps) 
           'flex items-center justify-center',
           'shadow-md transition-all duration-200',
           'hover:bg-surface-hover hover:border-border-default',
-          canScrollRight ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+          (onNextPage ? canNextPage : canScrollRight)
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none',
         ].join(' ')}
       >
         <ChevronRight size={18} className="text-text-primary" />

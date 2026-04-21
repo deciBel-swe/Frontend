@@ -22,6 +22,7 @@ export default function PlaylistHorizontalRoot({
   user,
   postedText = 'posted a set',
   showEditButton = false,
+  repostedBy,
   track,
   waveform,
   playback,
@@ -30,10 +31,17 @@ export default function PlaylistHorizontalRoot({
   currentUserAvatar,
   showHeader = true,
   relatedTracks,
+  onEdit,
 }: PlaylistHorizontalProps) {
   const router = useRouter();
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
+  const repostedBySlug = repostedBy?.username
+    ? toUserSlug(repostedBy.username)
+    : undefined;
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
   const playlistHref = `/${userSlug}/sets/${trackId}`;
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
@@ -195,8 +203,8 @@ export default function PlaylistHorizontalRoot({
     >
       {showHeader ? (
         <TrackCardHeader
-          userSlug={userSlug}
-          userDisplayName={userDisplayName}
+          userSlug={repostedBySlug ?? userSlug}
+          userDisplayName={repostedByDisplayName ?? userDisplayName}
           userAvatar={user.avatar}
           postedText={postedText}
         />
@@ -220,6 +228,8 @@ export default function PlaylistHorizontalRoot({
             contentHref={playlistHref}
             genre={track.genre}
             createdAt={track.createdAt}
+            repostedBySlug={repostedBySlug}
+            repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
@@ -258,7 +268,12 @@ export default function PlaylistHorizontalRoot({
             canAddToQueue={Boolean(playback) || Boolean(queueTracks?.length)}
             isMoreOpen={isMoreOpen}
             onEdit={() => {
-              if (!showEditButton) {
+              if (!showEditButton && !onEdit) {
+                return;
+              }
+
+              if (onEdit) {
+                onEdit();
                 return;
               }
 

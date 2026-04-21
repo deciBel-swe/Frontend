@@ -1,33 +1,110 @@
-import { useEffect, useState } from 'react';
-import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
-import { trackService } from '@/services';
-import { formatDuration } from '@/utils/formatDuration';
+import { useEffect, useMemo, useState } from 'react';
+import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
+import type { TrackCardProps } from '@/components/tracks/track-card';
+import { feedService } from '@/services';
+import type { FeedItemDTO } from '@/types/discovery';
+import { mapPlaylistResourceToPlaylistCard, mapTrackResourceToTrackCard } from '@/features/search/mappers/searchResultMappers';
 
-const toPlaybackAccess = (
-  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
-): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
-    return 'BLOCKED';
+type FeedCardItem =
+  | {
+      kind: 'track';
+      id: string;
+      card: TrackCardProps;
+    }
+  | {
+      kind: 'playlist';
+      id: string;
+      card: PlaylistHorizontalProps;
+    };
+
+const toPostedText = (item: FeedItemDTO): string => {
+  switch (item.type) {
+    case 'TRACK_POSTED':
+      return 'posted a track';
+    case 'TRACK_REPOSTED':
+      return 'reposted a track';
+    case 'TRACK_LIKED':
+      return 'liked a track';
+    case 'PLAYLIST_POSTED':
+      return 'posted a set';
+    case 'PLAYLIST_REPOSTED':
+      return 'reposted a set';
+    case 'PLAYLIST_LIKED':
+      return 'liked a set';
+    default:
+      return 'shared';
   }
-  return 'PLAYABLE';
 };
 
-/**
- * useFeedTracks
- *
- * Fetches all tracks from the track service and maps them into the shape
- * expected by <TrackCard />.
- *
- * Waveform data is hydrated by the track service from waveformUrl payloads.
- *
- * @example
- * const { feedTracks, isLoading, isError } = useFeedTracks();
- */
-export function useFeedTracks() {
-  const [tracks, setTracks] = useState<
-    Awaited<ReturnType<typeof trackService.getAllTracks>>
-  >([]);
+const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: string } | undefined => {
+  const actor =
+    item.repostedBy ??
+    ((item as unknown as { actor?: { username?: string; displayName?: string } }).actor ??
+      (item as unknown as { likedBy?: { username?: string; displayName?: string } }).likedBy);
+
+  if (!actor?.username) {
+    return undefined;
+  }
+
+  return {
+    username: actor.username,
+    displayName: actor.displayName,
+  };
+};
+
+const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
+  const postedText = toPostedText(item);
+  const actor = toFeedActor(item);
+
+  if (item.resource.resourceType === 'TRACK') {
+    const card = mapTrackResourceToTrackCard(item.resource);
+    if (!card) {
+      return null;
+    }
+
+    return {
+      kind: 'track',
+      id: `track-${item.id}-${item.resource.resourceId}`,
+      card: {
+        ...card,
+        postedText,
+        repostedBy: item.type === 'TRACK_REPOSTED' ? actor : card.repostedBy,
+      },
+    };
+  }
+
+  if (item.resource.resourceType === 'PLAYLIST') {
+    const card = mapPlaylistResourceToPlaylistCard(item.resource);
+    if (!card) {
+      return null;
+    }
+
+    const actorUsername = actor?.username;
+    const actorDisplayName = actor?.displayName;
+
+    return {
+      kind: 'playlist',
+      id: `playlist-${item.id}-${item.resource.resourceId}`,
+      card: {
+        ...card,
+        postedText,
+        ...(item.type === 'PLAYLIST_REPOSTED' && actorUsername
+          ? {
+              repostedBy: {
+                username: actorUsername,
+                displayName: actorDisplayName,
+              },
+            }
+          : {}),
+      },
+    };
+  }
+
+  return null;
+};
+
+export function useFeedTracks(page = 0, size = 25) {
+  const [feedItems, setFeedItems] = useState<FeedItemDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
@@ -50,16 +127,18 @@ export function useFeedTracks() {
   useEffect(() => {
     let isCancelled = false;
 
-    const fetchTracks = async () => {
+    const fetchFeed = async () => {
       setIsLoading(true);
       setIsError(false);
+
       try {
-        const data = await trackService.getAllTracks();
+        const response = await feedService.getfeed({ page, size });
         if (!isCancelled) {
-          setTracks(data);
+          setFeedItems(response.content);
         }
       } catch {
         if (!isCancelled) {
+          setFeedItems([]);
           setIsError(true);
         }
       } finally {
@@ -69,68 +148,23 @@ export function useFeedTracks() {
       }
     };
 
-    void fetchTracks();
+    void fetchFeed();
 
     return () => {
       isCancelled = true;
     };
-  }, [refreshIndex]);
+  }, [page, refreshIndex, size]);
 
-  // Canonical queue payload for current feed snapshot.
-  const queueTracks = tracks.map((track) =>
-    playerTrackMappers.fromTrackMetaData(track, {
-      access: toPlaybackAccess(track.access),
-    })
-  );
+  const feedCards = useMemo(() => {
+    return feedItems.flatMap((item) => {
+      const mapped = mapFeedItem(item);
+      return mapped ? [mapped] : [];
+    });
+  }, [feedItems]);
 
-  // Quick lookup for mapping feed rows to playback items.
-  const queueMap = new Map(queueTracks.map((track) => [track.id, track]));
-
-  // Map service DTOs into existing TrackCard presentation shape plus playback hooks.
-  const feedTracks = tracks.map((track) => {
-    const artistUsername =
-      typeof track.artist === 'string'
-        ? track.artist
-        : (track.artist.username ?? 'unknown-artist');
-    const artistDisplayName =
-      typeof track.artist === 'string'
-        ? track.artist
-        : (track.artist.displayName?.trim() || artistUsername);
-    const duration =
-      track.durationSeconds && track.durationSeconds > 0
-        ? formatDuration(track.durationSeconds)
-        : '0:00';
-
-    return {
-      id: track.id,
-      isPrivate: false,
-      user: {
-        username: artistUsername,
-        displayName: artistDisplayName,
-        avatar: '/images/default_song_image.png', //use this until API provides it
-      },
-      postedText: 'posted a track' as const,
-      timeAgo: '',
-      track: {
-        id: track.id,
-        artist: artistDisplayName,
-        title: track.title,
-        cover: track.coverUrl,
-        duration,
-        waveformUrl: track.waveformUrl,
-        plays: track.playCount ?? 0,
-        genre: track.genre,
-        createdAt: track.uploadDate,
-        isLiked: track.isLiked,
-        isReposted: track.isReposted,
-        likeCount: track.likeCount ?? 0,
-        repostCount: track.repostCount ?? 0,
-      },
-      waveform: track.waveformData ?? [],
-      playback: queueMap.get(track.id),
-      queueTracks,
-    };
-  });
-
-  return { feedTracks, isLoading, isError };
+  return {
+    feedItems: feedCards,
+    isLoading,
+    isError,
+  };
 }

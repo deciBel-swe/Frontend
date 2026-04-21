@@ -2,16 +2,21 @@
 
 import React from 'react';
 import TrackActions from '@/components/tracks/actions/TrackActions';
-import { Heart, Repeat } from 'lucide-react';
-import Link from 'next/link';
+import Button from '@/components/buttons/Button';
+import { Pause, Play } from 'lucide-react';
 
 type PlaylistActionBarProps = {
   onShare?: () => void;
   onCopyLink?: () => void;
   onEdit?: () => void;
   onAddToQueue?: () => void;
+  onLike?: () => void;
   onRepost?: () => void;
   onDelete?: () => void;
+  onPlayPause?: () => void;
+  isLiked?: boolean;
+  isReposted?: boolean;
+  isPlaying?: boolean;
 };
 
 export default function PlaylistActionBar({
@@ -19,24 +24,37 @@ export default function PlaylistActionBar({
   onCopyLink,
   onEdit,
   onAddToQueue,
+  onLike,
   onRepost,
-  onDelete
+  onDelete,
+  onPlayPause,
+  isLiked = false,
+  isReposted = false,
+  isPlaying = false,
 }: PlaylistActionBarProps) {
   return (
-    // not auth / auth the same
-    // not my playlist: love + repost + share + copylink + add to next up
-    // my playlist: love + repost + share + copylink + add to next up + edit + delete
     <div className="flex items-center gap-1 px-3 py-2.5">
-      {/* show edit + delete only if it's my playlist */}
-      {/* donnot repost if my playlist */}
+      {onPlayPause ? (
+        <Button
+          variant="ghost"
+          aria-label={isPlaying ? 'Pause playlist' : 'Play playlist'}
+          onClick={onPlayPause}
+        >
+          {isPlaying ? <Pause size={14} /> : <Play size={14} className="translate-x-px" />}
+        </Button>
+      ) : null}
+
       <TrackActions
         showLike
         showRepost
         showShare
         showCopy
         showAddToQueue
-        showEdit
-        showDelete
+        showEdit={Boolean(onEdit)}
+        showDelete={Boolean(onDelete)}
+        isLiked={isLiked}
+        isReposted={isReposted}
+        onLike={onLike}
         onShare={onShare}
         onCopy={onCopyLink}
         onEdit={onEdit}
@@ -44,15 +62,6 @@ export default function PlaylistActionBar({
         onRepost={onRepost}
         onDelete={onDelete}
       />
-   <div className="ml-auto flex items-center gap-3">
-    <Link href="#" className="text-neutral-400 hover:text-interactive-hover transition-colors">
-      <Heart size={13} />
-    </Link>
-
-    <Link href="#" className="text-neutral-400 hover:text-interactive-hover transition-colors">
-      <Repeat size={13} />
-    </Link>
-  </div>
     </div>
   );
 }

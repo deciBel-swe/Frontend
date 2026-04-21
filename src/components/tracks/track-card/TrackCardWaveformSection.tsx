@@ -71,7 +71,7 @@ export default function TrackCardWaveformSection({
 
         {waveformTimedCommentsVisible ? (
           <WaveformTimedComments
-            comments={[]}
+            comments={timedComments}
             durationSeconds={waveformDurationSeconds}
             currentUser={currentUser}
             pendingTimestamp={pendingTimestamp}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-// import { Repeat2 } from 'lucide-react';
+import { Repeat2 } from 'lucide-react';
 import TimeAgo from '@/features/tracks/components/TimeAgo';
 import TrackCardPlaybackButton from './TrackCardPlaybackButton';
 
@@ -13,8 +13,8 @@ type TrackCardMetaProps = {
   contentHref?: string;
   genre?: string;
   createdAt?: string;
-  // repostedBySlug?: string;
-  // repostedByDisplayName?: string;
+  repostedBySlug?: string;
+  repostedByDisplayName?: string;
   isBlocked: boolean;
   hasPlayback: boolean;
   isCurrentTrackPlaying: boolean;
@@ -29,8 +29,8 @@ export default function TrackCardMeta({
   contentHref,
   genre,
   createdAt,
-  // repostedBySlug,
-  // repostedByDisplayName,
+  repostedBySlug,
+  repostedByDisplayName,
   isBlocked,
   hasPlayback,
   isCurrentTrackPlaying,
@@ -55,7 +55,7 @@ export default function TrackCardMeta({
             {artistName}
           </Link>
 
-          {/* {repostedBySlug && repostedByDisplayName ? (
+          {repostedBySlug && repostedByDisplayName ? (
             <>
               <Repeat2
                 size={15}
@@ -69,7 +69,7 @@ export default function TrackCardMeta({
                 {repostedByDisplayName}
               </Link>
             </>
-          ) : null} */}
+          ) : null}
 
           {(createdAt || genre) && (
             <div className="ml-auto flex flex-col items-end gap-1">

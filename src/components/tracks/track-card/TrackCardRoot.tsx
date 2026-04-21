@@ -24,7 +24,7 @@ export default function TrackCardRoot({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  // repostedBy,
+  repostedBy,
   showEditButton = false,
   track,
   waveform,
@@ -36,12 +36,12 @@ export default function TrackCardRoot({
 }: TrackCardProps) {
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
-  // const repostedBySlug = repostedBy?.username
-  //   ? toUserSlug(repostedBy.username)
-  //   : undefined;
-  // const repostedByDisplayName = repostedBy
-  //   ? repostedBy.displayName?.trim() || repostedBy.username
-  //   : undefined;
+  const repostedBySlug = repostedBy?.username
+    ? toUserSlug(repostedBy.username)
+    : undefined;
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
 
   const [editOpen, setEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -124,8 +124,8 @@ export default function TrackCardRoot({
     >
       {showHeader ? (
         <TrackCardHeader
-          userSlug={userSlug}
-          userDisplayName={userDisplayName}
+          userSlug={repostedBySlug ?? userSlug}
+          userDisplayName={repostedByDisplayName ?? userDisplayName}
           userAvatar={user.avatar}
           postedText={postedText}
         />
@@ -147,8 +147,8 @@ export default function TrackCardRoot({
             title={track.title}
             genre={track.genre}
             createdAt={track.createdAt}
-            // repostedBySlug={repostedBySlug}
-            // repostedByDisplayName={repostedByDisplayName}
+            repostedBySlug={repostedBySlug}
+            repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
