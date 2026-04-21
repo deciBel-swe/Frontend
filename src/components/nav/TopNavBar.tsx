@@ -45,7 +45,6 @@ import {
   ProfileIcon,
   SettingsIcon,
   SignOutIcon,
-  StationsIcon,
   TracksIcon,
 } from '@/components/icons/DropdownIcons';
 import {
@@ -219,8 +218,6 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                                   icon:
                                     item.label === 'Likes' ? (
                                       <LikesIcon />
-                                    ) : item.label === 'Stations' ? (
-                                      <StationsIcon />
                                     ) : item.label === 'Following' ? (
                                       <FollowingIcon />
                                     ) : item.label === 'Who to Follow' ? (

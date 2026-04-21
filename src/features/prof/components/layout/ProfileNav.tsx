@@ -8,9 +8,7 @@ interface ProfileNavProps {
 
 const getNavItems = (username: string) => [
   { label: 'All', href: `/${username}` },
-  { label: 'Popular tracks', href: `/${username}/popular-tracks` },
   { label: 'Tracks', href: `/${username}/tracks` },
-  { label: 'Albums', href: `/${username}/albums` },
   { label: 'Playlists', href: `/${username}/sets` },
   { label: 'Reposts', href: `/${username}/reposts` },
 ];

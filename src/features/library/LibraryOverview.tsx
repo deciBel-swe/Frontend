@@ -15,7 +15,7 @@ import { useListeningHistoryTracks } from '@/hooks/useListeningHistoryTracks';
 
 export function SquareSkeleton() {
   return (
-    <div className="shrink-0 rounded-lg bg-surface-raised animate-pulse m-2 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40" />
+    <div className="shrink-0 rounded-lg bg-surface-raised animate-pulse m-2 w-26 h-32 md:w-32 md:h-38 lg:w-40 lg:h-46" />
   );
 }
 

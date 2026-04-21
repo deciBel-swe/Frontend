@@ -22,10 +22,6 @@ export default function ARTIST ({ artists, Artist_header, headerUrl }: ListOfArt
           <Link href={headerUrl} className="text-sm font-semibold text-text-muted">
             {Artist_header}
           </Link>
-
-          <button className="text-xs text-gray-400 hover:text-white transition">
-            Refresh list
-          </button>
         </div>
 
         <div className="flex flex-col gap-4 mt-4">

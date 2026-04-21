@@ -73,7 +73,6 @@ export const USER_DROPDOWN_ITEMS: Array<{
   href: string;
 } | null> = [
   { label: 'Likes', href: ROUTES.LIKES },
-  { label: 'Stations', href: ROUTES.STATIONS },
   { label: 'Following', href: ROUTES.FOLLOWING },
   { label: 'Who to Follow', href: ROUTES.PEOPLE },
   { label: 'Subscription', href: ROUTES.CHECKOUT },
