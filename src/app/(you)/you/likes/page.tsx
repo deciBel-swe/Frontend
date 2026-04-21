@@ -30,7 +30,9 @@ export default function Page() {
     const normalized = filterText.toLowerCase();
     return tracks.filter((track) =>
       track.track.title.toLowerCase().includes(normalized) ||
-      track.track.artist.toLowerCase().includes(normalized)
+      (track.track.artist.displayName || track.track.artist.username)
+        .toLowerCase()
+        .includes(normalized)
     );
   }, [filterText, tracks]);
 

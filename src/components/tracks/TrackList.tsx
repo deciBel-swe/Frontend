@@ -28,14 +28,14 @@ export type TrackListItem = {
   trackId: string;
   user: { username: string; displayName?: string; avatar: string };
   postedText?: string;
-  repostedBy?: { username: string; displayName?: string , avatar: string};
+  repostedBy?: { username: string; displayName?: string; avatar: string };
   track: {
     id: number;
-    artist:{
+    artist: {
       username: string;
       displayName?: string;
       avatar: string;
-    }
+    };
     title: string;
     cover: string;
     duration: string;
@@ -107,36 +107,48 @@ export default function TrackList({
   const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
 
   // Normalize fetched service DTOs into TrackCard + playback mapping shape.
-  const baseItems: TrackListItem[] = externalTracks ?? fetchedTracks.map((track) => {
-    const durationSeconds =
-      typeof track.durationSeconds === 'number' && track.durationSeconds > 0
-        ? track.durationSeconds
-        : undefined;
-    return {
-      trackId: String(track.id),
-      user: {
-      },
-      postedText: 'posted a track',
-      track: {
-        id: track.id,
-        trackSlug: track.trackSlug,
-        artist:{},
-        title: track.title,
-        cover: track.coverUrl,
-        duration: durationSeconds ? formatDuration(durationSeconds) : '',
-        createdAt: track.releaseDate,
-        genre: track.genre,    
-        durationSeconds,
-        isLiked: track.isLiked,
-        isReposted: track.isReposted,
-        likeCount: track.likeCount,
-        repostCount: track.repostCount,
-      },
-      trackUrl: track.trackUrl,
-      access: toPlaybackAccess(track.access),
-      waveform: track.waveformData ?? [],
-    };
-  });
+  const baseItems: TrackListItem[] =
+    externalTracks ??
+    fetchedTracks.map((track) => {
+      const durationSeconds =
+        typeof track.durationSeconds === 'number' && track.durationSeconds > 0
+          ? track.durationSeconds
+          : undefined;
+
+      const artist = {
+        username: track.artist.username,
+        displayName: track.artist.displayName,
+        avatar: track.artist.avatarUrl ?? '/images/default_avatar.png',
+      };
+
+      return {
+        trackId: String(track.id),
+        user: {
+          username: artist.username,
+          displayName: artist.displayName,
+          avatar: artist.avatar,
+        },
+        postedText: 'posted a track',
+        track: {
+          id: track.id,
+          trackSlug: track.trackSlug,
+          artist,
+          title: track.title,
+          cover: track.coverUrl,
+          duration: durationSeconds ? formatDuration(durationSeconds) : '',
+          createdAt: track.releaseDate,
+          genre: track.genre,
+          durationSeconds,
+          isLiked: track.isLiked,
+          isReposted: track.isReposted,
+          likeCount: track.likeCount,
+          repostCount: track.repostCount,
+        },
+        trackUrl: track.trackUrl,
+        access: toPlaybackAccess(track.access),
+        waveform: track.waveformData ?? [],
+      };
+    });
 
   const items: TrackListItem[] = baseItems.map((item) => {
     if (item.user.displayName?.trim() || !contextProfileDisplayName) {
@@ -155,7 +167,10 @@ export default function TrackList({
       },
       track: {
         ...item.track,
-        artist: contextProfileDisplayName,
+        artist: {
+          ...item.track.artist,
+          displayName: contextProfileDisplayName,
+        },
       },
     };
   });

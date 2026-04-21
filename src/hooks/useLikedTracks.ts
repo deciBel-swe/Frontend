@@ -137,12 +137,22 @@ export function useLikedTracks(
               user: {
                 username: artistUsername,
                 displayName: artistDisplayName,
-                avatar: metadata?.coverUrl ?? track.coverUrl,
+                avatar:
+                  metadata?.artist?.avatarUrl ??
+                  track.artist?.avatarUrl ??
+                  '/images/default_avatar.png',
               },
               postedText: 'liked a track',
               track: {
                 id: track.id,
-                artist: artistDisplayName || artistUsername,
+                artist: {
+                  username: artistUsername,
+                  displayName: artistDisplayName,
+                  avatar:
+                    metadata?.artist?.avatarUrl ??
+                    track.artist?.avatarUrl ??
+                    '/images/default_avatar.png',
+                },
                 title: track.title,
                 cover: metadata?.coverUrl ?? track.coverUrl,
                 duration: durationSeconds ? formatDuration(durationSeconds) : '',

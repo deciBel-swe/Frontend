@@ -44,6 +44,7 @@ export default function PlaylistHorizontalRoot({
     : undefined;
   const playlistPathId = track.playlistSlug?.trim() || trackId;
   const playlistHref = `/${userSlug}/sets/${playlistPathId}`;
+  const artistDisplayName = track.artist.displayName || track.artist.username;
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -224,7 +225,7 @@ export default function PlaylistHorizontalRoot({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
             userSlug={userSlug}
-            artistName={track.artist}
+            artistName={artistDisplayName}
             trackId={track.id}
             routeTrackId={playlistPathId}
             title={track.title}

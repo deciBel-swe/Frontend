@@ -41,7 +41,8 @@ export function useProfileSidebar(username: string) {
         return {
           trackId: track.track.id,
           image: track.track.cover,
-          artist: track.track.artist,
+          artist:
+            track.track.artist.displayName || track.track.artist.username,
           title: track.track.title,
           playback,
           stats: {

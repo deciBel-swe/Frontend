@@ -79,7 +79,11 @@ const baseProps = {
   },
   track: {
     id: 1,
-    artist: 'artist',
+    artist: {
+      username: 'artist',
+      displayName: 'Artist',
+      avatar: 'https://decibel.test/avatar.jpg',
+    },
     title: 'Playable',
     cover: 'https://decibel.test/cover.jpg',
     duration: '2:00',

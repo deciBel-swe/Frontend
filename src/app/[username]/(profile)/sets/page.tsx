@@ -213,7 +213,11 @@ const mapPlaylistToCard = (
       id: playlist.id,
       playlistSlug: playlist.playlistSlug,
       artistUsername: ownerUsername,
-      artist: ownerDisplayName,
+      artist: {
+        username: ownerUsername,
+        displayName: ownerDisplayName,
+        avatar: ownerAvatar || DEFAULT_IMAGE,
+      },
       title: playlist.title,
       cover:
         playlist.coverArtUrl ||

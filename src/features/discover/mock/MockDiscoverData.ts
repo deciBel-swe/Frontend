@@ -41,8 +41,12 @@ function makeTrackListItem(
   coverSeed: number,
 ): TrackListItem {
   const username     = artist.toLowerCase().replace(/\s+/g, '-');
+  const artistRecord = {
+    username,
+    displayName: artist,
+    avatar: `https://picsum.photos/seed/${coverSeed + 100}/40/40`,
+  };
   const coverUrl     = `https://picsum.photos/seed/${coverSeed}/200/200`;
-  const avatarUrl    = `https://picsum.photos/seed/${coverSeed + 100}/40/40`;
   const durationSecs = 120 + (id * 13) % 180;
 
   return {
@@ -50,12 +54,12 @@ function makeTrackListItem(
     user: {
       username,
       displayName: artist,
-      avatar: avatarUrl,
+      avatar: artistRecord.avatar,
     },
     postedText: 'posted a track',
     track: {
       id,
-      artist,
+      artist: artistRecord,
       title,
       cover: coverUrl,
       duration: formatDuration(durationSecs),

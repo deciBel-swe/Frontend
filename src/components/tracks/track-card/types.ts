@@ -18,7 +18,11 @@ export type TrackCardTrack = {
   trackSlug?: string;
   playlistSlug?: string;
   artistUsername?: string;
-  artist: string;
+  artist: {
+    username: string;
+    displayName?: string;
+    avatar: string;
+  };
   title: string;
   cover: string;
   duration: string;

@@ -8,9 +8,20 @@ import type {
   DiscoverTrackItem,
 } from '@/features/discover/types/DiscoverTypes';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import { discoveryService, playbackService } from '@/services';
+import { discoveryService, playbackService, trackService } from '@/services';
 import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
 import type { TrackListItem } from '@/components/tracks/TrackList';
+import { formatDuration } from '@/utils/formatDuration';
+
+const toPlaybackAccess = (
+  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
+) => {
+  if (access === 'BLOCKED' || access === 'PREVIEW') {
+    return 'BLOCKED' as const;
+  }
+
+  return 'PLAYABLE' as const;
+};
 
 const PAGE_SIZE = 12;
 
@@ -71,8 +82,11 @@ const mapTrackResourceToDiscoverTrack = (
     track: {
       id: track.id,
       trackSlug: track.trackSlug,
-      artistUsername: track.artist.username,
-      artist: artistDisplayName,
+      artist: {
+        username: track.artist.username,
+        displayName: track.artist.displayName,
+        avatar: track.artist.avatarUrl,
+      },
       title: track.title,
       cover: track.coverUrl,
       duration: `${Math.floor((track.trackDurationSeconds ?? 0) / 60)}:${String((track.trackDurationSeconds ?? 0) % 60).padStart(2, '0')}`,
@@ -86,7 +100,7 @@ const mapTrackResourceToDiscoverTrack = (
       repostCount: track.repostCount,
     },
     trackUrl: track.trackUrl,
-    access: track.access,
+    access: toPlaybackAccess(track.access),
     waveform: normalizeWaveform((track as { waveformData?: unknown }).waveformData),
   };
 
@@ -131,8 +145,11 @@ const mapStationTrackToDiscoverTrack = (
     track: {
       id: track.id,
       trackSlug: track.trackSlug,
-      artistUsername: track.artist.username,
-      artist: artistDisplayName,
+      artist: {
+        username: track.artist.username,
+        displayName: track.artist.displayName,
+        avatar: track.artist.avatarUrl,
+      },
       title: track.title,
       cover: track.coverUrl,
       duration: '0:00',
@@ -145,7 +162,7 @@ const mapStationTrackToDiscoverTrack = (
       repostCount: track.repostCount,
     },
     trackUrl: track.trackUrl,
-    access: track.access,
+    access: toPlaybackAccess(track.access),
     waveform: [],
   };
 
@@ -171,6 +188,9 @@ const mapStationTrackToDiscoverTrack = (
 };
 
 const mapHistoryTrackToDiscoverTrack = (trackItem: TrackListItem): DiscoverTrackItem => {
+  const artistDisplayName =
+    trackItem.track.artist.displayName || trackItem.track.artist.username;
+
   const queueTrack = playerTrackMappers.fromAdapterInput(
     {
       id: trackItem.track.id,
@@ -183,7 +203,7 @@ const mapHistoryTrackToDiscoverTrack = (trackItem: TrackListItem): DiscoverTrack
     },
     {
       access: trackItem.access === 'BLOCKED' ? 'BLOCKED' : 'PLAYABLE',
-      fallbackArtistName: trackItem.track.artist,
+      fallbackArtistName: artistDisplayName,
     }
   );
 
@@ -374,42 +394,63 @@ export default function Page() {
           size: PAGE_SIZE,
         });
 
-        const mappedItems = response.content.map((entry) => {
-          const trackItem: TrackListItem = {
-            trackId: String(entry.track.id),
-            user: {
-              username: entry.track.artist.username,
-              displayName:
-                entry.track.artist.displayName || entry.track.artist.username,
-              avatar: entry.track.artist.avatarUrl,
-            },
-            postedText: 'posted a track',
-            track: {
-              id: entry.track.id,
-              trackSlug: entry.track.trackSlug,
-              artistUsername: entry.track.artist.username,
-              artist:
-                entry.track.artist.displayName || entry.track.artist.username,
-              title: entry.track.title,
-              cover: entry.track.coverUrl,
-              duration: '0:00',
-              plays: entry.track.playCount,
-              createdAt: entry.createdAt,
-              durationSeconds: undefined,
-              isLiked: entry.track.isLiked,
-              isReposted: entry.track.isReposted,
-              likeCount: entry.track.likeCount,
-              repostCount: entry.track.repostCount,
-            },
-            trackUrl: entry.track.trackUrl,
-            access: entry.track.access,
-            waveform: [],
-          };
-          return mapHistoryTrackToDiscoverTrack(trackItem);
-        });
+        const mappedItems = await Promise.all(
+          response.content.map(async (entry) => {
+            if (typeof entry.id !== 'number') {
+              return null;
+            }
+
+            try {
+              const track = await trackService.getTrackMetadata(entry.id);
+
+              const trackItem: TrackListItem = {
+                trackId: String(track.id),
+                user: {
+                  username: track.artist.username,
+                  displayName: track.artist.displayName,
+                  avatar: track.artist.avatarUrl ?? '/images/default_avatar.png',
+                },
+                postedText: 'played a track',
+                track: {
+                  id: track.id,
+                  trackSlug: track.trackSlug,
+                  artist: {
+                    username: track.artist.username,
+                    displayName: track.artist.displayName,
+                    avatar: track.artist.avatarUrl ?? '/images/default_avatar.png',
+                  },
+                  title: track.title,
+                  cover: track.coverUrl,
+                  duration: track.durationSeconds
+                    ? formatDuration(track.durationSeconds)
+                    : '0:00',
+                  plays: track.playCount,
+                  createdAt: track.uploadDate || track.releaseDate,
+                  genre: track.genre,
+                  durationSeconds: track.durationSeconds,
+                  isLiked: track.isLiked,
+                  isReposted: track.isReposted,
+                  likeCount: track.likeCount,
+                  repostCount: track.repostCount,
+                },
+                trackUrl: track.trackUrl,
+                access: toPlaybackAccess(track.access),
+                waveform: track.waveformData ?? [],
+              };
+
+              return mapHistoryTrackToDiscoverTrack(trackItem);
+            } catch {
+              return null;
+            }
+          })
+        );
 
         if (!isCancelled) {
-          setRecentlyPlayedItems(mappedItems);
+          setRecentlyPlayedItems(
+            mappedItems.filter(
+              (item): item is DiscoverTrackItem => item !== null
+            )
+          );
         }
       } catch {
         if (!isCancelled) {

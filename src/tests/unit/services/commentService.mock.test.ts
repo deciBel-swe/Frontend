@@ -149,6 +149,7 @@ describe('MockCommentService', () => {
       user: {
         id: replyUser.id,
         username: replyUser.username,
+        displayName: replyUser.displayName,
         avatarUrl: replyUser.profile.profilePic,
       },
       body: 'Reply to delete',

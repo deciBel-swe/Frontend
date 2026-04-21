@@ -50,6 +50,7 @@ export type QueueSource =
   | 'feed'
   | 'profile-tracks'
   | 'likes'
+  | 'history'
   | 'playlist'
   | 'track-page'
   | 'unknown';

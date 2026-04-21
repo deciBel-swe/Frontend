@@ -37,6 +37,9 @@ export default function TrackCardRoot({
   const userSlug = toUserSlug(user.username);
   const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
+  const artistDisplayName =
+    track.artist.displayName?.trim() || track.artist.username;
+  const artistUsername = track.artist.username;
   const repostedBySlug = repostedBy?.username
     ? toUserSlug(repostedBy.username)
     : undefined;
@@ -58,7 +61,7 @@ export default function TrackCardRoot({
     routeTrackId,
     isPrivate: resolvedIsPrivate,
     secretUrl,
-    artistName: track.artist,
+    artistName: artistUsername,
     trackTitle: track.title,
   });
 
@@ -145,7 +148,7 @@ export default function TrackCardRoot({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
             userSlug={userSlug}
-            artistName={track.artist}
+            artistName={artistDisplayName}
             trackId={track.id}
             routeTrackId={routeTrackId}
             title={track.title}
