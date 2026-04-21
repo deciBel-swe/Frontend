@@ -446,7 +446,7 @@ describe('low-coverage data hooks', () => {
   });
 
   describe('useUserRepostPage', () => {
-    it.skip('loads and maps mixed repost resources', async () => {
+    it('loads and maps mixed repost resources', async () => {
       mockUserService.getPublicUserByUsername.mockResolvedValue({
         profile: { id: 99 },
       } as any);
@@ -562,10 +562,8 @@ describe('low-coverage data hooks', () => {
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      expect(mockUserService.getPublicUserByUsername).toHaveBeenCalledWith(
-        'owner-user'
-      );
-      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(99, {
+      expect(mockUserService.getPublicUserByUsername).not.toHaveBeenCalled();
+      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(77, {
         page: 0,
         size: 100,
       });
