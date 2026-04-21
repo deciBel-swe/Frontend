@@ -99,6 +99,7 @@ export class MockCommentService implements CommentService {
       user: {
         id: currentUser.id,
         username: currentUser.username,
+        displayName: currentUser.displayName,
         avatarUrl: currentUser.profile.profilePic,
       },
       body: payload.body,
@@ -127,6 +128,7 @@ export class MockCommentService implements CommentService {
       user: {
         id: currentUser.id,
         username: currentUser.username,
+        displayName: currentUser.displayName,
         avatarUrl: currentUser.profile.profilePic,
       },
       body: payload.body,

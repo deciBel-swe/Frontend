@@ -56,6 +56,33 @@ type DiscoverPageProps = {
   isLoadingTrending?: boolean;
   /** TODO: set to useGenreTracks().isLoading */
   isLoadingGenre?: boolean;
+  /** TODO: set to useArtistStation().isLoading */
+  isLoadingMoreTrending?: boolean;
+
+  onTrendingPrevPage?: () => void;
+  onTrendingNextPage?: () => void;
+  canTrendingPrevPage?: boolean;
+  canTrendingNextPage?: boolean;
+
+  onLikedPrevPage?: () => void;
+  onLikedNextPage?: () => void;
+  canLikedPrevPage?: boolean;
+  canLikedNextPage?: boolean;
+
+  onRecentPrevPage?: () => void;
+  onRecentNextPage?: () => void;
+  canRecentPrevPage?: boolean;
+  canRecentNextPage?: boolean;
+
+  onGenrePrevPage?: () => void;
+  onGenreNextPage?: () => void;
+  canGenrePrevPage?: boolean;
+  canGenreNextPage?: boolean;
+
+  onMoreTrendingPrevPage?: () => void;
+  onMoreTrendingNextPage?: () => void;
+  canMoreTrendingPrevPage?: boolean;
+  canMoreTrendingNextPage?: boolean;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -80,6 +107,27 @@ export default function DiscoverPage({
   isLoadingRecent = false,
   isLoadingTrending = false,
   isLoadingGenre = false,
+  isLoadingMoreTrending = false,
+  onTrendingPrevPage,
+  onTrendingNextPage,
+  canTrendingPrevPage = true,
+  canTrendingNextPage = true,
+  onLikedPrevPage,
+  onLikedNextPage,
+  canLikedPrevPage = true,
+  canLikedNextPage = true,
+  onRecentPrevPage,
+  onRecentNextPage,
+  canRecentPrevPage = true,
+  canRecentNextPage = true,
+  onGenrePrevPage,
+  onGenreNextPage,
+  canGenrePrevPage = true,
+  canGenreNextPage = true,
+  onMoreTrendingPrevPage,
+  onMoreTrendingNextPage,
+  canMoreTrendingPrevPage = true,
+  canMoreTrendingNextPage = true,
 }: DiscoverPageProps) {
   // ── Guest view ─────────────────────────────────────────────────────────────
   if (!isLoggedIn) {
@@ -97,6 +145,10 @@ export default function DiscoverPage({
               queueSource={discoverItem.queueSource ?? 'likes'}
             />
           )}
+          onPrevPage={onTrendingPrevPage}
+          onNextPage={onTrendingNextPage}
+          canPrevPage={canTrendingPrevPage}
+          canNextPage={canTrendingNextPage}
         />
       </div>
     );
@@ -118,6 +170,10 @@ export default function DiscoverPage({
             queueSource={discoverItem.queueSource ?? 'likes'}
           />
         )}
+        onPrevPage={onLikedPrevPage}
+        onNextPage={onLikedNextPage}
+        canPrevPage={canLikedPrevPage}
+        canNextPage={canLikedNextPage}
       />
 
       {/* 2. Recently Played — supports both tracks and playlists */}
@@ -147,6 +203,10 @@ export default function DiscoverPage({
             />
           );
         }}
+        onPrevPage={onRecentPrevPage}
+        onNextPage={onRecentNextPage}
+        canPrevPage={canRecentPrevPage}
+        canNextPage={canRecentNextPage}
       />
 
       {/* 3. More Based on Genre */}
@@ -162,13 +222,17 @@ export default function DiscoverPage({
             queueSource={discoverItem.queueSource ?? 'likes'}
           />
         )}
+        onPrevPage={onGenrePrevPage}
+        onNextPage={onGenreNextPage}
+        canPrevPage={canGenrePrevPage}
+        canNextPage={canGenreNextPage}
       />
 
       {/* 4. More Based on Trending */}
       <DiscoverSection<DiscoverTrackItem>
         title="More based on trending"
         items={moreTrendingTracks}
-        isLoading={isLoadingTrending}
+        isLoading={isLoadingMoreTrending}
         renderItem={(discoverItem, index) => (
           <MinimalTrackCard
             key={`trending-more-${discoverItem.item.track.id}-${index}`}
@@ -177,6 +241,10 @@ export default function DiscoverPage({
             queueSource={discoverItem.queueSource ?? 'likes'}
           />
         )}
+        onPrevPage={onMoreTrendingPrevPage}
+        onNextPage={onMoreTrendingNextPage}
+        canPrevPage={canMoreTrendingPrevPage}
+        canNextPage={canMoreTrendingNextPage}
       />
     </div>
   );

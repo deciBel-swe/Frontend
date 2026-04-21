@@ -8,11 +8,13 @@ export type MockAuthAccount = {
   id: number;
   email: string;
   username: string;
-  avatarUrl?: string;
+  avatarUrl: string;
   password: string;
   emailVerified: boolean;
+  displayName?: string;
   tier: LoginUserDTO['tier'];
 };
+type AccessType = 'BLOCKED' | 'PREVIEW' | 'PLAYABLE';
 
 export type MockUserRecord = {
   id: number;
@@ -56,24 +58,41 @@ export type MockUserRecord = {
 export type MockTrackRecord = {
   id: number;
   title: string;
+  trackSlug: string;
   artist: {
     id: number;
     username: string;
+    displayName: string;
+    avatarUrl: string;
   };
   trackUrl: string;
   coverUrl: string;
-  coverImageDataUrl?: string;
   waveformUrl: string;
-  waveformData?: number[];
   genre: string;
+  isReposted: boolean;
+  isLiked: boolean;
   tags: string[];
   releaseDate: string;
-  description?: string;
+  playCount: number;
+  completedPlayCount: number;
+  likeCount: number;
+  repostCount: number;
+  commentCount: number;
   isPrivate: boolean;
+  trackDurationSeconds: number;
+  uploadDate: string;
+  description: string;
+  trendingRank: number;
+  access: AccessType;
+  secretToken?: string;
+  trackPreviewUrl: string;
+  // Legacy compatibility fields still used in some mock services.
+  likes?: number;
+  reposters?: number;
   durationSeconds?: number;
   secretLink?: string;
-  reposters: number;
-  likes: number;
+  coverImageDataUrl?: string;
+  waveformData?: number[];
 };
 
 export type MockPlaylistRecord = {
@@ -88,6 +107,8 @@ export type MockPlaylistRecord = {
   owner: {
     id: number;
     username: string;
+    displayName: string;
+    avatarUrl: string;
   };
   tracks: Array<{
     trackId: number;
@@ -106,6 +127,7 @@ export type MockCommentRecord = {
   user: {
     id: number;
     username: string;
+    displayName: string;
     avatarUrl: string;
   };
   body: string;
@@ -159,223 +181,106 @@ const createFallbackPassword = (): string => {
 
   return `mock-pass-${Math.random().toString(36).slice(2)}`;
 };
-
-const seedAccounts: MockAuthAccount[] = [
-  {
-    id: 1,
-    email: 'mockuser@email.com',
-    username: 'mockuser',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'ARTIST',
-  },
-  {
-    id: 2,
-    email: 'listenertwo@email.com',
-    username: 'listenertwo',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'FREE',
-  },
-  {
-    id: 3,
-    email: 'beatpilot@email.com',
-    username: 'beatpilot',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: false,
-    tier: 'ARTIST_PRO',
-  },
-  {
-    id: 7,
-    email: 'artist@decibel.test',
-    username: 'mockartist',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'ARTIST',
-  },
-  {
-    id: 5,
-    email: 'listener@decibel.test',
-    username: 'mocklistener',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'FREE',
-  },
-  {
-    id: 9,
-    email: 'nightlistener@decibel.test',
-    username: 'nightlistener',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'FREE',
-  },
-  {
-    id: 12,
-    email: 'guestproducer@decibel.test',
-    username: 'guestproducer',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'ARTIST',
-  },
-  {
-    id: 15,
-    email: 'soundpilot@decibel.test',
-    username: 'soundpilot',
-    password:
-      '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541',
-    emailVerified: true,
-    tier: 'ARTIST',
-  },
+const TOTAL_USERS = 100;
+const TOTAL_TRACKS = 1000;
+const TOTAL_PLAYLISTS = 100;
+const TOP_OWNER_COUNT = 10;
+const FOLLOW_COUNT = 30;
+const LIKED_TRACKS_PER_USER = 100;
+const REPOSTED_TRACKS_PER_USER = 100;
+const LIKED_PLAYLISTS_PER_USER = 10;
+const REPOSTED_PLAYLISTS_PER_USER = 10;
+const COMMENTS_PER_TRACK = 10;
+const TRACK_DURATION_SECONDS = 2745;
+const SHARED_AVATAR_URLS = [
+  'https://api.dicebear.com/7.x/avataaars/png?seed=alex',
+  'https://api.dicebear.com/7.x/avataaars/png?seed=sara',
+  'https://api.dicebear.com/7.x/avataaars/png?seed=leo',
+  'https://api.dicebear.com/7.x/avataaars/png?seed=nina',
+  'https://api.dicebear.com/7.x/avataaars/png?seed=omar'
 ];
+const SHARED_TRACK_COVER_URLS = [
+  '/images/default_song_image_1.png',
+  'https://picsum.photos/seed/track1/300/300',
+  'https://picsum.photos/seed/track2/300/300',
+  'https://picsum.photos/seed/track3/300/300',
+  'https://picsum.photos/seed/track4/300/300',
+  'https://picsum.photos/seed/track5/300/300',
+  'https://picsum.photos/seed/track6/300/300',
+  'https://picsum.photos/seed/track7/300/300',
+]
+const SHARED_PLAYLIST_COVER_URLS = [
+  'https://picsum.photos/seed/playlist1/400/400',
+  'https://picsum.photos/seed/playlist2/400/400',
+  'https://picsum.photos/seed/playlist3/400/400',
+  'https://picsum.photos/seed/playlist4/400/400',
+  'https://picsum.photos/seed/playlist5/400/400',
+  'https://picsum.photos/seed/playlist6/400/400',
+  'https://picsum.photos/seed/playlist7/400/400',
+]
 
-const seedUsers = (): MockUserRecord[] => [
-  {
-    id: 1,
-    username: 'mockuser',
-    displayName: 'Mock User',
-    email: 'mockuser@email.com',
+const SHARED_USER_COVER_URLS = [
+  'https://picsum.photos/seed/usercover1/800/300',
+  'https://picsum.photos/seed/usercover2/800/300',
+  'https://picsum.photos/seed/usercover3/800/300',
+  'https://picsum.photos/seed/usercover4/800/300',
+  'https://picsum.photos/seed/usercover5/800/300',
+  'https://picsum.photos/seed/usercover6/800/300',
+  'https://picsum.photos/seed/usercover7/800/300',
+]
+
+const DEFAULT_PASSWORD_HASH =
+  '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
+
+const pad = (value: number): string => value.toString().padStart(3, '0');
+
+const buildUsername = (id: number): string => `user${pad(id)}`;
+const buildDisplayName = (id: number): string => `User ${pad(id)}`;
+
+const buildSeedAuthAccounts = (): MockAuthAccount[] =>
+  Array.from({ length: TOTAL_USERS }, (_, index) => {
+    const id = index + 1;
+    const username = buildUsername(id);
+    const isTopOwner = id <= TOP_OWNER_COUNT;
+
+    return {
+      id,
+      email: `${username}@decibel.test`,
+      username,
+      displayName: buildDisplayName(id),
+      avatarUrl: SHARED_AVATAR_URLS[index % SHARED_AVATAR_URLS.length],
+      password: DEFAULT_PASSWORD_HASH,
+      emailVerified: true,
+      tier: isTopOwner ? 'ARTIST' : 'FREE',
+    };
+  });
+
+const seedAccounts: MockAuthAccount[] = buildSeedAuthAccounts();
+
+const buildBaseUser = (account: MockAuthAccount): MockUserRecord => {
+  const isTopOwner = account.id <= TOP_OWNER_COUNT;
+
+  return {
+    id: account.id,
+    username: account.username,
+    displayName: account.displayName?.trim() || account.username,
+    email: account.email,
     emailVerified: true,
-    role: 'ARTIST',
-    tier: 'ARTIST',
+    role: isTopOwner ? 'ARTIST' : 'LISTENER',
+    tier: isTopOwner ? 'ARTIST' : 'FREE',
     profile: {
-      bio: 'This is my profile.',
-      city: '6 October',
-      country: 'Egypt',
-      profilePic: 'https://i.ibb.co/SD1pMkyy/GRgo-Ocga-YAIm6-TF.jpg',
-      coverPic: 'https://i.ibb.co/r2ZssgJZ/sl-063022-51250-12.jpg',
-      favoriteGenres: ['Pop', 'Rock'],
+      bio: `Profile for ${account.username}.`,
+      city: '',
+      country: '',
+      profilePic: SHARED_AVATAR_URLS[account.id % SHARED_AVATAR_URLS.length],
+      coverPic: SHARED_USER_COVER_URLS[account.id % SHARED_USER_COVER_URLS.length],
+      favoriteGenres: [],
     },
     socialLinks: {
-      instagram: 'https://instagram.com/mockuser',
-      website: 'https://decibel.foo',
-      supportLink: 'https://support.mockuser.com',
-      twitter: 'https://twitter.com/mockuser',
-    },
-    privacySettings: {
-      isPrivate: false,
-      showHistory: true,
-    },
-    followers: new Set([2]),
-    following: new Set([2]),
-    blocked: new Set(),
-    playlists: [
-      {
-        id: 1001,
-        title: 'Late Night Mix',
-        description: 'After-hours loops and neon moods.',
-        type: 'PLAYLIST',
-        isPrivate: false,
-        CoverArt: '',
-        isLiked: false,
-        owner: { id: 1, username: 'mockuser' },
-        tracks: [],
-      },
-      {
-        id: 1002,
-        title: 'Studio Drafts',
-        description: 'Work-in-progress sketches.',
-        type: 'ALBUM',
-        isPrivate: true,
-        CoverArt: '',
-        isLiked: false,
-        owner: { id: 1, username: 'mockuser' },
-        tracks: [],
-      },
-    ],
-    likedPlaylists: [1003],
-    repostedPlaylists: [1003],
-    tracks: [
-      { id: 201, title: 'Neon Skylines', genre: 'Electronic' },
-      { id: 202, title: 'Quiet Transit', genre: 'Ambient' },
-      { id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' },
-    ],
-    likedTracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
-    reposts: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
-    history: [
-      { id: 301, title: 'Morning Focus' },
-      { id: 302, title: 'Night Ride' },
-      { id: 303, title: 'Cloud Room Sessions' },
-    ],
-    additionalEmails: [],
-  },
-  {
-    id: 2,
-    username: 'listenertwo',
-    displayName: 'Listener Two',
-    email: 'listenertwo@email.com',
-    emailVerified: true,
-    role: 'LISTENER',
-    tier: 'FREE',
-    profile: {
-      bio: 'Curates chill playlists.',
-      city: 'Alexandria',
-      country: 'Egypt',
-      profilePic: 'https://picsum.photos/seed/listener/400/400',
-      coverPic: 'https://picsum.photos/seed/listener-cover/1200/400',
-      favoriteGenres: ['Lo-Fi', 'Ambient'],
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/listenertwo',
-      website: 'https://listener.example.com',
-      supportLink: 'https://listener.example.com/support',
-      twitter: 'https://twitter.com/listenertwo',
-    },
-    privacySettings: {
-      isPrivate: false,
-      showHistory: true,
-    },
-    followers: new Set([1]),
-    following: new Set([1]),
-    blocked: new Set(),
-    playlists: [
-      {
-        id: 1003,
-        title: 'Study Session',
-        description: 'Low-key focus tracks.',
-        type: 'PLAYLIST',
-        isPrivate: false,
-        CoverArt: '',
-        isLiked: false,
-        owner: { id: 2, username: 'listenertwo' },
-        tracks: [],
-      },
-    ],
-    likedPlaylists: [1001, 1002],
-    repostedPlaylists: [1001],
-    tracks: [{ id: 204, title: 'Paper Lanterns', genre: 'Lo-Fi' }],
-    likedTracks: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
-    reposts: [{ id: 201, title: 'Neon Skylines', genre: 'Electronic' }],
-    history: [{ id: 304, title: 'Dawn Drifts' }],
-    additionalEmails: [],
-  },
-  {
-    id: 3,
-    username: 'beatpilot',
-    displayName: 'Beat Pilot',
-    email: 'beatpilot@email.com',
-    emailVerified: false,
-    role: 'ARTIST',
-    tier: 'ARTIST_PRO',
-    profile: {
-      bio: 'Produces club tracks.',
-      city: 'Cairo',
-      country: 'Egypt',
-      profilePic: 'https://picsum.photos/seed/beatpilot/400/400',
-      coverPic: 'https://picsum.photos/seed/beatpilot-cover/1200/400',
-      favoriteGenres: ['House', 'Techno'],
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/beatpilot',
-      website: 'https://beatpilot.example.com',
-      supportLink: 'https://beatpilot.example.com/support',
-      twitter: 'https://twitter.com/beatpilot',
+      instagram: '',
+      website: '',
+      supportLink: '',
+      twitter: '',
     },
     privacySettings: {
       isPrivate: false,
@@ -384,146 +289,269 @@ const seedUsers = (): MockUserRecord[] => [
     followers: new Set(),
     following: new Set(),
     blocked: new Set(),
-    playlists: [
-      {
-        id: 1004,
-        title: 'Warehouse Cuts',
-        description: 'Peak hour energy.',
-        type: 'EP',
-        isPrivate: false,
-        CoverArt: '',
-        isLiked: false,
-        owner: { id: 3, username: 'beatpilot' },
-        tracks: [],
-      },
-    ],
+    playlists: [],
     likedPlaylists: [],
     repostedPlaylists: [],
-    tracks: [{ id: 205, title: 'Circuit Bloom', genre: 'House' }],
-    likedTracks: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
-    reposts: [{ id: 203, title: 'Velvet Breakbeat', genre: 'Breakbeat' }],
-    history: [{ id: 305, title: 'Peak Hour' }],
+    tracks: [],
+    likedTracks: [],
+    reposts: [],
+    history: [],
     additionalEmails: [],
-  },
+  };
+};
+
+const connectUserGraph = (users: MockUserRecord[]): void => {
+  const total = users.length;
+
+  for (let index = 0; index < total; index += 1) {
+    const sourceUser = users[index];
+
+    for (let step = 1; step <= FOLLOW_COUNT; step += 1) {
+      const targetIndex = (index + step) % total;
+      const targetUser = users[targetIndex];
+      sourceUser.following.add(targetUser.id);
+      targetUser.followers.add(sourceUser.id);
+    }
+  }
+};
+
+const seedUsers = (): MockUserRecord[] => {
+  const users = seedAccounts.map((account) => buildBaseUser(account));
+  connectUserGraph(users);
+  return users;
+};
+
+
+const BASE_TRACK_URL =
+  'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3';
+
+const BASE_WAVEFORM_URL =
+  'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json';
+
+const TRACK_GENRES = [
+  'Electronic',
+  'Ambient',
+  'House',
+  'Techno',
+  'Lo-Fi',
+  'Breakbeat',
+  'Indie',
+  'Pop',
+  'Hip-Hop',
+  'Drum & Bass',
 ];
 
-const seedTracks = (): MockTrackRecord[] => [
-  {
-    id: 101,
-    title: 'Neon Skylines',
-    artist: { id: 7, username: 'mockartist' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-101/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Electronic',
-    tags: ['synthwave', 'night-drive'],
+const makeTrack = (
+  id: number,
+  title: string,
+  artist: { id: number; username: string; displayName: string, avatarUrl: string },
+  genre: string,
+  tags: string[],
+  isPrivate = false,
+): MockTrackRecord => {
+  return {
+    id,
+    title,
+    trackSlug: title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, ''),
+    artist: {
+      ...artist,
+    },
+    trackUrl: BASE_TRACK_URL,
+    coverUrl: SHARED_TRACK_COVER_URLS[id % SHARED_TRACK_COVER_URLS.length] ,
+    waveformUrl: BASE_WAVEFORM_URL,
+    genre,
+    isReposted: false,
+    isLiked: false,
+    tags,
     releaseDate: '2025-10-25',
-    isPrivate: false,
-    reposters: 1,
-    likes: 2,
-    durationSeconds:2075
-
-  },
-  {
-    id: 102,
-    title: 'Cloud Room Sessions',
-    artist: { id: 7, username: 'mockartist' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-102/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Lo-Fi',
-    tags: ['chill', 'study'],
-    releaseDate: '2025-10-25',
-    isPrivate: true,
-    secretLink: 'c8n2x3ya',
-    reposters: 0,
-    likes: 1,
-    durationSeconds: 2075
-  },
-  {
-    id: 103,
-    title: 'Circuit Bloom',
-    artist: { id: 12, username: 'guestproducer' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-103/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'House',
-    tags: ['club', 'warmup'],
-    releaseDate: '2025-10-25',
-    isPrivate: false,
-    reposters: 1,
-    likes: 2,
-    durationSeconds:2075
-
-  },
-  {
-    id: 204,
-    title: 'Paper Lanterns',
-    artist: { id: 2, username: 'listenertwo' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-204/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Lo-Fi',
-    tags: ['study', 'late-night'],
-    releaseDate: '2025-10-25',
-    isPrivate: false,
-    reposters: 1,
-    likes: 1,
-    durationSeconds:2075
-
-  },
-  {
-    id: 104,
-    title: 'Quiet Transit',
-    artist: { id: 9, username: 'nightlistener' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-104/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Ambient',
-    tags: ['meditation', 'sleep'],
-    releaseDate: '2025-10-25',
-    isPrivate: true,
-    secretLink: 'f4m0qt9b',
-    reposters: 0,
-    likes: 1,
-    durationSeconds:2075
-
-  },
-  {
-    id: 105,
-    title: 'Velvet Breakbeat',
-    artist: { id: 7, username: 'mockartist' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-105/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Breakbeat',
-    tags: ['drums', 'vinyl'],
-    releaseDate: '2025-10-25',
-    isPrivate: false,
-    reposters: 0,
-    likes: 2,
-    durationSeconds:2075
-
-  },
-  {
-    id: 106,
-    title: 'Aurora Steps',
-    artist: { id: 15, username: 'soundpilot' },
-    trackUrl: 'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3',
-    coverUrl: 'https://picsum.photos/seed/decibel-cover-106/640/640',
-    waveformUrl: 'https://decibelblob.blob.core.windows.net/uploads/waveform-data/8d61bb34-377a-434c-a2ba-7372b5d32b75_Surat_Taha.json',
-    genre: 'Downtempo',
-    tags: ['sunrise', 'focus'],
-    releaseDate: '2025-10-25',
-    isPrivate: false,
-    reposters: 0,
+    uploadDate: '2025-10-25',
+    playCount: 0,
+    completedPlayCount: 0,
+    likeCount: 0,
+    repostCount: 0,
+    commentCount: COMMENTS_PER_TRACK,
+    isPrivate,
+    trackDurationSeconds: TRACK_DURATION_SECONDS,
+    description: '',
+    trendingRank: 0,
+    access: 'PLAYABLE',
+    secretToken: isPrivate ? `secret-track-${id}` : undefined,
+    trackPreviewUrl: BASE_TRACK_URL,
     likes: 0,
-    durationSeconds:2075
+    reposters: 0,
+    durationSeconds: TRACK_DURATION_SECONDS,
+    secretLink: isPrivate ? `secret-track-${id}` : undefined,
+    coverImageDataUrl: undefined,
+    waveformData: undefined,
+  };
+};
 
-  },
-];
+export const seedTracks = (users: MockUserRecord[] = seedUsers()): MockTrackRecord[] => {
+  const tracks: MockTrackRecord[] = [];
+  const owners = users.slice(0, TOP_OWNER_COUNT);
 
-const seedComments = (): MockCommentRecord[] => [];
+  for (let index = 0; index < TOTAL_TRACKS; index += 1) {
+    const id = 1000 + index;
+    const owner = owners[index % owners.length];
+    const genre = TRACK_GENRES[index % TRACK_GENRES.length];
+    const title = `Track ${pad(index + 1)}`;
+    const tags = [
+      genre.toLowerCase().replace(/\s+/g, '-'),
+      `set-${((index % 20) + 1).toString().padStart(2, '0')}`,
+    ];
+
+    const track = makeTrack(
+      id,
+      title,
+      {
+        id: owner.id,
+        username: owner.username,
+        displayName: owner.displayName,
+        avatarUrl: owner.profile.profilePic,
+      },
+      genre,
+      tags,
+      false
+    );
+
+    tracks.push(track);
+    owner.tracks.push({ id: track.id, title: track.title, genre: track.genre });
+  }
+
+  return tracks;
+};
+
+const seedPlaylists = (
+  users: MockUserRecord[],
+  tracks: MockTrackRecord[]
+): MockPlaylistRecord[] => {
+  const playlists: MockPlaylistRecord[] = [];
+  const owners = users.slice(0, TOP_OWNER_COUNT);
+
+  for (let index = 0; index < TOTAL_PLAYLISTS; index += 1) {
+    const id = 2000 + index;
+    const owner = owners[index % owners.length];
+    const trackStart = (index * 10) % tracks.length;
+    const playlistTracks = Array.from({ length: 10 }, (_, offset) => {
+      const track = tracks[(trackStart + offset) % tracks.length];
+      return {
+        trackId: track.id,
+        title: track.title,
+        durationSeconds: track.trackDurationSeconds,
+        trackUrl: track.trackUrl,
+      };
+    });
+
+    const playlist: MockPlaylistRecord = {
+      id,
+      title: `Playlist ${pad(index + 1)}`,
+      description: `Curated collection ${index + 1}`,
+      type: 'PLAYLIST',
+      isPrivate: false,
+      CoverArt: SHARED_PLAYLIST_COVER_URLS[index % SHARED_PLAYLIST_COVER_URLS.length],
+      isLiked: false,
+      isReposted: false,
+      owner: {
+        id: owner.id,
+        username: owner.username,
+        displayName: owner.displayName,
+        avatarUrl: owner.profile.profilePic,
+      },
+      tracks: playlistTracks,
+      secretLink: undefined,
+      secretLinkExpiresAt: undefined,
+    };
+
+    owner.playlists.push(playlist);
+    playlists.push(playlist);
+  }
+
+  return playlists;
+};
+
+const assignTrackAndPlaylistEngagement = (
+  users: MockUserRecord[],
+  tracks: MockTrackRecord[],
+  playlists: MockPlaylistRecord[]
+): void => {
+  for (let index = 0; index < users.length; index += 1) {
+    const user = users[index];
+
+    const likedTrackStart = (index * 17) % tracks.length;
+    user.likedTracks = Array.from({ length: LIKED_TRACKS_PER_USER }, (_, offset) => {
+      const track = tracks[(likedTrackStart + offset) % tracks.length];
+      return { id: track.id, title: track.title, genre: track.genre };
+    });
+
+    const repostTrackStart = (index * 29) % tracks.length;
+    user.reposts = Array.from({ length: REPOSTED_TRACKS_PER_USER }, (_, offset) => {
+      const track = tracks[(repostTrackStart + offset) % tracks.length];
+      return { id: track.id, title: track.title, genre: track.genre };
+    });
+
+    const likedPlaylistStart = (index * 3) % playlists.length;
+    user.likedPlaylists = Array.from({ length: LIKED_PLAYLISTS_PER_USER }, (_, offset) => {
+      const playlist = playlists[(likedPlaylistStart + offset) % playlists.length];
+      return playlist.id;
+    });
+
+    const repostedPlaylistStart = (index * 7) % playlists.length;
+    user.repostedPlaylists = Array.from(
+      { length: REPOSTED_PLAYLISTS_PER_USER },
+      (_, offset) => {
+        const playlist =
+          playlists[(repostedPlaylistStart + offset) % playlists.length];
+        return playlist.id;
+      }
+    );
+
+    user.history = Array.from({ length: 30 }, (_, offset) => {
+      const track = tracks[(index * 11 + offset) % tracks.length];
+      return { id: track.id, title: track.title };
+    });
+  }
+};
+
+const seedComments = (
+  users: MockUserRecord[],
+  tracks: MockTrackRecord[]
+): MockCommentRecord[] => {
+  const comments: MockCommentRecord[] = [];
+  let commentId = 1;
+
+  for (const track of tracks) {
+    for (let index = 0; index < COMMENTS_PER_TRACK; index += 1) {
+      const commenter = users[(track.id + index) % users.length];
+      const timestampSeconds = Math.floor(
+        (index * TRACK_DURATION_SECONDS) / (COMMENTS_PER_TRACK - 1)
+      );
+
+      comments.push({
+        id: commentId,
+        trackId: track.id,
+        user: {
+          id: commenter.id,
+          username: commenter.username,
+          avatarUrl: commenter.profile.profilePic,
+          displayName: commenter.displayName,
+        },
+        body: `Comment ${index + 1} on ${track.title}`,
+        timestampSeconds,
+        createdAt: new Date(
+          Date.UTC(2026, 0, 1, 0, 0, (track.id + index) % 60)
+        ).toISOString(),
+      });
+
+      commentId += 1;
+    }
+  }
+
+  return comments;
+};
 
 type MockSystemState = {
   authAccountsByEmail: Map<string, MockAuthAccount>;
@@ -571,8 +599,8 @@ const isOversizedDataUrl = (value: string | undefined): boolean => {
   );
 };
 
-const getFallbackCoverUrl = (trackId: number): string =>
-  `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`;
+const getFallbackCoverUrl = (_trackId: number): string =>
+  SHARED_TRACK_COVER_URLS[0];
 
 const toEngagementCount = (value: unknown): number => {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -610,11 +638,6 @@ const compactTrackForPersistence = (
   options?: PersistOptions
 ): MockTrackRecord => {
   const stripLargeImages = options?.stripLargeImages ?? false;
-  const coverImageDataUrl = stripLargeImages
-    ? isOversizedDataUrl(track.coverImageDataUrl)
-      ? undefined
-      : track.coverImageDataUrl
-    : track.coverImageDataUrl;
   const coverUrl = stripLargeImages
     ? compactImageForPersistence(track.coverUrl, getFallbackCoverUrl(track.id))
     : track.coverUrl;
@@ -632,9 +655,12 @@ const compactTrackForPersistence = (
   return {
     ...trackWithoutLegacyWaveformData,
     coverUrl,
-    coverImageDataUrl,
+    likeCount: toEngagementCount(rawLikes),
+    repostCount: toEngagementCount(rawReposters),
     likes: toEngagementCount(rawLikes),
     reposters: toEngagementCount(rawReposters),
+    durationSeconds: track.trackDurationSeconds,
+    secretLink: track.secretToken,
   };
 };
 
@@ -663,8 +689,12 @@ const syncTrackEngagementCounts = (): void => {
   }
 
   for (const track of state.tracks) {
-    track.likes = likesByTrackId.get(track.id) ?? 0;
-    track.reposters = repostsByTrackId.get(track.id) ?? 0;
+    const likeCount = likesByTrackId.get(track.id) ?? 0;
+    const repostCount = repostsByTrackId.get(track.id) ?? 0;
+    track.likeCount = likeCount;
+    track.repostCount = repostCount;
+    track.likes = likeCount;
+    track.reposters = repostCount;
   }
 };
 
@@ -856,7 +886,7 @@ const createDefaultUserFromAccount = (
 ): MockUserRecord => ({
   id: account.id,
   username: account.username,
-  displayName: account.username,
+  displayName: account.displayName?.trim() || account.username,
   email: account.email,
   emailVerified: account.emailVerified,
   role: 'LISTENER',
@@ -865,7 +895,7 @@ const createDefaultUserFromAccount = (
     bio: '',
     city: '',
     country: '',
-    profilePic: account.avatarUrl ?? '',
+    profilePic: account.avatarUrl ?? '/images/default_avatar.png',
     coverPic: '',
     favoriteGenres: [],
   },
@@ -908,20 +938,16 @@ const ensureUserFromAccount = (account: MockAuthAccount): MockUserRecord => {
   const existing = current.users.find((user) => user.id === account.id);
 
   if (existing) {
-    const previousUsername = existing.username;
     existing.email = account.email;
     existing.username = account.username;
-    if (
-      !existing.displayName?.trim() ||
-      existing.displayName === previousUsername
-    ) {
-      existing.displayName = account.username;
-    }
+    existing.displayName =
+    account.displayName?.trim() ||
+    existing.displayName ||
+    account.username;
     existing.emailVerified = account.emailVerified;
     existing.tier = account.tier;
-    if (account.avatarUrl) {
-      existing.profile.profilePic = account.avatarUrl;
-    }
+    existing.profile.profilePic =
+    account.avatarUrl || existing.profile.profilePic;
     return existing;
   }
 
@@ -961,6 +987,8 @@ const syncTracksWithCredentialUsers = (): void => {
         artist: {
           id: owner.id,
           username: owner.username,
+          displayName: owner.displayName,
+          avatarUrl: owner.profile.profilePic,
         },
       };
     });
@@ -1001,18 +1029,22 @@ export const getMockSystemState = (): MockSystemState => {
   if (persisted) {
     state = persisted;
   } else {
+    const users = seedUsers();
+    const tracks = seedTracks(users);
+    const playlists = seedPlaylists(users, tracks);
+    assignTrackAndPlaylistEngagement(users, tracks, playlists);
+
     const authAccountsByEmail = new Map<string, MockAuthAccount>(
       seedAccounts.map((account) => [
         normalizeEmail(account.email),
         { ...account },
       ])
     );
-
     state = {
       authAccountsByEmail,
-      users: seedUsers(),
-      tracks: seedTracks(),
-      comments: seedComments(),
+      users,
+      tracks,
+      comments: seedComments(users, tracks),
       emailVerification: {},
     };
   }
@@ -1093,6 +1125,7 @@ export const createMockAuthAccount = (params: {
   avatarUrl?: string;
   password: string;
   emailVerified?: boolean;
+  displayName?: string;
   tier?: LoginUserDTO['tier'];
 }): MockAuthAccount => {
   const normalizedEmail = normalizeEmail(params.email);
@@ -1116,7 +1149,8 @@ export const createMockAuthAccount = (params: {
     id: getNextAccountId(),
     email: normalizedEmail,
     username: params.username.trim(),
-    avatarUrl: params.avatarUrl,
+    avatarUrl: params.avatarUrl ?? '/images/default_avatar.png',
+    displayName: params.displayName ?? '',
     password: params.password,
     emailVerified: params.emailVerified ?? false,
     tier: params.tier ?? 'FREE',
@@ -1131,6 +1165,7 @@ export const createMockAuthAccount = (params: {
 export const upsertMockAuthAccount = (params: {
   email: string;
   username: string;
+  displayName?: string;
   avatarUrl?: string;
   password?: string;
   emailVerified?: boolean;
@@ -1145,6 +1180,9 @@ export const upsertMockAuthAccount = (params: {
 
   if (existing) {
     existing.username = resolvedUsername.trim() || existing.username;
+    if (params.displayName !== undefined) {
+      existing.displayName = params.displayName;
+    }
     if (params.avatarUrl !== undefined) {
       existing.avatarUrl = params.avatarUrl;
     }
@@ -1166,7 +1204,8 @@ export const upsertMockAuthAccount = (params: {
     id: getNextAccountId(),
     email: normalizedEmail,
     username: resolvedUsername.trim(),
-    avatarUrl: params.avatarUrl,
+    avatarUrl: params.avatarUrl ?? '/images/default_avatar.png',
+    displayName: params.displayName ?? '',
     password: params.password ?? createFallbackPassword(),
     emailVerified: params.emailVerified ?? true,
     tier: params.tier ?? 'FREE',

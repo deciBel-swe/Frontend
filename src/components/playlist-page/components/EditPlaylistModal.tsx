@@ -5,7 +5,9 @@ import { GripVertical, Trash2, X } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import ArtworkPreviewField from '@/features/tracks/TrackUploadForm/FormFields/ArtworkPreviewField';
 import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
+import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
+import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
 import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTextField';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { validateImageFile } from '@/utils/fileValidation';
@@ -24,6 +26,8 @@ type EditPlaylistModalProps = {
   playlist: {
     title: string;
     description?: string;
+    genre?: string;
+    tags?: string[];
     isPrivate?: boolean;
     coverArtUrl?: string;
   } | null;
@@ -32,6 +36,8 @@ type EditPlaylistModalProps = {
   onSave: (payload: {
     title: string;
     description: string;
+    genre?: string;
+    tags?: string[];
     isPrivate: boolean;
     coverArt?: string;
   }) => Promise<void>;
@@ -70,6 +76,8 @@ export default function EditPlaylistModal({
   const [activeTab, setActiveTab] = useState<ModalTab>('details');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [genre, setGenre] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
@@ -80,6 +88,7 @@ export default function EditPlaylistModal({
   const [editableTracks, setEditableTracks] = useState<EditablePlaylistTrack[]>([]);
   const [trackError, setTrackError] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [pendingRemoveTrackIds, setPendingRemoveTrackIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (!open || !playlist) {
@@ -89,6 +98,8 @@ export default function EditPlaylistModal({
     setActiveTab('details');
     setTitle(playlist.title);
     setDescription(playlist.description ?? '');
+    setGenre(playlist.genre ?? '');
+    setTags(Array.isArray(playlist.tags) ? playlist.tags : []);
     setPrivacy(playlist.isPrivate ? 'private' : 'public');
     setArtworkPreview(playlist.coverArtUrl ?? null);
     setArtworkFile(null);
@@ -98,6 +109,7 @@ export default function EditPlaylistModal({
     setTrackError('');
     setEditableTracks(tracks);
     setDragIndex(null);
+    setPendingRemoveTrackIds([]);
   }, [open, playlist, tracks]);
 
   const handleArtworkSelect = async (file: File) => {
@@ -140,11 +152,15 @@ export default function EditPlaylistModal({
       const payload: {
         title: string;
         description: string;
+        genre?: string;
+        tags?: string[];
         isPrivate: boolean;
         coverArt?: string;
       } = {
         title: trimmedTitle,
         description: description.trim(),
+        genre: genre.trim() || undefined,
+        tags,
         isPrivate: privacy === 'private',
       };
 
@@ -221,19 +237,32 @@ export default function EditPlaylistModal({
   };
 
   const handleRemoveTrack = async (trackId: number) => {
-    if (!onRemoveTrack || isTrackMutationPending) {
+    if (
+      !onRemoveTrack ||
+      isTrackMutationPending ||
+      pendingRemoveTrackIds.includes(trackId)
+    ) {
       return;
     }
 
-    const previousTracks = editableTracks;
-    setEditableTracks((items) => items.filter((track) => track.id !== trackId));
+    let previousTracksSnapshot: EditablePlaylistTrack[] = [];
+
+    setPendingRemoveTrackIds((previous) => [...previous, trackId]);
+    setEditableTracks((items) => {
+      previousTracksSnapshot = items;
+      return items.filter((track) => track.id !== trackId);
+    });
     setTrackError('');
 
     try {
       await onRemoveTrack(trackId);
     } catch {
-      setEditableTracks(previousTracks);
+      setEditableTracks(previousTracksSnapshot);
       setTrackError('Unable to remove track. Please try again.');
+    } finally {
+      setPendingRemoveTrackIds((previous) =>
+        previous.filter((id) => id !== trackId)
+      );
     }
   };
 
@@ -317,6 +346,10 @@ export default function EditPlaylistModal({
                     onChange={setDescription}
                   />
 
+                  <TrackGenreField value={genre} onChange={setGenre} />
+
+                  <TrackTagsCombobox value={tags} onChange={setTags} />
+
                   <TrackPrivacy value={privacy} onChange={setPrivacy} />
                 </div>
               </div>
@@ -362,7 +395,11 @@ export default function EditPlaylistModal({
                         type="button"
                         className="rounded p-1 text-text-muted transition-colors hover:text-status-error disabled:opacity-50"
                         aria-label={`Remove ${track.title}`}
-                        disabled={isTrackMutationPending || !onRemoveTrack}
+                        disabled={
+                          isTrackMutationPending ||
+                          !onRemoveTrack ||
+                          pendingRemoveTrackIds.includes(track.id)
+                        }
                         onClick={() => {
                           void handleRemoveTrack(track.id);
                         }}

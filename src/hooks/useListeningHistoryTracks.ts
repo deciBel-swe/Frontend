@@ -90,12 +90,18 @@ export function useListeningHistoryTracks({
               user: {
                 username: artistUsername,
                 displayName: artistDisplayName,
-                avatar: metadata?.coverUrl ?? '/images/default_song_image.png',
+                avatar:
+                  metadata?.artist?.avatarUrl ?? '/images/default_song_image.png',
               },
               postedText: 'played a track',
               track: {
                 id: item.id,
-                artist: artistDisplayName || artistUsername,
+                artist: {
+                  username: artistUsername,
+                  displayName: artistDisplayName,
+                  avatar:
+                    metadata?.artist?.avatarUrl ?? '/images/default_song_image.png',
+                },
                 title,
                 cover: metadata?.coverUrl ?? '/images/default_song_image.png',
                 duration: durationSeconds ? formatDuration(durationSeconds) : '',

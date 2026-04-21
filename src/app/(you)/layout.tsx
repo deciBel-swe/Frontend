@@ -5,8 +5,6 @@ const TABS = [
   { label: 'Overview',  href: '/you/library' },
   { label: 'Likes',     href: '/you/likes' },
   { label: 'Playlists', href: '/you/sets' },
-  { label: 'Albums',    href: '/you/albums' },
-  { label: 'Stations',  href: '/you/stations' },
   { label: 'Following', href: '/you/following' },
   { label: 'History',   href: '/you/history' },
 ];

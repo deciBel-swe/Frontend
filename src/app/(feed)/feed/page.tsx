@@ -1,5 +1,6 @@
 'use client';
 
+import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
 import TrackCard from '@/components/tracks/track-card/TrackCard';
 import { useFeedTracks } from '@/hooks/useFeedTracks';
 
@@ -15,7 +16,7 @@ import { useFeedTracks } from '@/hooks/useFeedTracks';
  *  - Layout → owns sidebar + two-column shell
  */
 export default function FeedPage() {
-  const { feedTracks, isLoading, isError } = useFeedTracks();
+  const { feedItems, isLoading, isError } = useFeedTracks();
 
   if (isLoading) {
     return (
@@ -38,32 +39,23 @@ export default function FeedPage() {
     );
   }
 
-  if (feedTracks.length === 0) {
+  if (feedItems.length === 0) {
     return (
       <p className="text-text-muted text-sm">
-        No tracks yet. Upload one to get started.
+        No feed items yet.
       </p>
     );
   }
 
   return (
     <>
-      {feedTracks.map((item) => (
-        <TrackCard
-          key={item.id}
-          trackId={String(item.id)}
-          isPrivate={item.isPrivate}
-          user={item.user}
-          postedText={item.postedText}
-          // timeAgo={item.timeAgo}
-          showEditButton={false}
-          track={item.track}
-          waveform={item.waveform}
-          playback={item.playback}
-          queueTracks={item.queueTracks}
-          queueSource="feed"
-        />
-      ))}
+      {feedItems.map((item) => {
+        if (item.kind === 'track') {
+          return <TrackCard key={item.id} {...item.card} queueSource="feed" />;
+        }
+
+        return <PlaylistCard key={item.id} {...item.card} queueSource="feed" />;
+      })}
     </>
   );
 }

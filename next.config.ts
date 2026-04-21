@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'i.ibb.co' },
       { protocol: 'https', hostname: 'decibelblob.blob.core.windows.net' },
       { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'api.dicebear.com' },
     ],
   },
 };

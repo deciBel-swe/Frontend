@@ -5,7 +5,7 @@ import { Heart, MessageCircle, Play, Repeat2 } from 'lucide-react';
 
 type TrackCardStatsProps = {
   userSlug: string;
-  trackId: number;
+  routeTrackId: string;
   likeCount: number;
   repostCount: number;
   plays?: number;
@@ -15,14 +15,15 @@ type TrackCardStatsProps = {
 
 export default function TrackCardStats({
   userSlug,
-  trackId,
+  routeTrackId,
   likeCount,
   repostCount,
   plays,
   comments,
   commentsHref,
 }: TrackCardStatsProps) {
-  const resolvedCommentsHref = commentsHref ?? `/${userSlug}/${trackId}/comments`;
+  const resolvedCommentsHref =
+    commentsHref ?? `/${userSlug}/${routeTrackId}/comments`;
 
   return (
     <div className="ml-auto flex items-center gap-4 text-xs font-semibold text-text-muted">

@@ -104,9 +104,9 @@ const buildTrackSummary = (trackId: number): TrackSummaryDTO => {
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
     artist: buildUserSummary(track.artist.id),
-    playCount: track.likes * 25,
-    likeCount: track.likes,
-    repostCount: track.reposters,
+    playCount: (track.likes ?? track.likeCount) * 25,
+    likeCount: track.likes ?? track.likeCount,
+    repostCount: track.reposters ?? track.repostCount,
     commentCount: 0,
     isLiked: false,
     isReposted: false,
@@ -298,7 +298,10 @@ export class MockDiscoveryService implements DiscoveryService {
     const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
 
     const tracks = [...getMockTracksStore()]
-      .sort((a, b) => b.likes - a.likes)
+      .sort(
+        (a, b) =>
+          (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
+      )
       .slice(0, limit)
       .map((track, index) => {
         const resource = buildResourceForTrack(track.id);

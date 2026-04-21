@@ -9,7 +9,7 @@ import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTra
 import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
 import PlaylistOwnerSidebar from '@/components/playlist-page/components/PlaylistOwnerSidebar';
 import EditPlaylistModal from '@/components/playlist-page/components/EditPlaylistModal';
-import { Sidebar } from '@/components/playlist-page/components/sidebar/sidebar';
+import PlaylistEngagementSidebar from '@/components/playlist-page/components/sidebar/sidebar';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
@@ -17,6 +17,10 @@ import { useWaveformData } from '@/hooks/useWaveformData';
 import { playlistService, trackService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
+import {
+  getSecretTokenFromQuery,
+  resolvePlaylistIdFromIdentifier,
+} from '@/utils/resourceIdentifierResolvers';
 
 /**
  * /sets/[id]/page.tsx
@@ -31,6 +35,48 @@ type PlaylistTrackDto = NonNullable<PlaylistResponse['tracks']>[number];
 
 const normalizeIdentity = (value: string | undefined): string =>
   (value ?? '').trim().toLowerCase();
+
+const resolvePlaylistCover = (
+  playlist: PlaylistResponse | null | undefined
+): string | undefined => {
+  if (!playlist) {
+    return undefined;
+  }
+
+  const canonicalCover = playlist.coverArtUrl?.trim();
+  if (canonicalCover) {
+    return canonicalCover;
+  }
+
+  const legacyCover = (
+    playlist as PlaylistResponse & { CoverArt?: string; image?: string }
+  ).CoverArt?.trim();
+  if (legacyCover) {
+    return legacyCover;
+  }
+
+  const imageCover = (
+    playlist as PlaylistResponse & { CoverArt?: string; image?: string }
+  ).image?.trim();
+  if (imageCover) {
+    return imageCover;
+  }
+
+  return undefined;
+};
+
+const normalizePlaylistResponse = (playlist: PlaylistResponse): PlaylistResponse => {
+  const cover = resolvePlaylistCover(playlist);
+
+  if (!cover) {
+    return playlist;
+  }
+
+  return {
+    ...playlist,
+    coverArtUrl: cover,
+  };
+};
 
 const toWaveform = (value: unknown): number[] => {
   if (Array.isArray(value)) {
@@ -109,6 +155,25 @@ const resolveTrackArtist = (track: PlaylistTrackDto, fallbackArtist: string): st
   }
 
   return fallbackArtist;
+};
+
+const resolveTrackArtistUsername = (
+  track: PlaylistTrackDto
+): string | undefined => {
+  if ('artist' in track && track.artist?.username) {
+    return track.artist.username;
+  }
+
+  return undefined;
+};
+
+const resolveTrackSlug = (track: PlaylistTrackDto): string | undefined => {
+  if ('trackSlug' in track && typeof track.trackSlug === 'string') {
+    const normalized = track.trackSlug.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  return undefined;
 };
 
 const resolveTrackDurationSeconds = (track: PlaylistTrackDto): number => {
@@ -197,6 +262,8 @@ const mapPlaylistTracksToItems = (
 
       const item: PlaylistTrack = {
         id,
+        trackSlug: resolveTrackSlug(track),
+        artistUsername: resolveTrackArtistUsername(track),
         title: resolveTrackTitle(track),
         artist: resolveTrackArtist(track, fallbackArtist),
         coverUrl,
@@ -226,6 +293,7 @@ export default function PlaylistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const ownerContext = useProfileOwnerContext();
+  const secretToken = getSecretTokenFromQuery(searchParams);
 
   const [playlist, setPlaylist] = useState<PlaylistResponse | null>(null);
   const [orderedTracks, setOrderedTracks] = useState<PlaylistTrack[]>([]);
@@ -236,6 +304,8 @@ export default function PlaylistPage() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isReorderSaving, setIsReorderSaving] = useState(false);
+  const [isPlaylistLikePending, setIsPlaylistLikePending] = useState(false);
+  const [isPlaylistRepostPending, setIsPlaylistRepostPending] = useState(false);
 
   const playerCurrentTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
   const playerIsPlaying = usePlayerStore((state) => state.isPlaying);
@@ -243,9 +313,6 @@ export default function PlaylistPage() {
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
-
-  const playlistId = Number(id);
-  const isPlaylistIdValid = Number.isFinite(playlistId);
 
   const ownerUsername = playlist?.owner?.username || username;
   const ownerDisplayName =
@@ -257,12 +324,6 @@ export default function PlaylistPage() {
     normalizeIdentity(ownerUsername) === normalizeIdentity(username);
 
   useEffect(() => {
-    if (!isPlaylistIdValid) {
-      setIsLoading(false);
-      setIsError(true);
-      return;
-    }
-
     let isCancelled = false;
 
     const loadPlaylist = async () => {
@@ -270,7 +331,19 @@ export default function PlaylistPage() {
       setIsError(false);
 
       try {
-        const data = await playlistService.getPlaylist(playlistId);
+        const data = await (async (): Promise<PlaylistResponse> => {
+          if (secretToken) {
+            return normalizePlaylistResponse(
+              await playlistService.getPlaylistByToken(secretToken)
+            );
+          }
+
+          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(id);
+          return normalizePlaylistResponse(
+            await playlistService.getPlaylist(resolvedPlaylistId)
+          );
+        })();
+
         if (isCancelled) {
           return;
         }
@@ -300,10 +373,12 @@ export default function PlaylistPage() {
     return () => {
       isCancelled = true;
     };
-  }, [isPlaylistIdValid, playlistId, username]);
+  }, [id, secretToken, username]);
 
   const loadPlaylistById = async (targetPlaylistId: number): Promise<PlaylistResponse> => {
-    const data = await playlistService.getPlaylist(targetPlaylistId);
+    const data = normalizePlaylistResponse(
+      await playlistService.getPlaylist(targetPlaylistId)
+    );
     setPlaylist(data);
     setOrderedTracks(
       mapPlaylistTracksToItems(
@@ -470,6 +545,8 @@ export default function PlaylistPage() {
   const handleSaveMetadata = async (payload: {
     title: string;
     description: string;
+    genre?: string;
+    tags?: string[];
     isPrivate: boolean;
     coverArt?: string;
   }) => {
@@ -480,13 +557,22 @@ export default function PlaylistPage() {
     setIsEditSaving(true);
 
     try {
-      const updated = await playlistService.updatePlaylist(playlist.id, {
+      const updatePayload = {
         title: payload.title,
         description: payload.description,
         type: playlist.type ?? 'PLAYLIST',
         isPrivate: payload.isPrivate,
         CoverArt: payload.coverArt,
-      });
+        genre: payload.genre,
+        tags: payload.tags,
+      } as Parameters<typeof playlistService.updatePlaylist>[1] & {
+        genre?: string;
+        tags?: string[];
+      };
+
+      const updated = normalizePlaylistResponse(
+        await playlistService.updatePlaylist(playlist.id, updatePayload)
+      );
 
       setPlaylist(updated);
       setOrderedTracks(mapPlaylistTracksToItems(updated.tracks, ownerDisplayName));
@@ -562,6 +648,116 @@ export default function PlaylistPage() {
         isReposted: current.isReposted,
         repostCount: current.repostCount,
       }));
+    }
+  };
+
+  const handleLikePlaylist = async () => {
+    if (!playlist || isPlaylistLikePending) {
+      return;
+    }
+
+    const previousLiked = playlist.isLiked ?? false;
+    const previousLikeCount = playlist.likeCount ?? 0;
+    const nextLiked = !previousLiked;
+    const delta = nextLiked ? 1 : -1;
+
+    setIsPlaylistLikePending(true);
+    setPlaylist((previous) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        isLiked: nextLiked,
+        likeCount: Math.max(0, (previous.likeCount ?? 0) + delta),
+      };
+    });
+
+    try {
+      const response = nextLiked
+        ? await playlistService.likePlaylist(playlist.id)
+        : await playlistService.unlikePlaylist(playlist.id);
+
+      setPlaylist((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          isLiked: response.isLiked,
+        };
+      });
+    } catch {
+      setPlaylist((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          isLiked: previousLiked,
+          likeCount: previousLikeCount,
+        };
+      });
+    } finally {
+      setIsPlaylistLikePending(false);
+    }
+  };
+
+  const handleRepostPlaylist = async () => {
+    if (!playlist || isPlaylistRepostPending) {
+      return;
+    }
+
+    const previousReposted = playlist.isReposted ?? false;
+    const previousRepostCount = playlist.repostCount ?? 0;
+    const nextReposted = !previousReposted;
+    const delta = nextReposted ? 1 : -1;
+
+    setIsPlaylistRepostPending(true);
+    setPlaylist((previous) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        isReposted: nextReposted,
+        repostCount: Math.max(0, (previous.repostCount ?? 0) + delta),
+      };
+    });
+
+    try {
+      const response = nextReposted
+        ? await playlistService.repostPlaylist(playlist.id)
+        : await playlistService.unrepostPlaylist(playlist.id);
+
+      setPlaylist((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          isReposted: response.isReposted,
+        };
+      });
+    } catch {
+      setPlaylist((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          isReposted: previousReposted,
+          repostCount: previousRepostCount,
+        };
+      });
+    } finally {
+      setIsPlaylistRepostPending(false);
     }
   };
 
@@ -697,10 +893,12 @@ export default function PlaylistPage() {
     ? ((playlist as { tags?: unknown[] }).tags ?? [])
         .filter((tag): tag is string => typeof tag === 'string')
     : [];
+  const playlistPathId = playlist.playlistSlug?.trim() || id;
 
   const bannerPlaylist = {
     title: playlist.title,
     updatedAt: playlist.createdAt,
+    coverUrl: resolvePlaylistCover(playlist),
     tracks: orderedTracks,
     owner: {
       username: playlist.owner?.username || username,
@@ -727,6 +925,16 @@ export default function PlaylistPage() {
         onShare={handleCopyLink}
         onCopyLink={handleCopyLink}
         onAddToQueue={handleAddToQueue}
+        onLike={() => {
+          void handleLikePlaylist();
+        }}
+        onRepost={() => {
+          void handleRepostPlaylist();
+        }}
+        onPlayPause={handleBannerPlayPause}
+        isPlaying={Boolean(activeTrackId) && playerIsPlaying}
+        isLiked={Boolean(playlist.isLiked)}
+        isReposted={Boolean(playlist.isReposted)}
         onEdit={
           canEditPlaylist
             ? () => {
@@ -814,7 +1022,12 @@ export default function PlaylistPage() {
           </p>
         </aside> */}
         {/* RIGHT SIDEBAR */}
-        <Sidebar />
+        <PlaylistEngagementSidebar
+          username={username}
+          playlistPathId={playlistPathId}
+          likesCount={playlist.likeCount ?? 0}
+          repostsCount={playlist.repostCount ?? 0}
+        />
       </div>
 
       <EditPlaylistModal
@@ -823,8 +1036,10 @@ export default function PlaylistPage() {
         playlist={{
           title: playlist.title,
           description: playlist.description,
+          genre: playlist.genre,
+          tags: playlistTags,
           isPrivate: playlist.isPrivate,
-          coverArtUrl: playlist.coverArtUrl,
+          coverArtUrl: resolvePlaylistCover(playlist),
         }}
         tracks={orderedTracks.map((track) => ({
           id: track.id,

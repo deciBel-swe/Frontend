@@ -57,6 +57,9 @@ export interface TrackService {
   /** Read a track payload normalized for view/share UI (GET /tracks/:trackId) */
   getTrackMetadata(trackId: number): Promise<TrackMetaData>;
 
+  /** Read a private/public track payload using a secret token (GET /tracks/token/:token) */
+  getTrackByToken(token: string): Promise<TrackMetaData>;
+
   /** Read current user tracks for lightweight listing/test UI (GET /users/me/tracks) */
   getUserTracks(userID: number): Promise<TrackMetaData[]>;
 
@@ -140,19 +143,23 @@ const normalizeTrackMetadata = (
   const artistId = payload.artist?.id ?? payload.userId ?? 0;
   const artistUsername =
     payload.artist?.username ?? payload.username ?? 'unknown';
+  const resolvedDuration =
+    payload.durationSeconds ?? payload.trackDurationSeconds;
 
   return {
     id: payload.id,
     title: payload.title,
+    trackSlug: payload.trackSlug ?? payload.slug,
     artist: {
       id: artistId,
       username: artistUsername,
       displayName: payload.artist?.displayName,
+      avatarUrl: payload.artist?.avatarUrl,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
     access: payload.access ?? 'PLAYABLE',
-    ...(payload.durationSeconds !== undefined && payload.durationSeconds !== null
-      ? { durationSeconds: payload.durationSeconds }
+    ...(resolvedDuration !== undefined && resolvedDuration !== null
+      ? { durationSeconds: resolvedDuration }
       : {}),
     coverUrl: toAbsoluteUrl(
       payload.coverUrl ?? payload.coverImage,
@@ -264,6 +271,12 @@ export class RealTrackService implements TrackService {
   async getTrackMetadata(trackId: number): Promise<TrackMetaData> {
     const payload = await apiRequest(API_CONTRACTS.TRACKS_BY_ID(trackId));
     const normalized = normalizeTrackMetadata(trackId, payload);
+    return hydrateWaveformData(normalized, payload);
+  }
+
+  async getTrackByToken(token: string): Promise<TrackMetaData> {
+    const payload = await apiRequest(API_CONTRACTS.TRACKS_BY_TOKEN(token));
+    const normalized = normalizeTrackMetadata(payload.id, payload);
     return hydrateWaveformData(normalized, payload);
   }
 

@@ -156,8 +156,9 @@ export function useFeedSidebar() {
         return {
           trackId: track.track.id,
           image: track.track.cover,
-          artist: track.track.artist,
-          artistUsername: track.user.username,
+          artist:
+            track.track.artist.displayName || track.track.artist.username,
+          artistUsername: track.track.artist.username,
           title: track.track.title,
           playback,
           stats: {

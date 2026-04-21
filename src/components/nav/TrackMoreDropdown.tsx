@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { MoreHorizontal, ListPlus, ListMusic, Radio } from 'lucide-react';
+import { MoreHorizontal, ListPlus, ListMusic} from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import { DropdownMenu, DropdownMenuItem } from './DropdownMenu';
 
@@ -20,7 +20,6 @@ export default function TrackMoreDropdown({
   onClose,
   onAddToNextUp,
   onAddToPlaylist,
-  onStation,
 }: TrackMoreDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +52,6 @@ export default function TrackMoreDropdown({
             items={[
             onAddToNextUp && { label: 'Add to Next up', icon: <ListPlus size={16} />, onClick: onAddToNextUp },
             onAddToPlaylist && { label: 'Add to Playlist', icon: <ListMusic size={16} />, onClick: onAddToPlaylist },
-            onStation && { label: 'Station', icon: <Radio size={16} />, onClick: onStation },
             ].filter(Boolean) as DropdownMenuItem[]}
         />
       )}

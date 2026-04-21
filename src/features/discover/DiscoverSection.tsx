@@ -21,6 +21,10 @@ type DiscoverSectionProps<T> = {
   isLoading?: boolean;
   /** Number of skeleton placeholders to show while loading */
   skeletonCount?: number;
+  onPrevPage?: () => void;
+  onNextPage?: () => void;
+  canPrevPage?: boolean;
+  canNextPage?: boolean;
 };
 
 /**
@@ -41,6 +45,10 @@ export default function DiscoverSection<T>({
   scrollStep,
   isLoading = false,
   skeletonCount = 6,
+  onPrevPage,
+  onNextPage,
+  canPrevPage = true,
+  canNextPage = true,
 }: DiscoverSectionProps<T>) {
   return (
     <section className="mb-10">
@@ -65,7 +73,13 @@ export default function DiscoverSection<T>({
         />
       ) : (
         /* ── Carousel ────────────────────────────────────────────────────── */
-        <Carousel scrollStep={scrollStep}>
+        <Carousel
+          scrollStep={scrollStep}
+          onPrevPage={onPrevPage}
+          onNextPage={onNextPage}
+          canPrevPage={canPrevPage}
+          canNextPage={canNextPage}
+        >
           {items.map((item, index) => renderItem(item, index))}
         </Carousel>
       )}

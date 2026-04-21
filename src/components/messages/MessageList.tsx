@@ -29,17 +29,20 @@ function toTrackCardUser(u: User): TrackCardUser {
 
 export default function MessageList({ type, user, track, playlist }: ListProps) {
   if (type === 'track' && track) {
+    const trackArtistDisplayName =
+      track.artist.displayName || track.artist.username;
+
     const cardUser: TrackCardUser = user
       ? toTrackCardUser(user)
       : {
-          username: track.artist.toLowerCase().replace(/\s+/g, ''),
-          displayName: track.artist,
-          avatar: '',
+          username: track.artist.username,
+          displayName: trackArtistDisplayName,
+          avatar: track.artist.avatar,
         };
 
     return (
       <div className="w-full overflow-x-auto rounded-lg">
-        <div className="min-w-[380px]">
+        <div className="min-w-95">
           <TrackCard
             trackId={String(track.id)}
             track={{
@@ -57,23 +60,31 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
   }
 
   if (type === 'playlist' && playlist) {
+    const playlistOwnerUsername = playlist.owner
+      .toLowerCase()
+      .replace(/\s+/g, '');
+
     const cardUser: TrackCardUser = user
       ? toTrackCardUser(user)
       : {
-          username: playlist.owner.toLowerCase().replace(/\s+/g, ''),
+          username: playlistOwnerUsername,
           displayName: playlist.owner,
           avatar: '',
         };
 
     return (
       <div className="w-full overflow-x-auto rounded-lg">
-        <div className="min-w-[380px]">
+        <div className="min-w-95">
           <PlaylistCard
             trackId={String(playlist.id)}
             track={{
               id: playlist.id,
               title: playlist.title,
-              artist: playlist.owner,
+              artist: {
+                username: playlistOwnerUsername,
+                displayName: playlist.owner,
+                avatar: cardUser.avatar || DEFAULT_COVER,
+              },
               cover: playlist.cover || DEFAULT_COVER,
               duration: '0:00',
               waveformUrl: playlist.tracks?.[0]?.waveformUrl,
@@ -88,7 +99,7 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
             relatedTracks={playlist.tracks?.map((t) => ({
               id: t.id,
               title: t.title,
-              artist: t.artist,
+              artist: t.artist.displayName || t.artist.username,
               coverUrl: t.cover || DEFAULT_COVER,
               plays: String(t.plays ?? 0),
             }))}

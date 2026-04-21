@@ -6,6 +6,7 @@ import TrackCardStats from './TrackCardStats';
 type TrackCardFooterProps = {
   userSlug: string;
   trackId: number;
+  routeTrackId?: string;
   showEditButton: boolean;
   isLiked: boolean;
   isReposted: boolean;
@@ -32,6 +33,7 @@ type TrackCardFooterProps = {
 export default function TrackCardFooter({
   userSlug,
   trackId,
+  routeTrackId,
   showEditButton,
   isLiked,
   isReposted,
@@ -80,7 +82,7 @@ export default function TrackCardFooter({
 
       <TrackCardStats
         userSlug={userSlug}
-        trackId={trackId}
+        routeTrackId={routeTrackId ?? String(trackId)}
         likeCount={likeCount}
         repostCount={repostCount}
         plays={plays}

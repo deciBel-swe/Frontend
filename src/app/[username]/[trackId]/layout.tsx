@@ -1,11 +1,12 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
 import TrackHero from '@/components/track-page/TrackHero';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
+import { getSecretTokenFromQuery } from '@/utils/resourceIdentifierResolvers';
 
 type LayoutProps = {
   children: ReactNode;
@@ -13,6 +14,8 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   const { username, trackId } = useParams<{ username: string; trackId: string }>();
+  const searchParams = useSearchParams();
+  const secretToken = getSecretTokenFromQuery(searchParams);
   const {
     hero,
     waveformComments,
@@ -30,7 +33,7 @@ export default function Layout({ children }: LayoutProps) {
     onRepost,
     onPlayPause,
     onWaveformSeek,
-  } = useTrackHeaderItem({ username, trackId });
+  } = useTrackHeaderItem({ username, trackId, secretToken });
 
   return (
     <div className="w-full">

@@ -22,6 +22,7 @@ export default function PlaylistHorizontalRoot({
   user,
   postedText = 'posted a set',
   showEditButton = false,
+  repostedBy,
   track,
   waveform,
   playback,
@@ -30,11 +31,20 @@ export default function PlaylistHorizontalRoot({
   currentUserAvatar,
   showHeader = true,
   relatedTracks,
+  onEdit,
 }: PlaylistHorizontalProps) {
   const router = useRouter();
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
-  const playlistHref = `/${userSlug}/sets/${trackId}`;
+  const repostedBySlug = repostedBy?.username
+    ? toUserSlug(repostedBy.username)
+    : undefined;
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
+  const playlistPathId = track.playlistSlug?.trim() || trackId;
+  const playlistHref = `/${userSlug}/sets/${playlistPathId}`;
+  const artistDisplayName = track.artist.displayName || track.artist.username;
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -195,8 +205,8 @@ export default function PlaylistHorizontalRoot({
     >
       {showHeader ? (
         <TrackCardHeader
-          userSlug={userSlug}
-          userDisplayName={userDisplayName}
+          userSlug={repostedBySlug ?? userSlug}
+          userDisplayName={repostedByDisplayName ?? userDisplayName}
           userAvatar={user.avatar}
           postedText={postedText}
         />
@@ -206,6 +216,7 @@ export default function PlaylistHorizontalRoot({
         <TrackCardArtwork
           userSlug={userSlug}
           trackId={track.id}
+          routeTrackId={playlistPathId}
           coverUrl={track.cover}
           title={track.title}
           contentHref={playlistHref}
@@ -214,12 +225,15 @@ export default function PlaylistHorizontalRoot({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
             userSlug={userSlug}
-            artistName={track.artist}
+            artistName={artistDisplayName}
             trackId={track.id}
+            routeTrackId={playlistPathId}
             title={track.title}
             contentHref={playlistHref}
             genre={track.genre}
             createdAt={track.createdAt}
+            repostedBySlug={repostedBySlug}
+            repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
@@ -248,6 +262,7 @@ export default function PlaylistHorizontalRoot({
           <TrackCardFooter
             userSlug={userSlug}
             trackId={track.id}
+            routeTrackId={playlistPathId}
             showEditButton={showEditButton}
             isLiked={isLiked}
             isReposted={isReposted}
@@ -258,7 +273,12 @@ export default function PlaylistHorizontalRoot({
             canAddToQueue={Boolean(playback) || Boolean(queueTracks?.length)}
             isMoreOpen={isMoreOpen}
             onEdit={() => {
-              if (!showEditButton) {
+              if (!showEditButton && !onEdit) {
+                return;
+              }
+
+              if (onEdit) {
+                onEdit();
                 return;
               }
 

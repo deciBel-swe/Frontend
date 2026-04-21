@@ -17,6 +17,7 @@ type PlaylistTrack = {
 type Playlist = {
   title: string;
   updatedAt?: string;
+  coverUrl?: string;
   tracks: PlaylistTrack[];
   owner: { username: string; displayName?: string };
   genre?: string;
@@ -43,7 +44,8 @@ export default function PlaylistBanner({
 }: PlaylistBannerProps) {
   const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
   const ownerDisplayName = playlist.owner.displayName || playlist.owner.username;
-  const coverToShow = playingTrack?.coverUrl ?? playlist.tracks[0]?.coverUrl;
+  const coverToShow =
+    playlist.coverUrl ?? playingTrack?.coverUrl ?? playlist.tracks[0]?.coverUrl;
 
   return (
     <div className="relative w-full h-65 md:h-75 overflow-hidden bg-surface-raised">

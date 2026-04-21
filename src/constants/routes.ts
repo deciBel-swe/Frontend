@@ -73,7 +73,6 @@ export const USER_DROPDOWN_ITEMS: Array<{
   href: string;
 } | null> = [
   { label: 'Likes', href: ROUTES.LIKES },
-  { label: 'Stations', href: ROUTES.STATIONS },
   { label: 'Following', href: ROUTES.FOLLOWING },
   { label: 'Who to Follow', href: ROUTES.PEOPLE },
   { label: 'Subscription', href: ROUTES.CHECKOUT },
@@ -154,6 +153,7 @@ export const API_ENDPOINTS = {
     UPLOAD: '/tracks/upload',
     RESOLVE: '/tracks/resolve',
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
+    TOKEN: (token: string) => `/tracks/token/${token}`,
     COVER: (trackId: number) => `/tracks/${trackId}/cover`,
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,

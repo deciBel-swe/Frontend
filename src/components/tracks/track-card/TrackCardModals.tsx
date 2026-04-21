@@ -11,11 +11,16 @@ import { playlistService } from '@/services';
 
 type TrackCardModalsProps = {
   trackId: string;
+  routeTrackId?: string;
   trackNumericId: number;
   isPrivate: boolean;
   track: {
     title: string;
-    artist: string;
+    artist: {
+      username: string;
+      displayName?: string;
+      avatar: string;
+    };
     cover: string;
     duration: string;
   };
@@ -31,6 +36,7 @@ type TrackCardModalsProps = {
 
 export default function TrackCardModals({
   trackId,
+  routeTrackId,
   trackNumericId,
   isPrivate,
   track,
@@ -43,6 +49,9 @@ export default function TrackCardModals({
   setIsPlaylistModalOpen,
   setActiveTab,
 }: TrackCardModalsProps) {
+  const artistDisplayName =
+    track.artist.displayName?.trim() || track.artist.username;
+
   const [filterValue, setFilterValue] = useState('');
   const [playlistTitle, setPlaylistTitle] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
@@ -157,10 +166,11 @@ export default function TrackCardModals({
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}
+        sharePathId={routeTrackId}
         isPrivate={isPrivate}
         track={{
           title: track.title,
-          artist: track.artist,
+          artist: artistDisplayName,
           coverUrl: track.cover,
           duration: track.duration,
         }}
@@ -170,7 +180,7 @@ export default function TrackCardModals({
         open={editOpen}
         onClose={() => setEditOpen(false)}
         trackId={trackNumericId}
-        track={{ title: track.title, artist: track.artist, cover: track.cover }}
+        track={{ title: track.title, artist: artistDisplayName, cover: track.cover }}
       />
 
       <AddToPlaylistModal
@@ -196,7 +206,7 @@ export default function TrackCardModals({
           },
           currentTrack: {
             title: track.title,
-            artist: track.artist,
+            artist: artistDisplayName,
             coverUrl: track.cover,
           },
         }}

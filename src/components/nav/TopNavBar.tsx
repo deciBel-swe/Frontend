@@ -45,7 +45,6 @@ import {
   ProfileIcon,
   SettingsIcon,
   SignOutIcon,
-  StationsIcon,
   TracksIcon,
 } from '@/components/icons/DropdownIcons';
 import {
@@ -123,7 +122,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
         {!isMounted ? (
           <div aria-hidden />
         ) : (
-          <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8 flex flex-row h-full">
+          <div className="mx-auto w-full max-w-275 px-4 sm:px-6 lg:px-8 flex flex-row h-full">
             {/* ── LEFT ──────────────────────────────────────────────── */}
             <div className="flex items-center w-fit h-full">
               <Link
@@ -219,8 +218,6 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                                   icon:
                                     item.label === 'Likes' ? (
                                       <LikesIcon />
-                                    ) : item.label === 'Stations' ? (
-                                      <StationsIcon />
                                     ) : item.label === 'Following' ? (
                                       <FollowingIcon />
                                     ) : item.label === 'Who to Follow' ? (

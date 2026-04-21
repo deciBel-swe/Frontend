@@ -24,7 +24,7 @@ export default function TrackCardRoot({
   isPrivate = false,
   user,
   postedText = 'posted a track',
-  // repostedBy,
+  repostedBy,
   showEditButton = false,
   track,
   waveform,
@@ -35,13 +35,17 @@ export default function TrackCardRoot({
   showHeader = true,
 }: TrackCardProps) {
   const userSlug = toUserSlug(user.username);
+  const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
-  // const repostedBySlug = repostedBy?.username
-  //   ? toUserSlug(repostedBy.username)
-  //   : undefined;
-  // const repostedByDisplayName = repostedBy
-  //   ? repostedBy.displayName?.trim() || repostedBy.username
-  //   : undefined;
+  const artistDisplayName =
+    track.artist.displayName?.trim() || track.artist.username;
+  const artistUsername = track.artist.username;
+  const repostedBySlug = repostedBy?.username
+    ? toUserSlug(repostedBy.username)
+    : undefined;
+  const repostedByDisplayName = repostedBy
+    ? repostedBy.displayName?.trim() || repostedBy.username
+    : undefined;
 
   const [editOpen, setEditOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -54,9 +58,10 @@ export default function TrackCardRoot({
   const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
   const { handleCopy } = useCopyTrackLink({
     trackId,
+    routeTrackId,
     isPrivate: resolvedIsPrivate,
     secretUrl,
-    artistName: track.artist,
+    artistName: artistUsername,
     trackTitle: track.title,
   });
 
@@ -124,8 +129,8 @@ export default function TrackCardRoot({
     >
       {showHeader ? (
         <TrackCardHeader
-          userSlug={userSlug}
-          userDisplayName={userDisplayName}
+          userSlug={repostedBySlug ?? userSlug}
+          userDisplayName={repostedByDisplayName ?? userDisplayName}
           userAvatar={user.avatar}
           postedText={postedText}
         />
@@ -135,6 +140,7 @@ export default function TrackCardRoot({
         <TrackCardArtwork
           userSlug={userSlug}
           trackId={track.id}
+          routeTrackId={routeTrackId}
           coverUrl={track.cover}
           title={track.title}
         />
@@ -142,13 +148,14 @@ export default function TrackCardRoot({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
             userSlug={userSlug}
-            artistName={track.artist}
+            artistName={artistDisplayName}
             trackId={track.id}
+            routeTrackId={routeTrackId}
             title={track.title}
             genre={track.genre}
             createdAt={track.createdAt}
-            // repostedBySlug={repostedBySlug}
-            // repostedByDisplayName={repostedByDisplayName}
+            repostedBySlug={repostedBySlug}
+            repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
@@ -177,6 +184,7 @@ export default function TrackCardRoot({
           <TrackCardFooter
             userSlug={userSlug}
             trackId={track.id}
+            routeTrackId={routeTrackId}
             showEditButton={showEditButton}
             isLiked={isLiked}
             isReposted={isReposted}
@@ -224,6 +232,7 @@ export default function TrackCardRoot({
 
       <TrackCardModals
         trackId={trackId}
+        routeTrackId={routeTrackId}
         trackNumericId={track.id}
         isPrivate={resolvedIsPrivate}
         track={track}

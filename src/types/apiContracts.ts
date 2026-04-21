@@ -851,6 +851,13 @@ export const API_CONTRACTS = {
       responseSchema: trackDetailsResponseSchema,
     }),
 
+  TRACKS_BY_TOKEN: (token: string) =>
+    defineContract<void, z.infer<typeof trackDetailsResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.TOKEN(token),
+      responseSchema: trackDetailsResponseSchema,
+    }),
+
   TRACKS_UPDATE: (trackId: number) =>
     defineContract<FormData, z.infer<typeof trackUpdateResponseSchema>>({
       method: 'PATCH',

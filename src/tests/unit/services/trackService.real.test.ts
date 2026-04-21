@@ -100,6 +100,32 @@ describe('RealTrackService', () => {
     );
   });
 
+  it('fetches track metadata by secret token via TRACKS_BY_TOKEN contract', async () => {
+    const payload: TrackDetailsResponse = {
+      id: 77,
+      title: 'Token Track',
+      slug: 'token-track-77',
+      genre: 'Ambient',
+      tags: ['secret'],
+      trackUrl: '/tracks/77',
+      coverUrl: '/covers/77.jpg',
+      coverImage: '/covers/77.jpg',
+      waveformUrl: '/waveforms/77.json',
+      description: '',
+      isPrivate: true,
+    };
+
+    mockedApiRequest.mockResolvedValue(payload);
+
+    const metadata = await service.getTrackByToken('token-77');
+
+    expect(metadata.id).toBe(77);
+    expect(metadata.trackSlug).toBe('token-track-77');
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.TRACKS_BY_TOKEN('token-77')
+    );
+  });
+
   it('preserves absolute URLs and falls back to unknown artist fields with explicit duration', async () => {
     const payload: TrackDetailsResponse = {
       id: 55,

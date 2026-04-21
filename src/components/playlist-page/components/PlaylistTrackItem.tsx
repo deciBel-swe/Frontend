@@ -8,6 +8,8 @@ import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 
 export type PlaylistTrack = {
   id: number;
+  trackSlug?: string;
+  artistUsername?: string;
   title: string;
   artist?: string;
   coverUrl?: string;
@@ -89,6 +91,8 @@ export default function PlaylistTrackItem({
 }: PlaylistTrackItemProps) {
   const [hovered, setHovered] = useState(false);
   const artistSlug = (track.artist ?? '').toLowerCase().replace(/\s+/g, '-');
+  const artistPathSlug =
+    track.artistUsername?.trim().toLowerCase() || artistSlug;
   const unavailable = track.available === false;
 
   return (
@@ -143,7 +147,7 @@ export default function PlaylistTrackItem({
             </>
         )}
         <Link
-          href={`/${artistSlug}/${track.id}`}
+          href={`/${artistPathSlug}/${track.trackSlug ?? track.id}`}
             onClick={(e) => e.stopPropagation()}
             className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >

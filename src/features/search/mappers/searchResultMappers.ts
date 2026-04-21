@@ -162,6 +162,11 @@ export function mapTrackResourceToTrackCard(
 
   const track = resource.track;
   const artistName = track.artist.displayName || track.artist.username;
+  const trackArtist = {
+    username: track.artist.username,
+    displayName: artistName,
+    avatar: track.artist.avatarUrl || DEFAULT_IMAGE,
+  };
   const cover = track.coverUrl || DEFAULT_IMAGE;
   const waveform = toWaveform(
     (track as { waveformData?: unknown }).waveformData
@@ -172,9 +177,7 @@ export function mapTrackResourceToTrackCard(
       id: track.id,
       title: track.title,
       trackUrl: track.trackUrl,
-      artist: {
-        username: artistName,
-      },
+      artist: track.artist,
       durationSeconds: track.trackDurationSeconds,
       coverUrl: cover,
     },
@@ -194,7 +197,9 @@ export function mapTrackResourceToTrackCard(
     showHeader: true,
     track: {
       id: track.id,
-      artist: artistName,
+      trackSlug: track.trackSlug,
+      artistUsername: track.artist.username,
+      artist: trackArtist,
       title: track.title,
       cover,
       duration: toDuration(track.trackDurationSeconds),
@@ -223,6 +228,11 @@ export function mapPlaylistResourceToPlaylistCard(
   const playlist = resource.playlist;
   const ownerDisplayName =
     playlist.owner.displayName || playlist.owner.username;
+  const ownerArtist = {
+    username: playlist.owner.username,
+    displayName: ownerDisplayName,
+    avatar: playlist.owner.avatarUrl || DEFAULT_IMAGE,
+  };
   const cover = playlist.coverArtUrl || DEFAULT_IMAGE;
   const queueTracks = playlist.tracks.map((track) => {
     const artistDisplayName = track.artist.displayName || track.artist.username;
@@ -256,7 +266,9 @@ export function mapPlaylistResourceToPlaylistCard(
     showHeader: true,
     track: {
       id: playlist.id,
-      artist: ownerDisplayName,
+      playlistSlug: playlist.playlistSlug,
+      artistUsername: playlist.owner.username,
+      artist: ownerArtist,
       title: playlist.title,
       cover,
       duration: toDuration(playlist.totalDurationSeconds),
