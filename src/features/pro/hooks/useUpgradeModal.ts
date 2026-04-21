@@ -14,7 +14,7 @@ import { useState, useCallback } from 'react';
 export function useUpgradeModal() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const openUpgrade  = useCallback(() => setUpgradeOpen(true),  []);
+  const openUpgrade = useCallback(() => setUpgradeOpen(true), []);
   const closeUpgrade = useCallback(() => setUpgradeOpen(false), []);
 
   return { upgradeOpen, openUpgrade, closeUpgrade };
