@@ -1,41 +1,52 @@
 import { MockMessageService } from '@/services/mocks/messageService';
+import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
 
 describe('MockMessageService', () => {
   let service: MockMessageService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
     service = new MockMessageService();
   });
 
-  it('getInbox returns paginated messages', async () => {
-    const response = await service.getInbox({ page: 0, size: 20 });
-
-    expect(response.pageNumber).toBe(0);
-    expect(response.pageSize).toBe(20);
-    expect(response.content.length).toBeGreaterThan(0);
-    expect(response.totalElements).toBeGreaterThan(0);
-  });
-
-  it('getChatHistory returns paginated history', async () => {
-    const response = await service.getChatHistory(42, { page: 0, size: 20 });
-
-    expect(response.pageNumber).toBe(0);
-    expect(response.pageSize).toBe(20);
-    expect(Array.isArray(response.content)).toBe(true);
-  });
-
-  it('sendMessage returns created message and trims body', async () => {
-    const response = await service.sendMessage(99, {
-      body: '  hello from mock  ',
-      resources: [{ resourceType: 'TRACK', resourceId: 7 }],
+  it('should subscribe to inbox and receive data', (done) => {
+    service.subscribeToInbox(1, (conversations) => {
+      expect(conversations).toBeInstanceOf(Array);
+      expect(conversations.length).toBeGreaterThan(0);
+      expect(conversations[0].conversationId).toBe('conv_1');
+      done();
+    }, (error) => {
+      done(error);
     });
+  });
 
-    expect(response.messageId).toBeGreaterThan(0);
-    expect(response.conversationId).toBeGreaterThan(0);
-    expect(response.content).toBe('hello from mock');
-    expect(response.resources).toHaveLength(1);
-    expect(response.resources[0].resourceType).toBe('TRACK');
-    expect(response.resources[0].resourceId).toBe(7);
+  it('should subscribe to chat and receive data', (done) => {
+    service.subscribeToChat('conv_1', (messages) => {
+      expect(messages).toBeInstanceOf(Array);
+      expect(messages.length).toBeGreaterThan(0);
+      expect(messages[0].messageId).toBe('msg_1');
+      done();
+    }, (error) => {
+      done(error);
+    });
+  });
+
+  it('should send a message and update state', async () => {
+    const payload: SendMessageRequest = { body: 'New test message' };
+    const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
+    
+    await service.sendMessage('conv_1', payload, user);
+
+    // Verify it was added to chat
+    service.subscribeToChat('conv_1', (messages) => {
+      const lastMessage = messages[messages.length - 1];
+      expect(lastMessage.content).toBe('New test message');
+      expect(lastMessage.sender.id).toBe(1);
+    }, () => {});
+
+    // Verify it was updated in inbox
+    service.subscribeToInbox(1, (conversations) => {
+      const conv = conversations.find(c => c.conversationId === 'conv_1');
+      expect(conv?.content).toBe('New test message');
+    }, () => {});
   });
 });

@@ -46,7 +46,7 @@ import { RealPlaybackService } from './api/playbackService';
 import { MockPlaybackService } from './mocks/playbackService';
 
 import type { MessageService } from './api/messageService';
-import { RealMessageService } from './api/messageService';
+import { FirebaseMessageService } from './api/messageService';
 import { MockMessageService } from './mocks/messageService';
 
 import type { AdminService } from './api/adminSerivce';
@@ -58,7 +58,7 @@ import { RealSubscriptionService } from './api/subscriptionService';
 import { MockSubscriptionService } from './mocks/subscriptionService';
 
 import type { NotificationService } from './api/notificationService';
-import { RealNotificationService } from './api/notificationService';
+import { FirebaseNotificationService } from './api/notificationService';
 import { MockNotificationService } from './mocks/notificationService';
 
 const resolveTrackService = (): TrackService => {
@@ -156,7 +156,7 @@ const resolveMessageService = (): MessageService => {
   if (config.api.useMock) {
     return new MockMessageService();
   }
-  return new RealMessageService();
+  return new FirebaseMessageService();
 };
 
 export const messageService = resolveMessageService();
@@ -185,7 +185,7 @@ const resolveNotificationService = (): NotificationService => {
   if (config.api.useMock) {
     return new MockNotificationService();
   }
-  return new RealNotificationService();
+  return new FirebaseNotificationService();
 };
 
 export const notificationService = resolveNotificationService();

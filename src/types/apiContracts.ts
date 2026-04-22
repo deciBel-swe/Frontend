@@ -91,7 +91,6 @@ import {
 } from './playlists';
 import {
   messageDTOSchema,
-  paginatedMessageResponseSchema,
   sendMessageRequestSchema,
 } from './message';
 import {
@@ -111,8 +110,6 @@ import {
 } from './subscription';
 
 import {
-  notificationsPageSchema,
-  unreadCountResponseSchema,
   notificationSettingsDTOSchema,
   registerDeviceTokenRequestSchema,
 } from './notification';
@@ -413,33 +410,6 @@ export const API_CONTRACTS = {
       method: 'GET',
       url: API_ENDPOINTS.USERS.BY_USERNAME(username),
       responseSchema: userPublicSchema,
-    }),
-
-  MESSAGES_INBOX: defineContract<
-    void,
-    z.infer<typeof paginatedMessageResponseSchema>
-  >({
-    method: 'GET',
-    url: API_ENDPOINTS.MESSAGES.CONVERSATIONS,
-    responseSchema: paginatedMessageResponseSchema,
-  }),
-
-  MESSAGES_CHAT_HISTORY: (userId: number) =>
-    defineContract<void, z.infer<typeof paginatedMessageResponseSchema>>({
-      method: 'GET',
-      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(userId),
-      responseSchema: paginatedMessageResponseSchema,
-    }),
-
-  MESSAGES_SEND: (userId: number) =>
-    defineContract<
-      z.infer<typeof sendMessageRequestSchema>,
-      z.infer<typeof messageDTOSchema>
-    >({
-      method: 'POST',
-      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(userId),
-      requestSchema: sendMessageRequestSchema,
-      responseSchema: messageDTOSchema,
     }),
 
   PLAYLISTS_CREATE: defineContract<
@@ -763,33 +733,6 @@ export const API_CONTRACTS = {
   }),
 
   // --- NOTIFICATIONS ---
-  NOTIFICATIONS_GET: defineContract<
-    void,
-    z.infer<typeof notificationsPageSchema>
-  >({
-    method: 'GET',
-    url: API_ENDPOINTS.NOTIFICATIONS.GET_ALL,
-    responseSchema: notificationsPageSchema,
-  }),
-
-  NOTIFICATIONS_MARK_ALL_READ: defineContract<
-    void,
-    z.infer<typeof messageResponseSchema>
-  >({
-    method: 'POST',
-    url: API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ,
-    responseSchema: messageResponseSchema,
-  }),
-
-  NOTIFICATIONS_UNREAD_COUNT: defineContract<
-    void,
-    z.infer<typeof unreadCountResponseSchema>
-  >({
-    method: 'GET',
-    url: API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT,
-    responseSchema: unreadCountResponseSchema,
-  }),
-
   NOTIFICATIONS_GET_SETTINGS: defineContract<
     void,
     z.infer<typeof notificationSettingsDTOSchema>

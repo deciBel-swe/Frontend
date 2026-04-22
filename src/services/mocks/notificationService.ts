@@ -1,56 +1,32 @@
-import {
-  NotificationService,
-  PaginationParams,
-} from '../api/notificationService';
-import type { MessageResponse } from '@/types/user';
-
 import type {
-  NotificationsPage,
-  UnreadCountResponse,
+  NotificationDTO,
   NotificationSettingsDTO,
   RegisterDeviceTokenRequest,
 } from '@/types/notification';
+import type { MessageResponse } from '@/types/user';
+import type { NotificationService } from '../api/notificationService';
+import { MOCK_NOTIFICATIONS } from './mockData';
 
 export class MockNotificationService implements NotificationService {
-  async getNotifications(
-    _params?: PaginationParams
-  ): Promise<NotificationsPage> {
-    return {
-      content: [
-        {
-          id: 1,
-          type: 'LIKE',
-          user: {
-            id: 12,
-            username: 'sara',
-            displayName: 'Sara',
-            avatarUrl: 'https://cdn.example.com/avatars/sara.jpg',
-            isFollowing: false,
-            followerCount: 100,
-            trackCount: 24,
-          },
-          resource: {
-            resourceType: 'TRACK',
-            resourceId: 99,
-          },
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        },
-      ],
-      pageNumber: 0,
-      pageSize: 20,
-      totalElements: 1,
-      totalPages: 1,
-      isLast: true,
-    };
+  private notifications: Record<number, NotificationDTO[]> = { ...MOCK_NOTIFICATIONS } as any;
+
+  subscribeToNotifications(
+    userId: number,
+    onUpdate: (notifications: NotificationDTO[]) => void,
+    _onError: (error: Error) => void
+  ): () => void {
+    const timeout = setTimeout(() => {
+      onUpdate(this.notifications[userId] || []);
+    }, 500);
+
+    return () => clearTimeout(timeout);
   }
 
-  async markAllAsRead(): Promise<MessageResponse> {
-    return { message: 'All notifications marked as read' };
-  }
-
-  async getUnreadCount(): Promise<UnreadCountResponse> {
-    return { unreadCount: 7 };
+  async markAllAsRead(userId: number): Promise<void> {
+    if (this.notifications[userId]) {
+      this.notifications[userId] = this.notifications[userId].map(n => ({ ...n, isRead: true }));
+    }
+    return Promise.resolve();
   }
 
   async getNotificationSettings(): Promise<NotificationSettingsDTO> {
@@ -66,12 +42,12 @@ export class MockNotificationService implements NotificationService {
   async updateNotificationSettings(
     payload: NotificationSettingsDTO
   ): Promise<NotificationSettingsDTO> {
-    return payload; // Echo back the updated settings
+    return payload;
   }
 
   async registerDeviceToken(
     _payload: RegisterDeviceTokenRequest
   ): Promise<MessageResponse> {
-    return { message: 'Device registered successfully' };
+    return { message: 'Token registered successfully' };
   }
 }

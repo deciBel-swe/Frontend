@@ -1,52 +1,80 @@
-import { MessageService } from '../api/messageService';
 import type {
   MessageDTO,
-  PaginatedMessageResponse,
   SendMessageRequest,
+  UserSummaryDTO,
 } from '@/types/message';
-import {
-  buildMockSentMessage,
-  getMockChatHistoryResponse,
-  getMockInboxResponse,
-} from './messageMockData';
+import type { MessageService } from '../api/messageService';
+import { MOCK_MESSAGES } from './mockData';
 
 export class MockMessageService implements MessageService {
-  async getInbox(params?: {
-    page?: number;
-    size?: number;
-  }): Promise<PaginatedMessageResponse> {
-    return getMockInboxResponse(params?.page ?? 0, params?.size ?? 20);
+  private messages: Record<string, MessageDTO[]> = { ...MOCK_MESSAGES };
+
+  private getInboxForUser(userId: number): MessageDTO[] {
+    const inbox: MessageDTO[] = [];
+    const conversationIds = Object.keys(this.messages);
+    
+    for (const convId of conversationIds) {
+      const convMessages = this.messages[convId];
+      if (convMessages.length === 0) continue;
+      
+      const lastMessage = convMessages[convMessages.length - 1];
+      // In this mock, we assume user is part of all conversations
+      // or we can add logic to check if user is sender or participant
+      inbox.push(lastMessage);
+    }
+    
+    return inbox.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  async getChatHistory(
+  subscribeToInbox(
     userId: number,
-    params?: { page?: number; size?: number }
-  ): Promise<PaginatedMessageResponse> {
-    const history = getMockChatHistoryResponse(
-      userId,
-      params?.page ?? 0,
-      params?.size ?? 20
-    );
+    onUpdate: (conversations: MessageDTO[]) => void,
+    _onError: (error: Error) => void
+  ): () => void {
+    const timeout = setTimeout(() => {
+      onUpdate(this.getInboxForUser(userId));
+    }, 500);
 
-    return (
-      history ?? {
-        content: [],
-        pageNumber: params?.page ?? 0,
-        pageSize: params?.size ?? 20,
-        totalElements: 0,
-        totalPages: 1,
-        isLast: true,
-      }
-    );
+    return () => clearTimeout(timeout);
+  }
+
+  subscribeToChat(
+    conversationId: string,
+    onUpdate: (messages: MessageDTO[]) => void,
+    _onError: (error: Error) => void
+  ): () => void {
+    const timeout = setTimeout(() => {
+      onUpdate(this.messages[conversationId] || []);
+    }, 500);
+
+    return () => clearTimeout(timeout);
   }
 
   async sendMessage(
-    userId: number,
-    payload: SendMessageRequest
-  ): Promise<MessageDTO> {
-    return buildMockSentMessage(userId, {
-      ...payload,
-      body: payload.body.trim(),
-    });
+    conversationId: string,
+    payload: SendMessageRequest,
+    currentUserSummary: UserSummaryDTO
+  ): Promise<void> {
+    const newMessage: MessageDTO = {
+      messageId: `msg_${Date.now()}`,
+      conversationId,
+      content: payload.body,
+      sender: currentUserSummary,
+      resources: payload.resources?.map(r => ({ 
+        ...r, 
+        playlist: null, 
+        track: null, 
+        user: null 
+      })) || [],
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (!this.messages[conversationId]) {
+      this.messages[conversationId] = [];
+    }
+    this.messages[conversationId].push(newMessage);
+
+    return Promise.resolve();
   }
 }

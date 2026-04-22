@@ -1,37 +1,33 @@
 import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  writeBatch,
+  getDocs,
+  type Unsubscribe,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import {
   apiRequest,
   normalizeApiError,
-  type ApiQueryParams,
 } from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { MessageResponse } from '@/types/user';
-
 import type {
-  NotificationsPage,
-  UnreadCountResponse,
+  NotificationDTO,
   NotificationSettingsDTO,
   RegisterDeviceTokenRequest,
 } from '@/types/notification';
 
-export interface PaginationParams {
-  page?: number;
-  size?: number;
-}
-
-const toQueryParams = (
-  params?: PaginationParams
-): ApiQueryParams | undefined => {
-  if (!params) return undefined;
-  const query: ApiQueryParams = {};
-  if (params.page !== undefined) query.page = params.page;
-  if (params.size !== undefined) query.size = params.size;
-  return Object.keys(query).length > 0 ? query : undefined;
-};
-
 export interface NotificationService {
-  getNotifications(params?: PaginationParams): Promise<NotificationsPage>;
-  markAllAsRead(): Promise<MessageResponse>;
-  getUnreadCount(): Promise<UnreadCountResponse>;
+  subscribeToNotifications(
+    userId: number,
+    onUpdate: (notifications: NotificationDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe;
+  markAllAsRead(userId: number): Promise<void>;
   getNotificationSettings(): Promise<NotificationSettingsDTO>;
   updateNotificationSettings(
     payload: NotificationSettingsDTO
@@ -41,33 +37,46 @@ export interface NotificationService {
   ): Promise<MessageResponse>;
 }
 
-export class RealNotificationService implements NotificationService {
-  async getNotifications(
-    params?: PaginationParams
-  ): Promise<NotificationsPage> {
-    try {
-      return await apiRequest(API_CONTRACTS.NOTIFICATIONS_GET, {
-        params: toQueryParams(params),
-      });
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
+export class FirebaseNotificationService implements NotificationService {
+  subscribeToNotifications(
+    userId: number,
+    onUpdate: (notifications: NotificationDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, 'notifications'),
+      where('recipientId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const notifications = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        })) as unknown as NotificationDTO[];
+        onUpdate(notifications);
+      },
+      onError
+    );
   }
 
-  async markAllAsRead(): Promise<MessageResponse> {
-    try {
-      return await apiRequest(API_CONTRACTS.NOTIFICATIONS_MARK_ALL_READ);
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
-  }
+  async markAllAsRead(userId: number): Promise<void> {
+    const q = query(
+      collection(db, 'notifications'),
+      where('recipientId', '==', userId),
+      where('isRead', '==', false)
+    );
 
-  async getUnreadCount(): Promise<UnreadCountResponse> {
-    try {
-      return await apiRequest(API_CONTRACTS.NOTIFICATIONS_UNREAD_COUNT);
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
+    const snapshot = await getDocs(q);
+    const batch = writeBatch(db);
+
+    snapshot.docs.forEach((doc) => {
+      batch.update(doc.ref, { isRead: true });
+    });
+
+    await batch.commit();
   }
 
   async getNotificationSettings(): Promise<NotificationSettingsDTO> {
@@ -100,3 +109,5 @@ export class RealNotificationService implements NotificationService {
     }
   }
 }
+
+export const notificationService = new FirebaseNotificationService();

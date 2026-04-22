@@ -1,83 +1,121 @@
 import {
-  apiRequest,
-  normalizeApiError,
-  type ApiQueryParams,
-} from '@/hooks/useAPI';
-import { API_CONTRACTS } from '@/types/apiContracts';
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+  type Unsubscribe,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type {
   MessageDTO,
-  PaginatedMessageResponse,
   SendMessageRequest,
+  UserSummaryDTO,
 } from '@/types/message';
 
-export interface PaginationParams {
-  page?: number;
-  size?: number;
-}
-
-const toQueryParams = (
-  params?: PaginationParams
-): ApiQueryParams | undefined => {
-  if (!params) {
-    return undefined;
-  }
-
-  const query: ApiQueryParams = {};
-
-  if (params.page !== undefined) {
-    query.page = params.page;
-  }
-
-  if (params.size !== undefined) {
-    query.size = params.size;
-  }
-
-  return Object.keys(query).length > 0 ? query : undefined;
-};
-
 export interface MessageService {
-  getInbox(params?: PaginationParams): Promise<PaginatedMessageResponse>;
-  getChatHistory(
+  subscribeToInbox(
     userId: number,
-    params?: PaginationParams
-  ): Promise<PaginatedMessageResponse>;
-  sendMessage(userId: number, payload: SendMessageRequest): Promise<MessageDTO>;
+    onUpdate: (conversations: MessageDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe;
+
+  subscribeToChat(
+    conversationId: string,
+    onUpdate: (messages: MessageDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe;
+
+  sendMessage(
+    conversationId: string,
+    payload: SendMessageRequest,
+    currentUserSummary: UserSummaryDTO
+  ): Promise<void>;
 }
 
-export class RealMessageService implements MessageService {
-  async getInbox(params?: PaginationParams): Promise<PaginatedMessageResponse> {
-    try {
-      return await apiRequest(API_CONTRACTS.MESSAGES_INBOX, {
-        params: toQueryParams(params),
-      });
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
+export class FirebaseMessageService implements MessageService {
+  subscribeToInbox(
+    userId: number,
+    onUpdate: (conversations: MessageDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe {
+    // Query conversations where the current user is a participant
+    const q = query(
+      collection(db, 'conversations'),
+      where('participantIds', 'array-contains', userId),
+      orderBy('lastMessageCreatedAt', 'desc')
+    );
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const conversations = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            ...data,
+            conversationId: doc.id,
+            // Map last message to MessageDTO structure if needed
+            messageId: data.lastMessageId || doc.id,
+          } as unknown as MessageDTO;
+        });
+        onUpdate(conversations);
+      },
+      onError
+    );
   }
 
-  async getChatHistory(
-    userId: number,
-    params?: PaginationParams
-  ): Promise<PaginatedMessageResponse> {
-    try {
-      return await apiRequest(API_CONTRACTS.MESSAGES_CHAT_HISTORY(userId), {
-        params: toQueryParams(params),
-      });
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
+  subscribeToChat(
+    conversationId: string,
+    onUpdate: (messages: MessageDTO[]) => void,
+    onError: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, 'conversations', conversationId, 'messages'),
+      orderBy('createdAt', 'asc')
+    );
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const messages = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            ...data,
+            messageId: doc.id,
+            conversationId,
+          } as unknown as MessageDTO;
+        });
+        onUpdate(messages);
+      },
+      onError
+    );
   }
 
   async sendMessage(
-    userId: number,
-    payload: SendMessageRequest
-  ): Promise<MessageDTO> {
-    try {
-      return await apiRequest(API_CONTRACTS.MESSAGES_SEND(userId), {
-        payload,
-      });
-    } catch (error) {
-      throw normalizeApiError(error);
-    }
+    conversationId: string,
+    payload: SendMessageRequest,
+    currentUserSummary: UserSummaryDTO
+  ): Promise<void> {
+    const messageData = {
+      conversationId,
+      sender: currentUserSummary,
+      content: payload.body,
+      resources: payload.resources || [],
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      serverTimestamp: serverTimestamp(),
+    };
+
+    await addDoc(
+      collection(db, 'conversations', conversationId, 'messages'),
+      messageData
+    );
+
+    // Note: In a production app, we would also update the parent conversation doc
+    // with the lastMessage and lastMessageCreatedAt using a write batch or transaction.
   }
 }
+
+export const messageService = new FirebaseMessageService();
