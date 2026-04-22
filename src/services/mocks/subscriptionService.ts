@@ -23,7 +23,7 @@ export class MockSubscriptionService implements SubscriptionService {
   async getSubscriptionStatus(): Promise<SubscriptionStatusDTO> {
     return {
       status: 'active',
-      plan: 'pro',
+      plan: 'free',
       currentPeriodEnd: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now
       cancelAtPeriodEnd: false,
     };
