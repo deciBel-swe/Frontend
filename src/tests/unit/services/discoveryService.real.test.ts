@@ -43,7 +43,7 @@ describe('RealDiscoveryService', () => {
     });
   });
 
-  it('calls stations endpoints with pagination', async () => {
+  it('calls stations endpoints with backend-required params', async () => {
     mockedApiRequest.mockResolvedValue({
       content: [],
       pageNumber: 0,
@@ -53,17 +53,17 @@ describe('RealDiscoveryService', () => {
       isLast: true,
     });
 
-    await service.getGenreStation({ page: 0, size: 20 });
-    await service.getArtistStation({ page: 0, size: 20 });
+    await service.getGenreStation({ genre: 'Electronic', page: 0, size: 20 });
+    await service.getArtistStation({ artistId: 42, page: 0, size: 20 });
     await service.getLikesStation({ page: 0, size: 20 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.STATIONS_GENRE,
-      { params: { page: 0, size: 20 } }
+      { params: { genre: 'Electronic', page: 0, size: 20 } }
     );
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.STATIONS_ARTIST,
-      { params: { page: 0, size: 20 } }
+      { params: { artistId: 42, page: 0, size: 20 } }
     );
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.STATIONS_LIKES,

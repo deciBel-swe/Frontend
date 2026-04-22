@@ -8,10 +8,11 @@ import type {
   DiscoverTrackItem,
 } from '@/features/discover/types/DiscoverTypes';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import { discoveryService, playbackService, trackService } from '@/services';
+import { discoveryService, playbackService, trackService, userService } from '@/services';
 import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
 import type { TrackListItem } from '@/components/tracks/TrackList';
 import { formatDuration } from '@/utils/formatDuration';
+import type { UserMe } from '@/types/user';
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -230,12 +231,53 @@ export default function Page() {
   >([]);
   const [genreTracks, setGenreTracks] = useState<DiscoverTrackItem[]>([]);
   const [moreTrendingTracks, setMoreTrendingTracks] = useState<DiscoverTrackItem[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserMe | null>(null);
+  const [seedArtistId, setSeedArtistId] = useState<number | null>(null);
 
   const [trendingPage, setTrendingPage] = useState(0);
   const [likedPage, setLikedPage] = useState(0);
   const [genrePage, setGenrePage] = useState(0);
   const [moreTrendingPage, setMoreTrendingPage] = useState(0);
   const [recentPage, setRecentPage] = useState(0);
+
+  const preferredGenre = useMemo(() => {
+    const genres = currentUserProfile?.profile.favoriteGenres ?? [];
+    return genres.find((genre) => genre.trim().length > 0) ?? null;
+  }, [currentUserProfile]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadCurrentUserProfile = async () => {
+      if (isAuthLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
+        if (!isCancelled) {
+          setCurrentUserProfile(null);
+        }
+        return;
+      }
+
+      try {
+        const response = await userService.getUserMe();
+        if (!isCancelled) {
+          setCurrentUserProfile(response);
+        }
+      } catch {
+        if (!isCancelled) {
+          setCurrentUserProfile(null);
+        }
+      }
+    };
+
+    void loadCurrentUserProfile();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isAuthLoading]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -252,13 +294,20 @@ export default function Page() {
           const track = mapTrackResourceToDiscoverTrack(resource, 'likes');
           return track ? [track] : [];
         });
+        const nextSeedArtistId =
+          pageSlice.find(
+            (resource) =>
+              resource.resourceType === 'TRACK' && typeof resource.track?.artist.id === 'number'
+          )?.track?.artist.id ?? null;
 
         if (!isCancelled) {
           setTrendingTracks(mapped);
+          setSeedArtistId(nextSeedArtistId);
         }
       } catch {
         if (!isCancelled) {
           setTrendingTracks([]);
+          setSeedArtistId(null);
         }
       } finally {
         if (!isCancelled) {
@@ -278,6 +327,16 @@ export default function Page() {
     let isCancelled = false;
 
     const loadLikedStation = async () => {
+      if (isAuthLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
+        setLikedTracks([]);
+        setIsLoadingLiked(false);
+        return;
+      }
+
       setIsLoadingLiked(true);
       try {
         const response = await discoveryService.getLikesStation({
@@ -308,15 +367,22 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [likedPage]);
+  }, [isAuthenticated, isAuthLoading, likedPage]);
 
   useEffect(() => {
     let isCancelled = false;
 
     const loadGenreStation = async () => {
+      if (!preferredGenre) {
+        setGenreTracks([]);
+        setIsLoadingGenre(false);
+        return;
+      }
+
       setIsLoadingGenre(true);
       try {
         const response = await discoveryService.getGenreStation({
+          genre: preferredGenre,
           page: genrePage,
           size: PAGE_SIZE,
         });
@@ -344,15 +410,22 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [genrePage]);
+  }, [genrePage, preferredGenre]);
 
   useEffect(() => {
     let isCancelled = false;
 
     const loadArtistStation = async () => {
+      if (seedArtistId === null) {
+        setMoreTrendingTracks([]);
+        setIsLoadingMoreTrending(false);
+        return;
+      }
+
       setIsLoadingMoreTrending(true);
       try {
         const response = await discoveryService.getArtistStation({
+          artistId: seedArtistId,
           page: moreTrendingPage,
           size: PAGE_SIZE,
         });
@@ -380,7 +453,7 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [moreTrendingPage]);
+  }, [moreTrendingPage, seedArtistId]);
 
   useEffect(() => {
     let isCancelled = false;
