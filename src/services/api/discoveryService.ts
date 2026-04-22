@@ -34,14 +34,19 @@ export interface SearchRequestOptions {
   signal?: AbortSignal;
 }
 
-const toQueryParams = <T extends object>(
-  params?: T
+const toQueryParams = (
+  params?:
+    | SearchParams
+    | TrendingParams
+    | GenreStationParams
+    | ArtistStationParams
+    | PaginationParams
 ): ApiQueryParams | undefined => {
   if (!params) {
     return undefined;
   }
 
-  return Object.keys(params).length > 0 ? (params as ApiQueryParams) : undefined;
+  return Object.keys(params).length > 0 ? { ...params } : undefined;
 };
 
 /**
@@ -85,7 +90,7 @@ export class RealDiscoveryService implements DiscoveryService {
     params: GenreStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_GENRE, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 
@@ -93,7 +98,7 @@ export class RealDiscoveryService implements DiscoveryService {
     params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_ARTIST, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 
@@ -101,7 +106,7 @@ export class RealDiscoveryService implements DiscoveryService {
     params?: PaginationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_LIKES, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 }
