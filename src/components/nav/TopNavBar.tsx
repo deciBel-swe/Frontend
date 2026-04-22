@@ -15,7 +15,7 @@
  * <TopNavBar onSearch={(q) => router.push(`/search?q=${q}`)} />
  */
 
-import { type FC } from 'react';
+import { type FC, useEffect } from 'react';
 import Link from 'next/link';
 
 import SignInModal from '@/features/auth/components/Forms/SignInModal';
@@ -54,8 +54,13 @@ import {
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
-import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
+import {
+  CURRENT_USER,
+  TEST_CONVERSATIONS,
+  getInboxItems,
+} from '@/features/messages/testdata';
 import { UpgradeModal } from '@/features/pro/components/UpgradeModal';
+import { useSubscriptionStatus } from '@/features/pro/hooks/useSubscriptionStatus';
 import NotificationsDropdown from '../notifications/NotificationsDropdown';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -114,6 +119,29 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     closeUpgrade,
   } = useTopNavBar();
 
+  const {
+    subscriptionStatus,
+    fetchSubscriptionStatus,
+    isLoading: isSubscriptionLoading,
+    isError: hasSubscriptionError,
+  } = useSubscriptionStatus();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void fetchSubscriptionStatus();
+    }
+  }, [isAuthenticated, fetchSubscriptionStatus]);
+
+  const normalizedPlan = subscriptionStatus?.plan?.trim().toLowerCase();
+  const hasActiveProSubscription =
+    normalizedPlan === 'pro' &&
+    (subscriptionStatus?.status === 'active' ||
+      subscriptionStatus?.status === 'trialing');
+  const showUpgradeButton =
+    isAuthenticated &&
+    !isSubscriptionLoading &&
+    (hasSubscriptionError || !hasActiveProSubscription);
+
   const inboxItems = getInboxItems(TEST_CONVERSATIONS, CURRENT_USER.id);
 
   return (
@@ -164,15 +192,17 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
             <div className="flex items-center gap-0.5 h-full w-fit shrink-0">
               {isAuthenticated && user ? (
                 <>
-                  <Button
-                    type="button"
-                    variant="premium"
-                    size="sm"
-                    className="mr-0.5 px-2.5"
-                    onClick={openUpgrade}
-                  >
-                    Upgrade now
-                  </Button>
+                  {showUpgradeButton && (
+                    <Button
+                      type="button"
+                      variant="premium"
+                      size="sm"
+                      className="mr-0.5 px-2.5"
+                      onClick={openUpgrade}
+                    >
+                      Upgrade now
+                    </Button>
+                  )}
                   {/* Avatar + dropdown */}
                   <div
                     className="relative h-12 flex items-center"
@@ -233,29 +263,27 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     )}
                   </div>
 
-                    <div
+                  <div
                     className="relative h-12 flex items-center"
                     ref={notificationsMenuRef}
                   >
-                  <IconButton
-                    aria-label="Notifications"
-                    prefetch={shouldPrefetch(
-                      ROUTES.NOTIFICATIONS,
-                      isAuthenticated,
-                      isAuthLoading
-                    )}
-                    onClick={toggleNotificationsMenu}
-                  >
-                    <BellIcon />
-                    <Badge count={0} />
-                    <span className="sr-only">Notifications</span>
-                  </IconButton>
+                    <IconButton
+                      aria-label="Notifications"
+                      prefetch={shouldPrefetch(
+                        ROUTES.NOTIFICATIONS,
+                        isAuthenticated,
+                        isAuthLoading
+                      )}
+                      onClick={toggleNotificationsMenu}
+                    >
+                      <BellIcon />
+                      <Badge count={0} />
+                      <span className="sr-only">Notifications</span>
+                    </IconButton>
 
-                  {notificationsMenuOpen&&(
-                    <NotificationsDropdown
-                    onClose={closeNotificationsMenu}
-                    />
-                  )}
+                    {notificationsMenuOpen && (
+                      <NotificationsDropdown onClose={closeNotificationsMenu} />
+                    )}
                   </div>
                   <div
                     className="relative h-12 flex items-center"
@@ -345,7 +373,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
         <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
 
-       <UpgradeModal open={upgradeOpen} onClose={closeUpgrade} />
+      <UpgradeModal open={upgradeOpen} onClose={closeUpgrade} />
     </header>
   );
 };
