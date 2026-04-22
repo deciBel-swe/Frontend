@@ -19,8 +19,8 @@ import type { TrackMetaData } from '@/types/tracks';
 import type { ListeningHistoryItem } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
 
-const PAGE_SIZE = 12;
-const QUEUE_LOOKAHEAD_PAGES = 2;
+const PAGE_SIZE = 5;
+const QUEUE_LOOKAHEAD_PAGES = 4;
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 const DEFAULT_COVER = '/images/default_song_image.png';
 
