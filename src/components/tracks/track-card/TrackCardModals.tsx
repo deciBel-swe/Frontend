@@ -167,6 +167,7 @@ export default function TrackCardModals({
         onClose={() => setIsShareOpen(false)}
         trackId={trackId}
         sharePathId={routeTrackId}
+        shareUsername={track.artist.username}
         isPrivate={isPrivate}
         track={{
           title: track.title,

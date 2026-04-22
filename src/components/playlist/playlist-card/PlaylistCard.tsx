@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/features/auth';
 import { useWaveformData } from '@/hooks/useWaveformData';
 import TrackCardArtwork from '@/components/tracks/track-card/TrackCardArtwork';
 import TrackCardFooter from '@/components/tracks/track-card/TrackCardFooter';
@@ -33,6 +34,7 @@ export default function PlaylistHorizontalRoot({
   relatedTracks,
   onEdit,
 }: PlaylistHorizontalProps) {
+  const { user: authUser } = useAuth();
   const router = useRouter();
   const userSlug = toUserSlug(user.username);
   const userDisplayName = user.displayName?.trim() || user.username;
@@ -192,9 +194,14 @@ export default function PlaylistHorizontalRoot({
     return null;
   }
 
+  const currentUserName =
+    authUser?.displayName?.trim() || authUser?.username?.trim() || userDisplayName;
+  const currentUserAvatarSrc =
+    authUser?.avatarUrl?.trim() || currentUserAvatar || user.avatar;
+  const headerAvatar = repostedBy?.avatar?.trim() || user.avatar;
   const currentUser = {
-    name: userDisplayName,
-    avatar: currentUserAvatar ?? user.avatar,
+    name: currentUserName,
+    avatar: currentUserAvatarSrc,
   };
 
   return (
@@ -207,7 +214,7 @@ export default function PlaylistHorizontalRoot({
         <TrackCardHeader
           userSlug={repostedBySlug ?? userSlug}
           userDisplayName={repostedByDisplayName ?? userDisplayName}
-          userAvatar={user.avatar}
+          userAvatar={headerAvatar}
           postedText={postedText}
         />
       ) : null}
@@ -257,7 +264,12 @@ export default function PlaylistHorizontalRoot({
             onSubmitTimedComment={() => {}}
           />
 
-          <PlaylistTracks showTrackList tracks={relatedTracks} />
+          <PlaylistTracks
+            showTrackList
+            tracks={relatedTracks}
+            queueTracks={queueTracks}
+            queueSource={queueSource}
+          />
 
           <TrackCardFooter
             userSlug={userSlug}

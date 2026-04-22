@@ -245,10 +245,29 @@ const mapPlaylistToCard = (
 
       return {
         id: id ?? index,
+        trackSlug:
+          'trackSlug' in playlistTrack &&
+          typeof playlistTrack.trackSlug === 'string'
+            ? playlistTrack.trackSlug
+            : undefined,
+        artistUsername:
+          'artist' in playlistTrack && playlistTrack.artist?.username
+            ? playlistTrack.artist.username
+            : undefined,
         title,
         artist,
         coverUrl: resolveTrackCover(playlistTrack),
         plays: resolveTrackPlayCount(playlistTrack) ?? '0',
+        trackUrl: resolveTrackUrl(playlistTrack) ?? undefined,
+        durationSeconds: resolveTrackDurationSeconds(playlistTrack),
+        available: resolveTrackAccess(playlistTrack) === 'PLAYABLE',
+        isLiked: 'isLiked' in playlistTrack ? playlistTrack.isLiked : false,
+        isReposted:
+          'isReposted' in playlistTrack ? playlistTrack.isReposted : false,
+        likeCount: 'likeCount' in playlistTrack ? playlistTrack.likeCount : 0,
+        repostCount:
+          'repostCount' in playlistTrack ? playlistTrack.repostCount : 0,
+        access: resolveTrackAccess(playlistTrack),
       };
     }),
   };

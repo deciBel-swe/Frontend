@@ -11,6 +11,9 @@ import type {
 } from '@/features/search/types/searchContracts';
 
 const DEFAULT_IMAGE = '/images/default_song_image.png';
+type PlaylistResourceTrack = NonNullable<
+  NonNullable<ResourceRefFullDTO['playlist']>['tracks']
+>[number];
 
 const toDuration = (seconds?: number): string => {
   if (!seconds || seconds <= 0) {
@@ -87,6 +90,24 @@ const toTrackDurationSeconds = (track: unknown): number | undefined => {
 
   return undefined;
 };
+
+const mapPlaylistTrackToCompactTrack = (track: PlaylistResourceTrack) => ({
+  id: track.id,
+  trackSlug: track.trackSlug,
+  artistUsername: track.artist.username,
+  title: track.title,
+  artist: track.artist.displayName || track.artist.username,
+  coverUrl: track.coverUrl || DEFAULT_IMAGE,
+  plays: track.playCount.toLocaleString(),
+  trackUrl: track.trackUrl,
+  durationSeconds: toTrackDurationSeconds(track),
+  available: track.access === 'PLAYABLE',
+  isLiked: track.isLiked,
+  isReposted: track.isReposted,
+  likeCount: track.likeCount,
+  repostCount: track.repostCount,
+  access: track.access,
+});
 
 const mergeUniqueBy = <T>(
   previous: T[],
@@ -287,13 +308,7 @@ export function mapPlaylistResourceToPlaylistCard(
     playback,
     queueTracks,
     queueSource: 'playlist',
-    relatedTracks: playlist.tracks.slice(0, 5).map((track) => ({
-      id: track.id,
-      title: track.title,
-      artist: track.artist.displayName || track.artist.username,
-      coverUrl: track.coverUrl || DEFAULT_IMAGE,
-      plays: track.playCount.toLocaleString(),
-    })),
+    relatedTracks: playlist.tracks.slice(0, 5).map(mapPlaylistTrackToCompactTrack),
   };
 }
 

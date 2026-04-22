@@ -46,6 +46,7 @@ export type TrackCardProps = {
   repostedBy?: {
     username: string;
     displayName?: string;
+    avatar?: string;
   };
   currentUserAvatar?: string;
   showTrackList?: boolean;

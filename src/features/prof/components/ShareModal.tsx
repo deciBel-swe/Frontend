@@ -32,6 +32,7 @@ interface TrackShareModalProps extends ShareModalBaseProps {
   variant: 'track';
   trackId: string;
   sharePathId?: string;
+  shareUsername?: string;
   isPrivate: boolean;
   track?: TrackPreviewData;
 }
@@ -101,17 +102,21 @@ function ProfileShareContent({ profileUrl }: { profileUrl: string }) {
 function PrivateShareContent({
   trackId,
   sharePathId,
+  shareUsername,
   track,
 }: {
   trackId: string;
   sharePathId?: string;
+  shareUsername?: string;
   track: TrackPreviewData;
 }) {
   const { secretUrl, secretToken, isLoading, isError, regenerate, isRegenerating } =
     useSecretLink(trackId);
   const [copied, setCopied] = useState(false);
 
-  const userSlug = track.artist.toLowerCase().replace(/\s+/g, '');
+  const userSlug = (shareUsername?.trim() || track.artist)
+    .toLowerCase()
+    .replace(/\s+/g, '');
   const routeTrackId = sharePathId?.trim() || trackId;
   const urlToUse =
     secretToken && typeof window !== 'undefined'
@@ -187,12 +192,16 @@ function PublicTrackShareContent({
   artist,
   trackId,
   sharePathId,
+  shareUsername,
 }: {
   artist: string;
   trackId: string;
   sharePathId?: string;
+  shareUsername?: string;
 }) {
-  const userSlug = artist.toLowerCase().replace(/\s+/g, '');
+  const userSlug = (shareUsername?.trim() || artist)
+    .toLowerCase()
+    .replace(/\s+/g, '');
   const routeTrackId = sharePathId?.trim() || trackId;
   const trackUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/${userSlug}/${routeTrackId}`;
 
@@ -372,6 +381,7 @@ export function ShareModal(props: ShareModalProps) {
         <PrivateShareContent
           trackId={props.trackId}
           sharePathId={props.sharePathId}
+          shareUsername={props.shareUsername}
           track={track}
         />
       ) : (
@@ -379,6 +389,7 @@ export function ShareModal(props: ShareModalProps) {
           artist={track.artist}
           trackId={props.trackId}
           sharePathId={props.sharePathId}
+          shareUsername={props.shareUsername}
         />
       );
     }

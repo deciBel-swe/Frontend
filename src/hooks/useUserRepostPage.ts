@@ -17,6 +17,7 @@ const normalizeIdentity = (value: string | undefined): string =>
 type RepostedByShape = {
   username?: string;
   displayName?: string;
+  avatarUrl?: string;
 };
 
 export type UserRepostPageItem =
@@ -39,6 +40,7 @@ const toRepostedBy = (
     return {
       username: repostedBy.username,
       displayName: repostedBy.displayName,
+      avatar: repostedBy.avatarUrl,
     };
   }
 
@@ -149,6 +151,7 @@ export function useUserRepostPage(routeUsername?: string) {
                 card: {
                   ...playlistCard,
                   postedText: 'reposted a set',
+                  repostedBy: toRepostedBy(repostedBy, targetUsername),
                 },
               } satisfies UserRepostPageItem,
             ];

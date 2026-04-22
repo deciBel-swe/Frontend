@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/features/auth';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
@@ -34,6 +35,7 @@ export default function TrackCardRoot({
   currentUserAvatar,
   showHeader = true,
 }: TrackCardProps) {
+  const { user: authUser } = useAuth();
   const userSlug = toUserSlug(user.username);
   const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
@@ -116,9 +118,14 @@ export default function TrackCardRoot({
     return null;
   }
 
+  const currentUserName =
+    authUser?.displayName?.trim() || authUser?.username?.trim() || userDisplayName;
+  const currentUserAvatarSrc =
+    authUser?.avatarUrl?.trim() || currentUserAvatar || user.avatar;
+  const headerAvatar = repostedBy?.avatar?.trim() || user.avatar;
   const currentUser = {
-    name: userDisplayName,
-    avatar: currentUserAvatar ?? user.avatar,
+    name: currentUserName,
+    avatar: currentUserAvatarSrc,
   };
 
   return (
@@ -131,7 +138,7 @@ export default function TrackCardRoot({
         <TrackCardHeader
           userSlug={repostedBySlug ?? userSlug}
           userDisplayName={repostedByDisplayName ?? userDisplayName}
-          userAvatar={user.avatar}
+          userAvatar={headerAvatar}
           postedText={postedText}
         />
       ) : null}

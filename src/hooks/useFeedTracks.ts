@@ -36,11 +36,29 @@ const toPostedText = (item: FeedItemDTO): string => {
   }
 };
 
-const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: string } | undefined => {
+const toFeedActor = (
+  item: FeedItemDTO
+): { username: string; displayName?: string; avatar?: string } | undefined => {
   const actor =
     item.repostedBy ??
-    ((item as unknown as { actor?: { username?: string; displayName?: string } }).actor ??
-      (item as unknown as { likedBy?: { username?: string; displayName?: string } }).likedBy);
+    ((
+      item as unknown as {
+        actor?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).actor ??
+      ((
+        item as unknown as {
+          likedBy?: {
+            username?: string;
+            displayName?: string;
+            avatarUrl?: string;
+          };
+        }
+      ).likedBy));
 
   if (!actor?.username) {
     return undefined;
@@ -49,6 +67,7 @@ const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: strin
   return {
     username: actor.username,
     displayName: actor.displayName,
+    avatar: actor.avatarUrl,
   };
 };
 
@@ -93,6 +112,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
               repostedBy: {
                 username: actorUsername,
                 displayName: actorDisplayName,
+                avatar: actor?.avatar,
               },
             }
           : {}),

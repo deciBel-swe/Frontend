@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Heart, Repeat2 } from 'lucide-react';
 
@@ -48,6 +48,19 @@ export default function MinimalTrackCard({
   const [repostCount, setRepostCount] = useState(item.track.repostCount ?? 0);
   const [isLikePending, setIsLikePending] = useState(false);
   const [isRepostPending, setIsRepostPending] = useState(false);
+
+  useEffect(() => {
+    setIsLiked(item.track.isLiked ?? false);
+    setIsReposted(item.track.isReposted ?? false);
+    setLikeCount(item.track.likeCount ?? 0);
+    setRepostCount(item.track.repostCount ?? 0);
+  }, [
+    item.track.id,
+    item.track.isLiked,
+    item.track.isReposted,
+    item.track.likeCount,
+    item.track.repostCount,
+  ]);
 
   const playbackTrack = useMemo(() => {
     if (item.playback) {
