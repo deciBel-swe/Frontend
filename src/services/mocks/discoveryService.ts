@@ -66,7 +66,7 @@ const buildUserSummary = (userId: number): UserSummaryDTO => {
   return {
     id: user.id,
     username: user.username,
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     avatarUrl: user.profile.profilePic ?? '',
     isFollowing: false,
     followerCount: user.followers.size,

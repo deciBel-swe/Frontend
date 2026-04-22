@@ -192,7 +192,8 @@ const toTrackSummary = (
     artist: {
       id: track.artist.id,
       username: track.artist.username,
-      displayName: artistUser?.username ?? track.artist.username,
+      displayName:
+        artistUser?.displayName ?? track.artist.displayName ?? track.artist.username,
       avatarUrl:
         artistUser?.profile.profilePic ??
         `https://picsum.photos/seed/decibel-user-${track.artist.id}/200/200`,
@@ -250,7 +251,7 @@ const toPlaylistResponse = (
     owner: {
       id: owner.id,
       username: owner.username,
-      displayName: owner.username,
+      displayName: owner.displayName || owner.username,
       avatarUrl: getUserAvatar(owner),
       isFollowing: owner.followers.has(currentUserId),
       followerCount: owner.followers.size,

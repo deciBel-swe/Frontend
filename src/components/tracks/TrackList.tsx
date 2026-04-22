@@ -21,14 +21,11 @@ const toPlaybackAccess = (
   return 'PLAYABLE';
 };
 
-const normalizeIdentity = (value: string | undefined): string =>
-  (value ?? '').trim().toLowerCase();
-
 export type TrackListItem = {
   trackId: string;
   user: { username: string; displayName?: string; avatar: string };
   postedText?: string;
-  repostedBy?: { username: string; displayName?: string; avatar: string };
+  repostedBy?: { username: string; displayName?: string; avatar?: string };
   track: {
     id: number;
     artist: {
@@ -84,15 +81,6 @@ export default function TrackList({
   showHeader = true,
 }: TrackListProps) {
   const ownerContext = useProfileOwnerContext();
-  const contextProfileDisplayName =
-    ownerContext?.publicUser?.profile.displayName?.trim() ||
-    ownerContext?.ownerUser?.displayName?.trim() ||
-    undefined;
-  const contextProfileUsername =
-    ownerContext?.publicUser?.profile.username ||
-    ownerContext?.ownerUser?.username ||
-    ownerContext?.routeUsername ||
-    username;
 
   // Only fetch when no external tracks are supplied
   const { tracks: fetchedTracks, isLoading: fetchLoading, isError } = useUserTracks(
@@ -150,30 +138,7 @@ export default function TrackList({
       };
     });
 
-  const items: TrackListItem[] = baseItems.map((item) => {
-    if (item.user.displayName?.trim() || !contextProfileDisplayName) {
-      return item;
-    }
-
-    if (normalizeIdentity(item.user.username) !== normalizeIdentity(contextProfileUsername)) {
-      return item;
-    }
-
-    return {
-      ...item,
-      user: {
-        ...item.user,
-        displayName: contextProfileDisplayName,
-      },
-      track: {
-        ...item.track,
-        artist: {
-          ...item.track.artist,
-          displayName: contextProfileDisplayName,
-        },
-      },
-    };
-  });
+  const items: TrackListItem[] = baseItems;
   
   const queueTracks = useMemo(
     // Build canonical queue payload once per list snapshot.

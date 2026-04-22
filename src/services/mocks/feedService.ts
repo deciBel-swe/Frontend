@@ -51,7 +51,7 @@ export class MockFeedService implements FeedService {
       return {
         id: user.id,
         username: user.username,
-        displayName: user.username,
+        displayName: user.displayName || user.username,
         avatarUrl: user.profile.profilePic ?? '',
         isFollowing: currentUser?.following.has(user.id) ?? false,
         followerCount: user.followers.size,
