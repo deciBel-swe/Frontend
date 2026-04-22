@@ -11,6 +11,14 @@ export interface PaginationParams {
   size?: number;
 }
 
+export interface GenreStationParams extends PaginationParams {
+  genre: string;
+}
+
+export interface ArtistStationParams extends PaginationParams {
+  artistId: number;
+}
+
 export interface SearchParams extends PaginationParams {
   q: string;
   type?: 'ALL' | 'TRACKS' | 'USERS' | 'PLAYLISTS';
@@ -45,8 +53,12 @@ export interface DiscoveryService {
     options?: SearchRequestOptions
   ): Promise<PaginatedSearchResponseDTO>;
   getTrending(params?: TrendingParams): Promise<TrendingTracksResponseDTO>;
-  getGenreStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
-  getArtistStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
+  getGenreStation(
+    params: GenreStationParams
+  ): Promise<PaginatedStationResponseDTO>;
+  getArtistStation(
+    params: ArtistStationParams
+  ): Promise<PaginatedStationResponseDTO>;
   getLikesStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
 }
 
@@ -70,7 +82,7 @@ export class RealDiscoveryService implements DiscoveryService {
   }
 
   async getGenreStation(
-    params?: PaginationParams
+    params: GenreStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_GENRE, {
       params: toQueryParams(params as ApiQueryParams),
@@ -78,7 +90,7 @@ export class RealDiscoveryService implements DiscoveryService {
   }
 
   async getArtistStation(
-    params?: PaginationParams
+    params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_ARTIST, {
       params: toQueryParams(params as ApiQueryParams),
