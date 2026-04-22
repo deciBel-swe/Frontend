@@ -8,6 +8,7 @@ import { NavLink } from '@/components/nav/NavLink';
 import { SearchBar } from '@/components/nav/SearchBar';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { useTopNavBar } from '@/components/nav/useTopNavBar';
+import { useSubscriptionStatus } from '@/features/pro/hooks/useSubscriptionStatus';
 
 import { AuthProvider } from '@/features/auth/AuthContext';
 jest.mock('next/link', () => {
@@ -50,7 +51,12 @@ jest.mock('@/components/nav/useTopNavBar', () => ({
   useTopNavBar: jest.fn(),
 }));
 
+jest.mock('@/features/pro/hooks/useSubscriptionStatus', () => ({
+  useSubscriptionStatus: jest.fn(),
+}));
+
 const mockUseTopNavBar = useTopNavBar as jest.Mock;
+const mockUseSubscriptionStatus = useSubscriptionStatus as jest.Mock;
 
 const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
   user: null,
@@ -75,6 +81,18 @@ describe('nav primitives', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTopNavBar.mockReturnValue(createTopNavState());
+    mockUseSubscriptionStatus.mockReturnValue({
+      subscriptionStatus: {
+        status: 'active',
+        plan: 'free',
+        currentPeriodEnd: 0,
+        cancelAtPeriodEnd: false,
+      },
+      fetchSubscriptionStatus: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
   });
 
   it('renders Avatar initials when no image source is provided', () => {
@@ -141,6 +159,18 @@ describe('nav primitives', () => {
 describe('TopNavBar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSubscriptionStatus.mockReturnValue({
+      subscriptionStatus: {
+        status: 'active',
+        plan: 'free',
+        currentPeriodEnd: 0,
+        cancelAtPeriodEnd: false,
+      },
+      fetchSubscriptionStatus: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
   });
 
   it('renders authenticated actions when user is present', async () => {
