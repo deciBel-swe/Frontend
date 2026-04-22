@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type CarouselProps = {
   children: React.ReactNode;
   /**
    * Number of pixels to scroll per button click.
-   * Defaults to 320 — roughly 2 card widths at the base size.
+   * Defaults to 320 - roughly 2 card widths at the base size.
    */
   scrollStep?: number;
   onPrevPage?: () => void;
@@ -33,37 +33,63 @@ export default function Carousel({
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const canUsePrev = onPrevPage ? canPrevPage : canScrollLeft;
+  const canUseNext = onNextPage ? canNextPage : canScrollRight;
 
   const syncArrows = useCallback(() => {
     const el = trackRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
+
     setCanScrollLeft(el.scrollLeft > 0);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
   }, []);
 
+  useEffect(() => {
+    syncArrows();
+  }, [children, syncArrows]);
+
   const scrollLeft = useCallback(() => {
     if (onPrevPage) {
+      if (!canPrevPage) {
+        return;
+      }
+
       onPrevPage();
       return;
     }
 
+    if (!canScrollLeft) {
+      return;
+    }
+
     trackRef.current?.scrollBy({ left: -scrollStep, behavior: 'smooth' });
-  }, [onPrevPage, scrollStep]);
+  }, [canPrevPage, canScrollLeft, onPrevPage, scrollStep]);
 
   const scrollRight = useCallback(() => {
     if (onNextPage) {
+      if (!canNextPage) {
+        return;
+      }
+
       onNextPage();
       return;
     }
 
+    if (!canScrollRight) {
+      return;
+    }
+
     trackRef.current?.scrollBy({ left: scrollStep, behavior: 'smooth' });
-  }, [onNextPage, scrollStep]);
+  }, [canNextPage, canScrollRight, onNextPage, scrollStep]);
 
   return (
     <div className="relative group/carousel">
-      {/* ── Left arrow ── */}
       <button
+        type="button"
         aria-label="Scroll left"
+        disabled={!canUsePrev}
         onClick={scrollLeft}
         className={[
           'absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10',
@@ -72,7 +98,7 @@ export default function Carousel({
           'flex items-center justify-center',
           'shadow-md transition-all duration-200',
           'hover:bg-surface-hover hover:border-border-default',
-          (onPrevPage ? canPrevPage : canScrollLeft)
+          canUsePrev
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none',
         ].join(' ')}
@@ -80,19 +106,19 @@ export default function Carousel({
         <ChevronLeft size={18} className="text-text-primary" />
       </button>
 
-      {/* ── Scrollable track ── */}
       <div
         ref={trackRef}
-        style={{ overflowX: "hidden", touchAction: "none" }}
+        style={{ overflowX: 'hidden', touchAction: 'none' }}
         onScroll={syncArrows}
         className="flex flex-row overflow-x-auto pb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         {children}
       </div>
 
-      {/* ── Right arrow ── */}
       <button
+        type="button"
         aria-label="Scroll right"
+        disabled={!canUseNext}
         onClick={scrollRight}
         className={[
           'absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10',
@@ -101,7 +127,7 @@ export default function Carousel({
           'flex items-center justify-center',
           'shadow-md transition-all duration-200',
           'hover:bg-surface-hover hover:border-border-default',
-          (onNextPage ? canNextPage : canScrollRight)
+          canUseNext
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none',
         ].join(' ')}
