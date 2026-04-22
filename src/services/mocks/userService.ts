@@ -906,8 +906,7 @@ export class MockUserService implements UserService {
           id: playlist.owner.id,
           username: playlist.owner.username,
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tracks: playlist.tracks.map((track:any) => ({
+        tracks: playlist.tracks.map((track: { trackId: number; title: string; trackUrl: string; durationSeconds: number; [key: string]: unknown }) => ({
           trackId: track.trackId,
           title: track.title,
           trackUrl: track.trackUrl,

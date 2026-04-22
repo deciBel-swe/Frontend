@@ -8,6 +8,37 @@ export const MOCK_USERS: Record<string, UserSummaryDTO> = {
   '4': { id: 4, username: 'sam.taylor', displayName: 'Sam Taylor', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=nina' },
 };
 
+export const MOCK_CONVERSATIONS = [
+  {
+    id: 'conv_1',
+    participantIds: ['1', '2'],
+    participants: [
+      { id: '1', username: 'alex.johnson', displayName: 'Alex Johnson', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=alex' },
+      { id: '2', username: 'jordan.smith', displayName: 'Jordan Smith', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=sara' }
+    ],
+    updatedAt: '2026-04-20T10:01:00Z',
+    lastMessage: {
+      content: 'hey! love your latest mix 🔥',
+      senderId: '1',
+      createdAt: '2026-04-20T10:01:00Z'
+    }
+  },
+  {
+    id: 'conv_2',
+    participantIds: ['1', '3'],
+    participants: [
+      { id: '1', username: 'alex.johnson', displayName: 'Alex Johnson', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=alex' },
+      { id: '3', username: 'musicapp', displayName: 'Music App', avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=leo' }
+    ],
+    updatedAt: '2026-04-20T11:00:00Z',
+    lastMessage: {
+      content: 'what are you listening to lately?',
+      senderId: '3',
+      createdAt: '2026-04-20T11:00:00Z'
+    }
+  }
+];
+
 export const MOCK_MESSAGES: Record<string, MessageDTO[]> = {
   'conv_1': [
     {
@@ -34,7 +65,7 @@ export const MOCK_MESSAGES: Record<string, MessageDTO[]> = {
       messageId: 'msg_2_1',
       conversationId: 'conv_2',
       content: 'what are you listening to lately?',
-      sender: MOCK_USERS['2'],
+      sender: MOCK_USERS['3'],
       resources: [],
       isRead: true,
       createdAt: '2026-04-20T11:00:00Z',
@@ -47,7 +78,7 @@ export const MOCK_NOTIFICATIONS: Record<string, NotificationDTO[]> = {
     {
       id: 'notif_1',
       type: 'FOLLOW',
-      user: MOCK_USERS['2'],
+      user: MOCK_USERS['2'] as unknown as NotificationDTO['user'],
       resource: { resourceType: 'USER', resourceId: 1 },
       isRead: false,
       createdAt: '2026-04-21T09:00:00Z',
@@ -55,7 +86,7 @@ export const MOCK_NOTIFICATIONS: Record<string, NotificationDTO[]> = {
     {
       id: 'notif_2',
       type: 'LIKE',
-      user: MOCK_USERS['3'],
+      user: MOCK_USERS['3'] as unknown as NotificationDTO['user'],
       resource: { resourceType: 'TRACK', resourceId: 1001 },
       isRead: true,
       createdAt: '2026-04-21T08:30:00Z',

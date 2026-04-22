@@ -1,5 +1,5 @@
 import { FirebaseMessageService } from '@/services/api/messageService';
-import { onSnapshot, addDoc, collection, query, where, orderBy } from 'firebase/firestore';
+import { onSnapshot, addDoc, setDoc, doc, collection, query, where, orderBy } from 'firebase/firestore';
 import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
 
 // Mock Firebase SDK
@@ -11,6 +11,8 @@ jest.mock('firebase/firestore', () => ({
   orderBy: jest.fn(),
   onSnapshot: jest.fn(),
   addDoc: jest.fn(),
+  setDoc: jest.fn(),
+  doc: jest.fn(),
   serverTimestamp: jest.fn(() => 'mock-timestamp'),
 }));
 
@@ -23,19 +25,22 @@ describe('FirebaseMessageService (Real)', () => {
 
   beforeEach(() => {
     service = new FirebaseMessageService();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('should call onSnapshot when subscribing to inbox', () => {
     const onUpdate = jest.fn();
     const onError = jest.fn();
-    
+
     service.subscribeToInbox(1, onUpdate, onError);
 
     expect(onSnapshot).toHaveBeenCalled();
     expect(query).toHaveBeenCalled();
     expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations');
-    expect(where).toHaveBeenCalledWith('participantIds', 'array-contains', 1);
+    expect(where).toHaveBeenCalledWith('participantIds', 'array-contains', '1');
   });
 
   it('should call onSnapshot when subscribing to chat', () => {

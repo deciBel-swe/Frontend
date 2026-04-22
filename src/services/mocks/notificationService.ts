@@ -8,7 +8,7 @@ import type { NotificationService } from '../api/notificationService';
 import { MOCK_NOTIFICATIONS } from './mockData';
 
 export class MockNotificationService implements NotificationService {
-  private notifications: Record<number, NotificationDTO[]> = { ...MOCK_NOTIFICATIONS } as any;
+  private notifications: Record<number, NotificationDTO[]> = { ...MOCK_NOTIFICATIONS } as unknown as Record<number, NotificationDTO[]>;
 
   subscribeToNotifications(
     userId: number,

@@ -8,6 +8,7 @@ import type {
   SendMessageRequest,
   UserSummaryDTO,
 } from '@/types/message';
+import type { UserPublic } from '@/types/user';
 
 export function useChat(conversationId: string | null) {
   const { user } = useAuth();
@@ -58,5 +59,13 @@ export function useChat(conversationId: string | null) {
     [conversationId, user]
   );
 
-  return { messages, isLoading, error, sendMessage };
+  const getOrCreateConversation = useCallback(
+    async (otherUser: UserPublic | UserSummaryDTO) => {
+      if (!user) throw new Error('Must be logged in to start a conversation');
+      return messageService.getOrCreateConversation(user as unknown as import('@/types/user').UserMe, otherUser);
+    },
+    [user]
+  );
+
+  return { messages, isLoading, error, sendMessage, getOrCreateConversation };
 }

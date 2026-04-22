@@ -5,6 +5,9 @@ import {
   orderBy,
   onSnapshot,
   addDoc,
+  setDoc,
+  doc,
+  getDocs,
   serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -14,11 +17,12 @@ import type {
   SendMessageRequest,
   UserSummaryDTO,
 } from '@/types/message';
+import type { UserMe, UserPublic } from '@/types/user';
 
 export interface MessageService {
   subscribeToInbox(
     userId: number,
-    onUpdate: (conversations: MessageDTO[]) => void,
+    onUpdate: (conversations: unknown[]) => void,
     onError: (error: Error) => void
   ): Unsubscribe;
 
@@ -33,33 +37,35 @@ export interface MessageService {
     payload: SendMessageRequest,
     currentUserSummary: UserSummaryDTO
   ): Promise<void>;
+
+  getOrCreateConversation(
+    currentUser: UserMe,
+    otherUser: UserPublic | UserSummaryDTO
+  ): Promise<string>;
 }
 
 export class FirebaseMessageService implements MessageService {
   subscribeToInbox(
     userId: number,
-    onUpdate: (conversations: MessageDTO[]) => void,
+    onUpdate: (conversations: unknown[]) => void,
     onError: (error: Error) => void
   ): Unsubscribe {
-    // Query conversations where the current user is a participant
+    // Convert userId to string for Firestore consistency
+    const userIdStr = String(userId);
+    
     const q = query(
       collection(db, 'conversations'),
-      where('participantIds', 'array-contains', userId),
-      orderBy('lastMessageCreatedAt', 'desc')
+      where('participantIds', 'array-contains', userIdStr),
+      orderBy('updatedAt', 'desc')
     );
 
     return onSnapshot(
       q,
       (snapshot) => {
-        const conversations = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            ...data,
-            conversationId: doc.id,
-            // Map last message to MessageDTO structure if needed
-            messageId: data.lastMessageId || doc.id,
-          } as unknown as MessageDTO;
-        });
+        const conversations = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
         onUpdate(conversations);
       },
       onError
@@ -100,7 +106,12 @@ export class FirebaseMessageService implements MessageService {
   ): Promise<void> {
     const messageData = {
       conversationId,
-      sender: currentUserSummary,
+      sender: {
+        id: currentUserSummary.id,
+        username: currentUserSummary.username,
+        displayName: currentUserSummary.displayName || currentUserSummary.username,
+        avatarUrl: currentUserSummary.avatarUrl || null,
+      },
       content: payload.body,
       resources: payload.resources || [],
       isRead: false,
@@ -108,13 +119,82 @@ export class FirebaseMessageService implements MessageService {
       serverTimestamp: serverTimestamp(),
     };
 
+    // 1. Add the message to the sub-collection
     await addDoc(
       collection(db, 'conversations', conversationId, 'messages'),
       messageData
     );
 
-    // Note: In a production app, we would also update the parent conversation doc
-    // with the lastMessage and lastMessageCreatedAt using a write batch or transaction.
+    // 2. Update the parent conversation document for the inbox preview
+    await setDoc(
+      doc(db, 'conversations', conversationId),
+      {
+        lastMessage: {
+          content: payload.body,
+          senderId: String(currentUserSummary.id),
+          createdAt: new Date().toISOString(),
+        },
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }
+
+  async getOrCreateConversation(
+    currentUser: UserMe,
+    otherUser: UserPublic | UserSummaryDTO
+  ): Promise<string> {
+    const myId = String(currentUser.id);
+    const theirId = String('profile' in otherUser ? otherUser.profile.id : otherUser.id);
+    
+    // Ensure IDs are sorted for a deterministic conversation key or just use array-contains
+    // Using array-contains-any or multiple where might be complex, 
+    // let's search for an existing conversation with these exact participants.
+    const q = query(
+      collection(db, 'conversations'),
+      where('participantIds', 'array-contains', myId)
+    );
+    
+    const snapshot = await getDocs(q);
+    const existing = snapshot.docs.find(doc => {
+      const ids = doc.data().participantIds as string[];
+      return ids.length === 2 && ids.includes(theirId);
+    });
+
+    if (existing) {
+      return existing.id;
+    }
+
+    // Create new conversation
+    const otherUserData = 'profile' in otherUser ? {
+      id: String(otherUser.profile.id),
+      username: otherUser.profile.username,
+      displayName: otherUser.profile.displayName || otherUser.profile.username,
+      avatarUrl: otherUser.profile.profilePic || null,
+    } : {
+      id: String(otherUser.id),
+      username: otherUser.username,
+      displayName: otherUser.displayName || otherUser.username,
+      avatarUrl: otherUser.avatarUrl || null,
+    };
+
+    const meData = {
+      id: String(currentUser.id),
+      username: currentUser.username,
+      displayName: currentUser.displayName || currentUser.username,
+      avatarUrl: currentUser.profile?.profilePic || null,
+    };
+
+    const newConv = {
+      participantIds: [myId, theirId],
+      participants: [meData, otherUserData],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      lastMessage: null,
+    };
+
+    const docRef = await addDoc(collection(db, 'conversations'), newConv);
+    return docRef.id;
   }
 }
 

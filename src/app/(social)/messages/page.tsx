@@ -15,12 +15,18 @@ export default function Page() {
   const { user } = useAuth();
   const { conversations: inboxMessages, isLoading: isInboxLoading } = useInbox();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const { messages: chatMessages, sendMessage, isLoading: isChatLoading } = useChat(activeConversationId);
+  const { messages: chatMessages, sendMessage } = useChat(activeConversationId);
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
 
   // Map Firestore inbox messages to UI InboxItem
   const inboxItems: InboxItem[] = useMemo(() => {
-    return inboxMessages.map((msg: any) => {
+    return inboxMessages.map((rawMsg: unknown) => {
+      const msg = rawMsg as {
+        sender: { id: string | number; username: string; displayName?: string; avatarUrl?: string };
+        conversationId: string;
+        content: string;
+        createdAt: string;
+      };
       // Find the other participant if we have that info in the conversation doc
       // For now, assume sender is the other person if we are in inbox
       const participant: User = {
@@ -41,7 +47,9 @@ export default function Page() {
   }, [inboxMessages]);
 
   // Find active conversation info
-  const activeConversationMsg = inboxMessages.find((m) => m.conversationId === activeConversationId) as any;
+  const activeConversationMsg = inboxMessages.find((m: unknown) => (m as { conversationId: string }).conversationId === activeConversationId) as {
+    sender: { id: string | number; username: string; displayName?: string; avatarUrl?: string };
+  } | undefined;
   
   const activeConversation: Conversation | null = useMemo(() => {
     if (!activeConversationId || !activeConversationMsg) return null;

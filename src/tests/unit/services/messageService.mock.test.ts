@@ -12,7 +12,7 @@ describe('MockMessageService', () => {
     service.subscribeToInbox(1, (conversations) => {
       expect(conversations).toBeInstanceOf(Array);
       expect(conversations.length).toBeGreaterThan(0);
-      expect(conversations[0].conversationId).toBe('conv_1');
+      expect((conversations[0] as any).id).toBe('conv_1');
       done();
     }, (error) => {
       done(error);
@@ -23,7 +23,7 @@ describe('MockMessageService', () => {
     service.subscribeToChat('conv_1', (messages) => {
       expect(messages).toBeInstanceOf(Array);
       expect(messages.length).toBeGreaterThan(0);
-      expect(messages[0].messageId).toBe('msg_1');
+      expect(messages[0].messageId).toBe('msg_1_1');
       done();
     }, (error) => {
       done(error);
@@ -45,8 +45,8 @@ describe('MockMessageService', () => {
 
     // Verify it was updated in inbox
     service.subscribeToInbox(1, (conversations) => {
-      const conv = conversations.find(c => c.conversationId === 'conv_1');
-      expect(conv?.content).toBe('New test message');
+      const conv = (conversations as any[]).find(c => c.id === 'conv_1');
+      expect(conv?.lastMessage?.content).toBe('New test message');
     }, () => {});
   });
 });

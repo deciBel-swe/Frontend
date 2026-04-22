@@ -89,10 +89,10 @@ import {
   updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
-import {
-  messageDTOSchema,
-  sendMessageRequestSchema,
-} from './message';
+// import {
+//   messageDTOSchema,
+//   sendMessageRequestSchema,
+// } from './message';
 import {
   adminLoginRequestSchema,
   adminLoginResponseSchema,
@@ -500,11 +500,13 @@ export const API_CONTRACTS = {
     }),
 
   PLAYLISTS_TRACKS: (playlistId: number) =>
-    defineContract<void, z.infer<typeof paginatedPlaylistTracksResponseSchema>>({
-      method: 'GET',
-      url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
-      responseSchema: paginatedPlaylistTracksResponseSchema,
-    }),
+    defineContract<void, z.infer<typeof paginatedPlaylistTracksResponseSchema>>(
+      {
+        method: 'GET',
+        url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
+        responseSchema: paginatedPlaylistTracksResponseSchema,
+      }
+    ),
 
   PLAYLISTS_EMBED: (playlistId: number) =>
     defineContract<void, z.infer<typeof playlistEmbedResponseSchema>>({
@@ -537,7 +539,10 @@ export const API_CONTRACTS = {
       responseSchema: playlistResponseSchema,
     }),
 
-  PLAYLISTS_RESOLVE: defineContract<void, z.infer<typeof playlistResourceRefSchema>>({
+  PLAYLISTS_RESOLVE: defineContract<
+    void,
+    z.infer<typeof playlistResourceRefSchema>
+  >({
     method: 'GET',
     url: API_ENDPOINTS.PLAYLISTS.RESOLVE,
     responseSchema: playlistResourceRefSchema,
