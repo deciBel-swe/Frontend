@@ -17,6 +17,7 @@ export const notificationTypeSchema = z.enum([
   'REPOST',
   'COMMENT',
   'REPLY',
+  'DM',
 ]);
 
 export const resourceRefSchema = z.object({
@@ -31,6 +32,9 @@ export const notificationDTOSchema = z.object({
   resource: resourceRefSchema,
   isRead: z.boolean(),
   createdAt: z.string(),
+  targetTitle: z.string().optional(),
+  targetUrl: z.string().optional(),
+  conversationId: z.string().optional(),
 });
 export type NotificationDTO = z.infer<typeof notificationDTOSchema>;
 

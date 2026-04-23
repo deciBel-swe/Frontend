@@ -4,10 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Message } from '@/components/messages/types';
 import MessageList from '@/components/messages/MessageList';
-
-function getUserSlug(username: string): string {
-  return username.toLowerCase().replace(/[.\s]+/g, '-');
-}
+import { buildProfileHref } from '@/utils/socialRoutes';
 
 interface MessageBubbleProps {
   message: Message;
@@ -79,7 +76,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
             <span className="text-xs font-semibold text-text-primary">Me</span>
           ) : (
             <Link
-              href={`/${getUserSlug(message.sender.username)}`}
+              href={buildProfileHref(message.sender.username)}
               className="text-xs font-semibold text-text-primary hover:text-text-secondary transition-colors"
             >
               {message.sender.displayName}

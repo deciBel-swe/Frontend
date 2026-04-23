@@ -27,9 +27,10 @@ describe('MockNotificationService', () => {
   });
 
   it('should accurately calculate unread count (simulated via hook logic elsewhere, but verifying data here)', (done) => {
-    service.subscribeToNotifications(1, (notifications) => {
+    const unsubscribe = service.subscribeToNotifications(1, (notifications) => {
       const unreadCount = notifications.filter(n => !n.isRead).length;
-      expect(unreadCount).toBe(1); // Default from mock data
+      expect(unreadCount).toBe(3);
+      unsubscribe();
       done();
     }, (error) => {
       done(error);

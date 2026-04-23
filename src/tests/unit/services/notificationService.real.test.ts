@@ -41,7 +41,7 @@ describe('FirebaseNotificationService (Real)', () => {
 
     expect(onSnapshot).toHaveBeenCalled();
     expect(collection).toHaveBeenCalledWith(expect.anything(), 'notifications');
-    expect(where).toHaveBeenCalledWith('recipientId', '==', 1);
+    expect(where).toHaveBeenCalledWith('recipientId', '==', '1');
   });
 
   it('should call writeBatch and commit when marking all as read', async () => {

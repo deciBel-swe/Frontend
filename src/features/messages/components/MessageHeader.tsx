@@ -1,61 +1,32 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/buttons/Button';
-import { userService } from '@/services';
 import type { User } from '@/components/messages/types';
-
-function getUserSlug(username: string): string {
-  return username.toLowerCase().replace(/[.\s]+/g, '-');
-}
+import { buildProfileHref } from '@/utils/socialRoutes';
 
 interface MessageHeaderProps {
   participant: User;
+  isBlocked: boolean;
+  isBlockPending?: boolean;
   isMarkedUnread?: boolean;
-  onMarkUnread?: () => void;
+  onToggleBlock: () => void;
+  onToggleUnread: () => void;
 }
 
 export default function MessageHeader({
   participant,
+  isBlocked,
+  isBlockPending = false,
   isMarkedUnread,
-  onMarkUnread,
+  onToggleBlock,
+  onToggleUnread,
 }: MessageHeaderProps) {
-  const [isBlocked, setIsBlocked] = useState(false); // TODO: Get actual blocked state
-  const [isBlockPending, setIsBlockPending] = useState(false);
-
-  const handleBlockToggle = async () => {
-    if (!participant.id || isBlockPending) {
-      return;
-    }
-
-    const userId = typeof participant.id === 'string' ? parseInt(participant.id, 10) : participant.id;
-    if (isNaN(userId)) return;
-
-    const previousBlocked = isBlocked;
-    const nextBlocked = !previousBlocked;
-    setIsBlocked(nextBlocked);
-    setIsBlockPending(true);
-
-    try {
-      if (nextBlocked) {
-        await userService.blockUser(userId);
-      } else {
-        await userService.unblockUser(userId);
-      }
-    } catch (error) {
-      setIsBlocked(previousBlocked);
-      throw error;
-    } finally {
-      setIsBlockPending(false);
-    }
-  };
-
   return (
     <div className="flex items-center justify-between px-4 py-3 gap-4 bg-bg-base">
       <div className="flex items-center gap-2">
         <Link
-          href={`/${getUserSlug(participant.username)}`}
+          href={buildProfileHref(participant.username)}
           className="font-bold text-base text-text-primary hover:text-text-secondary transition-colors"
         >
           {participant.displayName}
@@ -63,7 +34,7 @@ export default function MessageHeader({
 
         <Button
           type="button"
-          onClick={handleBlockToggle}
+          onClick={onToggleBlock}
           disabled={isBlockPending}
           className="text-xs font-bold px-3 py-1.5 text-text-primary hover:bg-interactive-default transition-colors duration-150 cursor-pointer disabled:opacity-50"
         >
@@ -75,7 +46,7 @@ export default function MessageHeader({
         <Button
           variant='secondary_inverse'
           type="button"
-          onClick={onMarkUnread}
+          onClick={onToggleUnread}
           size='sm'
           className="text-xs font-semibold px-3 py-1.5 border border-border-strong rounded text-text-primary hover:bg-interactive-default transition-colors duration-150 cursor-pointer"
         >

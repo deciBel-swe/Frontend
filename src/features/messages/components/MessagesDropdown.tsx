@@ -30,7 +30,7 @@ export default function MessagesDropdown({ items, onClose }: MessagesDropdownPro
 
   const handleSelect = (conversationId: string) => {
     onClose?.();
-    router.push(`${ROUTES.MESSAGES}/${conversationId}`);
+    router.push(`${ROUTES.MESSAGES}?conversation=${conversationId}`);
   };
 
   return (

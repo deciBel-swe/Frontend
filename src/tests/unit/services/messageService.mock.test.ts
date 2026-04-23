@@ -9,10 +9,11 @@ describe('MockMessageService', () => {
   });
 
   it('should subscribe to inbox and receive data', (done) => {
-    service.subscribeToInbox(1, (conversations) => {
+    const unsubscribe = service.subscribeToInbox(1, (conversations) => {
       expect(conversations).toBeInstanceOf(Array);
       expect(conversations.length).toBeGreaterThan(0);
-      expect((conversations[0] as any).id).toBe('conv_1');
+      expect((conversations[0] as any).participantIds).toContain('1');
+      unsubscribe();
       done();
     }, (error) => {
       done(error);
@@ -48,5 +49,38 @@ describe('MockMessageService', () => {
       const conv = (conversations as any[]).find(c => c.id === 'conv_1');
       expect(conv?.lastMessage?.content).toBe('New test message');
     }, () => {});
+  });
+
+  it('should mark a conversation as unread and then read again', async () => {
+    await service.markConversationUnread('conv_1', 1);
+
+    await new Promise<void>((resolve, reject) => {
+      const unsubscribe = service.subscribeToInbox(
+        1,
+        (conversations) => {
+          const conversation = conversations.find((entry) => entry.id === 'conv_1');
+          expect(conversation?.manuallyUnreadBy['1']).toBe(true);
+          unsubscribe();
+          resolve();
+        },
+        reject
+      );
+    });
+
+    await service.markConversationRead('conv_1', 1);
+
+    await new Promise<void>((resolve, reject) => {
+      const unsubscribe = service.subscribeToInbox(
+        1,
+        (conversations) => {
+          const conversation = conversations.find((entry) => entry.id === 'conv_1');
+          expect(conversation?.unreadCounts['1']).toBe(0);
+          expect(conversation?.manuallyUnreadBy['1']).toBe(false);
+          unsubscribe();
+          resolve();
+        },
+        reject
+      );
+    });
   });
 });

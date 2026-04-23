@@ -29,6 +29,25 @@ export const resourceRefFullDTOSchema = z.object({
 });
 export type ResourceRefFullDTO = z.infer<typeof resourceRefFullDTOSchema>;
 
+export const conversationParticipantSchema = z.object({
+  id: z.string().trim().min(1),
+  username: z.string().trim().min(1),
+  displayName: z.string().trim().nullable().optional(),
+  avatarUrl: z.string().trim().nullable().optional(),
+});
+export type ConversationParticipantDTO = z.infer<
+  typeof conversationParticipantSchema
+>;
+
+export const conversationLastMessageSchema = z.object({
+  content: z.string().trim().min(1),
+  senderId: z.string().trim().min(1),
+  createdAt: z.string().trim().min(1),
+});
+export type ConversationLastMessageDTO = z.infer<
+  typeof conversationLastMessageSchema
+>;
+
 export const messageDTOSchema = z.object({
   messageId: z.string(),
   conversationId: z.string(),
@@ -39,6 +58,20 @@ export const messageDTOSchema = z.object({
   createdAt: z.string().trim().min(1),
 });
 export type MessageDTO = z.infer<typeof messageDTOSchema>;
+
+export const conversationDTOSchema = z.object({
+  id: z.string().trim().min(1),
+  participantIds: z.array(z.string().trim().min(1)).default([]),
+  participants: z.array(conversationParticipantSchema).default([]),
+  lastMessage: conversationLastMessageSchema.nullable().optional(),
+  unreadCounts: z
+    .record(z.string(), z.number().int().nonnegative())
+    .default({}),
+  manuallyUnreadBy: z.record(z.string(), z.boolean()).default({}),
+  createdAt: z.string().trim().min(1).optional(),
+  updatedAt: z.string().trim().min(1).optional(),
+});
+export type ConversationDTO = z.infer<typeof conversationDTOSchema>;
 
 export const sendMessageRequestSchema = z.object({
   body: z.string().trim().min(1),

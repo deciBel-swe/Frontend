@@ -37,25 +37,99 @@ export interface NotificationService {
   ): Promise<MessageResponse>;
 }
 
+type FirestoreRecord = Record<string, unknown>;
+
+const toIsoString = (value: unknown): string => {
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    'toDate' in value &&
+    typeof (value as { toDate: () => Date }).toDate === 'function'
+  ) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    'seconds' in value &&
+    typeof (value as { seconds: number }).seconds === 'number'
+  ) {
+    return new Date((value as { seconds: number }).seconds * 1000).toISOString();
+  }
+
+  return new Date().toISOString();
+};
+
+const normalizeNotification = (
+  id: string,
+  value: unknown
+): NotificationDTO => {
+  const data = (value as FirestoreRecord | undefined) ?? {};
+  const user = (data.user as FirestoreRecord | undefined) ?? {};
+  const resource = (data.resource as FirestoreRecord | undefined) ?? {};
+
+  return {
+    id,
+    type: String(data.type ?? 'FOLLOW') as NotificationDTO['type'],
+    user: {
+      id: Number(user.id ?? 0),
+      username: String(user.username ?? ''),
+      displayName: String(user.displayName ?? user.username ?? ''),
+      avatarUrl:
+        user.avatarUrl === null || user.avatarUrl === undefined
+          ? null
+          : String(user.avatarUrl),
+      isFollowing:
+        user.isFollowing === undefined ? undefined : Boolean(user.isFollowing),
+      followerCount:
+        user.followerCount === undefined
+          ? undefined
+          : Number(user.followerCount),
+      trackCount:
+        user.trackCount === undefined ? undefined : Number(user.trackCount),
+    },
+    resource: {
+      resourceType: String(resource.resourceType ?? 'USER') as NotificationDTO['resource']['resourceType'],
+      resourceId: Number(resource.resourceId ?? 0),
+    },
+    isRead: Boolean(data.isRead),
+    createdAt: toIsoString(data.createdAt),
+    targetTitle:
+      typeof data.targetTitle === 'string' ? data.targetTitle : undefined,
+    targetUrl: typeof data.targetUrl === 'string' ? data.targetUrl : undefined,
+    conversationId:
+      typeof data.conversationId === 'string' ? data.conversationId : undefined,
+  };
+};
+
 export class FirebaseNotificationService implements NotificationService {
   subscribeToNotifications(
     userId: number,
     onUpdate: (notifications: NotificationDTO[]) => void,
     onError: (error: Error) => void
   ): Unsubscribe {
+    const recipientId = String(userId);
     const q = query(
       collection(db, 'notifications'),
-      where('recipientId', '==', userId),
+      where('recipientId', '==', recipientId),
       orderBy('createdAt', 'desc')
     );
 
     return onSnapshot(
       q,
       (snapshot) => {
-        const notifications = snapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        })) as unknown as NotificationDTO[];
+        const notifications = snapshot.docs.map((docSnapshot) =>
+          normalizeNotification(docSnapshot.id, docSnapshot.data())
+        );
         onUpdate(notifications);
       },
       onError
@@ -63,9 +137,10 @@ export class FirebaseNotificationService implements NotificationService {
   }
 
   async markAllAsRead(userId: number): Promise<void> {
+    const recipientId = String(userId);
     const q = query(
       collection(db, 'notifications'),
-      where('recipientId', '==', userId),
+      where('recipientId', '==', recipientId),
       where('isRead', '==', false)
     );
 

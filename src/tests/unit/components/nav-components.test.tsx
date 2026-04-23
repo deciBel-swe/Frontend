@@ -8,6 +8,8 @@ import { NavLink } from '@/components/nav/NavLink';
 import { SearchBar } from '@/components/nav/SearchBar';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { useTopNavBar } from '@/components/nav/useTopNavBar';
+import { useInbox } from '@/hooks/useInbox';
+import { useNotifications } from '@/hooks/useNotifications';
 
 import { AuthProvider } from '@/features/auth/AuthContext';
 jest.mock('next/link', () => {
@@ -50,7 +52,17 @@ jest.mock('@/components/nav/useTopNavBar', () => ({
   useTopNavBar: jest.fn(),
 }));
 
+jest.mock('@/hooks/useInbox', () => ({
+  useInbox: jest.fn(),
+}));
+
+jest.mock('@/hooks/useNotifications', () => ({
+  useNotifications: jest.fn(),
+}));
+
 const mockUseTopNavBar = useTopNavBar as jest.Mock;
+const mockUseInbox = useInbox as jest.Mock;
+const mockUseNotifications = useNotifications as jest.Mock;
 
 const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
   user: null,
@@ -66,6 +78,23 @@ const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
   toggleMoreMenu: jest.fn(),
   closeMoreMenu: jest.fn(),
   moreMenuRef: { current: null },
+  messagesMenuOpen: false,
+  toggleMessagesMenu: jest.fn(),
+  closeMessagesMenu: jest.fn(),
+  messagesMenuRef: { current: null },
+  notificationsMenuOpen: false,
+  toggleNotificationsMenu: jest.fn(),
+  closeNotificationsMenu: jest.fn(),
+  notificationsMenuRef: { current: null },
+  signInOpen: false,
+  closeSignIn: jest.fn(),
+  registerOpen: false,
+  openSignIn: jest.fn(),
+  openRegister: jest.fn(),
+  closeRegister: jest.fn(),
+  openUpgrade: jest.fn(),
+  upgradeOpen: false,
+  closeUpgrade: jest.fn(),
   initials: '',
   activeNav: 'home',
   ...overrides,
@@ -75,6 +104,16 @@ describe('nav primitives', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTopNavBar.mockReturnValue(createTopNavState());
+    mockUseInbox.mockReturnValue({
+      inboxItems: [],
+      unreadCount: 0,
+    });
+    mockUseNotifications.mockReturnValue({
+      notifications: [],
+      unreadCount: 0,
+      isLoading: false,
+      markAllAsRead: jest.fn(),
+    });
   });
 
   it('renders Avatar initials when no image source is provided', () => {
@@ -141,6 +180,16 @@ describe('nav primitives', () => {
 describe('TopNavBar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseInbox.mockReturnValue({
+      inboxItems: [],
+      unreadCount: 0,
+    });
+    mockUseNotifications.mockReturnValue({
+      notifications: [],
+      unreadCount: 0,
+      isLoading: false,
+      markAllAsRead: jest.fn(),
+    });
   });
 
   it('renders authenticated actions when user is present', async () => {

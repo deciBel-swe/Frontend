@@ -8,41 +8,117 @@ import type { NotificationService } from '../api/notificationService';
 import { MOCK_NOTIFICATIONS } from './mockData';
 
 export class MockNotificationService implements NotificationService {
-  private notifications: Record<number, NotificationDTO[]> = { ...MOCK_NOTIFICATIONS } as unknown as Record<number, NotificationDTO[]>;
+  private notifications: Record<string, NotificationDTO[]> = {
+    ...MOCK_NOTIFICATIONS,
+  };
+  private settings: NotificationSettingsDTO = {
+    notifyOnFollow: true,
+    notifyOnLike: true,
+    notifyOnRepost: true,
+    notifyOnComment: true,
+    notifyOnDM: true,
+  };
+  private listeners = new Map<
+    string,
+    {
+      userId: string;
+      onUpdate: (notifications: NotificationDTO[]) => void;
+      timeoutId?: ReturnType<typeof setTimeout>;
+      intervalId?: ReturnType<typeof setInterval>;
+    }
+  >();
+
+  private emit(userId: string) {
+    const notifications = [...(this.notifications[userId] || [])].sort(
+      (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)
+    );
+
+    this.listeners.forEach((listener) => {
+      if (listener.userId !== userId) {
+        return;
+      }
+
+      listener.onUpdate(notifications);
+    });
+  }
 
   subscribeToNotifications(
     userId: number,
     onUpdate: (notifications: NotificationDTO[]) => void,
     _onError: (error: Error) => void
   ): () => void {
+    const userIdStr = String(userId);
+    const listenerId = `notif_${Date.now()}_${Math.random()}`;
     const timeout = setTimeout(() => {
-      onUpdate(this.notifications[userId] || []);
+      this.emit(userIdStr);
     }, 500);
 
-    return () => clearTimeout(timeout);
+    const interval = setInterval(() => {
+      const nextNotification: NotificationDTO = {
+        id: `notif_live_${Date.now()}`,
+        type: 'DM',
+        user: {
+          id: 2,
+          username: 'jordan.smith',
+          displayName: 'Jordan Smith',
+          avatarUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=sara',
+        },
+        resource: {
+          resourceType: 'USER',
+          resourceId: 2,
+        },
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        conversationId: 'conv_1',
+      };
+
+      this.notifications[userIdStr] = [
+        nextNotification,
+        ...(this.notifications[userIdStr] || []),
+      ];
+      this.emit(userIdStr);
+    }, 60000);
+
+    this.listeners.set(listenerId, {
+      userId: userIdStr,
+      onUpdate,
+      timeoutId: timeout,
+      intervalId: interval,
+    });
+
+    return () => {
+      const listener = this.listeners.get(listenerId);
+      if (listener?.timeoutId) {
+        clearTimeout(listener.timeoutId);
+      }
+      if (listener?.intervalId) {
+        clearInterval(listener.intervalId);
+      }
+      this.listeners.delete(listenerId);
+    };
   }
 
   async markAllAsRead(userId: number): Promise<void> {
-    if (this.notifications[userId]) {
-      this.notifications[userId] = this.notifications[userId].map(n => ({ ...n, isRead: true }));
+    const userIdStr = String(userId);
+    if (this.notifications[userIdStr]) {
+      this.notifications[userIdStr] = this.notifications[userIdStr].map((notification) => ({
+        ...notification,
+        isRead: true,
+      }));
+      this.emit(userIdStr);
     }
     return Promise.resolve();
   }
 
   async getNotificationSettings(): Promise<NotificationSettingsDTO> {
-    return {
-      notifyOnFollow: true,
-      notifyOnLike: true,
-      notifyOnRepost: true,
-      notifyOnComment: true,
-      notifyOnDM: true,
-    };
+    return { ...this.settings };
   }
 
   async updateNotificationSettings(
     payload: NotificationSettingsDTO
   ): Promise<NotificationSettingsDTO> {
-    return payload;
+    this.settings = { ...payload };
+    return { ...this.settings };
   }
 
   async registerDeviceToken(

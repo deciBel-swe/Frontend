@@ -54,9 +54,10 @@ import {
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
-import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
 import { UpgradeModal } from '@/features/pro/components/UpgradeModal';
 import NotificationsDropdown from '../notifications/NotificationsDropdown';
+import { useInbox } from '@/hooks/useInbox';
+import { useNotifications } from '@/hooks/useNotifications';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TopNavBarProps {
@@ -113,8 +114,8 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     upgradeOpen,
     closeUpgrade,
   } = useTopNavBar();
-
-  const inboxItems = getInboxItems(TEST_CONVERSATIONS, CURRENT_USER.id);
+  const { inboxItems, unreadCount: unreadInboxCount } = useInbox();
+  const { unreadCount: unreadNotificationCount } = useNotifications();
 
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
@@ -247,7 +248,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     onClick={toggleNotificationsMenu}
                   >
                     <BellIcon />
-                    <Badge count={0} />
+                    <Badge count={unreadNotificationCount} />
                     <span className="sr-only">Notifications</span>
                   </IconButton>
 
@@ -266,7 +267,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                       onClick={toggleMessagesMenu}
                     >
                       <MailIcon />
-                      <Badge count={11} />
+                      <Badge count={unreadInboxCount} />
                       <span className="sr-only">Messages</span>
                     </IconButton>
 

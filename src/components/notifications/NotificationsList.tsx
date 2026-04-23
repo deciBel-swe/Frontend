@@ -9,30 +9,27 @@ import type { Notification } from "./types/notification";
 interface NotificationsListProps {
   maxItems?: number;
   hoverable?: boolean;
+  filter?: 'all' | Notification['type'];
 }
 
-export const NotificationsList = ({ maxItems, hoverable }: NotificationsListProps) => {
-  const { notifications: dtoNotifications, isLoading } = useNotifications();
+export const NotificationsList = ({
+  maxItems,
+  hoverable,
+  filter = 'all',
+}: NotificationsListProps) => {
+  const { notifications, isLoading } = useNotifications();
 
-  const notifications: Notification[] = useMemo(() => {
-    return dtoNotifications.map((dto) => ({
-      id: dto.id,
-      type: dto.type.toLowerCase() as any, // 'FOLLOW' -> 'follow', etc.
-      actor: {
-        id: String(dto.user.id),
-        username: dto.user.username,
-        displayName: dto.user.displayName || dto.user.username,
-        avatarUrl: dto.user.avatarUrl || "",
-      },
-      targetTitle: (dto as any).targetTitle, // Assuming these might exist in Firestore doc
-      targetUrl: (dto as any).targetUrl,
-      createdAt: dto.createdAt,
-    }));
-  }, [dtoNotifications]);
+  const filteredNotifications = useMemo(
+    () =>
+      filter === 'all'
+        ? notifications
+        : notifications.filter((notification) => notification.type === filter),
+    [filter, notifications]
+  );
 
-  const displayedNotifications = maxItems 
-    ? notifications.slice(0, maxItems) 
-    : notifications;
+  const displayedNotifications = maxItems
+    ? filteredNotifications.slice(0, maxItems)
+    : filteredNotifications;
 
   if (isLoading) {
     return <div className="py-12 text-center text-text-muted">Loading notifications...</div>;

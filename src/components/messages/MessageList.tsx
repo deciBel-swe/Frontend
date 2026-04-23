@@ -15,7 +15,7 @@ import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
 import type { TrackCardUser } from '@/components/tracks/track-card/types';
 import type { ListProps, User } from '@/components/messages/types';
 
-const DEFAULT_COVER = '/images/default_song_image.png';
+const DEFAULT_COVER = '/images/default_song_image_1.png';
 
 // Maps the messaging User shape to TrackCardUser — the two differ only in
 // avatarUrl (messages) vs avatar (TrackCard).

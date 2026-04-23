@@ -1,5 +1,17 @@
 import { FirebaseMessageService } from '@/services/api/messageService';
-import { onSnapshot, addDoc, setDoc, doc, collection, query, where, orderBy } from 'firebase/firestore';
+import {
+  onSnapshot,
+  addDoc,
+  setDoc,
+  doc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDoc,
+  getDocs,
+  writeBatch,
+} from 'firebase/firestore';
 import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
 
 // Mock Firebase SDK
@@ -13,6 +25,12 @@ jest.mock('firebase/firestore', () => ({
   addDoc: jest.fn(),
   setDoc: jest.fn(),
   doc: jest.fn(),
+  getDoc: jest.fn(),
+  getDocs: jest.fn(),
+  writeBatch: jest.fn(() => ({
+    update: jest.fn(),
+    commit: jest.fn().mockResolvedValue(undefined),
+  })),
   serverTimestamp: jest.fn(() => 'mock-timestamp'),
 }));
 
@@ -57,6 +75,14 @@ describe('FirebaseMessageService (Real)', () => {
     const payload: SendMessageRequest = { body: 'Real test message' };
     const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
     
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        participantIds: ['1', '2'],
+        unreadCounts: { '1': 0, '2': 0 },
+        manuallyUnreadBy: { '1': false, '2': false },
+      }),
+    });
     (addDoc as jest.Mock).mockResolvedValueOnce({ id: 'new_msg_id' });
 
     await service.sendMessage('conv_1', payload, user);
@@ -67,5 +93,26 @@ describe('FirebaseMessageService (Real)', () => {
     const sentData = (addDoc as jest.Mock).mock.calls[0][1];
     expect(sentData.content).toBe('Real test message');
     expect(sentData.sender.id).toBe(1);
+  });
+
+  it('marks a conversation as read', async () => {
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        participantIds: ['1', '2'],
+        unreadCounts: { '1': 2, '2': 0 },
+        manuallyUnreadBy: { '1': true, '2': false },
+      }),
+    });
+    (getDocs as jest.Mock).mockResolvedValueOnce({
+      docs: [{ ref: 'msg_ref', data: () => ({ sender: { id: 2 }, isRead: false }) }],
+    });
+
+    await service.markConversationRead('conv_1', 1);
+
+    expect(setDoc).toHaveBeenCalled();
+    const batch = (writeBatch as jest.Mock).mock.results[0].value;
+    expect(batch.update).toHaveBeenCalled();
+    expect(batch.commit).toHaveBeenCalled();
   });
 });
