@@ -161,7 +161,12 @@ const normalizeTrackMetadata = (
       avatarUrl: payload.artist?.avatarUrl,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
+    trackPreviewUrl: toAbsoluteUrl(
+      payload.trackPreviewUrl ?? payload.trackUrl,
+      `/tracks/${trackId}`
+    ),
     access: payload.access ?? 'PLAYABLE',
+    isPrivate: payload.isPrivate,
     ...(resolvedDuration !== undefined && resolvedDuration !== null
       ? { durationSeconds: resolvedDuration }
       : {}),
@@ -179,7 +184,9 @@ const normalizeTrackMetadata = (
     isReposted: payload.isReposted,
     likeCount: payload.likeCount,
     repostCount: payload.repostCount,
+    commentCount: payload.commentCount,
     playCount: payload.playCount,
+    secretToken: payload.secretToken,
     uploadDate: payload.uploadDate ?? '',
   };
 };

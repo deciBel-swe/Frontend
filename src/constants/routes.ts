@@ -161,7 +161,7 @@ export const API_ENDPOINTS = {
     SECRET_TOKEN: (trackId: number | string) =>
       `/tracks/${trackId}/secret-token`,
     GENERATE_TOKEN: (trackId: number | string) =>
-      `/tracks/${trackId}/generate-token`,
+      `/tracks/${trackId}/regenerate-token`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,

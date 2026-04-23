@@ -176,8 +176,9 @@ export default function UploadView() {
       setUploadComplete(true);
       setIsUploading(false);
       if ('id' in response) {
+        const trackPathId = response.trackSlug?.trim() || String(response.id);
         setUploadedTrackUrl(
-          `${config.urls.domainName}/${user?.username}/${response.id}`
+          `${config.urls.domainName}/${user?.username}/${trackPathId}`
         );
       } else {
         setUploadedTrackUrl(

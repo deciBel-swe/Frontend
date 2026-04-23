@@ -69,7 +69,7 @@ export const getSecretTokenFromQuery = (
     return null;
   }
 
-  const token = searchParams.get('s') ?? searchParams.get('token');
+  const token = searchParams.get('token') ?? searchParams.get('s');
   const normalized = token?.trim() ?? '';
   return normalized.length > 0 ? normalized : null;
 };

@@ -43,7 +43,7 @@ describe('useSecretLink', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(trackService.getSecretLink).toHaveBeenCalledWith('42');
-    expect(result.current.secretUrl).toContain('/tracks/42?s=token-abc');
+    expect(result.current.secretUrl).toContain('/tracks/42?token=token-abc');
     expect(result.current.secretToken).toBe('token-abc');
   });
 
@@ -71,14 +71,14 @@ describe('useSecretLink', () => {
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.secretUrl).toContain('/tracks/7?s=old-token');
+    expect(result.current.secretUrl).toContain('/tracks/7?token=old-token');
 
     await act(async () => {
       result.current.regenerate();
     });
 
     await waitFor(() => {
-      expect(result.current.secretUrl).toContain('/tracks/7?s=new-token');
+      expect(result.current.secretUrl).toContain('/tracks/7?token=new-token');
     });
   });
 });

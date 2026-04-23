@@ -9,6 +9,10 @@ import {
   MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 import type {
   AddNewEmailRequest,
   FollowResponse,
@@ -209,16 +213,6 @@ const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
   return type as PlaylistType;
 };
 
-const toSlug = (value: string, id: number, fallback: string): string => {
-  const normalized = value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  return `${normalized || fallback}-${id}`;
-};
-
 const toUserSummary = (target: MockUserRecord, viewer: MockUserRecord) => {
   return {
     id: target.id,
@@ -259,6 +253,15 @@ const buildFullTrack = (
   if (!track) {
     return null;
   }
+  if (
+    !canAccessMockResource({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
 
   const owner = findTrackOwner(trackId);
   const artist = owner
@@ -276,7 +279,7 @@ const buildFullTrack = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: toSlug(track.title, track.id, 'track'),
+    trackSlug: track.trackSlug,
     artist,
     trackUrl: track.trackUrl,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -296,7 +299,11 @@ const buildFullTrack = (
     uploadDate: track.releaseDate,
     description: track.description ?? '',
     trendingRank: 0,
-    access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+    access: resolveMockResourceAccess({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    }),
     secretToken: track.secretLink ?? '',
     trackPreviewUrl: track.trackUrl,
   };
@@ -336,6 +343,15 @@ const buildFullPlaylist = (
   }
 
   const { owner, playlist } = resolved;
+  if (
+    !canAccessMockResource({
+      isPrivate: playlist.isPrivate,
+      ownerId: owner.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
   const ownerSummary = toUserSummary(owner, viewer);
   const tracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
@@ -353,7 +369,7 @@ const buildFullPlaylist = (
   return {
     id: playlist.id,
     title: playlist.title,
-    playlistSlug: toSlug(playlist.title, playlist.id, 'playlist'),
+    playlistSlug: playlist.playlistSlug,
     isLiked: viewer.likedPlaylists.includes(playlist.id),
     isReposted: viewer.repostedPlaylists.includes(playlist.id),
     likeCount: playlistLikeCount(playlist.id),

@@ -101,7 +101,13 @@ export default function CompactTrackItem({
   const { visibility } = useTrackVisibility(track.id);
   const resolvedIsPrivate =
     visibility?.isPrivate ?? track.access === 'PREVIEW';
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? String(track.id) : undefined);
+  const { secretUrl } = useSecretLink(
+    resolvedIsPrivate ? String(track.id) : undefined,
+    {
+      shareUsername: track.artistUsername ?? track.artist,
+      sharePathId: trackPathId,
+    }
+  );
   const { handleCopy } = useCopyTrackLink({
     trackId: String(track.id),
     routeTrackId: trackPathId,
