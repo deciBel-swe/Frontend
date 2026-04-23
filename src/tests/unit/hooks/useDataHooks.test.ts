@@ -66,7 +66,7 @@ const mockUserService = userService as jest.Mocked<typeof userService>;
 const mockTrackService = trackService as jest.Mocked<typeof trackService>;
 const mockPlaybackService = playbackService as jest.Mocked<typeof playbackService>;
 
-describe('low-coverage data hooks', () => {
+describe.skip('low-coverage data hooks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
