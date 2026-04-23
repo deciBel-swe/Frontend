@@ -47,6 +47,7 @@ export type TrackListItem = {
     isReposted?: boolean;
     likeCount?: number;
     repostCount?: number;
+    isPrivate?: boolean;
   };
   trackUrl?: string;
   access?: PlaybackAccess;
@@ -165,6 +166,7 @@ export default function TrackList({
           createdAt: track.releaseDate,
           genre: track.genre,
           durationSeconds,
+          isPrivate: track.isPrivate,
           isLiked: track.isLiked,
           isReposted: track.isReposted,
           likeCount: track.likeCount,
@@ -255,7 +257,7 @@ export default function TrackList({
         <TrackCard
           key={item.trackId}
           trackId={item.trackId}
-          isPrivate={false}
+          isPrivate={item.track.isPrivate}
           user={item.user}
           postedText={item.postedText}
           repostedBy={item.repostedBy}

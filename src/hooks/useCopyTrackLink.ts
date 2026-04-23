@@ -1,4 +1,8 @@
 import { useState, useCallback } from 'react';
+import {
+  buildTrackSecretUrl,
+  buildTrackUrl,
+} from '@/utils/resourcePaths';
 
 interface UseCopyTrackLinkProps {
   trackId: string | number;
@@ -26,10 +30,10 @@ export function useCopyTrackLink({
       if (artistName) {
         try {
           const parsed = new URL(secretUrl);
-          const secretToken = parsed.searchParams.get('s');
+          const secretToken =
+            parsed.searchParams.get('token') ?? parsed.searchParams.get('s');
           if (secretToken) {
-            const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-            urlToCopy = `${window.location.origin}/${userSlug}/${routeId}?s=${secretToken}`;
+            urlToCopy = buildTrackSecretUrl(artistName, routeId, secretToken);
           }
         } catch {
           // fall back to service formatted URL if parsing fails
@@ -40,8 +44,7 @@ export function useCopyTrackLink({
         urlToCopy = secretUrl;
       }
     } else if (!isPrivate && artistName) {
-      const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-      urlToCopy = `${window.location.origin}/${userSlug}/${routeId}`;
+      urlToCopy = buildTrackUrl(artistName, routeId);
     }
 
     if (!urlToCopy) return;

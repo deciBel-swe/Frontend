@@ -37,6 +37,7 @@ export default function TrackCardRoot({
 }: TrackCardProps) {
   const { user: authUser } = useAuth();
   const userSlug = toUserSlug(user.username);
+  const contentUserSlug = toUserSlug(track.artist.username);
   const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
   const artistDisplayName =
@@ -57,7 +58,10 @@ export default function TrackCardRoot({
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
+  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined, {
+    shareUsername: artistUsername,
+    sharePathId: routeTrackId,
+  });
   const { handleCopy } = useCopyTrackLink({
     trackId,
     routeTrackId,
@@ -145,7 +149,7 @@ export default function TrackCardRoot({
 
       <div className="flex min-w-0 items-start gap-2 sm:gap-3 md:gap-4">
         <TrackCardArtwork
-          userSlug={userSlug}
+          userSlug={contentUserSlug}
           trackId={track.id}
           routeTrackId={routeTrackId}
           coverUrl={track.cover}
@@ -154,7 +158,7 @@ export default function TrackCardRoot({
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             artistName={artistDisplayName}
             trackId={track.id}
             routeTrackId={routeTrackId}
@@ -189,7 +193,7 @@ export default function TrackCardRoot({
           />
 
           <TrackCardFooter
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             trackId={track.id}
             routeTrackId={routeTrackId}
             showEditButton={showEditButton}

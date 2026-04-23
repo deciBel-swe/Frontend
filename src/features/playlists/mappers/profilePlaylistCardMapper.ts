@@ -196,6 +196,7 @@ export function mapProfilePlaylistToCard(
     trackId: String(playlist.id),
     postedText: 'posted a set',
     showEditButton: options.showEditButton,
+    isPrivate: playlist.isPrivate,
     user: {
       username: ownerUsername,
       displayName: ownerDisplayName,

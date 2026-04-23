@@ -1,5 +1,6 @@
 import type { LoginUserDTO } from '@/types';
 import type { PlaylistType } from '@/types/playlists';
+import { normalizeStoredMockSlug } from './mockResourceUtils';
 
 type MockRole = 'LISTENER' | 'ARTIST' | 'OTHER';
 type MockTier = 'FREE' | 'ARTIST' | 'ARTIST_PRO' | 'LISTENER' | 'OTHER';
@@ -98,6 +99,7 @@ export type MockTrackRecord = {
 export type MockPlaylistRecord = {
   id: number;
   title: string;
+  playlistSlug: string;
   description?: string;
   type: PlaylistType;
   isPrivate: boolean;
@@ -349,14 +351,13 @@ const makeTrack = (
   tags: string[],
   isPrivate = false,
 ): MockTrackRecord => {
+  const trackSlug = normalizeStoredMockSlug(undefined, title, 'track');
+  const secretToken = isPrivate ? `secret-track-${id}` : undefined;
+
   return {
     id,
     title,
-    trackSlug: title
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, ''),
+    trackSlug,
     artist: {
       ...artist,
     },
@@ -379,12 +380,12 @@ const makeTrack = (
     description: '',
     trendingRank: 0,
     access: 'PLAYABLE',
-    secretToken: isPrivate ? `secret-track-${id}` : undefined,
+    secretToken,
     trackPreviewUrl: BASE_TRACK_URL,
     likes: 0,
     reposters: 0,
     durationSeconds: TRACK_DURATION_SECONDS,
-    secretLink: isPrivate ? `secret-track-${id}` : undefined,
+    secretLink: secretToken,
     coverImageDataUrl: undefined,
     waveformData: undefined,
   };
@@ -449,6 +450,11 @@ const seedPlaylists = (
     const playlist: MockPlaylistRecord = {
       id,
       title: `Playlist ${pad(index + 1)}`,
+      playlistSlug: normalizeStoredMockSlug(
+        undefined,
+        `Playlist ${pad(index + 1)}`,
+        'playlist'
+      ),
       description: `Curated collection ${index + 1}`,
       type: 'PLAYLIST',
       isPrivate: false,
@@ -602,6 +608,29 @@ const isOversizedDataUrl = (value: string | undefined): boolean => {
 const getFallbackCoverUrl = (_trackId: number): string =>
   SHARED_TRACK_COVER_URLS[0];
 
+const normalizePlaylistRecord = (
+  playlist: MockPlaylistRecord
+): MockPlaylistRecord => ({
+  ...playlist,
+  playlistSlug: normalizeStoredMockSlug(
+    playlist.playlistSlug,
+    playlist.title,
+    'playlist'
+  ),
+});
+
+const normalizeTrackRecord = (track: MockTrackRecord): MockTrackRecord => {
+  const secretToken = track.secretLink ?? track.secretToken;
+
+  return {
+    ...track,
+    trackSlug: normalizeStoredMockSlug(track.trackSlug, track.title, 'track'),
+    access: track.isPrivate ? 'BLOCKED' : 'PLAYABLE',
+    secretToken,
+    secretLink: secretToken,
+  };
+};
+
 const toEngagementCount = (value: unknown): number => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return Math.max(0, Math.floor(value));
@@ -637,16 +666,20 @@ const compactTrackForPersistence = (
   track: MockTrackRecord,
   options?: PersistOptions
 ): MockTrackRecord => {
+  const normalizedTrack = normalizeTrackRecord(track);
   const stripLargeImages = options?.stripLargeImages ?? false;
   const coverUrl = stripLargeImages
-    ? compactImageForPersistence(track.coverUrl, getFallbackCoverUrl(track.id))
-    : track.coverUrl;
+    ? compactImageForPersistence(
+        normalizedTrack.coverUrl,
+        getFallbackCoverUrl(normalizedTrack.id)
+      )
+    : normalizedTrack.coverUrl;
 
   const {
     likes: rawLikes,
     reposters: rawReposters,
     ...trackWithoutLegacyWaveformData
-  } = track as MockTrackRecord & {
+  } = normalizedTrack as MockTrackRecord & {
     waveformData?: number[];
     likes?: unknown;
     reposters?: unknown;
@@ -659,8 +692,8 @@ const compactTrackForPersistence = (
     repostCount: toEngagementCount(rawReposters),
     likes: toEngagementCount(rawLikes),
     reposters: toEngagementCount(rawReposters),
-    durationSeconds: track.trackDurationSeconds,
-    secretLink: track.secretToken,
+    durationSeconds: normalizedTrack.trackDurationSeconds,
+    secretLink: normalizedTrack.secretToken,
   };
 };
 
@@ -724,6 +757,9 @@ const serializeUser = (
 const deserializeUser = (user: PersistedMockUserRecord): MockUserRecord => ({
   ...user,
   displayName: user.displayName?.trim() || user.username,
+  playlists: (user.playlists ?? []).map((playlist) =>
+    normalizePlaylistRecord(playlist as MockPlaylistRecord)
+  ),
   likedPlaylists: user.likedPlaylists ?? [],
   repostedPlaylists: user.repostedPlaylists ?? [],
   followers: new Set(user.followers ?? []),

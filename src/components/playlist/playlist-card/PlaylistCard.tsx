@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth';
+import { ShareModal } from '@/features/prof/components/ShareModal';
+import { usePlaylistSecretLink } from '@/hooks/usePlaylistSecretLink';
 import { useWaveformData } from '@/hooks/useWaveformData';
 import TrackCardArtwork from '@/components/tracks/track-card/TrackCardArtwork';
 import TrackCardFooter from '@/components/tracks/track-card/TrackCardFooter';
@@ -13,6 +15,7 @@ import TrackCardWaveformSection from '@/components/tracks/track-card/TrackCardWa
 import { useTrackCardPlayback } from '@/components/tracks/track-card/useTrackCardPlayback';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { playlistService } from '@/services';
+import { buildPlaylistUrl } from '@/utils/resourcePaths';
 import type { PlaylistHorizontalProps } from './types';
 
 const toUserSlug = (value: string): string =>
@@ -20,6 +23,7 @@ const toUserSlug = (value: string): string =>
 
 export default function PlaylistHorizontalRoot({
   trackId,
+  isPrivate = false,
   user,
   postedText = 'posted a set',
   showEditButton = false,
@@ -50,6 +54,7 @@ export default function PlaylistHorizontalRoot({
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [isDeletePending, setIsDeletePending] = useState(false);
   const [isLikePending, setIsLikePending] = useState(false);
@@ -68,14 +73,26 @@ export default function PlaylistHorizontalRoot({
     setIsDeleted(false);
   }, [track.id, track.isLiked, track.isReposted, track.likeCount, track.repostCount]);
 
+  const { secretUrl: playlistSecretUrl } = usePlaylistSecretLink(
+    isPrivate ? String(track.id) : undefined,
+    {
+      shareUsername: user.username,
+      sharePathId: playlistPathId,
+    }
+  );
+
   const handleCopy = () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
       return;
     }
 
-    const baseUrl =
-      typeof window !== 'undefined' ? window.location.origin : '';
-    const shareLink = `${baseUrl}${playlistHref}`;
+    const shareLink =
+      isPrivate && playlistSecretUrl
+        ? playlistSecretUrl
+        : buildPlaylistUrl(user.username, playlistPathId);
+    if (isPrivate && !playlistSecretUrl) {
+      return;
+    }
 
     void navigator.clipboard.writeText(shareLink).catch(() => {});
   };
@@ -306,7 +323,7 @@ export default function PlaylistHorizontalRoot({
               void handleRepost();
             }}
             onShare={() => {
-              handleCopy();
+              setIsShareOpen(true);
             }}
             onCopy={handleCopy}
             onAddToQueue={handleAddPlaylistTracksToQueue}
@@ -317,6 +334,21 @@ export default function PlaylistHorizontalRoot({
           <div className="pt-1 text-xs text-text-muted">{track.duration}</div>
         </div>
       </div>
+
+      <ShareModal
+        variant="playlist"
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        playlistId={String(track.id)}
+        sharePathId={playlistPathId}
+        shareUsername={user.username}
+        isPrivate={isPrivate}
+        playlist={{
+          title: track.title,
+          owner: userDisplayName,
+          coverUrl: track.cover,
+        }}
+      />
     </div>
   );
 }
