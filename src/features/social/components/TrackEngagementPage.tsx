@@ -23,7 +23,7 @@ export default function TrackEngagementPage({
   } = useTrackEngagementPage({
     trackId,
     type,
-    size: 24,
+    size: 10,
     infinite: true,
   });
 

@@ -39,7 +39,7 @@ export function useUserTracks(params: UseUserTracksParams) {
   const [refreshIndex, setRefreshIndex] = useState(0);
   const resolvedUserIdRef = useRef<number | undefined>(undefined);
   const page = params.page ?? 0;
-  const size = params.size ?? 24;
+  const size = params.size ?? 10;
   const infinite = params.infinite ?? false;
   const normalizedUsername = params.username?.trim() ?? '';
 
@@ -98,17 +98,17 @@ export function useUserTracks(params: UseUserTracksParams) {
   const fetchTrackPage = useCallback(
     async (pageNumber: number, pageSize: number) => {
       if (isOwnedProfile) {
-        const items = await trackService.getMyTracks({
+        const response = await trackService.getMyTracksPage({
           page: pageNumber,
           size: pageSize,
         });
 
         return {
-          items,
-          pageNumber,
-          totalPages: items.length < pageSize ? pageNumber + 1 : pageNumber + 2,
-          totalElements: pageNumber * pageSize + items.length,
-          isLast: items.length < pageSize,
+          items: response.content,
+          pageNumber: response.pageNumber,
+          totalPages: response.totalPages,
+          totalElements: response.totalElements,
+          isLast: response.isLast,
         };
       }
 

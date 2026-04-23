@@ -14,7 +14,7 @@ export default function Page() {
     isPaginating,
     sentinelRef,
   } = useListeningHistoryTracks({
-    size: 24,
+    size: 10,
     infinite: true,
   });
   const [filterText, setFilterText] = useState('');

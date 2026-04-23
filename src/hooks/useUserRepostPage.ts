@@ -66,7 +66,7 @@ export function useUserRepostPage(
   routeUsername?: string,
   options: UseUserRepostPageOptions = {}
 ) {
-  const { page = 0, size = 24, infinite = false } = options;
+  const { page = 0, size = 10, infinite = false } = options;
   const { user } = useAuth();
   const ownerContext = useProfileOwnerContext();
   const [items, setItems] = useState<UserRepostPageItem[]>([]);

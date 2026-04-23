@@ -24,7 +24,7 @@ export default function FeedPage() {
     hasMore,
     isPaginating,
     sentinelRef,
-  } = useFeedTracks(0, 25, true);
+  } = useFeedTracks(0, 10, true);
 
   if (isLoading) {
     return (

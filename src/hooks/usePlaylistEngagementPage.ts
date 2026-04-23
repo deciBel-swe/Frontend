@@ -78,7 +78,7 @@ export function usePlaylistEngagementPage({
   playlistId,
   type,
   page = 0,
-  size = 48,
+  size = 12,
   infinite = false,
 }: UsePlaylistEngagementPageParams) {
   const [users, setUsers] = useState<UserCardData[]>([]);

@@ -22,7 +22,7 @@ export default function FollowersPage() {
     hasMore,
     isPaginating,
     sentinelRef,
-  } = useFollowers({ username, size: 24, infinite: true });
+  } = useFollowers({ username, size: 12, infinite: true });
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">

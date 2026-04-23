@@ -26,7 +26,7 @@ const toUserCardData = (user: SearchUser, index: number): UserCardData => {
 };
 
 export function useSuggestedUsers({
-  size = 24,
+  size = 12,
   infinite = false,
 }: UseSuggestedUsersParams = {}) {
   const [users, setUsers] = useState<UserCardData[]>([]);

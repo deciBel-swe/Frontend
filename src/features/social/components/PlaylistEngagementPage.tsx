@@ -9,7 +9,7 @@ type PlaylistEngagementPageProps = {
   type: 'likes' | 'reposts';
 };
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 10;
 
 export default function PlaylistEngagementPage({
   playlistId,

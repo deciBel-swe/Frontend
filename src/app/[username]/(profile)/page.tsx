@@ -1,6 +1,5 @@
 'use client';
 import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
-import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
 import TrackCard from '@/components/tracks/track-card/TrackCard';
 import TrackList from '@/components/tracks/TrackList';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
@@ -26,29 +25,26 @@ const SectionTitle = ({ children }: { children: string }) => (
 
 export default function Page() {
   const { username } = useParams<{ username: string }>();
+  const pageSize = 10;
   const { data: profileData } = usePublicUser(username);
   const {
     cards: playlistCards,
     isLoading: arePlaylistsLoading,
     isError: arePlaylistsError,
-    hasMore: playlistsHasMore,
-    isPaginating: arePlaylistsPaginating,
-    sentinelRef: playlistsSentinelRef,
   } = useUserPlaylistsPage({
     username,
-    size: 12,
-    infinite: true,
+    page: 0,
+    size: pageSize,
+    infinite: false,
   });
   const {
     items: repostItems,
     isLoading: areRepostsLoading,
     isError: areRepostsError,
-    hasMore: repostsHasMore,
-    isPaginating: areRepostsPaginating,
-    sentinelRef: repostsSentinelRef,
   } = useUserRepostPage(username, {
-    size: 24,
-    infinite: true,
+    page: 0,
+    size: pageSize,
+    infinite: false,
   });
 
   return (
@@ -59,6 +55,9 @@ export default function Page() {
           <TrackList
             username={username}
             artistAvatar={profileData?.profile.profilePic}
+            fetchPage={0}
+            fetchSize={pageSize}
+            fetchInfinite={false}
           />
         </Suspense>
       </section>
@@ -78,12 +77,6 @@ export default function Page() {
             {playlistCards.map((card) => (
               <PlaylistCard key={card.trackId} {...card} />
             ))}
-            <InfiniteScrollPagination
-              hasMore={playlistsHasMore}
-              isPaginating={arePlaylistsPaginating}
-              sentinelRef={playlistsSentinelRef}
-              loader={<TrackListFallback />}
-            />
           </>
         )}
       </section>
@@ -107,12 +100,6 @@ export default function Page() {
 
               return <PlaylistCard key={item.id} {...item.card} />;
             })}
-            <InfiniteScrollPagination
-              hasMore={repostsHasMore}
-              isPaginating={areRepostsPaginating}
-              sentinelRef={repostsSentinelRef}
-              loader={<TrackListFallback />}
-            />
           </>
         )}
       </section>

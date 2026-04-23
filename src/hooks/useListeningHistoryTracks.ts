@@ -44,7 +44,7 @@ const asIsoDate = (value: unknown): string | undefined => {
 
 export function useListeningHistoryTracks({
   page = 0,
-  size = 20,
+  size = 10,
   infinite = false,
 }: UseListeningHistoryTracksParams = {}) {
   const [tracks, setTracks] = useState<TrackListItem[]>([]);

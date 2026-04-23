@@ -33,7 +33,7 @@ const toUserCardData = (user: SearchUser, index: number): UserCardData => {
 export function useFollowers({
   username,
   page = 0,
-  size = 48,
+  size = 12,
   infinite = false,
 }: UseFollowersParams) {
   const profileContext = useProfileOwnerContext();

@@ -17,7 +17,7 @@ export default function Page() {
     isPaginating,
     sentinelRef,
   } = useUserRepostPage(username, {
-    size: 24,
+    size: 10,
     infinite: true,
   });
 

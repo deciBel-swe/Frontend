@@ -53,7 +53,7 @@ export function useLikedTracks(
   const {
     forCurrentUser = false,
     page = 0,
-    size = 48,
+    size = 10,
     infinite = false,
   } = options;
   const profileContext = useProfileOwnerContext();
@@ -221,7 +221,13 @@ export function useLikedTracks(
   } = useInfinitePaginatedResource<TrackListItem>({
     enabled: infinite && isOwner,
     pageSize: size,
-    resetKey: `${isOwner}|${size}|${refreshIndex}`,
+    resetKey: [
+      username.trim().toLowerCase(),
+      String(forCurrentUser),
+      String(isOwner),
+      String(size),
+      String(refreshIndex),
+    ].join('|'),
     fetchPage: mapLikedPage,
     dedupeBy: (item) => item.trackId,
     initialErrorMessage: 'Failed to load liked tracks. Please try again later.',

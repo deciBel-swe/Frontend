@@ -27,7 +27,7 @@ export default function Page() {
     sentinelRef,
   } = useUserPlaylistsPage({
     username,
-    size: 24,
+    size: 10,
     infinite: true,
   });
 

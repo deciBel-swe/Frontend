@@ -23,7 +23,7 @@ export default function Page() {
     hasMore,
     isPaginating,
     sentinelRef,
-  } = useSuggestedUsers({ size: 24, infinite: true });
+  } = useSuggestedUsers({ size: 18, infinite: false });
 
   return (
     <div className="max-w-295 mx-auto px-6 pt-8 pb-16">

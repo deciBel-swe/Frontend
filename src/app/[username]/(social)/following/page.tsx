@@ -22,7 +22,7 @@ export default function ProfileFollowingPage() {
     hasMore,
     isPaginating,
     sentinelRef,
-  } = useFollowing({ username, size: 24, infinite: true });
+  } = useFollowing({ username, size: 12, infinite: true });
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">

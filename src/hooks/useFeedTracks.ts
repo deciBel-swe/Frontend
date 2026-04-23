@@ -124,7 +124,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
   return null;
 };
 
-export function useFeedTracks(page = 0, size = 25, infinite = false) {
+export function useFeedTracks(page = 0, size = 10, infinite = false) {
   const [feedItems, setFeedItems] = useState<FeedItemDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);

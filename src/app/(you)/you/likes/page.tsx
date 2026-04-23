@@ -25,7 +25,7 @@ export default function Page() {
     sentinelRef,
   } = useLikedTracks(user?.username ?? '', {
     forCurrentUser: true,
-    size: 24,
+    size: 10,
     infinite: true,
   });
   const [filterText, setFilterText] = useState('');

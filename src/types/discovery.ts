@@ -45,6 +45,8 @@ export const feedItemSchema = z
     id: z.number().int().nonnegative(),
     type: feedItemTypeSchema,
     resource: resourceRefFullSchema,
+    actor: userSummarySchema.optional(),
+    likedBy: userSummarySchema.optional(),
     repostedBy: userSummarySchema.optional(),
     createdAt: z.string().trim().min(1),
   })

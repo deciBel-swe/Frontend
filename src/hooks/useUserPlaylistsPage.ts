@@ -20,7 +20,7 @@ type UseUserPlaylistsPageParams = {
 export function useUserPlaylistsPage({
   username,
   page = 0,
-  size = 24,
+  size = 12,
   infinite = false,
 }: UseUserPlaylistsPageParams) {
   const ownerContext = useProfileOwnerContext();

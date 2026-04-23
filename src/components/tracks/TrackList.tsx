@@ -58,6 +58,9 @@ type TrackListProps = {
   userId?: number;
   username?: string;
   artistAvatar?: string;
+  fetchPage?: number;
+  fetchSize?: number;
+  fetchInfinite?: boolean;
   //prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
   //optional external tracks (likes / reposts pages)
@@ -76,6 +79,9 @@ type TrackListProps = {
 export default function TrackList({
   userId,
   username,
+  fetchPage = 0,
+  fetchSize = 10,
+  fetchInfinite = true,
   showTrackList = false,
 
   tracks: externalTracks,
@@ -102,7 +108,13 @@ export default function TrackList({
     sentinelRef: fetchedSentinelRef,
   } = useUserTracks(
     shouldFetchInternally
-      ? { userId, username, size: 24, infinite: true }
+      ? {
+          userId,
+          username,
+          page: fetchPage,
+          size: fetchSize,
+          infinite: fetchInfinite,
+        }
       : { userId: undefined, username: undefined }
   );
 

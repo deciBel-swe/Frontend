@@ -25,7 +25,7 @@ export default function Page() {
     sentinelRef,
   } = useFollowing({
     username: user?.username ?? '',
-    size: 24,
+    size: 12,
     infinite: true,
   });
   const [filterValue, setFilterValue] = React.useState("");

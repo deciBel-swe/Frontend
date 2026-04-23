@@ -47,7 +47,7 @@ export function useTrackEngagementPage({
   trackId,
   type,
   page = 0,
-  size = 48,
+  size = 12,
   infinite = false,
 }: UseTrackEngagementPageParams) {
   const [users, setUsers] = useState<UserCardData[]>([]);
