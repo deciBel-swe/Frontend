@@ -1,7 +1,6 @@
 name: Versioning and Deploying
 on:
-  push:
-    branches: [ "main", "dev" ]
+  workflow_call:
   workflow_dispatch:
 
 permissions:

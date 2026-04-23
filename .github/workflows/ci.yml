@@ -50,3 +50,9 @@ jobs:
 
     - name: Build
       run: npm run build
+
+  deploy:
+    needs: [lint-and-test, build]
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
