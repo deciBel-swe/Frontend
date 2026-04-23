@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import Button from '@/components/buttons/Button';
 import { UserRow } from '@/features/admin/types/types';
-import { UserStatusBadge } from '@/features/admin/shared';
 
 // ─── User Table Row ───────────────────────────────────────────────────────────
 
@@ -16,17 +15,23 @@ interface UserTableRowProps extends UserRow {
 export const UserTableRow: FC<UserTableRowProps> = ({
   id,
   username,
-  type,
-  status,
+  displayName,
+  followerCount,
+  trackCount,
   onReinstate,
 }) => (
   <tr className="border-b border-border-default hover:bg-bg-subtle transition-colors">
     <td className="py-2 px-3">
-      <span className="text-sm text-text-primary">{username}</span>
+      <div className="flex flex-col">
+        <span className="text-sm text-text-primary">{displayName}</span>
+        <span className="text-xs text-text-muted">@{username}</span>
+      </div>
     </td>
-    <td className="py-2 px-3 text-sm text-text-secondary capitalize">{type}</td>
-    <td className="py-2 px-3">
-      <UserStatusBadge status={status} />
+    <td className="py-2 px-3 text-sm text-text-secondary">
+      {followerCount.toLocaleString()}
+    </td>
+    <td className="py-2 px-3 text-sm text-text-secondary">
+      {trackCount.toLocaleString()}
     </td>
     <td className="py-2 px-3">
       <Button

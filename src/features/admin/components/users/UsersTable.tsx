@@ -1,38 +1,32 @@
 import { FC } from 'react';
-import { UserRow, UserStatus } from '@/features/admin/types/types';
+import { UserRow } from '@/features/admin/types/types';
 import { UserTableRow } from './UsersTableRow';
 import { SectionHeader } from '@/features/admin/shared';
 
-const TABLE_HEADERS = ['user', 'type', 'status', 'actions'];
+const TABLE_HEADERS = ['user', 'followers', 'tracks', 'actions'];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface UsersTableProps {
   users: UserRow[];
-  totalSuspended: number;
+  totalBanned: number;
   onReinstate?: (id: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-/**
- * UsersTable - Displays only suspended users so the admin can reinstate them.
- * Filters out active users before rendering — no filter UI needed.
- */
 export const UsersTable: FC<UsersTableProps> = ({
   users,
-  totalSuspended,
+  totalBanned,
   onReinstate,
 }) => {
-  const suspendedUsers = users.filter((u) => u.status === UserStatus.SUSPENDED);
-
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <SectionHeader
-          title="Suspended users"
-          count={`${totalSuspended.toLocaleString()} total`}
+          title="Banned users"
+          count={`${totalBanned.toLocaleString()} total`}
         />
       </div>
 
@@ -52,17 +46,17 @@ export const UsersTable: FC<UsersTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {suspendedUsers.length === 0 ? (
+            {users.length === 0 ? (
               <tr>
                 <td
                   colSpan={TABLE_HEADERS.length}
                   className="py-6 text-center text-sm text-text-muted"
                 >
-                  No suspended users
+                  No banned users
                 </td>
               </tr>
             ) : (
-              suspendedUsers.map((user) => (
+              users.map((user) => (
                 <UserTableRow
                   key={user.id}
                   {...user}

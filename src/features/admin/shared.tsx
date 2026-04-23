@@ -44,6 +44,7 @@ export const StatCard: FC<StatCardProps> = ({ label, value, sub }) => (
 // ─── Reason Badge ─────────────────────────────────────────────────────────────
 
 const REASON_STYLES: Record<ReportReason, string> = {
+  [ReportReason.UNKNOWN]: 'bg-neutral-200 text-neutral-700',
   [ReportReason.COPYRIGHT]: 'bg-green-100 text-green-700',
   [ReportReason.INAPPROPRIATE]: 'bg-orange-100 text-orange-700',
   [ReportReason.VIOLENCE]: 'bg-pink-100 text-pink-700',

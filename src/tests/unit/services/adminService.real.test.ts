@@ -3,7 +3,9 @@ import { RealAdminService } from '@/services/api/adminSerivce';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   AdminLoginResponse,
+  AdminReportDetail,
   AdminReportsPage,
+  BannedUsersResponse,
   PlatformAnalyticsResponse,
   ReportRequest,
 } from '@/types/admin';
@@ -138,6 +140,62 @@ describe('RealAdminService', () => {
     );
   });
 
+  it('getBannedUsers calls ADMIN_BANNED_USERS with pagination params', async () => {
+    const response: BannedUsersResponse = {
+      content: [
+        {
+          id: 101,
+          username: 'listener_101',
+          displayName: 'Listener 101',
+          avatarUrl: 'https://example.com/avatar.jpg',
+          isFollowing: false,
+          followerCount: 12,
+          trackCount: 3,
+        },
+      ],
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 1,
+      totalPages: 1,
+      isLast: true,
+      bannedUserCount: 1,
+    };
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.getBannedUsers({ page: 0, size: 20 });
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.ADMIN_BANNED_USERS,
+      {
+        params: { page: 0, size: 20 },
+      }
+    );
+  });
+
+  it('getReportById calls ADMIN_REPORT_BY_ID', async () => {
+    const response: AdminReportDetail = {
+      id: 1,
+      targetId: 101,
+      reporterId: 42,
+      reporterUsername: 'listener_reporter',
+      targetType: 'TRACK',
+      status: 'OPEN',
+      createdAt: '2025-04-01T10:30:00Z',
+      reason: 'COPYRIGHT',
+      description: 'Unauthorized sampling.',
+      targetUserId: 205,
+    };
+    mockedApiRequest.mockResolvedValue(response);
+
+    const result = await service.getReportById(1);
+
+    expect(result).toEqual(response);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.ADMIN_REPORT_BY_ID(1)
+    );
+  });
+
   it('deleteTrackAsModerator calls ADMIN_DELETE_TRACK', async () => {
     const response: MessageResponse = {
       message: 'Track was successfully deleted',
@@ -150,21 +208,20 @@ describe('RealAdminService', () => {
     );
   });
 
-  it('banUser calls ADMIN_BAN_USER with payload', async () => {
-    const payload = { reason: 'Repeated abusive behavior' };
+  it('banUser calls ADMIN_UPDATE_USER_BAN_STATUS with banned=true', async () => {
     const response: MessageResponse = { message: 'User banned successfully' };
     mockedApiRequest.mockResolvedValue(response);
 
-    const result = await service.banUser(52, payload);
+    const result = await service.banUser(52);
 
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.ADMIN_BAN_USER(52),
-      { payload }
+      API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(52),
+      { payload: { banned: true } }
     );
   });
 
-  it('unbanUser calls ADMIN_UNBAN_USER', async () => {
+  it('unbanUser calls ADMIN_UPDATE_USER_BAN_STATUS with banned=false', async () => {
     const response: MessageResponse = { message: 'User unbanned successfully' };
     mockedApiRequest.mockResolvedValue(response);
 
@@ -172,7 +229,8 @@ describe('RealAdminService', () => {
 
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.ADMIN_UNBAN_USER(52)
+      API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(52),
+      { payload: { banned: false } }
     );
   });
 
