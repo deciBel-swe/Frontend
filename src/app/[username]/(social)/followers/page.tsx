@@ -16,7 +16,13 @@ import { useParams } from "next/navigation";
  */
 export default function FollowersPage() {
   const { username } = useParams<{ username: string }>();
-  const { users, isLoading } = useFollowers({ username });
+  const {
+    users,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useFollowers({ username, size: 24, infinite: true });
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
@@ -29,6 +35,9 @@ export default function FollowersPage() {
           users={users}
           showFollowButton
           emptyTitle={`${username} has no followers yet`}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </div>

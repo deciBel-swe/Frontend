@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { trackService } from '@/services';
 import { userService } from '@/services';
 import { ApiErrorDTO } from '@/types';
 import { ApiError } from 'next/dist/server/api-utils';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 
 const normalizeUsername = (value: string | undefined): string =>
   decodeURIComponent(value ?? '').trim().toLowerCase();
@@ -11,6 +12,9 @@ const normalizeUsername = (value: string | undefined): string =>
 type UseUserTracksParams = {
   userId?: number;
   username?: string;
+  page?: number;
+  size?: number;
+  infinite?: boolean;
 };
 
 /**
@@ -33,6 +37,11 @@ export function useUserTracks(params: UseUserTracksParams) {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
+  const resolvedUserIdRef = useRef<number | undefined>(undefined);
+  const page = params.page ?? 0;
+  const size = params.size ?? 24;
+  const infinite = params.infinite ?? false;
+  const normalizedUsername = params.username?.trim() ?? '';
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -49,7 +58,138 @@ export function useUserTracks(params: UseUserTracksParams) {
     };
   }, []);
 
+  const resolveUserId = useCallback(async () => {
+    if (typeof params.userId === 'number') {
+      resolvedUserIdRef.current = params.userId;
+      return params.userId;
+    }
+
+    if (
+      isManagedByContext &&
+      typeof contextPublicUserId === 'number'
+    ) {
+      resolvedUserIdRef.current = contextPublicUserId;
+      return contextPublicUserId;
+    }
+
+    if (normalizedUsername.length === 0) {
+      return undefined;
+    }
+
+    if (resolvedUserIdRef.current) {
+      return resolvedUserIdRef.current;
+    }
+
+    const publicUser =
+      await userService.getPublicUserByUsername(normalizedUsername);
+    resolvedUserIdRef.current = publicUser.profile.id;
+    return resolvedUserIdRef.current;
+  }, [
+    contextPublicUserId,
+    isManagedByContext,
+    normalizedUsername,
+    params.userId,
+  ]);
+
   useEffect(() => {
+    resolvedUserIdRef.current = undefined;
+  }, [contextPublicUserId, isManagedByContext, normalizedUsername, params.userId]);
+
+  const fetchTrackPage = useCallback(
+    async (pageNumber: number, pageSize: number) => {
+      if (isOwnedProfile) {
+        const items = await trackService.getMyTracks({
+          page: pageNumber,
+          size: pageSize,
+        });
+
+        return {
+          items,
+          pageNumber,
+          totalPages: items.length < pageSize ? pageNumber + 1 : pageNumber + 2,
+          totalElements: pageNumber * pageSize + items.length,
+          isLast: items.length < pageSize,
+        };
+      }
+
+      const resolvedUserId = await resolveUserId();
+
+      if (!resolvedUserId) {
+        return {
+          items: [],
+          pageNumber,
+          totalPages: 0,
+          totalElements: 0,
+          isLast: true,
+        };
+      }
+
+      const response = await userService.getUserTracks(resolvedUserId, {
+        page: pageNumber,
+        size: pageSize,
+      });
+
+      const items = (
+        await Promise.all(
+          (response.content ?? []).map(async (track) => {
+            if (typeof track.id !== 'number') {
+              return null;
+            }
+
+            try {
+              return await trackService.getTrackMetadata(track.id);
+            } catch {
+              return null;
+            }
+          })
+        )
+      ).filter((track): track is Awaited<ReturnType<typeof trackService.getTrackMetadata>> => track !== null);
+
+      return {
+        items,
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    [isOwnedProfile, resolveUserId]
+  );
+
+  const {
+    items: infiniteTracks,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<
+    Awaited<ReturnType<typeof trackService.getTrackMetadata>>
+  >({
+    enabled:
+      infinite &&
+      (typeof params.userId === 'number' || normalizedUsername.length > 0 || Boolean(contextPublicUserId)),
+    pageSize: size,
+    resetKey: [
+      String(params.userId ?? ''),
+      normalizedUsername,
+      String(contextPublicUserId ?? ''),
+      String(isOwnedProfile),
+      String(refreshIndex),
+      String(size),
+    ].join('|'),
+    fetchPage: fetchTrackPage,
+    dedupeBy: (track) => String(track.id),
+    initialErrorMessage: 'Failed to load tracks. Please try again later.',
+  });
+
+  useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const loadTracks = async () => {
@@ -57,41 +197,17 @@ export function useUserTracks(params: UseUserTracksParams) {
       setIsError(false);
 
       try {
-        let resolvedUserId = params.userId;
-        const normalizedUsername = params.username?.trim() ?? '';
+        const response = await fetchTrackPage(page, size);
 
-        if (isOwnedProfile) {
-          const data = await trackService.getMyTracks();
-          if (!isCancelled) {
-            setTracks(data);
-          }
-          return;
-        }
-
-        if (
-          !resolvedUserId &&
-          isManagedByContext &&
-          contextPublicUserId
-        ) {
-          resolvedUserId = contextPublicUserId;
-        }
-
-        if (!resolvedUserId && normalizedUsername.length > 0) {
-          const publicUser =
-            await userService.getPublicUserByUsername(normalizedUsername);
-          resolvedUserId = publicUser.profile.id;
-        }
-
-        if (!resolvedUserId) {
+        if (response.items.length === 0 && !(await resolveUserId())) {
           if (!isCancelled) {
             setTracks([]);
           }
           return;
         }
 
-        const data = await trackService.getUserTracks(resolvedUserId);
         if (!isCancelled) {
-          setTracks(data);
+          setTracks(response.items);
         }
       } catch(error){
         if (!isCancelled) {
@@ -102,7 +218,6 @@ export function useUserTracks(params: UseUserTracksParams) {
           console.error('API Error fetching user tracks:', apiError.message);
         } else {
           console.error('Unexpected error fetching user tracks:', error);
-          throw error;
         }
       } finally {
         if (!isCancelled) {
@@ -117,17 +232,21 @@ export function useUserTracks(params: UseUserTracksParams) {
       isCancelled = true;
     };
   }, [
-    contextPublicUserId,
-    isOwnedProfile,
-    isManagedByContext,
-    params.userId,
-    params.username,
+    fetchTrackPage,
+    infinite,
+    page,
     refreshIndex,
+    resolveUserId,
+    size,
   ]);
 
   return {
-    tracks,
-    isLoading,
-    isError,
+    tracks: infinite ? infiniteTracks : tracks,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

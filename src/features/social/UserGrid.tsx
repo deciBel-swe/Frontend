@@ -1,5 +1,6 @@
 import UserCard, { UserCardData } from "./components/UserCard";
 import EmptyState from "@/features/social/EmptyState";
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
 
 interface UserGridProps {
   users: UserCardData[];
@@ -9,6 +10,9 @@ interface UserGridProps {
   emptyTitle?: string;
   emptyDescription?: string;
   className?: string;
+  isPaginating?: boolean;
+  hasMore?: boolean;
+  sentinelRef?: (node: HTMLDivElement | null) => void;
 }
 
 /**
@@ -24,6 +28,9 @@ export default function UserGrid({
   emptyTitle = "Nobody here yet",
   emptyDescription,
   className = "",
+  isPaginating = false,
+  hasMore = false,
+  sentinelRef,
 }: UserGridProps) {
   if (users.length === 0) {
     return (
@@ -56,15 +63,33 @@ export default function UserGrid({
           .sc-user-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
-      <div className={`sc-user-grid ${className}`}>
-        {users.map((user) => (
-          <UserCard
-            key={user.id}
-            user={user}
-            onFollowToggle={onFollowToggle}
-            showFollowButton={showFollowButton}
-          />
-        ))}
+      <div className={className}>
+        <div className="sc-user-grid">
+          {users.map((user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+              onFollowToggle={onFollowToggle}
+              showFollowButton={showFollowButton}
+            />
+          ))}
+        </div>
+        <InfiniteScrollPagination
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
+          loader={
+            <div className="flex flex-wrap gap-6 pt-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={`user-grid-append-${index}`} className="flex flex-col items-center gap-2.5 w-40">
+                  <div className="h-35 w-35 rounded-full bg-surface-default animate-pulse" />
+                  <div className="h-3 w-24 rounded bg-surface-default animate-pulse" />
+                  <div className="h-3 w-18 rounded bg-surface-default animate-pulse" />
+                </div>
+              ))}
+            </div>
+          }
+        />
       </div>
     </>
   );

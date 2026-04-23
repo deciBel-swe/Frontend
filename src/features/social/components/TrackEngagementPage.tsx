@@ -13,9 +13,18 @@ export default function TrackEngagementPage({
   trackId,
   type,
 }: TrackEngagementPageProps) {
-  const { users, isLoading, isError } = useTrackEngagementPage({
+  const {
+    users,
+    isLoading,
+    isError,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useTrackEngagementPage({
     trackId,
     type,
+    size: 24,
+    infinite: true,
   });
 
   const title = type === 'likes' ? 'Users who liked this track' : 'Users who reposted this track';
@@ -44,6 +53,9 @@ export default function TrackEngagementPage({
           users={users}
           showFollowButton
           emptyTitle={emptyTitle}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
 import TrackCard from '@/components/tracks/track-card/TrackCard';
 import { useFeedTracks } from '@/hooks/useFeedTracks';
 
@@ -16,7 +17,14 @@ import { useFeedTracks } from '@/hooks/useFeedTracks';
  *  - Layout → owns sidebar + two-column shell
  */
 export default function FeedPage() {
-  const { feedItems, isLoading, isError } = useFeedTracks();
+  const {
+    feedItems,
+    isLoading,
+    isError,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useFeedTracks(0, 25, true);
 
   if (isLoading) {
     return (
@@ -56,6 +64,21 @@ export default function FeedPage() {
 
         return <PlaylistCard key={item.id} {...item.card} queueSource="feed" />;
       })}
+      <InfiniteScrollPagination
+        hasMore={hasMore}
+        isPaginating={isPaginating}
+        sentinelRef={sentinelRef}
+        loader={
+          <div className="space-y-3 py-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={`feed-append-${index}`}
+                className="bg-surface-default rounded-lg h-40 animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      />
     </>
   );
 }

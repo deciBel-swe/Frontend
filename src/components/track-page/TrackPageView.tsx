@@ -32,6 +32,10 @@ export default function TrackPageView({
     replyingToCommentId,
     likeCount,
     repostCount,
+    totalComments,
+    hasMoreComments,
+    isCommentsPaginating,
+    commentsSentinelRef,
     currentUserAvatar: resolvedCurrentUserAvatar,
     setCommentText,
     clearPendingTimestamp,
@@ -92,6 +96,9 @@ export default function TrackPageView({
             isReplySubmitting={isCommentSubmitting}
             replyingToCommentId={replyingToCommentId}
             isLoading={isLoading}
+            hasMore={hasMoreComments}
+            isPaginating={isCommentsPaginating}
+            sentinelRef={commentsSentinelRef}
           />
         </div>
 
@@ -103,7 +110,7 @@ export default function TrackPageView({
             trackId={trackId}
             likesCount={likeCount}
             repostsCount={repostCount}
-            commentsCount={comments.length}
+            commentsCount={totalComments}
           />
         </aside>
       </div>

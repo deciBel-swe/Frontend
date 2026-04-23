@@ -10,7 +10,16 @@ import { Suspense } from 'react';
 export default function Page() {
   const { username } = useParams<{ username: string }>();
   const { data: profileData } = usePublicUser(username);
-  const { tracks, isLoading } = useLikedTracks(username);
+  const {
+    tracks,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useLikedTracks(username, {
+    size: 24,
+    infinite: true,
+  });
 
   return (
     <div>
@@ -22,6 +31,9 @@ export default function Page() {
           isLoading={isLoading}
           currentUserAvatar={profileData?.profile.profilePic}
           showHeader={false}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       </Suspense>
     </div>

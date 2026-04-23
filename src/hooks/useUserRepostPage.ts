@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
 import { useAuth } from '@/features/auth';
@@ -9,6 +9,7 @@ import {
   mapTrackResourceToTrackCard,
 } from '@/features/search/mappers/searchResultMappers';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { userService } from '@/services';
 
 const normalizeIdentity = (value: string | undefined): string =>
@@ -55,23 +56,158 @@ const toRepostedBy = (
   };
 };
 
-export function useUserRepostPage(routeUsername?: string) {
+type UseUserRepostPageOptions = {
+  page?: number;
+  size?: number;
+  infinite?: boolean;
+};
+
+export function useUserRepostPage(
+  routeUsername?: string,
+  options: UseUserRepostPageOptions = {}
+) {
+  const { page = 0, size = 24, infinite = false } = options;
   const { user } = useAuth();
   const ownerContext = useProfileOwnerContext();
   const [items, setItems] = useState<UserRepostPageItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const targetUsername =
+    routeUsername?.trim() ||
+    ownerContext?.routeUsername?.trim() ||
+    user?.username?.trim() ||
+    '';
+
+  const fetchRepostPage = useCallback(
+    async (pageNumber: number, pageSize: number) => {
+      if (!targetUsername) {
+        return {
+          items: [],
+          pageNumber,
+          totalPages: 0,
+          totalElements: 0,
+          isLast: true,
+        };
+      }
+
+      let targetUserId: number | undefined;
+
+      const contextUsername = ownerContext?.routeUsername;
+      const contextUserId = ownerContext?.publicUser?.profile.id;
+
+      if (
+        contextUserId &&
+        normalizeIdentity(contextUsername) === normalizeIdentity(targetUsername)
+      ) {
+        targetUserId = contextUserId;
+      } else if (
+        user?.id !== undefined &&
+        normalizeIdentity(user.username) === normalizeIdentity(targetUsername)
+      ) {
+        targetUserId = user.id;
+      } else {
+        const publicUser = await userService.getPublicUserByUsername(targetUsername);
+        targetUserId = publicUser.profile.id;
+      }
+
+      if (!targetUserId) {
+        throw new Error('Unable to resolve repost owner id.');
+      }
+
+      const response = await userService.getUserReposts(targetUserId, {
+        page: pageNumber,
+        size: pageSize,
+      });
+
+      return {
+        items: response.content.flatMap(
+          (resource, index): UserRepostPageItem[] => {
+            const repostedBy = (
+              resource as { repostedBy?: RepostedByShape }
+            ).repostedBy;
+
+            if (resource.resourceType === 'TRACK') {
+              const trackCard = mapTrackResourceToTrackCard(resource);
+              if (!trackCard) {
+                return [];
+              }
+
+              return [
+                {
+                  kind: 'track',
+                  id: `track-${resource.resourceId}-${pageNumber}-${index}`,
+                  card: {
+                    ...trackCard,
+                    postedText: 'reposted a track',
+                    repostedBy: toRepostedBy(repostedBy, targetUsername),
+                  },
+                } satisfies UserRepostPageItem,
+              ];
+            }
+
+            if (resource.resourceType === 'PLAYLIST') {
+              const playlistCard = mapPlaylistResourceToPlaylistCard(resource);
+              if (!playlistCard) {
+                return [];
+              }
+
+              return [
+                {
+                  kind: 'playlist',
+                  id: `playlist-${resource.resourceId}-${pageNumber}-${index}`,
+                  card: {
+                    ...playlistCard,
+                    postedText: 'reposted a set',
+                    repostedBy: toRepostedBy(repostedBy, targetUsername),
+                  },
+                } satisfies UserRepostPageItem,
+              ];
+            }
+
+            return [];
+          }
+        ),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    [
+      ownerContext?.publicUser?.profile.id,
+      ownerContext?.routeUsername,
+      targetUsername,
+      user?.id,
+      user?.username,
+    ]
+  );
+
+  const {
+    items: infiniteItems,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<UserRepostPageItem>({
+    enabled: infinite && targetUsername.length > 0,
+    pageSize: size,
+    resetKey: `${targetUsername}|${size}|${ownerContext?.publicUser?.profile.id ?? ''}`,
+    fetchPage: fetchRepostPage,
+    dedupeBy: (item) => item.id,
+    initialErrorMessage: 'Failed to load reposted resources. Please try again later.',
+  });
 
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const loadReposts = async () => {
-      const targetUsername =
-        routeUsername?.trim() ||
-        ownerContext?.routeUsername?.trim() ||
-        user?.username?.trim() ||
-        '';
-
       if (!targetUsername) {
         if (!isCancelled) {
           setItems([]);
@@ -85,83 +221,10 @@ export function useUserRepostPage(routeUsername?: string) {
       setIsError(false);
 
       try {
-        let targetUserId: number | undefined;
-
-        const contextUsername = ownerContext?.routeUsername;
-        const contextUserId = ownerContext?.publicUser?.profile.id;
-
-        if (
-          contextUserId &&
-          normalizeIdentity(contextUsername) === normalizeIdentity(targetUsername)
-        ) {
-          targetUserId = contextUserId;
-        } else if (
-          user?.id !== undefined &&
-          normalizeIdentity(user.username) === normalizeIdentity(targetUsername)
-        ) {
-          targetUserId = user.id;
-        } else {
-          const publicUser = await userService.getPublicUserByUsername(targetUsername);
-          targetUserId = publicUser.profile.id;
-        }
-
-        if (!targetUserId) {
-          throw new Error('Unable to resolve repost owner id.');
-        }
-
-        const response = await userService.getUserReposts(targetUserId, {
-          page: 0,
-          size: 100,
-        });
-
-        const mappedItems = response.content.flatMap((resource, index): UserRepostPageItem[] => {
-          const repostedBy = (
-            resource as { repostedBy?: RepostedByShape }
-          ).repostedBy;
-
-          if (resource.resourceType === 'TRACK') {
-            const trackCard = mapTrackResourceToTrackCard(resource);
-            if (!trackCard) {
-              return [];
-            }
-
-            return [
-              {
-                kind: 'track',
-                id: `track-${resource.resourceId}-${index}`,
-                card: {
-                  ...trackCard,
-                  postedText: 'reposted a track',
-                  repostedBy: toRepostedBy(repostedBy, targetUsername),
-                },
-              } satisfies UserRepostPageItem,
-            ];
-          }
-
-          if (resource.resourceType === 'PLAYLIST') {
-            const playlistCard = mapPlaylistResourceToPlaylistCard(resource);
-            if (!playlistCard) {
-              return [];
-            }
-
-            return [
-              {
-                kind: 'playlist',
-                id: `playlist-${resource.resourceId}-${index}`,
-                card: {
-                  ...playlistCard,
-                  postedText: 'reposted a set',
-                  repostedBy: toRepostedBy(repostedBy, targetUsername),
-                },
-              } satisfies UserRepostPageItem,
-            ];
-          }
-
-          return [];
-        });
+        const response = await fetchRepostPage(page, size);
 
         if (!isCancelled) {
-          setItems(mappedItems);
+          setItems(response.items);
           setIsLoading(false);
           setIsError(false);
         }
@@ -183,16 +246,20 @@ export function useUserRepostPage(routeUsername?: string) {
       isCancelled = true;
     };
   }, [
-    ownerContext?.publicUser?.profile.id,
-    ownerContext?.routeUsername,
-    routeUsername,
-    user?.id,
-    user?.username,
+    fetchRepostPage,
+    infinite,
+    page,
+    size,
+    targetUsername,
   ]);
 
   return {
-    items,
-    isLoading,
-    isError,
+    items: infinite ? infiniteItems : items,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }
