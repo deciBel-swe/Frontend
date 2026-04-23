@@ -14,7 +14,7 @@ export default function ChangeEmail() {
       <h2 className="text-l font-semibold">Email Address</h2>
 
       <div className="space-y-2">
-        <div className="pointer-events-none">
+        <div className="pointer-events-none w-full min-w-[20rem] max-w-md [&_input]:truncate [&_input]:overflow-hidden [&_input]:whitespace-nowrap">
           <FloatingEmailField
             value={email}
             onChange={() => {}}
@@ -35,7 +35,10 @@ export default function ChangeEmail() {
         </Button>
       ) : (
         <div className="flex flex-col gap-3">
-          <div data-testid="change-email-input">
+          <div
+            data-testid="change-email-input"
+            className="w-full min-w-[20rem] max-w-md [&_input]:truncate [&_input]:overflow-hidden [&_input]:whitespace-nowrap"
+          >
             <FloatingEmailField
               value={newEmail}
               onChange={setNewEmail}
