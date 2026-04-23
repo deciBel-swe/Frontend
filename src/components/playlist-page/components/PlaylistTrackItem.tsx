@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { GripVertical, Play } from 'lucide-react';
 import TrackActions from '@/components/tracks/actions/TrackActions';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
+import { buildTrackPath, toUserPathSlug } from '@/utils/resourcePaths';
 
 export type PlaylistTrack = {
   id: number;
@@ -90,9 +91,10 @@ export default function PlaylistTrackItem({
   onDragEnd,
 }: PlaylistTrackItemProps) {
   const [hovered, setHovered] = useState(false);
-  const artistSlug = (track.artist ?? '').toLowerCase().replace(/\s+/g, '-');
-  const artistPathSlug =
-    track.artistUsername?.trim().toLowerCase() || artistSlug;
+  const artistPathSlug = toUserPathSlug(
+    track.artistUsername?.trim() || track.artist || ''
+  );
+  const trackPathId = track.trackSlug?.trim() || String(track.id);
   const unavailable = track.available === false;
 
   return (
@@ -137,7 +139,7 @@ export default function PlaylistTrackItem({
         {track.artist && (
             <>
             <Link
-                href={`/${artistSlug}`}
+                href={`/${artistPathSlug}`}
                 onClick={(e) => e.stopPropagation()}
                 className={`text-sm font-semibold hover:opacity-60 shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}
             >
@@ -147,7 +149,7 @@ export default function PlaylistTrackItem({
             </>
         )}
         <Link
-          href={`/${artistPathSlug}/${track.trackSlug ?? track.id}`}
+          href={buildTrackPath(artistPathSlug, trackPathId)}
             onClick={(e) => e.stopPropagation()}
             className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >

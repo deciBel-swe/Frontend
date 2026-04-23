@@ -164,7 +164,12 @@ export const trackDetailsResponseSchema = z.object({
   isReposted: z.boolean().optional(),
   likeCount: z.number().int().nonnegative().optional(),
   repostCount: z.number().int().nonnegative().optional(),
+  commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
+  CompletedPlayCount: z.number().int().nonnegative().optional(),
+  secretToken: z.string().optional(),
+  trackPreviewUrl: z.string().trim().min(1).optional().nullable(),
+  trendingRank: z.number().int().nonnegative().optional(),
   uploadDate: z.string().trim().optional().nullable(),
 });
 export type TrackDetailsResponse = z.infer<typeof trackDetailsResponseSchema>;
@@ -178,6 +183,12 @@ export const paginatedTracksResponseSchema = z.object({
   isLast: z.boolean(),
 });
 export type PaginatedTracksResponse = z.infer<typeof paginatedTracksResponseSchema>;
+export type PaginatedTrackMetadataResponse = Omit<
+  PaginatedTracksResponse,
+  'content'
+> & {
+  content: TrackMetaData[];
+};
 
 
 /** Schema for PATCH /tracks/:trackId */
@@ -204,8 +215,10 @@ export const trackMetadataSchema = z.object({
   trackSlug: z.string().trim().min(1).optional(),
   artist: trackMetadataArtistSchema,
   trackUrl: z.string().url(),
+  trackPreviewUrl: z.string().url().optional(),
   durationSeconds: z.number().int().nonnegative().optional(),
   access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
+  isPrivate: z.boolean().optional(),
   coverUrl: trackImageWithDefault,
   waveformUrl: z.string().url(),
   waveformData: z.array(z.number()).optional(),
@@ -217,7 +230,9 @@ export const trackMetadataSchema = z.object({
   isReposted: z.boolean().optional(),
   likeCount: z.number().int().nonnegative().optional(),
   repostCount: z.number().int().nonnegative().optional(),
+  commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
+  secretToken: z.string().optional(),
   uploadDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
@@ -314,7 +329,7 @@ export const fullTrackSchema = z
     description: z.string(),
     trendingRank: z.number().int().nonnegative(),
     access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
-    secretToken: z.string().trim().min(1),
+    secretToken: z.string().trim(),
     trackPreviewUrl: z.string().url(),
   })
   .passthrough();
@@ -349,7 +364,7 @@ export const trackSummarySchema = z
     commentCount: z.number().int().nonnegative(),
     isLiked: z.boolean(),
     isReposted: z.boolean(),
-    secretToken: z.string().trim().min(1),
+    secretToken: z.string().trim(),
     access: trackAccessSchema,
   })
   .passthrough();

@@ -19,7 +19,12 @@ import type { FullPlaylistDTO } from '@/types/playlists';
 import {
   getMockTracksStore,
   getMockUsersStore,
+  resolveCurrentMockUserId,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 
 const MOCK_DELAY_MS = 120;
 
@@ -46,9 +51,6 @@ const paginate = <T>(items: T[], params?: PaginationParams) => {
   };
 };
 
-const toSlug = (value: string, id: number) =>
-  `${value.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${id}`;
-
 const buildUserSummary = (userId: number): UserSummaryDTO => {
   const user = getMockUsersStore().find((item) => item.id === userId);
   if (!user) {
@@ -66,7 +68,7 @@ const buildUserSummary = (userId: number): UserSummaryDTO => {
   return {
     id: user.id,
     username: user.username,
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     avatarUrl: user.profile.profilePic ?? '',
     isFollowing: false,
     followerCount: user.followers.size,
@@ -74,32 +76,28 @@ const buildUserSummary = (userId: number): UserSummaryDTO => {
   };
 };
 
-const buildTrackSummary = (trackId: number): TrackSummaryDTO => {
+const buildTrackSummary = (
+  trackId: number,
+  viewerId: number
+): TrackSummaryDTO | null => {
   const track = getMockTracksStore().find((item) => item.id === trackId);
   if (!track) {
-    return {
-      id: trackId,
-      title: 'Unknown track',
-      trackSlug: `track-${trackId}`,
-      coverUrl: '',
-      trackUrl: '',
-      trackPreviewUrl: '',
-      artist: buildUserSummary(0),
-      playCount: 0,
-      likeCount: 0,
-      repostCount: 0,
-      commentCount: 0,
-      isLiked: false,
-      isReposted: false,
-      secretToken: '',
-      access: 'PLAYABLE',
-    };
+    return null;
+  }
+  if (
+    !canAccessMockResource({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId,
+    })
+  ) {
+    return null;
   }
 
   return {
     id: track.id,
     title: track.title,
-    trackSlug: toSlug(track.title, track.id),
+    trackSlug: track.trackSlug,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
@@ -111,81 +109,107 @@ const buildTrackSummary = (trackId: number): TrackSummaryDTO => {
     isLiked: false,
     isReposted: false,
     secretToken: track.secretLink ?? '',
-    access: 'PLAYABLE',
+    access: resolveMockResourceAccess({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId,
+    }),
   };
 };
 
-const buildPlaylistSummary = (playlistId: number): PlaylistSummaryDTO => {
+const buildPlaylistSummary = (
+  playlistId: number,
+  viewerId: number
+): PlaylistSummaryDTO | null => {
   const users = getMockUsersStore();
   for (const user of users) {
     const playlist = user.playlists.find((item) => item.id === playlistId);
     if (!playlist) {
       continue;
     }
+    if (
+      !canAccessMockResource({
+        isPrivate: playlist.isPrivate,
+        ownerId: user.id,
+        viewerId,
+      })
+    ) {
+      return null;
+    }
+
+    const tracks = playlist.tracks
+      .map((track) => buildTrackSummary(track.trackId, viewerId))
+      .filter((track): track is TrackSummaryDTO => Boolean(track));
 
     return {
       id: playlist.id,
       title: playlist.title,
-      playlistSlug: toSlug(playlist.title, playlist.id),
+      playlistSlug: playlist.playlistSlug,
       isLiked: playlist.isLiked,
       isPrivate: playlist.isPrivate,
       coverArtUrl: playlist.CoverArt ?? '',
-      trackCount: playlist.tracks.length,
+      trackCount: tracks.length,
       owner: buildUserSummary(user.id),
       genre: 'playlist-genre',
-      tracks: playlist.tracks.map((track) =>
-        buildTrackSummary(track.trackId)
-      ),
+      tracks,
       secretToken: playlist.secretLink ?? '',
     };
   }
 
+  return null;
+};
+
+const buildResourceForTrack = (
+  trackId: number,
+  viewerId: number
+): ResourceRefFullDTO | null => {
+  const summary = buildTrackSummary(trackId, viewerId);
+  if (!summary) {
+    return null;
+  }
+
   return {
-    id: playlistId,
-    title: 'Unknown playlist',
-    playlistSlug: `playlist-${playlistId}`,
-    isLiked: false,
-    isPrivate: false,
-    coverArtUrl: '',
-    trackCount: 0,
-    owner: buildUserSummary(0),
-    genre: 'playlist-genre',
-    tracks: [],
-    secretToken: '',
+    resourceType: 'TRACK',
+    resourceId: trackId,
+    playlist: null,
+    track: {
+      ...(summary as unknown as FullTrackDTO),
+      waveformUrl: getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
+      genre: getMockTracksStore().find((t) => t.id === trackId)?.genre ?? '',
+      isReposted: false,
+      isLiked: false,
+      tags: getMockTracksStore().find((t) => t.id === trackId)?.tags ?? [],
+      releaseDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      playCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
+      CompletedPlayCount: 0,
+      likeCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
+      repostCount: getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
+      commentCount: 0,
+      isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
+      trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
+      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      description: '',
+      trendingRank: 0,
+      access: resolveMockResourceAccess({
+        isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
+        ownerId: getMockTracksStore().find((t) => t.id === trackId)?.artist.id ?? 0,
+        viewerId,
+      }),
+      secretToken: getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
+      trackPreviewUrl: getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
+    },
+    user: null,
   };
 };
 
-const buildResourceForTrack = (trackId: number): ResourceRefFullDTO => ({
-  resourceType: 'TRACK',
-  resourceId: trackId,
-  playlist: null,
-  track: {
-    ...(buildTrackSummary(trackId) as unknown as FullTrackDTO),
-    waveformUrl: getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
-    genre: getMockTracksStore().find((t) => t.id === trackId)?.genre ?? '',
-    isReposted: false,
-    isLiked: false,
-    tags: getMockTracksStore().find((t) => t.id === trackId)?.tags ?? [],
-    releaseDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
-    playCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
-    CompletedPlayCount: 0,
-    likeCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
-    repostCount: getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
-    commentCount: 0,
-    isPrivate: false,
-    trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
-    uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
-    description: '',
-    trendingRank: 0,
-    access: 'PLAYABLE',
-    secretToken: getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
-    trackPreviewUrl: getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
-  },
-  user: null,
-});
-
-const buildResourceForPlaylist = (playlistId: number): ResourceRefFullDTO => {
-  const playlistSummary = buildPlaylistSummary(playlistId);
+const buildResourceForPlaylist = (
+  playlistId: number,
+  viewerId: number
+): ResourceRefFullDTO | null => {
+  const playlistSummary = buildPlaylistSummary(playlistId, viewerId);
+  if (!playlistSummary) {
+    return null;
+  }
   const firstTrack = playlistSummary.tracks[0];
   const firstTrackRecord = getMockTracksStore().find(
     (track) => track.id === firstTrack?.id
@@ -229,8 +253,18 @@ export class MockDiscoveryService implements DiscoveryService {
 
     const query = params.q.trim().toLowerCase();
     const type = params.type ?? 'ALL';
+    const viewerId = resolveCurrentMockUserId();
 
     const trackMatches = getMockTracksStore().filter((track) => {
+      if (
+        !canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        })
+      ) {
+        return false;
+      }
       const titleMatch = track.title.toLowerCase().includes(query);
       const tagMatch = track.tags.some((tag) =>
         tag.toLowerCase().includes(query)
@@ -243,18 +277,29 @@ export class MockDiscoveryService implements DiscoveryService {
     );
 
     const playlistMatches = getMockUsersStore()
-      .flatMap((user) => user.playlists)
-      .filter((playlist) =>
-        playlist.title.toLowerCase().includes(query)
+      .flatMap((user) =>
+        user.playlists.filter((playlist) => {
+          if (
+            !canAccessMockResource({
+              isPrivate: playlist.isPrivate,
+              ownerId: user.id,
+              viewerId,
+            })
+          ) {
+            return false;
+          }
+
+          return playlist.title.toLowerCase().includes(query);
+        })
       );
 
     const trackResources = trackMatches.map((track) =>
-      buildResourceForTrack(track.id)
-    );
+      buildResourceForTrack(track.id, viewerId)
+    ).filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
     const userResources = userMatches.map((user) => buildResourceForUser(user.id));
     const playlistResources = playlistMatches.map((playlist) =>
-      buildResourceForPlaylist(playlist.id)
-    );
+      buildResourceForPlaylist(playlist.id, viewerId)
+    ).filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
 
     if (type === 'TRACKS') {
       return paginate(trackResources, params);
@@ -296,20 +341,29 @@ export class MockDiscoveryService implements DiscoveryService {
     await delay();
 
     const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
+    const viewerId = resolveCurrentMockUserId();
 
     const tracks = [...getMockTracksStore()]
+      .filter((track) =>
+        canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        })
+      )
       .sort(
         (a, b) =>
           (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
       )
       .slice(0, limit)
       .map((track, index) => {
-        const resource = buildResourceForTrack(track.id);
-        if (resource.track) {
+        const resource = buildResourceForTrack(track.id, viewerId);
+        if (resource?.track) {
           resource.track.trendingRank = index + 1;
         }
         return resource;
-      });
+      })
+      .filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
 
     return tracks;
   }
@@ -318,12 +372,31 @@ export class MockDiscoveryService implements DiscoveryService {
     params?: PaginationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
-    const items = getMockTracksStore().map((track, index) => ({
-      id: track.id,
-      type: 'TRACK' as const,
-      track: buildTrackSummary(track.id),
-      createdAt: new Date(Date.now() - index * 60000).toISOString(),
-    }));
+    const viewerId = resolveCurrentMockUserId();
+    const items = getMockTracksStore()
+      .filter((track) =>
+        canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        })
+      )
+      .map((track, index) => ({
+        id: track.id,
+        type: 'TRACK' as const,
+        track: buildTrackSummary(track.id, viewerId),
+        createdAt: new Date(Date.now() - index * 60000).toISOString(),
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          id: number;
+          type: 'TRACK';
+          track: TrackSummaryDTO;
+          createdAt: string;
+        } => Boolean(item.track)
+      );
 
     return paginate(items, params);
   }
@@ -332,12 +405,31 @@ export class MockDiscoveryService implements DiscoveryService {
     params?: PaginationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
-    const items = getMockTracksStore().map((track, index) => ({
-      id: track.id,
-      type: 'TRACK' as const,
-      track: buildTrackSummary(track.id),
-      createdAt: new Date(Date.now() - index * 60000).toISOString(),
-    }));
+    const viewerId = resolveCurrentMockUserId();
+    const items = getMockTracksStore()
+      .filter((track) =>
+        canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        })
+      )
+      .map((track, index) => ({
+        id: track.id,
+        type: 'TRACK' as const,
+        track: buildTrackSummary(track.id, viewerId),
+        createdAt: new Date(Date.now() - index * 60000).toISOString(),
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          id: number;
+          type: 'TRACK';
+          track: TrackSummaryDTO;
+          createdAt: string;
+        } => Boolean(item.track)
+      );
 
     return paginate(items, params);
   }
@@ -346,12 +438,31 @@ export class MockDiscoveryService implements DiscoveryService {
     params?: PaginationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
-    const items = getMockTracksStore().map((track, index) => ({
-      id: track.id,
-      type: 'TRACK' as const,
-      track: buildTrackSummary(track.id),
-      createdAt: new Date(Date.now() - index * 60000).toISOString(),
-    }));
+    const viewerId = resolveCurrentMockUserId();
+    const items = getMockTracksStore()
+      .filter((track) =>
+        canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        })
+      )
+      .map((track, index) => ({
+        id: track.id,
+        type: 'TRACK' as const,
+        track: buildTrackSummary(track.id, viewerId),
+        createdAt: new Date(Date.now() - index * 60000).toISOString(),
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          id: number;
+          type: 'TRACK';
+          track: TrackSummaryDTO;
+          createdAt: string;
+        } => Boolean(item.track)
+      );
 
     return paginate(items, params);
   }

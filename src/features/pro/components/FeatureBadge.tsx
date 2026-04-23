@@ -17,7 +17,9 @@ import type { FeatureBadge as FeatureBadgeType } from '@/features/pro/types';
 
 const variantClasses: Record<FeatureBadgeType['variant'], string> = {
   artist: 'bg-brand-subtle text-brand border border-brand/30',
-  pro:    'bg-amber-50   text-amber-700 border border-amber-300',
+  pro: 'bg-amber-50   text-amber-700 border border-amber-300',
+  free: 'bg-brand-subtle text-brand border border-brand/30',
+  none: 'bg-brand-subtle text-brand border border-brand/30',
 };
 
 export const FeatureBadge: FC<FeatureBadgeType> = ({ text, variant }) => (

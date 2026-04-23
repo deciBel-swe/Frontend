@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/features/auth';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
@@ -34,7 +35,9 @@ export default function TrackCardRoot({
   currentUserAvatar,
   showHeader = true,
 }: TrackCardProps) {
+  const { user: authUser } = useAuth();
   const userSlug = toUserSlug(user.username);
+  const contentUserSlug = toUserSlug(track.artist.username);
   const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
   const artistDisplayName =
@@ -55,7 +58,10 @@ export default function TrackCardRoot({
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
+  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined, {
+    shareUsername: artistUsername,
+    sharePathId: routeTrackId,
+  });
   const { handleCopy } = useCopyTrackLink({
     trackId,
     routeTrackId,
@@ -116,9 +122,14 @@ export default function TrackCardRoot({
     return null;
   }
 
+  const currentUserName =
+    authUser?.displayName?.trim() || authUser?.username?.trim() || userDisplayName;
+  const currentUserAvatarSrc =
+    authUser?.avatarUrl?.trim() || currentUserAvatar || user.avatar;
+  const headerAvatar = repostedBy?.avatar?.trim() || user.avatar;
   const currentUser = {
-    name: userDisplayName,
-    avatar: currentUserAvatar ?? user.avatar,
+    name: currentUserName,
+    avatar: currentUserAvatarSrc,
   };
 
   return (
@@ -131,14 +142,14 @@ export default function TrackCardRoot({
         <TrackCardHeader
           userSlug={repostedBySlug ?? userSlug}
           userDisplayName={repostedByDisplayName ?? userDisplayName}
-          userAvatar={user.avatar}
+          userAvatar={headerAvatar}
           postedText={postedText}
         />
       ) : null}
 
       <div className="flex min-w-0 items-start gap-2 sm:gap-3 md:gap-4">
         <TrackCardArtwork
-          userSlug={userSlug}
+          userSlug={contentUserSlug}
           trackId={track.id}
           routeTrackId={routeTrackId}
           coverUrl={track.cover}
@@ -147,7 +158,7 @@ export default function TrackCardRoot({
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             artistName={artistDisplayName}
             trackId={track.id}
             routeTrackId={routeTrackId}
@@ -182,7 +193,7 @@ export default function TrackCardRoot({
           />
 
           <TrackCardFooter
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             trackId={track.id}
             routeTrackId={routeTrackId}
             showEditButton={showEditButton}

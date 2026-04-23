@@ -98,10 +98,14 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
             user={cardUser}
             relatedTracks={playlist.tracks?.map((t) => ({
               id: t.id,
+              trackSlug: t.trackSlug,
+              artistUsername: t.artist.username,
               title: t.title,
               artist: t.artist.displayName || t.artist.username,
               coverUrl: t.cover || DEFAULT_COVER,
               plays: String(t.plays ?? 0),
+              isLiked: t.isLiked,
+              isReposted: t.isReposted,
             }))}
             waveform={[]}
             showHeader={false}

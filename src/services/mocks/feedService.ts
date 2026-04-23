@@ -10,6 +10,10 @@ import {
   resolveCurrentMockUserId,
   syncAuthAccountsToMockUsers,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 
 const MOCK_DELAY_MS = 120;
 
@@ -51,7 +55,7 @@ export class MockFeedService implements FeedService {
       return {
         id: user.id,
         username: user.username,
-        displayName: user.username,
+        displayName: user.displayName || user.username,
         avatarUrl: user.profile.profilePic ?? '',
         isFollowing: currentUser?.following.has(user.id) ?? false,
         followerCount: user.followers.size,
@@ -64,11 +68,20 @@ export class MockFeedService implements FeedService {
       if (!track) {
         return null;
       }
+      if (
+        !canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId: currentUserId,
+        })
+      ) {
+        return null;
+      }
 
       return {
         id: track.id,
         title: track.title,
-        trackSlug: `${track.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${track.id}`,
+        trackSlug: track.trackSlug,
         artist: userSummaryFromId(track.artist.id),
         trackUrl: track.trackUrl,
         coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -91,7 +104,11 @@ export class MockFeedService implements FeedService {
         uploadDate: track.releaseDate,
         description: track.description ?? '',
         trendingRank: 0,
-        access: 'PLAYABLE',
+        access: resolveMockResourceAccess({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId: currentUserId,
+        }),
         secretToken: track.secretLink ?? '',
         trackPreviewUrl: track.trackUrl,
       };
@@ -102,6 +119,15 @@ export class MockFeedService implements FeedService {
       for (const user of users) {
         const playlist = user.playlists.find((item) => item.id === playlistId);
         if (!playlist) {
+          continue;
+        }
+        if (
+          !canAccessMockResource({
+            isPrivate: playlist.isPrivate,
+            ownerId: user.id,
+            viewerId: currentUserId,
+          })
+        ) {
           continue;
         }
 
@@ -122,7 +148,7 @@ export class MockFeedService implements FeedService {
         return {
           id: playlist.id,
           title: playlist.title,
-          playlistSlug: `${playlist.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${playlist.id}`,
+          playlistSlug: playlist.playlistSlug,
           isLiked: playlist.isLiked,
           description: playlist.description ?? '',
           isPrivate: playlist.isPrivate,
@@ -222,6 +248,7 @@ export class MockFeedService implements FeedService {
           id: likedTrack.id,
           type: 'TRACK_LIKED',
           resource,
+          likedBy: userSummaryFromId(user.id),
           createdAt: nextDate(),
         });
       }
@@ -264,6 +291,7 @@ export class MockFeedService implements FeedService {
           id: likedPlaylistId,
           type: 'PLAYLIST_LIKED',
           resource,
+          likedBy: userSummaryFromId(user.id),
           createdAt: nextDate(),
         });
       }

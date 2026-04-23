@@ -67,7 +67,7 @@ export const playlistResponseSchema = z
     trackCount: z.number().int().nonnegative().optional(),
     genre: z.string().optional(),
     createdAt: z.string().optional(),
-    secretToken: z.string().trim().min(1).optional(),
+    secretToken: z.string().trim().optional(),
     firstTrackWaveformUrl: z.string().optional(),
     firstTrackWaveformData: z.unknown().optional(),
   })
@@ -135,9 +135,9 @@ export type PlaylistSecretLinkResponse = z.infer<
 /** DTO returned by POST /playlists/:playlistId/secret-link/regenerate */
 export const playlistSecretLinkRegenerateResponseSchema = z
   .object({
-    secretToken: z.string().trim().min(1).optional(),
-    secretUrl: z.string().trim().min(1),
-    expiresAt: z.string().trim().min(1),
+    secretToken: z.string().trim(),
+    secretUrl: z.string().trim().min(1).optional(),
+    expiresAt: z.string().trim().min(1).optional(),
   })
   .passthrough();
 export type PlaylistSecretLinkRegenerateResponse = z.infer<
@@ -196,11 +196,11 @@ export const fullPlaylistSchema = z
         commentCount: z.number().int().nonnegative(),
         isLiked: z.boolean(),
         isReposted: z.boolean(),
-        secretToken: z.string().trim().min(1),
+        secretToken: z.string().trim(),
         access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
       })
     ),
-    secretToken: z.string().trim().min(1),
+    secretToken: z.string().trim(),
     firstTrackWaveformUrl: z.string().url(),
     firstTrackWaveformData: z.unknown().optional(),
   })
@@ -253,11 +253,11 @@ export const playlistSummarySchema = z
         commentCount: z.number().int().nonnegative(),
         isLiked: z.boolean(),
         isReposted: z.boolean(),
-        secretToken: z.string().trim().min(1),
+        secretToken: z.string().trim(),
         access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
       })
     ),
-    secretToken: z.string().trim().min(1),
+    secretToken: z.string().trim(),
   })
   .passthrough();
 export type PlaylistSummaryDTO = z.infer<typeof playlistSummarySchema>;

@@ -10,6 +10,7 @@ import { TopNavBar } from '@/components/nav/TopNavBar';
 import { useTopNavBar } from '@/components/nav/useTopNavBar';
 import { useInbox } from '@/hooks/useInbox';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSubscriptionStatus } from '@/features/pro/hooks/useSubscriptionStatus';
 
 import { AuthProvider } from '@/features/auth/AuthContext';
 jest.mock('next/link', () => {
@@ -63,6 +64,11 @@ jest.mock('@/hooks/useNotifications', () => ({
 const mockUseTopNavBar = useTopNavBar as jest.Mock;
 const mockUseInbox = useInbox as jest.Mock;
 const mockUseNotifications = useNotifications as jest.Mock;
+jest.mock('@/features/pro/hooks/useSubscriptionStatus', () => ({
+  useSubscriptionStatus: jest.fn(),
+}));
+
+const mockUseSubscriptionStatus = useSubscriptionStatus as jest.Mock;
 
 const createTopNavState = (overrides: Record<string, unknown> = {}) => ({
   user: null,
@@ -113,6 +119,18 @@ describe('nav primitives', () => {
       unreadCount: 0,
       isLoading: false,
       markAllAsRead: jest.fn(),
+    });
+    mockUseSubscriptionStatus.mockReturnValue({
+      subscriptionStatus: {
+        status: 'active',
+        plan: 'free',
+        currentPeriodEnd: 0,
+        cancelAtPeriodEnd: false,
+      },
+      fetchSubscriptionStatus: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
     });
   });
 
@@ -189,6 +207,18 @@ describe('TopNavBar', () => {
       unreadCount: 0,
       isLoading: false,
       markAllAsRead: jest.fn(),
+    });
+    mockUseSubscriptionStatus.mockReturnValue({
+      subscriptionStatus: {
+        status: 'active',
+        plan: 'free',
+        currentPeriodEnd: 0,
+        cancelAtPeriodEnd: false,
+      },
+      fetchSubscriptionStatus: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
     });
   });
 

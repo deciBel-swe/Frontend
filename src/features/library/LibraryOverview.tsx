@@ -23,15 +23,17 @@ export default function LibraryOverview() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const { tracks: historyTracks, isLoading: isHistoryLoading } =
-    useListeningHistoryTracks({ page: 0, size: 12 });
+    useListeningHistoryTracks({ page: 0, size: 10 });
 
   const { tracks: likedTracks, isLoading: isLikesLoading } = useLikedTracks(
     user?.username ?? '',
-    { forCurrentUser: true }
+    { forCurrentUser: true, page: 0, size: 10 }
   );
 
   const { users: followingUsers, isLoading: isFollowingLoading } = useFollowing({
     username: user?.username ?? '',
+    page: 0,
+    size: 10,
   });
 
   const likesQueueTracks = useMemo(

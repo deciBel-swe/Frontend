@@ -5,7 +5,7 @@ import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
 import TrackList from '@/components/tracks/TrackList';
 import Button from '@/components/buttons/Button';
 import FilterBar from '@/components/nav/FilterBar';
-import LibrarySection from '@/features/library/LibrarySection';
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
 import { useAuth } from '@/features/auth';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
@@ -17,8 +17,16 @@ import { useMemo, useState } from 'react';
 export default function Page() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { layout, setLayout, isCompact } = useTrackLayoutPreference('compact');
-  const { tracks, isLoading } = useLikedTracks(user?.username ?? '', {
+  const {
+    tracks,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useLikedTracks(user?.username ?? '', {
     forCurrentUser: true,
+    size: 10,
+    infinite: true,
   });
   const [filterText, setFilterText] = useState('');
 
@@ -104,12 +112,12 @@ export default function Page() {
       </div>
 
       {isCompact ? (
-        <LibrarySection title="Likes" className="mb-0" hideHeader>
+        <div className="flex flex-wrap gap-4">
           {isAuthLoading || isLoading
             ? Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={`likes-compact-skeleton-${index}`}
-                  className="shrink-0 rounded-lg bg-surface-raised animate-pulse m-2 w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40"
+                  className="shrink-0 rounded-lg bg-surface-raised animate-pulse w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40"
                 />
               ))
             : filteredTracks.map((item) => (
@@ -120,12 +128,31 @@ export default function Page() {
                   queueSource="likes"
                 />
               ))}
-        </LibrarySection>
+          <InfiniteScrollPagination
+            hasMore={hasMore}
+            isPaginating={isPaginating}
+            sentinelRef={sentinelRef}
+            loader={
+              <div className="flex flex-wrap gap-4 pt-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`likes-compact-append-${index}`}
+                    className="shrink-0 rounded-lg bg-surface-raised animate-pulse w-26 h-26 md:w-32 md:h-32 lg:w-40 lg:h-40"
+                  />
+                ))}
+              </div>
+            }
+            className="basis-full"
+          />
+        </div>
       ) : (
         <TrackList
           tracks={filteredTracks}
           isLoading={isAuthLoading || isLoading}
           showHeader={false}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </section>

@@ -35,6 +35,7 @@ export type TrackCardTrack = {
   isReposted?: boolean;
   likeCount?: number;
   repostCount?: number;
+  isPrivate?: boolean;
 };
 
 export type TrackCardProps = {
@@ -46,6 +47,7 @@ export type TrackCardProps = {
   repostedBy?: {
     username: string;
     displayName?: string;
+    avatar?: string;
   };
   currentUserAvatar?: string;
   showTrackList?: boolean;

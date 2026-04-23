@@ -36,7 +36,7 @@ describe('useCopyTrackLink', () => {
       useCopyTrackLink({
         trackId: 42,
         isPrivate: true,
-        secretUrl: 'https://api.test/tracks/42?s=abc123',
+        secretUrl: 'https://api.test/tracks/42?token=abc123',
         artistName: 'DJ Nova',
       })
     );
@@ -45,7 +45,7 @@ describe('useCopyTrackLink', () => {
       await result.current.handleCopy();
     });
 
-    expect(writeText).toHaveBeenCalledWith('https://decibel.test/djnova/42?s=abc123');
+    expect(writeText).toHaveBeenCalledWith('https://decibel.test/djnova/42?token=abc123');
     expect(result.current.copied).toBe(true);
 
     act(() => {

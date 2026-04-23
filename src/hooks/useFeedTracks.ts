@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { feedService } from '@/services';
 import type { FeedItemDTO } from '@/types/discovery';
 import { mapPlaylistResourceToPlaylistCard, mapTrackResourceToTrackCard } from '@/features/search/mappers/searchResultMappers';
@@ -36,11 +37,29 @@ const toPostedText = (item: FeedItemDTO): string => {
   }
 };
 
-const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: string } | undefined => {
+const toFeedActor = (
+  item: FeedItemDTO
+): { username: string; displayName?: string; avatar?: string } | undefined => {
   const actor =
     item.repostedBy ??
-    ((item as unknown as { actor?: { username?: string; displayName?: string } }).actor ??
-      (item as unknown as { likedBy?: { username?: string; displayName?: string } }).likedBy);
+    ((
+      item as unknown as {
+        actor?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).actor ??
+      ((
+        item as unknown as {
+          likedBy?: {
+            username?: string;
+            displayName?: string;
+            avatarUrl?: string;
+          };
+        }
+      ).likedBy));
 
   if (!actor?.username) {
     return undefined;
@@ -49,6 +68,7 @@ const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: strin
   return {
     username: actor.username,
     displayName: actor.displayName,
+    avatar: actor.avatarUrl,
   };
 };
 
@@ -93,6 +113,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
               repostedBy: {
                 username: actorUsername,
                 displayName: actorDisplayName,
+                avatar: actor?.avatar,
               },
             }
           : {}),
@@ -103,7 +124,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
   return null;
 };
 
-export function useFeedTracks(page = 0, size = 25) {
+export function useFeedTracks(page = 0, size = 10, infinite = false) {
   const [feedItems, setFeedItems] = useState<FeedItemDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -124,7 +145,46 @@ export function useFeedTracks(page = 0, size = 25) {
     };
   }, []);
 
+  const mapFeedItems = useCallback((items: FeedItemDTO[]) => {
+    return items.flatMap((item) => {
+      const mapped = mapFeedItem(item);
+      return mapped ? [mapped] : [];
+    });
+  }, []);
+
+  const {
+    items: infiniteFeedItems,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<FeedCardItem>({
+    enabled: infinite,
+    pageSize: size,
+    resetKey: `${size}|${refreshIndex}`,
+    fetchPage: async (pageNumber, pageSize) => {
+      const response = await feedService.getfeed({ page: pageNumber, size: pageSize });
+
+      return {
+        items: mapFeedItems(response.content ?? []),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    dedupeBy: (item) => item.id,
+    initialErrorMessage: 'Failed to load tracks. Please try again later.',
+  });
+
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const fetchFeed = async () => {
@@ -153,18 +213,23 @@ export function useFeedTracks(page = 0, size = 25) {
     return () => {
       isCancelled = true;
     };
-  }, [page, refreshIndex, size]);
+  }, [infinite, page, refreshIndex, size]);
 
   const feedCards = useMemo(() => {
-    return feedItems.flatMap((item) => {
-      const mapped = mapFeedItem(item);
-      return mapped ? [mapped] : [];
-    });
-  }, [feedItems]);
+    if (infinite) {
+      return infiniteFeedItems;
+    }
+
+    return mapFeedItems(feedItems);
+  }, [feedItems, infinite, infiniteFeedItems, mapFeedItems]);
 
   return {
     feedItems: feedCards,
-    isLoading,
-    isError,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

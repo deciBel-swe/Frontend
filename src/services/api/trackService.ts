@@ -2,6 +2,7 @@ import { config } from '@/config';
 import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
+  PaginatedTrackMetadataResponse,
   paginatedTrackResponse,
   SecretLink,
   TrackDetailsResponse,
@@ -65,6 +66,9 @@ export interface TrackService {
 
   /** Read current user tracks via /users/me/tracks */
   getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]>;
+  getMyTracksPage(
+    params?: PaginationParams
+  ): Promise<PaginatedTrackMetadataResponse>;
 
   /** Read all visible tracks for feed listing (GET /users/me/tracks) */
   getAllTracks(): Promise<TrackMetaData[]>;
@@ -157,7 +161,12 @@ const normalizeTrackMetadata = (
       avatarUrl: payload.artist?.avatarUrl,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
+    trackPreviewUrl: toAbsoluteUrl(
+      payload.trackPreviewUrl ?? payload.trackUrl,
+      `/tracks/${trackId}`
+    ),
     access: payload.access ?? 'PLAYABLE',
+    isPrivate: payload.isPrivate,
     ...(resolvedDuration !== undefined && resolvedDuration !== null
       ? { durationSeconds: resolvedDuration }
       : {}),
@@ -175,7 +184,9 @@ const normalizeTrackMetadata = (
     isReposted: payload.isReposted,
     likeCount: payload.likeCount,
     repostCount: payload.repostCount,
+    commentCount: payload.commentCount,
     playCount: payload.playCount,
+    secretToken: payload.secretToken,
     uploadDate: payload.uploadDate ?? '',
   };
 };
@@ -292,16 +303,26 @@ export class RealTrackService implements TrackService {
   }
 
   async getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]> {
+    const payload = await this.getMyTracksPage(params);
+    return payload.content;
+  }
+
+  async getMyTracksPage(
+    params?: PaginationParams
+  ): Promise<PaginatedTrackMetadataResponse> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS, {
       params: toQueryParams(params),
     });
 
-    return Promise.all(
-      payload.content.map(async (track) => {
-        const normalized = normalizeTrackMetadata(track.id, track);
-        return hydrateWaveformData(normalized, track);
-      })
-    );
+    return {
+      ...payload,
+      content: await Promise.all(
+        payload.content.map(async (track) => {
+          const normalized = normalizeTrackMetadata(track.id, track);
+          return hydrateWaveformData(normalized, track);
+        })
+      ),
+    };
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {

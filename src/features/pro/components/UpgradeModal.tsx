@@ -80,8 +80,9 @@ export const UpgradeModal: FC<UpgradeModalProps> = ({
   const handleSelectPlan = useCallback(
     (planId: string) => {
       onSelectPlan?.(planId);
+      onClose();
     },
-    [onSelectPlan]
+    [onClose, onSelectPlan]
   );
 
   return (
@@ -94,7 +95,7 @@ export const UpgradeModal: FC<UpgradeModalProps> = ({
       onClick={handleDialogClick}
       className={[
         // layout — my-auto centres the dialog vertically inside the top-layer
-        'w-full max-w-4xl rounded-2xl p-0 overflow-hidden mx-auto my-auto',
+        'w-full max-w-2xl rounded-2xl p-0 overflow-hidden mx-auto my-auto',
         // colours
         'bg-bg-base text-text-primary',
         // remove default browser outline + browser UA margin
@@ -116,7 +117,17 @@ export const UpgradeModal: FC<UpgradeModalProps> = ({
           aria-label="Close upgrade dialog"
           className="absolute top-4 right-4 rounded-full p-1.5 text-text-secondary hover:text-text-primary hover:bg-interactive-hover transition-colors"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
