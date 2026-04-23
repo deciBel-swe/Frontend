@@ -138,7 +138,7 @@ describe.skip('MockPlaylistService', () => {
     expect((regenerated.secretToken ?? '').length).toBeGreaterThan(0);
     expect(regenerated.secretUrl).toContain('/playlists/token/');
 
-    const token = regenerated.secretUrl.split('/').pop() ?? '';
+    const token = regenerated.secretUrl?.split('/').pop() ?? '';
     const byTokenPromise = service.getPlaylistByToken(token);
     await advance();
     const byToken = await byTokenPromise;

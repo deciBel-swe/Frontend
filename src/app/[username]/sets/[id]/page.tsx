@@ -1085,7 +1085,7 @@ export default function PlaylistPage() {
         playlistId={String(playlist.id)}
         sharePathId={playlistPathId}
         shareUsername={ownerUsername}
-        isPrivate={playlist.isPrivate}
+        isPrivate={playlist.isPrivate? true : false}
         existingToken={secretToken}
         playlist={{
           title: playlist.title,
