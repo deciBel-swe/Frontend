@@ -23,8 +23,11 @@ import { Button } from '@/components/buttons/Button';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SubscriptionActionsProps {
-  onCancel: () => void;
-  onRenew:  () => void;
+  onCancel?: () => void;
+  onRenew?: () => void;
+  secondaryLabel?: string;
+  showCancelAction?: boolean;
+  showSecondaryAction?: boolean;
   /** Disables both buttons while an async operation is in-flight */
   isLoading?: boolean;
 }
@@ -34,28 +37,36 @@ interface SubscriptionActionsProps {
 export const SubscriptionActions: FC<SubscriptionActionsProps> = ({
   onCancel,
   onRenew,
+  secondaryLabel = 'Renew subscription',
+  showCancelAction = true,
+  showSecondaryAction = true,
   isLoading = false,
 }) => (
-  <div className="flex items-center gap-3">
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      disabled={isLoading}
-      onClick={onCancel}
-    >
-      Cancel subscription
-    </Button>
+  <div className="flex w-full items-center gap-3">
+    {showCancelAction && (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={isLoading}
+        onClick={onCancel}
+      >
+        Cancel subscription
+      </Button>
+    )}
 
-    <Button
-      type="button"
-      variant="secondary"
-      size="sm"
-      disabled={isLoading}
-      onClick={onRenew}
-    >
-      Renew subscription
-    </Button>
+    {showSecondaryAction && (
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className={showCancelAction ? '' : 'ml-auto'}
+        disabled={isLoading}
+        onClick={onRenew}
+      >
+        {secondaryLabel}
+      </Button>
+    )}
   </div>
 );
 

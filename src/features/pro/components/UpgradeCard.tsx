@@ -13,6 +13,8 @@
  */
 
 import type { FC } from 'react';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/constants/routes';
 import type { Plan } from '@/features/pro/types';
 import { Button } from '@/components/buttons/Button';
 import { FeatureIcon } from './FeatureIcon';
@@ -31,22 +33,40 @@ interface UpgradeCardProps {
 
 const priceColour: Record<Plan['tier'], string> = {
   artist: 'text-violet-600',
-  pro:    'text-amber-600',
+  pro: 'text-amber-600',
+  free: 'text-violet-600',
+  none: 'text-violet-600',
 };
 
 const cardBorder: Record<Plan['tier'], string> = {
   artist: 'border border-violet-200',
-  pro:    'border-2 border-amber-400',
+  pro: 'border-2 border-amber-400',
+  free: 'border border-violet-200',
+  none: 'border border-violet-200',
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export const UpgradeCard: FC<UpgradeCardProps> = ({ plan, onSelect }) => {
+  const router = useRouter();
   const {
-    id, name, tier, tagline,
-    monthlyPrice, yearlyPrice, currency,
-    ctaLabel, features, isMostPopular, seeAllBenefitsHref,
+    id,
+    name,
+    tier,
+    tagline,
+    monthlyPrice,
+    yearlyPrice,
+    currency,
+    ctaLabel,
+    features,
+    isMostPopular,
+    seeAllBenefitsHref,
   } = plan;
+
+  const handleCtaClick = () => {
+    onSelect(id);
+    router.push(ROUTES.SUBSCRIPTION);
+  };
 
   return (
     <article
@@ -90,7 +110,7 @@ export const UpgradeCard: FC<UpgradeCardProps> = ({ plan, onSelect }) => {
         size="md"
         fullWidth
         className="rounded-full mb-6"
-        onClick={() => onSelect(id)}
+        onClick={handleCtaClick}
       >
         {ctaLabel}
       </Button>
@@ -98,11 +118,17 @@ export const UpgradeCard: FC<UpgradeCardProps> = ({ plan, onSelect }) => {
       {/* ── Features ──────────────────────────────────────────────── */}
       <ul className="flex flex-col gap-3.5" role="list">
         {features.map((feature) => (
-          <li key={feature.label} className="flex items-center gap-3 text-sm text-text-primary">
+          <li
+            key={feature.label}
+            className="flex items-center gap-3 text-sm text-text-primary"
+          >
             <FeatureIcon icon={feature.icon} />
             <span className="flex-1">{feature.label}</span>
             {feature.badge && (
-              <FeatureBadge text={feature.badge.text} variant={feature.badge.variant} />
+              <FeatureBadge
+                text={feature.badge.text}
+                variant={feature.badge.variant}
+              />
             )}
           </li>
         ))}

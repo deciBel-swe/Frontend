@@ -36,6 +36,7 @@ export const ROUTES = {
   // User account routes
   SETTINGS: '/settings',
   DASHBOARD: '/dashboard',
+  SUBSCRIPTION: '/settings/subscription',
   HELP: '/help',
   SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',
@@ -75,7 +76,7 @@ export const USER_DROPDOWN_ITEMS: Array<{
   { label: 'Likes', href: ROUTES.LIKES },
   { label: 'Following', href: ROUTES.FOLLOWING },
   { label: 'Who to Follow', href: ROUTES.PEOPLE },
-  { label: 'Subscription', href: ROUTES.CHECKOUT },
+  // { label: 'Subscription', href: ROUTES.CHECKOUT },
 ];
 
 /** Items for the "Settings and more" (···) dropdown. */
@@ -84,7 +85,7 @@ export const MORE_DROPDOWN_ITEMS: Array<{
   href: string;
 } | null> = [
   { label: 'Settings', href: ROUTES.SETTINGS },
-  { label: 'Subscription', href: ROUTES.CHECKOUT },
+  // { label: 'Subscription', href: ROUTES.CHECKOUT },
   null,
   { label: 'Sign out', href: ROUTES.LOGOUT },
 ];
