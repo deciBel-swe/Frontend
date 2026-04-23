@@ -156,9 +156,7 @@ export const toMessageTrackData = (track: TrackMetaData): TrackData => ({
   repostCount: track.repostCount ?? 0,
 });
 
-const toPlaylistTrackData = (
-  playlist: PlaylistResponse
-): TrackData[] =>
+const toPlaylistTrackData = (playlist: PlaylistResponse): TrackData[] =>
   (playlist.tracks || []).map((track, index) => {
     if ('artist' in track) {
       return {
@@ -169,7 +167,8 @@ const toPlaylistTrackData = (
         artist: {
           username: track.artist.username,
           displayName: track.artist.displayName || track.artist.username,
-          avatar: track.artist.avatarUrl || '/images/default_avatar_image_1.png',
+          avatar:
+            track.artist.avatarUrl || '/images/default_avatar_image_1.png',
         },
         cover: track.coverUrl || '/images/default_song_image_1.png',
         duration: '0:00',
@@ -191,7 +190,8 @@ const toPlaylistTrackData = (
           playlist.owner?.displayName ||
           playlist.owner?.username ||
           'Playlist owner',
-        avatar: playlist.owner?.avatarUrl || '/images/default_avatar_image_1.png',
+        avatar:
+          playlist.owner?.avatarUrl || '/images/default_avatar_image_1.png',
       },
       cover: '/images/default_song_image_1.png',
       duration: formatDuration(track.durationSeconds ?? 0),

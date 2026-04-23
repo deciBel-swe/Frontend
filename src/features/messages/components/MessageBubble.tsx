@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Message } from '@/components/messages/types';
 import MessageList from '@/components/messages/MessageList';
 import { formatLocalTime } from '@/utils/formatTime';
+import { extractUrlsFromMessage } from '@/utils/messageSharing';
 import { buildProfileHref } from '@/utils/socialRoutes';
 
 interface MessageBubbleProps {
@@ -13,12 +14,20 @@ interface MessageBubbleProps {
 }
 
 function parseTextSegments(text: string): string {
-  // Remove tokens that are URLs (start with https:// and length > 8)
-  return text
-    .split(' ')
-    .filter((token) => !(token.startsWith('https://') && token.length > 8))
-    .join(' ')
-    .trim();
+  const urls = extractUrlsFromMessage(text);
+
+  if (urls.length === 0) {
+    return text.trim();
+  }
+
+  let nextText = text;
+
+  urls.forEach((url) => {
+    const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    nextText = nextText.replace(new RegExp(`\\s*${escapedUrl}\\s*`, 'g'), ' ');
+  });
+
+  return nextText.replace(/\s{2,}/g, ' ').trim();
 }
 
 function getInitials(displayName: string): string {

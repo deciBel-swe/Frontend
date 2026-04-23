@@ -27,7 +27,12 @@ function toTrackCardUser(u: User): TrackCardUser {
   };
 }
 
-export default function MessageList({ type, user, track, playlist }: ListProps) {
+export default function MessageList({
+  type,
+  user,
+  track,
+  playlist,
+}: ListProps) {
   if (type === 'track' && track) {
     const trackArtistDisplayName =
       track.artist.displayName || track.artist.username;
