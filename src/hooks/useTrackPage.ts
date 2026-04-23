@@ -5,12 +5,14 @@ import { useAuth } from '@/features/auth';
 import type { PlaybackAccess, PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
+import { useInfiniteScrollSentinel } from '@/features/search/hooks/useInfiniteScrollSentinel';
 import { commentService, trackService } from '@/services';
 import type { Comment as ApiComment, ReplyComment as ApiReplyComment } from '@/types/comments';
 import type { Comment as ViewComment, CommentReply as ViewCommentReply } from '@/components/comments/CommentItem';
 import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
 import type { Fan } from '@/components/track-page/TrackFansPanel';
 import { resolveTrackIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
+import { useRef } from 'react';
 
 type TopLevelApiComment = ApiComment & { timestampSeconds: number };
 
@@ -54,8 +56,12 @@ type UseTrackPageResult = {
   waveformDurationSeconds: number;
   likeCount: number;
   repostCount: number;
+  totalComments: number;
   isLiked: boolean;
   isReposted: boolean;
+  hasMoreComments: boolean;
+  isCommentsPaginating: boolean;
+  commentsSentinelRef: (node: HTMLDivElement | null) => void;
   currentUserAvatar?: string;
   setCommentText: (value: string) => void;
   clearPendingTimestamp: () => void;
@@ -148,6 +154,52 @@ const isTopLevelTrackComment = (comment: ApiComment): comment is TopLevelApiComm
   return typeof comment.timestampSeconds === 'number';
 };
 
+const COMMENTS_PAGE_SIZE = 20;
+
+const deriveHasMoreComments = (meta: {
+  isLast?: boolean;
+  pageNumber?: number;
+  totalPages?: number;
+}): boolean => {
+  if (typeof meta.isLast === 'boolean') {
+    return !meta.isLast;
+  }
+
+  if (
+    typeof meta.pageNumber === 'number' &&
+    typeof meta.totalPages === 'number'
+  ) {
+    return meta.pageNumber + 1 < meta.totalPages;
+  }
+
+  return false;
+};
+
+const mergeUniqueBy = <T,>(
+  previous: T[],
+  incoming: T[],
+  toKey: (value: T) => string
+): T[] => {
+  if (incoming.length === 0) {
+    return previous;
+  }
+
+  const merged = [...previous];
+  const seen = new Set(previous.map(toKey));
+
+  for (const item of incoming) {
+    const key = toKey(item);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    merged.push(item);
+  }
+
+  return merged;
+};
+
 const mapApiCommentToView = (comment: TopLevelApiComment): ViewComment => {
   return {
     id: comment.id,
@@ -212,12 +264,18 @@ export function useTrackPage({
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | number | null>(null);
   const [playerTrack, setPlayerTrack] = useState<PlayerTrack | null>(null);
   const [knownDurationSeconds, setKnownDurationSeconds] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [isCommentsPaginating, setIsCommentsPaginating] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [repostCount, setRepostCount] = useState(0);
   const [isLikePending, setIsLikePending] = useState(false);
   const [isRepostPending, setIsRepostPending] = useState(false);
+  const resolvedTrackIdRef = useRef<number | null>(null);
+  const commentsPageRef = useRef(0);
+  const hasMoreCommentsRef = useRef(false);
 
   const playTrackFromStore = usePlayerStore((state) => state.playTrack);
   const pauseTrackFromStore = usePlayerStore((state) => state.pause);
@@ -230,6 +288,70 @@ export function useTrackPage({
   const playerDuration = usePlayerStore((state) => state.duration);
 
   const currentUserAvatar = explicitCurrentUserAvatar ?? user?.avatarUrl;
+
+  const fetchCommentsPage = useCallback(
+    async (resolvedTrackId: number, pageNumber: number) => {
+      const commentsResponse = await commentService.getTrackComments(resolvedTrackId, {
+        page: pageNumber,
+        size: COMMENTS_PAGE_SIZE,
+      });
+
+      const topLevelComments = (commentsResponse.content ?? []).filter(
+        isTopLevelTrackComment
+      );
+      const repliesByParentId = await Promise.all(
+        topLevelComments.map(async (comment) => {
+          const repliesResponse = await commentService.getCommentReplies(comment.id, {
+            page: 0,
+            size: 100,
+          });
+
+          return {
+            commentId: comment.id,
+            replies: (repliesResponse.content ?? []).map(mapApiReplyToView),
+          };
+        })
+      );
+
+      const repliesByParent = new Map<number, ReturnType<typeof mapApiReplyToView>[]>();
+      for (const entry of repliesByParentId) {
+        repliesByParent.set(entry.commentId, entry.replies);
+      }
+
+      const mappedComments = topLevelComments.map((comment) => {
+        const mapped = mapApiCommentToView(comment);
+        return {
+          ...mapped,
+          replies: repliesByParent.get(comment.id) ?? [],
+        };
+      });
+
+      const timedComments: TimedComment[] = [
+        ...topLevelComments.map(mapApiCommentToWaveform),
+        ...repliesByParentId.flatMap((entry) =>
+          entry.replies.map((reply) => ({
+            id: String(reply.id),
+            timestamp: reply.timestampSeconds,
+            comment: reply.body,
+            user: {
+              name: reply.authorName,
+              avatar: reply.authorAvatar,
+            },
+          }))
+        ),
+      ];
+
+      return {
+        comments: mappedComments,
+        timedComments,
+        pageNumber: commentsResponse.pageNumber,
+        totalPages: commentsResponse.totalPages,
+        totalElements: commentsResponse.totalElements,
+        isLast: commentsResponse.isLast,
+      };
+    },
+    []
+  );
 
   useEffect(() => {
     let isCancelled = false;
@@ -256,13 +378,10 @@ export function useTrackPage({
 
         const resolvedTrackId = resolvedTrackMetadata.id;
 
-        const [trackMetadata, commentsResponse] =
+        const [trackMetadata, initialCommentsPage] =
           await Promise.all([
             Promise.resolve(resolvedTrackMetadata),
-            commentService.getTrackComments(resolvedTrackId, {
-              page: 0,
-              size: 100,
-            }),
+            fetchCommentsPage(resolvedTrackId, 0),
           ]);
 
         if (isCancelled) {
@@ -297,66 +416,34 @@ export function useTrackPage({
           }
         );
 
-        const topLevelComments = (commentsResponse.content ?? []).filter(
-          isTopLevelTrackComment
-        );
-        const repliesByParentId = await Promise.all(
-          topLevelComments.map(async (comment) => {
-            const repliesResponse = await commentService.getCommentReplies(comment.id, {
-              page: 0,
-              size: 100,
-            });
-
-            return {
-              commentId: comment.id,
-              replies: (repliesResponse.content ?? []).map(mapApiReplyToView),
-            };
-          })
-        );
-
-        const repliesByParent = new Map<number, ReturnType<typeof mapApiReplyToView>[]>();
-        for (const entry of repliesByParentId) {
-          repliesByParent.set(entry.commentId, entry.replies);
-        }
-
-        const mappedComments = topLevelComments.map((comment) => {
-          const mapped = mapApiCommentToView(comment);
-          return {
-            ...mapped,
-            replies: repliesByParent.get(comment.id) ?? [],
-          };
-        });
-
-        const flattenedTimedComments: TimedComment[] = [
-          ...topLevelComments.map(mapApiCommentToWaveform),
-          ...repliesByParentId.flatMap((entry) =>
-            entry.replies.map((reply) => ({
-              id: String(reply.id),
-              timestamp: reply.timestampSeconds,
-              comment: reply.body,
-              user: {
-                name: reply.authorName,
-                avatar: reply.authorAvatar,
-              },
-            }))
-          ),
-        ];
-
         const resolvedLikeCount = trackMetadata.likeCount ?? 0;
         const resolvedRepostCount = trackMetadata.repostCount ?? 0;
         const resolvedIsLiked = trackMetadata.isLiked ?? false;
         const resolvedIsReposted = trackMetadata.isReposted ?? false;
+        const resolvedTotalComments = initialCommentsPage.totalElements ?? 0;
+        const nextHasMoreComments = deriveHasMoreComments({
+          isLast: initialCommentsPage.isLast,
+          pageNumber: initialCommentsPage.pageNumber,
+          totalPages: initialCommentsPage.totalPages,
+        });
+
+        resolvedTrackIdRef.current = resolvedTrackId;
+        commentsPageRef.current = initialCommentsPage.pageNumber ?? 0;
+        hasMoreCommentsRef.current = nextHasMoreComments;
 
         setTrack(resolvedTrack);
         setPlayerTrack(resolvedPlayerTrack);
         setKnownDurationSeconds(trackMetadata.durationSeconds ?? 0);
-        setComments(mappedComments);
-        setWaveformComments(flattenedTimedComments);
+        setComments(initialCommentsPage.comments);
+        setWaveformComments(initialCommentsPage.timedComments);
         setFans([]);
         setLikeCount(resolvedLikeCount);
         setRepostCount(resolvedRepostCount);
+        setTotalComments(resolvedTotalComments);
         setIsLiked(resolvedIsLiked);
         setIsReposted(resolvedIsReposted);
+        setHasMoreComments(nextHasMoreComments);
+        setIsCommentsPaginating(false);
       } catch (error) {
         if (!isCancelled) {
           setIsError(true);
@@ -370,10 +457,16 @@ export function useTrackPage({
           setWaveformComments([]);
           setFans([]);
           setPendingTimestamp(null);
+          setTotalComments(0);
+          setHasMoreComments(false);
+          setIsCommentsPaginating(false);
           setLikeCount(0);
           setRepostCount(0);
           setIsLiked(false);
           setIsReposted(false);
+          resolvedTrackIdRef.current = null;
+          commentsPageRef.current = 0;
+          hasMoreCommentsRef.current = false;
         }
       } finally {
         if (!isCancelled) {
@@ -387,7 +480,60 @@ export function useTrackPage({
     return () => {
       isCancelled = true;
     };
-  }, [secretToken, trackId, user, username]);
+  }, [fetchCommentsPage, secretToken, trackId, user, username]);
+
+  const loadNextCommentsPage = useCallback(async () => {
+    const resolvedTrackId = resolvedTrackIdRef.current;
+
+    if (
+      resolvedTrackId === null ||
+      isLoading ||
+      isCommentsPaginating ||
+      !hasMoreCommentsRef.current
+    ) {
+      return;
+    }
+
+    setIsCommentsPaginating(true);
+
+    try {
+      const nextPageNumber = commentsPageRef.current + 1;
+      const nextCommentsPage = await fetchCommentsPage(
+        resolvedTrackId,
+        nextPageNumber
+      );
+      const nextHasMoreComments = deriveHasMoreComments({
+        isLast: nextCommentsPage.isLast,
+        pageNumber: nextCommentsPage.pageNumber,
+        totalPages: nextCommentsPage.totalPages,
+      });
+
+      commentsPageRef.current = nextCommentsPage.pageNumber ?? nextPageNumber;
+      hasMoreCommentsRef.current = nextHasMoreComments;
+
+      setComments((previous) =>
+        mergeUniqueBy(previous, nextCommentsPage.comments, (comment) =>
+          String(comment.id)
+        )
+      );
+      setWaveformComments((previous) =>
+        mergeUniqueBy(previous, nextCommentsPage.timedComments, (comment) => comment.id)
+      );
+      setTotalComments(nextCommentsPage.totalElements ?? totalComments);
+      setHasMoreComments(nextHasMoreComments);
+    } catch {
+      setHasMoreComments(false);
+      hasMoreCommentsRef.current = false;
+    } finally {
+      setIsCommentsPaginating(false);
+    }
+  }, [fetchCommentsPage, isCommentsPaginating, isLoading, totalComments]);
+
+  const { sentinelRef: commentsSentinelRef } = useInfiniteScrollSentinel({
+    hasMore: hasMoreComments,
+    isLoading: isLoading || isCommentsPaginating,
+    onLoadMore: loadNextCommentsPage,
+  });
 
   const isPlaying =
     playerTrack?.id !== undefined &&
@@ -546,6 +692,7 @@ export function useTrackPage({
         if (isTopLevelTrackComment(created)) {
           setComments((prev) => [mapApiCommentToView(created), ...prev]);
           setWaveformComments((prev) => [mapApiCommentToWaveform(created), ...prev]);
+          setTotalComments((count) => count + 1);
         }
         setCommentText('');
         setPendingTimestamp(null);
@@ -652,8 +799,12 @@ export function useTrackPage({
     waveformDurationSeconds,
     likeCount,
     repostCount,
+    totalComments,
     isLiked,
     isReposted,
+    hasMoreComments,
+    isCommentsPaginating,
+    commentsSentinelRef,
     currentUserAvatar,
     setCommentText,
     clearPendingTimestamp: () => {

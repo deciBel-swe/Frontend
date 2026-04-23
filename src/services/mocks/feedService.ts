@@ -222,6 +222,7 @@ export class MockFeedService implements FeedService {
           id: likedTrack.id,
           type: 'TRACK_LIKED',
           resource,
+          likedBy: userSummaryFromId(user.id),
           createdAt: nextDate(),
         });
       }
@@ -264,6 +265,7 @@ export class MockFeedService implements FeedService {
           id: likedPlaylistId,
           type: 'PLAYLIST_LIKED',
           resource,
+          likedBy: userSummaryFromId(user.id),
           createdAt: nextDate(),
         });
       }

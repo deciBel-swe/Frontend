@@ -178,6 +178,12 @@ export const paginatedTracksResponseSchema = z.object({
   isLast: z.boolean(),
 });
 export type PaginatedTracksResponse = z.infer<typeof paginatedTracksResponseSchema>;
+export type PaginatedTrackMetadataResponse = Omit<
+  PaginatedTracksResponse,
+  'content'
+> & {
+  content: TrackMetaData[];
+};
 
 
 /** Schema for PATCH /tracks/:trackId */

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { userService } from '@/services';
 import type { SearchUser } from '@/types/user';
 import type { UserCardData } from '@/features/social/components/UserCard';
@@ -9,6 +10,7 @@ type UseFollowersParams = {
   username: string;
   page?: number;
   size?: number;
+  infinite?: boolean;
 };
 
 const normalizeUsername = (value: string | undefined): string =>
@@ -31,9 +33,11 @@ const toUserCardData = (user: SearchUser, index: number): UserCardData => {
 export function useFollowers({
   username,
   page = 0,
-  size = 48,
+  size = 12,
+  infinite = false,
 }: UseFollowersParams) {
   const profileContext = useProfileOwnerContext();
+  const resolvedUserIdRef = useRef<number | undefined>(undefined);
   const [users, setUsers] = useState<UserCardData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -42,13 +46,88 @@ export function useFollowers({
     normalizeUsername(profileContext?.routeUsername) ===
     normalizeUsername(username);
   const contextUserId = profileContext?.publicUser?.profile.id;
+  const normalizedUsername = username.trim();
+
+  const resolveUserId = useCallback(async () => {
+    if (resolvedUserIdRef.current) {
+      return resolvedUserIdRef.current;
+    }
+
+    if (isManagedByContext && typeof contextUserId === 'number') {
+      resolvedUserIdRef.current = contextUserId;
+      return contextUserId;
+    }
+
+    if (normalizedUsername.length === 0) {
+      return undefined;
+    }
+
+    const publicUser =
+      await userService.getPublicUserByUsername(normalizedUsername);
+    resolvedUserIdRef.current = publicUser.profile.id;
+    return resolvedUserIdRef.current;
+  }, [contextUserId, isManagedByContext, normalizedUsername]);
 
   useEffect(() => {
+    resolvedUserIdRef.current = undefined;
+  }, [contextUserId, isManagedByContext, normalizedUsername]);
+
+  const {
+    items: infiniteUsers,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<UserCardData>({
+    enabled: infinite && normalizedUsername.length > 0,
+    pageSize: size,
+    resetKey: [
+      normalizedUsername,
+      String(size),
+      String(contextUserId ?? ''),
+      String(isManagedByContext),
+    ].join('|'),
+    fetchPage: async (pageNumber, pageSize) => {
+      const resolvedUserId = await resolveUserId();
+
+      if (!resolvedUserId) {
+        return {
+          items: [],
+          pageNumber,
+          totalPages: 0,
+          totalElements: 0,
+          isLast: true,
+        };
+      }
+
+      const response = await userService.getFollowers(resolvedUserId, {
+        page: pageNumber,
+        size: pageSize,
+      });
+
+      return {
+        items: response.content.map(toUserCardData),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    dedupeBy: (user) => user.id,
+    initialErrorMessage: 'Failed to load followers. Please try again later.',
+  });
+
+  useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const loadFollowers = async () => {
-      const normalizedUsername = username.trim();
-
       if (normalizedUsername.length === 0) {
         setUsers([]);
         setIsLoading(false);
@@ -60,16 +139,10 @@ export function useFollowers({
       setIsError(false);
 
       try {
-        let resolvedUserId: number | undefined;
-
-        if (isManagedByContext && typeof contextUserId === 'number') {
-          resolvedUserId = contextUserId;
-        }
-
+        const resolvedUserId = await resolveUserId();
         if (!resolvedUserId) {
-          const publicUser =
-            await userService.getPublicUserByUsername(normalizedUsername);
-          resolvedUserId = publicUser.profile.id;
+          setUsers([]);
+          return;
         }
 
         const response = await userService.getFollowers(resolvedUserId, {
@@ -97,11 +170,15 @@ export function useFollowers({
     return () => {
       isCancelled = true;
     };
-  }, [contextUserId, isManagedByContext, page, size, username]);
+  }, [infinite, normalizedUsername, page, resolveUserId, size]);
 
   return {
-    users,
-    isLoading,
-    isError,
+    users: infinite ? infiniteUsers : users,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

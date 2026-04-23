@@ -17,7 +17,13 @@ import { useSuggestedUsers } from '@/hooks/useSuggestedUsers';
  * and /[username]/following — no new components needed.
  */
 export default function Page() {
-  const { users, isLoading } = useSuggestedUsers({ size: 48 });
+  const {
+    users,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useSuggestedUsers({ size: 18, infinite: false });
 
   return (
     <div className="max-w-295 mx-auto px-6 pt-8 pb-16">
@@ -40,6 +46,9 @@ export default function Page() {
           users={users}
           showFollowButton
           emptyTitle="No suggestions right now. Follow some artists to get started."
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </div>

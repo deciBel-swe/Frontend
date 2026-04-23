@@ -1,5 +1,6 @@
 import type { TrackService } from '@/services/api/trackService';
 import type {
+  PaginatedTrackMetadataResponse,
   paginationRepostUser,
   SecretLink,
   TrackMetaData,
@@ -602,6 +603,13 @@ export class MockTrackService implements TrackService {
   }
 
   async getMyTracks(): Promise<TrackMetaData[]> {
+    const response = await this.getMyTracksPage();
+    return response.content;
+  }
+
+  async getMyTracksPage(
+    params?: PaginationParams
+  ): Promise<PaginatedTrackMetadataResponse> {
     await delay();
     const currentUserId = resolveCurrentMockUserId();
 
@@ -609,7 +617,24 @@ export class MockTrackService implements TrackService {
       (track) => track.artist.id === currentUserId
     );
 
-    return Promise.all(ownTracks.map((track) => toMetadata(track)));
+    const pageNumber = Math.max(0, params?.page ?? 0);
+    const pageSize = Math.max(1, params?.size ?? 20);
+    const start = pageNumber * pageSize;
+    const content = await Promise.all(
+      ownTracks.slice(start, start + pageSize).map((track) => toMetadata(track))
+    );
+    const totalElements = ownTracks.length;
+    const totalPages =
+      totalElements === 0 ? 1 : Math.ceil(totalElements / pageSize);
+
+    return {
+      content,
+      pageNumber,
+      pageSize,
+      totalElements,
+      totalPages,
+      isLast: pageNumber >= totalPages - 1,
+    };
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {
@@ -1024,7 +1049,7 @@ export class MockTrackService implements TrackService {
           .map((trackId) => tracksStore.find((track) => track.id === trackId))
           .filter((track): track is MockTrackRecord => Boolean(track));
 
-        const content = likedTracks.map((track) => ({
+        const allContent = likedTracks.map((track) => ({
           trackDurationSeconds:
             track.durationSeconds ??
             DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id] ??
@@ -1052,13 +1077,21 @@ export class MockTrackService implements TrackService {
           uploadDate: new Date(track.releaseDate),
           waveformUrl: track.waveformUrl,
         }));
+        const pageNumber = Math.max(0, params?.page ?? 0);
+        const pageSize = Math.max(1, params?.size ?? 20);
+        const start = pageNumber * pageSize;
+        const content = allContent.slice(start, start + pageSize);
+        const totalElements = allContent.length;
+        const totalPages =
+          totalElements === 0 ? 1 : Math.ceil(totalElements / pageSize);
+
         resolve({
           content,
-          isLast: true,
-          pageNumber: params?.page ?? 0,
-          pageSize: params?.size ?? content.length,
-          totalElements: content.length,
-          totalPages: 1,
+          isLast: pageNumber >= totalPages - 1,
+          pageNumber,
+          pageSize,
+          totalElements,
+          totalPages,
         });
       }, 1000);
     });

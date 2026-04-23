@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
 import TrackCard from '@/components/tracks/track-card/TrackCard';
 import type {
   PlaybackAccess,
@@ -57,6 +58,9 @@ type TrackListProps = {
   userId?: number;
   username?: string;
   artistAvatar?: string;
+  fetchPage?: number;
+  fetchSize?: number;
+  fetchInfinite?: boolean;
   //prop to control showing CompactTrackList inside each TrackCard
   showTrackList?: boolean;
   //optional external tracks (likes / reposts pages)
@@ -66,11 +70,18 @@ type TrackListProps = {
   // showCommentInput?: boolean;
   currentUserAvatar?: string;
   showHeader?: boolean;
+  isPaginating?: boolean;
+  hasMore?: boolean;
+  sentinelRef?: (node: HTMLDivElement | null) => void;
+  emptyStateText?: string;
 };
 
 export default function TrackList({
   userId,
   username,
+  fetchPage = 0,
+  fetchSize = 10,
+  fetchInfinite = true,
   showTrackList = false,
 
   tracks: externalTracks,
@@ -79,12 +90,32 @@ export default function TrackList({
   // showCommentInput = false,
   currentUserAvatar,
   showHeader = true,
+  isPaginating = false,
+  hasMore = false,
+  sentinelRef,
+  emptyStateText = 'No tracks published yet.',
 }: TrackListProps) {
   const ownerContext = useProfileOwnerContext();
+  const shouldFetchInternally = externalTracks === undefined;
 
   // Only fetch when no external tracks are supplied
-  const { tracks: fetchedTracks, isLoading: fetchLoading, isError } = useUserTracks(
-    externalTracks === undefined ? { userId, username } : { userId: undefined, username: undefined }
+  const {
+    tracks: fetchedTracks,
+    isLoading: fetchLoading,
+    isError,
+    hasMore: fetchedHasMore,
+    isPaginating: fetchedIsPaginating,
+    sentinelRef: fetchedSentinelRef,
+  } = useUserTracks(
+    shouldFetchInternally
+      ? {
+          userId,
+          username,
+          page: fetchPage,
+          size: fetchSize,
+          infinite: fetchInfinite,
+        }
+      : { userId: undefined, username: undefined }
   );
 
   const resolvedShowEditButton =
@@ -92,7 +123,14 @@ export default function TrackList({
       ? ownerContext.isOwner
       : showEditButton;
 
-  const isLoading = externalTracks === undefined ? fetchLoading : externalLoading;
+  const isLoading = shouldFetchInternally ? fetchLoading : externalLoading;
+  const resolvedHasMore = shouldFetchInternally ? fetchedHasMore : hasMore;
+  const resolvedIsPaginating = shouldFetchInternally
+    ? fetchedIsPaginating
+    : isPaginating;
+  const resolvedSentinelRef = shouldFetchInternally
+    ? fetchedSentinelRef
+    : sentinelRef;
 
   // Normalize fetched service DTOs into TrackCard + playback mapping shape.
   const baseItems: TrackListItem[] =
@@ -167,30 +205,31 @@ export default function TrackList({
     [items]
   );
 
-    if (items.length === 0) {
-      return <p className="text-text-muted text-sm">No tracks published yet.</p>;
-    }
+  if (isLoading && items.length === 0) {
+    return (
+      <>
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-surface-default rounded-lg h-40 animate-pulse"
+          />
+        ))}
+      </>
+    );
+  }
 
-    if (isLoading) {
-      return (
-        <>
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-surface-default rounded-lg h-40 animate-pulse"
-            />
-          ))}
-        </>
-      );
-    }
+  if (shouldFetchInternally && isError) {
+    return (
+      <p className="text-text-muted text-sm">
+        Failed to load tracks. Please try again later.
+      </p>
+    );
+  }
 
-    if (externalTracks === undefined && isError) {
-      return (
-        <p className="text-text-muted text-sm">
-          Failed to load tracks. Please try again later.
-        </p>
-      );
-    }
+  if (items.length === 0) {
+    return <p className="text-text-muted text-sm">{emptyStateText}</p>;
+  }
+
   return (
     <>
       {items.map((item) => {
@@ -234,6 +273,21 @@ export default function TrackList({
         />
         );
       })}
+      <InfiniteScrollPagination
+        hasMore={resolvedHasMore}
+        isPaginating={resolvedIsPaginating}
+        sentinelRef={resolvedSentinelRef}
+        loader={
+          <div className="space-y-3 py-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={`track-list-append-${index}`}
+                className="bg-surface-default rounded-lg h-40 animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      />
     </>
   );
 }
