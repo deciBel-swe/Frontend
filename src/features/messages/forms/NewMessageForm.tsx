@@ -2,19 +2,36 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/buttons/Button';
+import MessageListBeforeSend from '@/components/messages/MessageListBeforeSend';
 import { useSuggestedUsers } from '@/hooks/useSuggestedUsers';
+import { useMessageLinkPreview } from '@/features/messages/hooks/useMessageLinkPreview';
 
 interface NewMessageFormProps {
   onClose: () => void;
   onSend?: (to: string, message: string) => Promise<void> | void;
 }
 
-export default function NewMessageForm({ onClose, onSend }: NewMessageFormProps) {
+export default function NewMessageForm({
+  onClose,
+  onSend,
+}: NewMessageFormProps) {
   const [to, setTo] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { users: suggestedUsers } = useSuggestedUsers({ size: 12 });
+  const { previews } = useMessageLinkPreview(message);
+
+  const removePreviewLink = (url: string) => {
+    const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    setMessage((currentMessage) =>
+      currentMessage
+        .replace(new RegExp(`\\s*${escapedUrl}\\s*`, 'g'), ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+    );
+  };
 
   const suggestions = useMemo(
     () =>
@@ -65,8 +82,9 @@ export default function NewMessageForm({ onClose, onSend }: NewMessageFormProps)
       <div className="bg-surface-default rounded-lg w-full max-w-xl mx-4 shadow-xl border border-border-strong">
         {/* Title bar */}
         <div className="flex items-center justify-between px-5 py-4 ">
-          <div className="text-base font-bold text-text-primary">New message</div>
-          
+          <div className="text-base font-bold text-text-primary">
+            New message
+          </div>
         </div>
 
         {/* Form body */}
@@ -114,6 +132,27 @@ export default function NewMessageForm({ onClose, onSend }: NewMessageFormProps)
               placeholder="Write your message. Paste a track or playlist link to share it."
               className="w-full px-3 py-2 text-sm border border-border-default rounded bg-bg-base text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-strong resize-none"
             />
+            {previews.length > 0 ? (
+              <div className="mt-2 max-h-[11rem] overflow-y-auto pr-1">
+                <div className="flex flex-col gap-2">
+                  {previews.map((preview) => (
+                    <MessageListBeforeSend
+                      key={preview.source.resourceKey}
+                      type={preview.type}
+                      track={
+                        preview.type === 'track' ? preview.track : undefined
+                      }
+                      playlist={
+                        preview.type === 'playlist'
+                          ? preview.playlist
+                          : undefined
+                      }
+                      onDelete={() => removePreviewLink(preview.source.url)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
           {error && <p className="text-sm text-status-error">{error}</p>}
         </div>
