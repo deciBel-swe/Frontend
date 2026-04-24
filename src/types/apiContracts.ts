@@ -44,7 +44,7 @@ import {
   addNewEmailRequestSchema,
   followResponseSchema,
   messageResponseSchema,
-  paginatedFeedResponseSchema,
+  paginatedHistoryResponseSchema,
   paginatedFollowersResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
@@ -295,11 +295,11 @@ export const API_CONTRACTS = {
 
   USERS_ME_HISTORY: defineContract<
     void,
-    z.infer<typeof paginatedFeedResponseSchema>
+    z.infer<typeof paginatedHistoryResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_HISTORY,
-    responseSchema: paginatedFeedResponseSchema,
+    responseSchema: paginatedHistoryResponseSchema,
   }),
 
   USERS_ME_REPOSTS: defineContract<

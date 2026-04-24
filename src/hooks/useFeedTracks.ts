@@ -196,11 +196,12 @@ export function useFeedTracks(page = 0, size = 10, infinite = false) {
         if (!isCancelled) {
           setFeedItems(response.content);
         }
-      } catch {
+      } catch(error) {
         if (!isCancelled) {
           setFeedItems([]);
           setIsError(true);
         }
+          console.error('Error fetching feed tracks:', error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
