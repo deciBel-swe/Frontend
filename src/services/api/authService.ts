@@ -52,18 +52,18 @@ export const USER_STORAGE_KEY = 'user';
 export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
 export const AUTH_COOKIE = 'decibel_auth';
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
-  if (typeof window === 'undefined') {
-    return 'DESKTOP';
-  }
+  // if (typeof window === 'undefined') {
+  //   return 'DESKTOP';
+  // }
 
-  const width = window.innerWidth;
-  if (width < 768) {
-    return 'MOBILE';
-  }
-  if (width < 1024) {
-    return 'TABLET';
-  }
-  return 'DESKTOP';
+  // const width = window.innerWidth;
+  // if (width < 768) {
+  //   return 'MOBILE';
+  // }
+  // if (width < 1024) {
+  //   return 'TABLET';
+  // }
+  return 'WEB';
 };
 
 const buildDeviceInfo = (): DeviceInfoDTO => {

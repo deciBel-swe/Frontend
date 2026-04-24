@@ -50,8 +50,8 @@ describe('RealPlaybackService', () => {
     mockedApiRequest.mockResolvedValue({ message: 'Track play recorded successfully' });
 
     await service.playTrack(99, {
-      deviceType: 'MOBILE',
-      fingerPrint: 'fp-mobile',
+      deviceType: 'WEB',
+      fingerPrint: 'fp-WEB',
       deviceName: 'iphone',
     });
 
@@ -59,8 +59,8 @@ describe('RealPlaybackService', () => {
       payload: {
         trackId: 99,
         deviceInfo: {
-          deviceType: 'MOBILE',
-          fingerPrint: 'fp-mobile',
+          deviceType: 'WEB',
+          fingerPrint: 'fp-WEB',
           deviceName: 'iphone',
         },
       },
@@ -78,7 +78,7 @@ describe('RealPlaybackService', () => {
       payload: {
         trackId: 7,
         deviceInfo: expect.objectContaining({
-          deviceType: 'DESKTOP',
+          deviceType: 'WEB',
           fingerPrint: 'jest-agent',
           deviceName: 'jest-agent',
         }),
