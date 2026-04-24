@@ -16,6 +16,7 @@ type TrackCardModalsProps = {
   isPrivate: boolean;
   track: {
     title: string;
+    secretToken?: string;
     artist: {
       username: string;
       displayName?: string;
@@ -169,6 +170,7 @@ export default function TrackCardModals({
         sharePathId={routeTrackId}
         shareUsername={track.artist.username}
         isPrivate={isPrivate}
+        existingToken={track.secretToken}
         track={{
           title: track.title,
           artist: artistDisplayName,

@@ -182,6 +182,17 @@ const resolveTrackSlug = (track: PlaylistTrackDto): string | undefined => {
   return undefined;
 };
 
+const resolveTrackSecretToken = (
+  track: PlaylistTrackDto
+): string | undefined => {
+  if ('secretToken' in track && typeof track.secretToken === 'string') {
+    const normalized = track.secretToken.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  return undefined;
+};
+
 const resolveTrackDurationSeconds = (track: PlaylistTrackDto): number => {
   if ('durationSeconds' in track && typeof track.durationSeconds === 'number') {
     return track.durationSeconds;
@@ -270,6 +281,7 @@ const mapPlaylistTracksToItems = (
         id,
         trackSlug: resolveTrackSlug(track),
         artistUsername: resolveTrackArtistUsername(track),
+        secretToken: resolveTrackSecretToken(track),
         title: resolveTrackTitle(track),
         artist: resolveTrackArtist(track, fallbackArtist),
         coverUrl,
@@ -1086,7 +1098,7 @@ export default function PlaylistPage() {
         sharePathId={playlistPathId}
         shareUsername={ownerUsername}
         isPrivate={playlist.isPrivate? true : false}
-        existingToken={secretToken}
+        existingToken={playlist.secretToken}
         playlist={{
           title: playlist.title,
           owner: ownerDisplayName,

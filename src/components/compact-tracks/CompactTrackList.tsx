@@ -12,6 +12,7 @@ export type Track = {
   id: number;
   trackSlug?: string;
   artistUsername?: string;
+  secretToken?: string;
   title: string;
   artist: string;
   coverUrl: string;

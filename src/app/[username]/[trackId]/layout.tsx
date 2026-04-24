@@ -88,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
             sharePathId={hero.trackSlug?.trim() || trackId}
             shareUsername={hero.artistSlug}
             isPrivate={hero.isPrivate}
-            existingToken={secretToken}
+            existingToken={hero.secretToken}
             track={{
               title: hero.title,
               artist: hero.artistName,

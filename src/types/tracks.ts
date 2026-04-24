@@ -24,47 +24,84 @@ const nullableStringWithDefault = (defaultValue: string) =>
     }
     return value;
   }, z.string());
+
+export const trackAccessSchema = z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']);
 // ================================
 // Track Upload
 // ================================
 
-/** DTO returned by POST /tracks/upload */
-export const uploadTrackResponseSchema = z.object({
-  id: z.number().int().nonnegative(),
-  title: z.string().trim().min(1),
-  trackSlug: z.string().trim().min(1).optional(),
-  trackUrl: z.string().trim().min(1),
-  trackPreviewUrl: z.string().trim().min(1).optional(),
-  coverUrl: trackImageWithDefault,
-  durationSeconds: z.number().int().nonnegative().optional(),
-  access: z.enum(['PLAYABLE', 'BLOCKED', 'PREVIEW']).optional(),
-});
+/** DTO returned by POST /tracks/upload/v2 */
+export const uploadTrackStartResponseSchema = z
+  .object({
+    uploadId: z.string().uuid(),
+    title: z.string().trim().min(1),
+    id: z.number().int().nonnegative(),
+  })
+  .transform(({ id, ...payload }) => ({
+    ...payload,
+    requestId: id,
+  }));
+export type UploadTrackStartResponse = z.infer<
+  typeof uploadTrackStartResponseSchema
+>;
+
+export const trackUploadStateSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .transform((value) => value.toUpperCase());
+export type TrackUploadState = z.infer<typeof trackUploadStateSchema>;
+
+/** DTO returned by the track upload websocket once processing completes */
+export const uploadTrackResponseSchema = z
+  .object({
+    id: z.coerce.number().int().nonnegative(),
+    title: z.string().trim().min(1),
+    artist: z
+      .object({
+        id: z.coerce.number().int().nonnegative().optional(),
+        username: z.string().trim().min(1).optional(),
+        displayName: nullableStringWithDefault('').optional(),
+        avatarUrl: z.string().trim().min(1).optional().nullable(),
+      })
+      .passthrough(),
+    trackUrl: z.string().trim().min(1),
+    trackPreviewUrl: z.string().trim().min(1),
+    coverUrl: trackImageWithDefault,
+    waveformUrl: z.string().trim().min(1),
+    genre: z.string().trim().min(1),
+    isReposted: z.boolean(),
+    isLiked: z.boolean(),
+    tags: z.array(z.string()).optional().default([]),
+    releaseDate: z.string().trim().min(1),
+    playCount: z.coerce.number().int().nonnegative(),
+    likeCount: z.coerce.number().int().nonnegative(),
+    repostCount: z.coerce.number().int().nonnegative(),
+    commentCount: z.coerce.number().int().nonnegative(),
+    isPrivate: z.boolean(),
+    trackDurationSeconds: z.coerce.number().int().nonnegative(),
+    uploadDate: z.string().trim().min(1),
+    description: nullableStringWithDefault(''),
+    secretToken: nullableStringWithDefault('').optional(),
+    access: trackAccessSchema,
+    trackSlug: z.string().trim().min(1),
+  })
+  .transform((payload) => ({
+    ...payload,
+    durationSeconds: payload.trackDurationSeconds,
+  }));
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;
 
-export const uploadTrackSessionStatusSchema = z.enum([
-  'QUEUED',
-  'PROCESSING',
-  'COMPLETED',
-  'FAILED',
-]);
-export type UploadTrackSessionStatus = z.infer<
-  typeof uploadTrackSessionStatusSchema
->;
-
-export const uploadTrackSessionResponseSchema = z.object({
-  uploadSessionId: z.string().trim().min(1),
-  status: uploadTrackSessionStatusSchema,
+export const trackUploadStatusResponseSchema = z.object({
+  trackState: trackUploadStateSchema,
+  trackId: z.coerce.number().int().nonnegative().nullable().optional(),
+  progressPercentage: z.coerce.number().int().min(0).max(100),
+  stepName: z.string().trim().min(1).nullable().optional(),
+  errorMessage: z.string().trim().min(1).nullable().optional(),
+  trackResponse: uploadTrackResponseSchema.nullable(),
 });
-export type UploadTrackSessionResponse = z.infer<
-  typeof uploadTrackSessionResponseSchema
->;
-
-export const uploadTrackAcceptedResponseSchema = z.union([
-  uploadTrackSessionResponseSchema,
-  uploadTrackResponseSchema,
-]);
-export type UploadTrackAcceptedResponse = z.infer<
-  typeof uploadTrackAcceptedResponseSchema
+export type TrackUploadStatusResponse = z.infer<
+  typeof trackUploadStatusResponseSchema
 >;
 
 // ================================
@@ -137,7 +174,7 @@ export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
-  trackSlug: z.string().trim().min(1).optional(),
+  trackSlug: nullableStringWithDefault('if-you-are-seeing-this-please-contact-backend').optional(),
   slug: z.string().trim().min(1).optional(),
   durationSeconds: z.coerce.number().int().nonnegative().optional().nullable(),
   trackDurationSeconds: z.coerce
@@ -167,7 +204,7 @@ export const trackDetailsResponseSchema = z.object({
   commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
   CompletedPlayCount: z.number().int().nonnegative().optional(),
-  secretToken: z.string().optional(),
+  secretToken: nullableStringWithDefault('if-you-are-seeing-this-token-please-contact-backend').optional(),
   trackPreviewUrl: z.string().trim().min(1).optional().nullable(),
   trendingRank: z.number().int().nonnegative().optional(),
   uploadDate: z.string().trim().optional().nullable(),
@@ -339,8 +376,6 @@ export type FullTrackDTO = z.infer<typeof fullTrackSchema>;
 // TrackSummaryDTO
 // ================================
 
-export const trackAccessSchema = z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']);
-
 export const trackSummarySchema = z
   .object({
     id: z.number().int().nonnegative(),
@@ -372,8 +407,8 @@ export type TrackSummaryDTO = z.infer<typeof trackSummarySchema>;
 
 export const trackResourceRefSchema = z
   .object({
-    resourceType: z.literal('TRACK'),
-    resourceId: z.number().int().nonnegative(),
+    type: z.literal('TRACK'),
+    id: z.number().int().nonnegative(),
   })
   .passthrough();
 export type TrackResourceRefDTO = z.infer<typeof trackResourceRefSchema>;

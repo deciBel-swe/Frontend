@@ -18,8 +18,8 @@ export const resolveTrackIdFromIdentifier = async (
 
   try {
     const resolved = await trackService.resolveTrackSlug(normalized);
-    if (resolved.resourceType === 'TRACK' && resolved.resourceId > 0) {
-      return resolved.resourceId;
+    if (resolved.type === 'TRACK' && resolved.id > 0) {
+      return resolved.id;
     }
   } catch {
     // Fall back to numeric id when slug resolution fails.

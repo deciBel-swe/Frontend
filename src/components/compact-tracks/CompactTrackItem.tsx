@@ -264,6 +264,7 @@ export default function CompactTrackItem({
         sharePathId={trackPathId}
         shareUsername={track.artistUsername}
         isPrivate={resolvedIsPrivate}
+        existingToken={track.secretToken}
         track={{
           title: track.title,
           artist: track.artist,

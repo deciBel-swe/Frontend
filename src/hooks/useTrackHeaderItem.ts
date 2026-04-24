@@ -38,6 +38,7 @@ type TrackHeroHeader = {
   artistName: string;
   artistSlug: string;
   trackSlug?: string;
+  secretToken?: string;
   coverUrl: string;
   timeAgo: string;
   tags: string[];
@@ -206,6 +207,7 @@ export function useTrackHeaderItem({
           artistName,
           artistSlug: artistName,
           trackSlug: trackMetadata.trackSlug,
+          secretToken: trackMetadata.secretToken?.trim() || undefined,
           coverUrl: trackMetadata.coverUrl,
           timeAgo: formatTimeAgo(trackMetadata.releaseDate),
           tags: trackMetadata.tags,

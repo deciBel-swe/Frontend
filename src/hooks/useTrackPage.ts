@@ -377,7 +377,6 @@ export function useTrackPage({
             })();
 
         const resolvedTrackId = resolvedTrackMetadata.id;
-
         const [trackMetadata, initialCommentsPage] =
           await Promise.all([
             Promise.resolve(resolvedTrackMetadata),
