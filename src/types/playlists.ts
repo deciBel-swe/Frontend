@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { paginatedResponseSchema } from './pagination';
 import { trackSummarySchema } from './tracks';
-
+import { DEFAULT_PROFILE_AVATAR_IMAGE, DEFAULT_PROFILE_COVER_IMAGE } from './user';
+import { nullableStringWithDefault } from './user';
 // ================================
 // Playlist Create
 // ================================
@@ -159,19 +160,19 @@ export const fullPlaylistSchema = z
     repostCount: z.number().int().nonnegative().optional(),
     description: z.string(),
     isPrivate: z.boolean(),
-    coverArtUrl: z.string().url(),
+    coverArtUrl: nullableStringWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
     totalDurationSeconds: z.number().int().nonnegative(),
     trackCount: z.number().int().nonnegative(),
     owner: z.object({
       id: z.number().int().nonnegative(),
       username: z.string().trim().min(1),
       displayName: z.string().trim().min(1),
-      avatarUrl: z.string().url(),
+      avatarUrl: nullableStringWithDefault(DEFAULT_PROFILE_AVATAR_IMAGE),
       isFollowing: z.boolean(),
       followerCount: z.number().int().nonnegative(),
       trackCount: z.number().int().nonnegative(),
     }),
-    genre: z.string().trim().min(1),
+    genre: z.string().trim().min(1).optional().default('if you are seeing this then something went wrong with backend'),
     createdAt: z.string().trim().min(1),
     tracks: z.array(
       z.object({
@@ -196,12 +197,12 @@ export const fullPlaylistSchema = z
         commentCount: z.number().int().nonnegative(),
         isLiked: z.boolean(),
         isReposted: z.boolean(),
-        secretToken: z.string().trim(),
+        secretToken: z.string().trim().optional().default('if-you-see-this-something-went-wrong'),
         access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']),
       })
-    ),
-    secretToken: z.string().trim(),
-    firstTrackWaveformUrl: z.string().url(),
+    ).optional().default([]),
+    secretToken: z.string().trim().optional().default('if-you-see-this-something-went-wrong'),
+    firstTrackWaveformUrl: z.string().url().nullable().optional(),
     firstTrackWaveformData: z.unknown().optional(),
   })
   .passthrough();
@@ -218,7 +219,7 @@ export const playlistSummarySchema = z
     playlistSlug: z.string().trim().min(1),
     isLiked: z.boolean(),
     isPrivate: z.boolean(),
-    coverArtUrl: z.string().url(),
+    coverArtUrl: nullableStringWithDefault(DEFAULT_PROFILE_COVER_IMAGE),
     trackCount: z.number().int().nonnegative(),
     owner: z.object({
       id: z.number().int().nonnegative(),
@@ -229,7 +230,7 @@ export const playlistSummarySchema = z
       followerCount: z.number().int().nonnegative(),
       trackCount: z.number().int().nonnegative(),
     }),
-    genre: z.string().trim().min(1),
+    genre: z.string().trim().min(1).optional().default('if you are seeing this then something went wrong with backend'),
     tracks: z.array(
       z.object({
         id: z.number().int().nonnegative(),
@@ -306,8 +307,8 @@ export type PaginatedPlaylistTracksResponse = z.infer<
 
 export const playlistResourceRefSchema = z
   .object({
-    resourceType: z.literal('PLAYLIST'),
-    resourceId: z.number().int().nonnegative(),
+    type: z.literal('PLAYLIST'),
+    id: z.number().int().nonnegative(),
   })
   .passthrough();
 export type PlaylistResourceRef = z.infer<typeof playlistResourceRefSchema>;

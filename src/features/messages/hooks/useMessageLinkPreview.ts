@@ -137,7 +137,7 @@ export function useMessageLinkPreview(message: string) {
               }
 
               const playlist = await playlistService.getPlaylist(
-                resolvedPlaylist.resourceId
+                resolvedPlaylist.id
               );
               const nextPlaylist = toMessagePlaylistData(playlist);
               previewCacheRef.current[cacheKey] = {

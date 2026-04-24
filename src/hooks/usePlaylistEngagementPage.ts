@@ -59,11 +59,11 @@ const isTargetEvent = (
   playlistId: number,
   type: EngagementType
 ): boolean => {
-  if (item.resource.resourceType !== 'PLAYLIST') {
+  if (item.resource.type !== 'PLAYLIST') {
     return false;
   }
 
-  if (item.resource.resourceId !== playlistId) {
+  if (item.resource.id !== playlistId) {
     return false;
   }
 

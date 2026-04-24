@@ -169,8 +169,7 @@ const buildResourceForTrack = (
   }
 
   return {
-    resourceType: 'TRACK',
-    resourceId: trackId,
+    type: 'TRACK',
     playlist: null,
     track: {
       ...(summary as unknown as FullTrackDTO),
@@ -216,8 +215,8 @@ const buildResourceForPlaylist = (
   );
 
   return {
-    resourceType: 'PLAYLIST',
-    resourceId: playlistId,
+    type: 'PLAYLIST',
+    id: playlistId,
     playlist: {
       ...(playlistSummary as unknown as FullPlaylistDTO),
       description: '',
@@ -237,8 +236,8 @@ const buildResourceForPlaylist = (
 };
 
 const buildResourceForUser = (userId: number): ResourceRefFullDTO => ({
-  resourceType: 'USER',
-  resourceId: userId,
+  type: 'USER',
+  id: userId,
   playlist: null,
   track: null,
   user: buildUserSummary(userId),
@@ -301,15 +300,15 @@ export class MockDiscoveryService implements DiscoveryService {
       buildResourceForPlaylist(playlist.id, viewerId)
     ).filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
 
-    if (type === 'TRACKS') {
+    if (type === 'TRACK') {
       return paginate(trackResources, params);
     }
 
-    if (type === 'USERS') {
+    if (type === 'USER') {
       return paginate(userResources, params);
     }
 
-    if (type === 'PLAYLISTS') {
+    if (type === 'PLAYLIST') {
       return paginate(playlistResources, params);
     }
 

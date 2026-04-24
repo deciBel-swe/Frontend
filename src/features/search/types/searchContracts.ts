@@ -76,9 +76,9 @@ export interface UseSearchPageDataResult extends SearchPageViewModel {
 
 export const SEARCH_TAB_TO_API_TYPE: Record<SearchUiTab, SearchApiType> = {
   everything: 'ALL',
-  tracks: 'TRACKS',
-  people: 'USERS',
-  playlists: 'PLAYLISTS',
+  tracks: 'TRACK',
+  people: 'USER',
+  playlists: 'PLAYLIST',
 };
 
 export const EMPTY_SEARCH_BUCKETS = (): SearchBuckets => ({

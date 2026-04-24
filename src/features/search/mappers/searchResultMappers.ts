@@ -152,17 +152,17 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
   const userResources: ResourceRefFullDTO[] = [];
 
   for (const resource of resources) {
-    if (resource.resourceType === 'TRACK') {
+    if (resource.type === 'TRACK') {
       trackResources.push(resource);
       continue;
     }
 
-    if (resource.resourceType === 'PLAYLIST') {
+    if (resource.type === 'PLAYLIST') {
       playlistResources.push(resource);
       continue;
     }
 
-    if (resource.resourceType === 'USER') {
+    if (resource.type === 'USER') {
       userResources.push(resource);
     }
   }
@@ -177,7 +177,7 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
 export function mapTrackResourceToTrackCard(
   resource: ResourceRefFullDTO
 ): TrackCardProps | null {
-  if (resource.resourceType !== 'TRACK' || !resource.track) {
+  if (resource.type !== 'TRACK' || !resource.track) {
     return null;
   }
 
@@ -242,7 +242,7 @@ export function mapTrackResourceToTrackCard(
 export function mapPlaylistResourceToPlaylistCard(
   resource: ResourceRefFullDTO
 ): PlaylistHorizontalProps | null {
-  if (resource.resourceType !== 'PLAYLIST' || !resource.playlist) {
+  if (resource.type !== 'PLAYLIST' || !resource.playlist) {
     return null;
   }
 
@@ -293,7 +293,7 @@ export function mapPlaylistResourceToPlaylistCard(
       title: playlist.title,
       cover,
       duration: toDuration(playlist.totalDurationSeconds),
-      waveformUrl: playlist.firstTrackWaveformUrl,
+      waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
       plays: playlist.trackCount,
       genre: playlist.genre,
       isLiked: playlist.isLiked,
@@ -303,7 +303,7 @@ export function mapPlaylistResourceToPlaylistCard(
       createdAt: playlist.createdAt,
     },
     waveform: toWaveform(
-      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData
+      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData ?? undefined
     ),
     playback,
     queueTracks,
@@ -315,7 +315,7 @@ export function mapPlaylistResourceToPlaylistCard(
 export function mapUserResourceToUserCard(
   resource: ResourceRefFullDTO
 ): UserCardData | null {
-  if (resource.resourceType !== 'USER' || !resource.user) {
+  if (resource.type !== 'USER' || !resource.user) {
     return null;
   }
 
@@ -334,15 +334,15 @@ export function mapUserResourceToUserCard(
 export function mapResourceToEverythingOrderItem(
   resource: ResourceRefFullDTO
 ): EverythingOrderItem | null {
-  if (resource.resourceType === 'TRACK') {
+  if (resource.type === 'TRACK') {
     return toEverythingOrderItem('track', String(resource.resourceId));
   }
 
-  if (resource.resourceType === 'PLAYLIST') {
+  if (resource.type === 'PLAYLIST') {
     return toEverythingOrderItem('playlist', String(resource.resourceId));
   }
 
-  if (resource.resourceType === 'USER') {
+  if (resource.type === 'USER') {
     return toEverythingOrderItem('user', String(resource.resourceId));
   }
 

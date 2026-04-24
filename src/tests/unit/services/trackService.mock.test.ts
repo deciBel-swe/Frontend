@@ -138,8 +138,8 @@ describe.skip('MockTrackService', () => {
     const resolved = await resolvePromise;
 
     expect(resolved).toEqual({
-      resourceType: 'TRACK',
-      resourceId: 101,
+      type: 'TRACK',
+      id: 101,
     });
   });
 

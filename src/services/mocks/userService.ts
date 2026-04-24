@@ -410,12 +410,13 @@ const buildTrackResource = (
   }
 
   return {
-    resourceType: 'TRACK',
-    resourceId: trackId,
+    type: 'TRACK',
+    id: trackId,
     track,
     playlist: null,
     user: null,
     repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
   } as ResourceRefFullDTO;
 };
 
@@ -438,12 +439,13 @@ const buildPlaylistResource = (
   }
 
   return {
-    resourceType: 'PLAYLIST',
-    resourceId: playlistId,
+    type: 'PLAYLIST',
+    id: playlistId,
     track: null,
     playlist,
     user: null,
     repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
   } as ResourceRefFullDTO;
 };
 

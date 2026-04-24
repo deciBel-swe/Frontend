@@ -753,8 +753,8 @@ export class MockPlaylistService implements PlaylistService {
     );
 
     return {
-      resourceType: 'PLAYLIST',
-      resourceId: resolved.playlist.id,
+      type: 'PLAYLIST',
+      id: resolved.playlist.id,
     };
   }
 

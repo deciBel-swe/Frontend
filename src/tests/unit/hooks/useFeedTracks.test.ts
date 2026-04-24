@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useFeedTracks } from '@/hooks/useFeedTracks';
 import { feedService } from '@/services';
+import { id } from 'zod/locales';
 
 // Mock the backend service
 jest.mock('@/services', () => ({
@@ -21,8 +22,8 @@ describe('useFeedTracks (Data Transformation)', () => {
           type: 'TRACK_POSTED',
           createdAt: '2025-01-01T00:00:00.000Z',
           resource: {
-            resourceType: 'TRACK',
-            resourceId: 101,
+            type: 'TRACK',
+            id: 101,
             playlist: null,
             user: null,
             track: {
@@ -91,8 +92,8 @@ describe('useFeedTracks (Data Transformation)', () => {
             trackCount: 0,
           },
           resource: {
-            resourceType: 'TRACK',
-            resourceId: 202,
+            type: 'TRACK',
+            id: 202,
             playlist: null,
             user: null,
             track: {

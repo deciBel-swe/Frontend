@@ -454,8 +454,8 @@ describe.skip('low-coverage data hooks', () => {
       mockUserService.getUserReposts.mockResolvedValue({
         content: [
           {
-            resourceType: 'TRACK',
-            resourceId: 11,
+            type: 'TRACK',
+            id: 11,
             track: {
               id: 11,
               title: 'Repost One',
@@ -500,8 +500,8 @@ describe.skip('low-coverage data hooks', () => {
             },
           },
           {
-            resourceType: 'PLAYLIST',
-            resourceId: 22,
+            type: 'PLAYLIST',
+            id: 22,
             track: null,
             user: null,
             playlist: {

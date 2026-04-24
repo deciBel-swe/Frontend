@@ -337,6 +337,7 @@ export function useSearchPageData(
 
         setErrorMessage('Failed to load search results. Please try again.');
         setHasMore(false);
+        console.log('Error fetching search results:', error);
       } finally {
         if (requestId === requestCounterRef.current) {
           inFlightRequestKeyRef.current = null;

@@ -213,8 +213,8 @@ describe('RealPlaylistService', () => {
 
   it('resolves playlist slug via PLAYLISTS_RESOLVE contract', async () => {
     mockedApiRequest.mockResolvedValue({
-      resourceType: 'PLAYLIST',
-      resourceId: 11,
+      type: 'PLAYLIST',
+      id: 11,
     });
 
     await service.resolvePlaylistSlug('late-night-set-11');
