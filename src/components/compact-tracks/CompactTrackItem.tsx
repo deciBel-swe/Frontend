@@ -14,7 +14,6 @@ import { trackService } from '@/services';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 import TrackActions from '@/components/tracks/actions/TrackActions';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
-import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { formatDuration } from '@/utils/formatDuration';
 import { useTrackCardPlayback } from '@/components/tracks/track-card/useTrackCardPlayback';
@@ -101,18 +100,11 @@ export default function CompactTrackItem({
   const { visibility } = useTrackVisibility(track.id);
   const resolvedIsPrivate =
     visibility?.isPrivate ?? track.access === 'PREVIEW';
-  const { secretUrl } = useSecretLink(
-    resolvedIsPrivate ? String(track.id) : undefined,
-    {
-      shareUsername: track.artistUsername ?? track.artist,
-      sharePathId: trackPathId,
-    }
-  );
   const { handleCopy } = useCopyTrackLink({
     trackId: String(track.id),
     routeTrackId: trackPathId,
     isPrivate: resolvedIsPrivate,
-    secretUrl,
+    secretToken: track.secretToken,
     artistName: track.artistUsername ?? track.artist,
     trackTitle: track.title,
   });
@@ -264,6 +256,7 @@ export default function CompactTrackItem({
         sharePathId={trackPathId}
         shareUsername={track.artistUsername}
         isPrivate={resolvedIsPrivate}
+        existingToken={track.secretToken}
         track={{
           title: track.title,
           artist: track.artist,

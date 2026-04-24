@@ -48,6 +48,7 @@ export type TrackListItem = {
     likeCount?: number;
     repostCount?: number;
     isPrivate?: boolean;
+    secretToken: string;
   };
   trackUrl?: string;
   access?: PlaybackAccess;
@@ -171,6 +172,7 @@ export default function TrackList({
           isReposted: track.isReposted,
           likeCount: track.likeCount,
           repostCount: track.repostCount,
+          secretToken: track.secretToken?.trim() || '',
         },
         trackUrl: track.trackUrl,
         access: toPlaybackAccess(track.access),

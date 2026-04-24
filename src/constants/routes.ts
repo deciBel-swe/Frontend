@@ -151,8 +151,8 @@ export const API_ENDPOINTS = {
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
   },
   TRACKS: {
-    UPLOAD: '/tracks/upload',
-    RESOLVE: '/tracks/resolve',
+    UPLOAD: '/tracks/upload/v2',
+    RESOLVE: (trackSlug: string) => `/tracks/resolve/${trackSlug}`,
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
     TOKEN: (token: string) => `/tracks/token/${token}`,
     COVER: (trackId: number) => `/tracks/${trackId}/cover`,

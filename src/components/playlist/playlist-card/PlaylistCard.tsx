@@ -343,6 +343,7 @@ export default function PlaylistHorizontalRoot({
         sharePathId={playlistPathId}
         shareUsername={user.username}
         isPrivate={isPrivate}
+        existingToken={track.secretToken}
         playlist={{
           title: track.title,
           owner: userDisplayName,

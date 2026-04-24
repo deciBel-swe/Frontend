@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/features/auth';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
-import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { useWaveformData } from '@/hooks/useWaveformData';
@@ -58,19 +57,14 @@ export default function TrackCardRoot({
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined, {
-    shareUsername: artistUsername,
-    sharePathId: routeTrackId,
-  });
   const { handleCopy } = useCopyTrackLink({
     trackId,
     routeTrackId,
     isPrivate: resolvedIsPrivate,
-    secretUrl,
+    secretToken: track.secretToken,
     artistName: artistUsername,
     trackTitle: track.title,
   });
-
   const {
     timedComments,
     pendingText,

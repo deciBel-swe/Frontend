@@ -37,14 +37,14 @@ import {
   trackResourceRefSchema,
   trackUpdateResponseSchema,
   updateTrackVisibilityDtoSchema,
-  uploadTrackAcceptedResponseSchema,
+  uploadTrackStartResponseSchema,
   paginatedTracksResponseSchema,
 } from './tracks';
 import {
   addNewEmailRequestSchema,
   followResponseSchema,
   messageResponseSchema,
-  paginatedFeedResponseSchema,
+  paginatedHistoryResponseSchema,
   paginatedFollowersResponseSchema,
   privateSocialLinksSchema,
   resetLoggedInPasswordRequestSchema,
@@ -295,11 +295,11 @@ export const API_CONTRACTS = {
 
   USERS_ME_HISTORY: defineContract<
     void,
-    z.infer<typeof paginatedFeedResponseSchema>
+    z.infer<typeof paginatedHistoryResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_HISTORY,
-    responseSchema: paginatedFeedResponseSchema,
+    responseSchema: paginatedHistoryResponseSchema,
   }),
 
   USERS_ME_REPOSTS: defineContract<
@@ -769,17 +769,18 @@ export const API_CONTRACTS = {
 
   TRACKS_UPLOAD: defineContract<
     FormData,
-    z.infer<typeof uploadTrackAcceptedResponseSchema>
+    z.infer<typeof uploadTrackStartResponseSchema>
   >({
     method: 'POST',
     url: API_ENDPOINTS.TRACKS.UPLOAD,
-    responseSchema: uploadTrackAcceptedResponseSchema,
+    responseSchema: uploadTrackStartResponseSchema,
   }),
-  TRACKS_RESOLVE: defineContract<void, z.infer<typeof trackResourceRefSchema>>({
-    method: 'GET',
-    url: API_ENDPOINTS.TRACKS.RESOLVE,
-    responseSchema: trackResourceRefSchema,
-  }),
+  TRACKS_RESOLVE: (trackSlug: string) =>
+    defineContract<void, z.infer<typeof trackResourceRefSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.TRACKS.RESOLVE(trackSlug),
+      responseSchema: trackResourceRefSchema,
+    }),
   TRACK_LIKE: (trackId: number) =>
     defineContract<void, z.infer<typeof likeResponseSchema>>({
       method: 'POST',

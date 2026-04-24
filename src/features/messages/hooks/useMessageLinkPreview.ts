@@ -95,7 +95,7 @@ export function useMessageLinkPreview(message: string) {
                 const resolvedTrack = await trackService.resolveTrackSlug(
                   parsedTarget.identifier
                 );
-                const cacheKey = `TRACK:${resolvedTrack.resourceId}`;
+                const cacheKey = `TRACK:${resolvedTrack.id}`;
                 const cachedTrack = previewCacheRef.current[cacheKey];
 
                 if (cachedTrack?.type === 'track') {
@@ -107,7 +107,7 @@ export function useMessageLinkPreview(message: string) {
                 }
 
                 const track = await trackService.getTrackMetadata(
-                  resolvedTrack.resourceId
+                  resolvedTrack.id
                 );
                 const nextTrack = toMessageTrackData(track);
                 previewCacheRef.current[cacheKey] = {

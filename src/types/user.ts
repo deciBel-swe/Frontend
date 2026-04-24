@@ -366,10 +366,10 @@ export type PaginatedFollowersResponse = z.infer<
   typeof paginatedFollowersResponseSchema
 >;
 
-export const paginatedFeedResponseSchema = paginationInfoSchema.extend({
+export const paginatedHistoryResponseSchema = paginationInfoSchema.extend({
   content: z.array(listeningHistoryItemSchema),
 });
-export type PaginatedFeedResponse = z.infer<typeof paginatedFeedResponseSchema>;
+export type PaginatedHistoryResponse = z.infer<typeof paginatedHistoryResponseSchema>;
 
 export const paginatedTracksResponseSchema = paginationInfoSchema.extend({
   content: z.array(listeningHistoryItemSchema),
