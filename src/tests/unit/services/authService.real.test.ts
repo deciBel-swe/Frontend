@@ -87,7 +87,7 @@ describe('RealAuthService', () => {
           email: 'service@test.dev',
           password: MOCKED_PASSWORD_HASH,
           deviceInfo: expect.objectContaining({
-            deviceType: 'DESKTOP',
+            deviceType: 'WEB',
             fingerPrint: expect.any(String),
             deviceName: expect.any(String),
           }),
@@ -117,7 +117,7 @@ describe('RealAuthService', () => {
         payload: {
           authTokenDto: 'google-code',
           deviceInfo: expect.objectContaining({
-            deviceType: 'MOBILE',
+            deviceType: 'WEB',
             fingerPrint: expect.any(String),
             deviceName: expect.any(String),
           }),

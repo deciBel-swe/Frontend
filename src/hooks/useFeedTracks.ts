@@ -67,8 +67,8 @@ const toFeedActor = (
 
   return {
     username: actor.username,
-    displayName: actor.displayName,
-    avatar: actor.avatarUrl,
+    displayName: actor.displayName?.trim() || undefined,
+    avatar: actor.avatarUrl?.trim() || undefined,
   };
 };
 
@@ -76,7 +76,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
   const postedText = toPostedText(item);
   const actor = toFeedActor(item);
 
-  if (item.resource.resourceType === 'TRACK') {
+  if (item.resource.type === 'TRACK') {
     const card = mapTrackResourceToTrackCard(item.resource);
     if (!card) {
       return null;
@@ -84,7 +84,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
 
     return {
       kind: 'track',
-      id: `track-${item.id}-${item.resource.resourceId}`,
+      id: `track-${item.id}-${item.resource.id}`,
       card: {
         ...card,
         postedText,
@@ -93,7 +93,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
     };
   }
 
-  if (item.resource.resourceType === 'PLAYLIST') {
+  if (item.resource.type === 'PLAYLIST') {
     const card = mapPlaylistResourceToPlaylistCard(item.resource);
     if (!card) {
       return null;
@@ -104,7 +104,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
 
     return {
       kind: 'playlist',
-      id: `playlist-${item.id}-${item.resource.resourceId}`,
+      id: `playlist-${item.id}-${item.resource.id}`,
       card: {
         ...card,
         postedText,

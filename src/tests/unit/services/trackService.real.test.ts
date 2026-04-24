@@ -81,15 +81,15 @@ describe('RealTrackService', () => {
 
   it('resolves track slugs via TRACKS_RESOLVE contract', async () => {
     mockedApiRequest.mockResolvedValue({
-      resourceType: 'TRACK',
-      resourceId: 77,
+      type: 'TRACK',
+      id: 77,
     });
 
     const resolved = await service.resolveTrackSlug('nocturne-77');
 
     expect(resolved).toEqual({
-      resourceType: 'TRACK',
-      resourceId: 77,
+      type: 'TRACK',
+      id: 77,
     });
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.TRACKS_RESOLVE('nocturne-77'),

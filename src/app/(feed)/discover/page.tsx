@@ -178,7 +178,7 @@ const loadPaginatedWindow = async <T,>(
 const mapTrackResourceToSeed = (
   resource: ResourceRefFullDTO
 ): DiscoverTrackSeed | null => {
-  if (resource.resourceType !== 'TRACK' || !resource.track) {
+  if (resource.type !== 'TRACK' || !resource.track) {
     return null;
   }
 

@@ -179,8 +179,8 @@ export class MockFeedService implements FeedService {
           return null;
         }
         return {
-          resourceType: 'TRACK',
-          resourceId: id,
+          type: 'TRACK',
+          id: id,
           playlist: null,
           track,
           user: null,
@@ -192,8 +192,8 @@ export class MockFeedService implements FeedService {
         return null;
       }
       return {
-        resourceType: 'PLAYLIST',
-        resourceId: id,
+        type: 'PLAYLIST',
+        id: id,
         playlist,
         track: null,
         user: null,

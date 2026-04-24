@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { paginatedResponseSchema } from './pagination';
 import { fullPlaylistSchema } from './playlists';
 import { fullTrackSchema, trackSummarySchema } from './tracks';
-import { userSummarySchema } from './user';
+import { nullableStringWithDefault, userSummarySchema } from './user';
 
 // ================================
 // Resource References
@@ -11,18 +11,20 @@ import { userSummarySchema } from './user';
 export const resourceTypeSchema = z.enum(['TRACK', 'PLAYLIST', 'USER']);
 
 export const resourceRefSchema = z.object({
-  resourceType: resourceTypeSchema,
-  resourceId: z.number().int().nonnegative(),
+  type: resourceTypeSchema,
+  id: z.number().int().nonnegative(),
 });
 export type ResourceRefDTO = z.infer<typeof resourceRefSchema>;
 
 export const resourceRefFullSchema = z
   .object({
-    resourceType: resourceTypeSchema,
-    resourceId: z.number().int().nonnegative(),
+    type: resourceTypeSchema,
+    id: z.number().int().nonnegative().optional(),
     playlist: fullPlaylistSchema.nullable(),
     track: fullTrackSchema.nullable(),
     user: userSummarySchema.nullable(),
+    repostedBy: userSummarySchema.optional().nullable(),
+    repostedAt: nullableStringWithDefault(''),
   })
   .passthrough();
 export type ResourceRefFullDTO = z.infer<typeof resourceRefFullSchema>;
@@ -45,9 +47,9 @@ export const feedItemSchema = z
     id: z.number().int().nonnegative(),
     type: feedItemTypeSchema,
     resource: resourceRefFullSchema,
-    actor: userSummarySchema.optional(),
-    likedBy: userSummarySchema.optional(),
-    repostedBy: userSummarySchema.optional(),
+    actor: userSummarySchema.optional().nullable(),
+    likedBy: userSummarySchema.optional().nullable(),
+    repostedBy: userSummarySchema.optional().nullable(),
     createdAt: z.string().trim().min(1),
   })
   .passthrough();

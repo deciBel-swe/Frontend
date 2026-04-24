@@ -35,19 +35,19 @@ const toQueryParams = (
 };
 
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
-	if (typeof window === 'undefined') {
-		return 'DESKTOP';
-	}
+	// if (typeof window === 'undefined') {
+	// 	return 'DESKTOP';
+	// }
 
-	const width = window.innerWidth;
-	if (width < 768) {
-		return 'MOBILE';
-	}
-	if (width < 1024) {
-		return 'TABLET';
-	}
+	// const width = window.innerWidth;
+	// if (width < 768) {
+	// 	return 'MOBILE';
+	// }
+	// if (width < 1024) {
+	// 	return 'TABLET';
+	// }
 
-	return 'DESKTOP';
+	return 'WEB';
 };
 
 const buildDeviceInfo = (): DeviceInfoDTO => {

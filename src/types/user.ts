@@ -197,9 +197,9 @@ export const userSummarySchema = z
     username: z.string().trim().min(1),
     displayName: z.string().trim().min(1),
     avatarUrl: z.string().url(),
-    isFollowing: z.boolean(),
-    followerCount: z.number().int().nonnegative(),
-    trackCount: z.number().int().nonnegative(),
+    isFollowing: z.boolean().optional().default(false),
+    followerCount: z.number().int().nonnegative().optional().default(99999999999),
+    trackCount: z.number().int().nonnegative().optional().default(99999999999),
   })
   .passthrough();
 export type UserSummaryDTO = z.infer<typeof userSummarySchema>;

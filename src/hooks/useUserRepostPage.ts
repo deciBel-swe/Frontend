@@ -126,7 +126,7 @@ export function useUserRepostPage(
               resource as { repostedBy?: RepostedByShape }
             ).repostedBy;
 
-            if (resource.resourceType === 'TRACK') {
+            if (resource.type === 'TRACK') {
               const trackCard = mapTrackResourceToTrackCard(resource);
               if (!trackCard) {
                 return [];
@@ -135,7 +135,7 @@ export function useUserRepostPage(
               return [
                 {
                   kind: 'track',
-                  id: `track-${resource.resourceId}-${pageNumber}-${index}`,
+                  id: `track-${resource.id}-${pageNumber}-${index}`,
                   card: {
                     ...trackCard,
                     postedText: 'reposted a track',
@@ -145,7 +145,7 @@ export function useUserRepostPage(
               ];
             }
 
-            if (resource.resourceType === 'PLAYLIST') {
+            if (resource.type === 'PLAYLIST') {
               const playlistCard = mapPlaylistResourceToPlaylistCard(resource);
               if (!playlistCard) {
                 return [];
@@ -154,7 +154,7 @@ export function useUserRepostPage(
               return [
                 {
                   kind: 'playlist',
-                  id: `playlist-${resource.resourceId}-${pageNumber}-${index}`,
+                  id: `playlist-${resource.id}-${pageNumber}-${index}`,
                   card: {
                     ...playlistCard,
                     postedText: 'reposted a set',

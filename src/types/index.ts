@@ -37,7 +37,7 @@ const imageWithDefault = (defaultValue: string) =>
 
 /** Device metadata sent to OAuth exchange endpoints. */
 export const deviceInfoDTOSchema = z.object({
-  deviceType: z.enum(['DESKTOP', 'MOBILE', 'TABLET']),
+  deviceType: z.enum(['DESKTOP', 'MOBILE', 'TABLET', 'WEB']),
   fingerPrint: z.string().trim().min(1),
   deviceName: z.string().trim().min(1),
 });
