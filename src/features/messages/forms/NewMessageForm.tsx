@@ -5,6 +5,7 @@ import { Button } from '@/components/buttons/Button';
 import MessageListBeforeSend from '@/components/messages/MessageListBeforeSend';
 import { useSuggestedUsers } from '@/hooks/useSuggestedUsers';
 import { useMessageLinkPreview } from '@/features/messages/hooks/useMessageLinkPreview';
+import { MESSAGE_MAX_LENGTH } from '@/features/messages/constants/messageLimits';
 
 interface NewMessageFormProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ export default function NewMessageForm({
   const [error, setError] = useState<string | null>(null);
   const { users: suggestedUsers } = useSuggestedUsers({ size: 12 });
   const { previews } = useMessageLinkPreview(message);
+  const messageLength = message.length;
 
   const removePreviewLink = (url: string) => {
     const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -127,11 +129,17 @@ export default function NewMessageForm({
             </label>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) =>
+                setMessage(e.target.value.slice(0, MESSAGE_MAX_LENGTH))
+              }
               rows={5}
+              maxLength={MESSAGE_MAX_LENGTH}
               placeholder="Write your message. Paste a track or playlist link to share it."
               className="w-full px-3 py-2 text-sm border border-border-default rounded bg-bg-base text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-strong resize-none"
             />
+            <div className="text-right text-xs text-text-muted">
+              {messageLength}/{MESSAGE_MAX_LENGTH}
+            </div>
             {previews.length > 0 ? (
               <div className="mt-2 max-h-[11rem] overflow-y-auto pr-1">
                 <div className="flex flex-col gap-2">

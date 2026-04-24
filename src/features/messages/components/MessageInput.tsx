@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/buttons/Button';
 import MessageListBeforeSend from '@/components/messages/MessageListBeforeSend';
 import { useMessageLinkPreview } from '@/features/messages/hooks/useMessageLinkPreview';
+import { MESSAGE_MAX_LENGTH } from '@/features/messages/constants/messageLimits';
 
 interface MessageInputProps {
   onSend: (text: string) => void;
@@ -16,6 +17,7 @@ export default function MessageInput({
 }: MessageInputProps) {
   const [text, setText] = useState('');
   const { previews } = useMessageLinkPreview(text);
+  const messageLength = text.length;
 
   const removePreviewLink = (url: string) => {
     const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -50,11 +52,15 @@ export default function MessageInput({
       <textarea
         rows={2}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => setText(e.target.value.slice(0, MESSAGE_MAX_LENGTH))}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        maxLength={MESSAGE_MAX_LENGTH}
         className="w-full px-3 py-2 text-sm border border-border-default rounded bg-interactive-default text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-strong resize-none"
       />
+      <div className="mt-1 text-right text-xs text-text-muted">
+        {messageLength}/{MESSAGE_MAX_LENGTH}
+      </div>
       {previews.length > 0 ? (
         <div className="mt-3 max-h-[11rem] overflow-y-auto pr-1">
           <div className="flex flex-col gap-2">
