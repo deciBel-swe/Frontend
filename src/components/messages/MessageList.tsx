@@ -14,8 +14,9 @@ import TrackCard from '@/components/tracks/track-card/TrackCard';
 import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
 import type { TrackCardUser } from '@/components/tracks/track-card/types';
 import type { ListProps, User } from '@/components/messages/types';
+import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 
-const DEFAULT_COVER = '/images/default_song_image.png';
+const DEFAULT_COVER = '/images/default_song_image_1.png';
 
 // Maps the messaging User shape to TrackCardUser — the two differ only in
 // avatarUrl (messages) vs avatar (TrackCard).
@@ -27,7 +28,12 @@ function toTrackCardUser(u: User): TrackCardUser {
   };
 }
 
-export default function MessageList({ type, user, track, playlist }: ListProps) {
+export default function MessageList({
+  type,
+  user,
+  track,
+  playlist,
+}: ListProps) {
   if (type === 'track' && track) {
     const trackArtistDisplayName =
       track.artist.displayName || track.artist.username;
@@ -40,6 +46,23 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
           avatar: track.artist.avatar,
         };
 
+    const playback = track.trackUrl
+      ? playerTrackMappers.fromAdapterInput(
+          {
+            id: track.id,
+            title: track.title,
+            trackUrl: track.trackUrl,
+            artist: track.artist,
+            durationSeconds: track.durationSeconds,
+            coverUrl: track.coverUrl || track.cover,
+            waveformData: track.waveformData,
+          },
+          {
+            access: track.access === 'BLOCKED' ? 'BLOCKED' : 'PLAYABLE',
+          }
+        )
+      : undefined;
+
     return (
       <div className="w-full overflow-x-auto rounded-lg">
         <div className="min-w-95">
@@ -51,6 +74,9 @@ export default function MessageList({ type, user, track, playlist }: ListProps) 
               waveformUrl: track.waveformUrl,
             }}
             user={cardUser}
+            playback={playback}
+            queueTracks={playback ? [playback] : undefined}
+            queueSource="unknown"
             waveform={[]}
             showHeader={false}
           />

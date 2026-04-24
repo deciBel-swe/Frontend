@@ -78,12 +78,18 @@ export function useBlockedUsers(page = 0, size = 48) {
     }
   }, []);
 
+  const isUserBlocked = useCallback(
+    (userId: number) => users.some((user) => user.id === userId),
+    [users]
+  );
+
   return {
     users,
     isLoading,
     isError,
     pendingIds,
     unblockUser,
+    isUserBlocked,
     refresh,
   };
 }

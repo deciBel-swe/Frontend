@@ -17,6 +17,7 @@ export const notificationTypeSchema = z.enum([
   'REPOST',
   'COMMENT',
   'REPLY',
+  'DM',
 ]);
 
 export const resourceRefSchema = z.object({
@@ -25,24 +26,17 @@ export const resourceRefSchema = z.object({
 });
 
 export const notificationDTOSchema = z.object({
-  id: z.number().int().nonnegative(),
+  id: z.string(),
   type: notificationTypeSchema,
   user: userSummarySchema,
   resource: resourceRefSchema,
   isRead: z.boolean(),
   createdAt: z.string(),
+  targetTitle: z.string().optional(),
+  targetUrl: z.string().optional(),
+  conversationId: z.string().optional(),
 });
 export type NotificationDTO = z.infer<typeof notificationDTOSchema>;
-
-export const notificationsPageSchema = z.object({
-  content: z.array(notificationDTOSchema),
-  pageNumber: z.number().int().nonnegative(),
-  pageSize: z.number().int().positive(),
-  totalElements: z.number().int().nonnegative(),
-  totalPages: z.number().int().nonnegative(),
-  isLast: z.boolean(),
-});
-export type NotificationsPage = z.infer<typeof notificationsPageSchema>;
 
 export const unreadCountResponseSchema = z.object({
   unreadCount: z.number().int().nonnegative(),

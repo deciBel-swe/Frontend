@@ -4,54 +4,36 @@ describe('MockNotificationService', () => {
   let service: MockNotificationService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
     service = new MockNotificationService();
   });
 
-  it('getNotifications returns paginated notification mock data', async () => {
-    const response = await service.getNotifications();
-
-    expect(response.content).toHaveLength(1);
-    expect(response.totalElements).toBe(1);
-    expect(response.content[0].type).toBe('LIKE');
-    expect(response.content[0].user.username).toBe('sara');
-  });
-
-  it('markAllAsRead returns success message', async () => {
-    const response = await service.markAllAsRead();
-
-    expect(response).toEqual({ message: 'All notifications marked as read' });
-  });
-
-  it('getUnreadCount returns hardcoded unread count', async () => {
-    const response = await service.getUnreadCount();
-
-    expect(response).toEqual({ unreadCount: 7 });
-  });
-
-  it('getNotificationSettings returns mock settings configuration', async () => {
-    const response = await service.getNotificationSettings();
-
-    expect(response).toEqual({
-      notifyOnFollow: true,
-      notifyOnLike: true,
-      notifyOnRepost: true,
-      notifyOnComment: true,
-      notifyOnDM: true,
+  it('should subscribe to notifications and receive data', (done) => {
+    service.subscribeToNotifications(1, (notifications) => {
+      expect(notifications).toBeInstanceOf(Array);
+      expect(notifications.length).toBeGreaterThan(0);
+      expect(notifications[0].id).toBe('notif_1');
+      done();
+    }, (error) => {
+      done(error);
     });
   });
 
-  it('updateNotificationSettings echoes back the provided payload', async () => {
-    const payload = {
-      notifyOnFollow: false,
-      notifyOnLike: false,
-      notifyOnRepost: true,
-      notifyOnComment: true,
-      notifyOnDM: false,
-    };
+  it('should mark all as read and update state', async () => {
+    await service.markAllAsRead(1);
 
-    const response = await service.updateNotificationSettings(payload);
+    service.subscribeToNotifications(1, (notifications) => {
+      expect(notifications.every(n => n.isRead)).toBe(true);
+    }, () => {});
+  });
 
-    expect(response).toEqual(payload);
+  it('should accurately calculate unread count (simulated via hook logic elsewhere, but verifying data here)', (done) => {
+    const unsubscribe = service.subscribeToNotifications(1, (notifications) => {
+      const unreadCount = notifications.filter(n => !n.isRead).length;
+      expect(unreadCount).toBe(3);
+      unsubscribe();
+      done();
+    }, (error) => {
+      done(error);
+    });
   });
 });

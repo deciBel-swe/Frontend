@@ -4,10 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Message } from '@/components/messages/types';
 import MessageList from '@/components/messages/MessageList';
-
-function getUserSlug(username: string): string {
-  return username.toLowerCase().replace(/[.\s]+/g, '-');
-}
+import { formatLocalTime } from '@/utils/formatTime';
+import { extractUrlsFromMessage } from '@/utils/messageSharing';
+import { buildProfileHref } from '@/utils/socialRoutes';
 
 interface MessageBubbleProps {
   message: Message;
@@ -15,12 +14,20 @@ interface MessageBubbleProps {
 }
 
 function parseTextSegments(text: string): string {
-  // Remove tokens that are URLs (start with https:// and length > 8)
-  return text
-    .split(' ')
-    .filter((token) => !(token.startsWith('https://') && token.length > 8))
-    .join(' ')
-    .trim();
+  const urls = extractUrlsFromMessage(text);
+
+  if (urls.length === 0) {
+    return text.trim();
+  }
+
+  let nextText = text;
+
+  urls.forEach((url) => {
+    const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    nextText = nextText.replace(new RegExp(`\\s*${escapedUrl}\\s*`, 'g'), ' ');
+  });
+
+  return nextText.replace(/\s{2,}/g, ' ').trim();
 }
 
 function getInitials(displayName: string): string {
@@ -32,9 +39,13 @@ function getInitials(displayName: string): string {
     .toUpperCase();
 }
 
-export default function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
+export default function MessageBubble({
+  message,
+  currentUserId,
+}: MessageBubbleProps) {
   const isMine = message.senderId === currentUserId;
   const initials = getInitials(message.sender.displayName);
+  const messageTime = formatLocalTime(message.createdAt);
 
   // Collect text segments (filtering out raw URL tokens that became cards)
   const hasTrackOrPlaylist = message.content.some(
@@ -74,26 +85,25 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
       {/* Content */}
       <div className="flex flex-col gap-1.5 w-full items-start overflow-hidden">
         {/* Sender name + time */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {isMine ? (
             <span className="text-xs font-semibold text-text-primary">Me</span>
           ) : (
             <Link
-              href={`/${getUserSlug(message.sender.username)}`}
+              href={buildProfileHref(message.sender.username)}
               className="text-xs font-semibold text-text-primary hover:text-text-secondary transition-colors"
             >
               {message.sender.displayName}
             </Link>
           )}
-          <span className="text-xs text-text-muted">{message.createdAt}</span>
+          <span className="text-xs text-text-muted shrink-0 whitespace-nowrap">
+            {messageTime}
+          </span>
         </div>
 
         {/* Text bubble */}
         {textSegments.map((text, i) => (
-          <div
-            key={i}
-            className="text-sm leading-relaxed"
-          >
+          <div key={i} className="text-sm leading-relaxed">
             {text}
           </div>
         ))}
@@ -102,10 +112,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {tracks.map((c, i) =>
           c.track ? (
             <div key={`track-${i}`} className="w-full overflow-hidden">
-              <MessageList
-                type="track"
-                track={c.track}
-              />
+              <MessageList type="track" track={c.track} />
             </div>
           ) : null
         )}

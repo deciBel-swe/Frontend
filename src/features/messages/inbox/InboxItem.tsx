@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import type { InboxItem } from '@/components/messages/types';
+import { formatLocalTime } from '@/utils/formatTime';
 
 interface InboxItemProps {
   item: InboxItem;
@@ -18,8 +19,13 @@ function getInitials(displayName: string): string {
     .toUpperCase();
 }
 
-export default function InboxItemComponent({ item, isActive, onClick }: InboxItemProps) {
+export default function InboxItemComponent({
+  item,
+  isActive,
+  onClick,
+}: InboxItemProps) {
   const initials = getInitials(item.participant.displayName);
+  const lastMessageTime = formatLocalTime(item.lastMessageAt);
 
   return (
     <button
@@ -54,14 +60,20 @@ export default function InboxItemComponent({ item, isActive, onClick }: InboxIte
         <div className="flex items-center justify-between gap-2">
           <span
             className={`text-xs truncate ${
-              item.unreadCount > 0 ? 'font-bold text-text-primary' : 'font-bold text-text-primary'
+              item.unreadCount > 0
+                ? 'font-bold text-text-primary'
+                : 'font-bold text-text-primary'
             }`}
           >
             {item.participant.displayName}
           </span>
-          <span className="text-xs font-medium text-text-muted shrink-0">{item.lastMessageAt}</span>
+          <span className="text-xs font-medium text-text-muted shrink-0 whitespace-nowrap">
+            {lastMessageTime}
+          </span>
         </div>
-        <p className="text-xs font-medium text-text-muted truncate mt-0.5">{item.lastMessagePreview}</p>
+        <p className="text-xs font-medium text-text-muted truncate mt-0.5">
+          {item.lastMessagePreview}
+        </p>
       </div>
     </button>
   );

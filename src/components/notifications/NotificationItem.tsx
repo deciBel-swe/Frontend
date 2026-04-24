@@ -5,6 +5,9 @@ import Image from 'next/image';
 import Link from "next/link";
 import { Notification } from "@/components/notifications/types/notification";
 import FollowButton from '@/components/buttons/FollowButton';
+import TimeAgo from '@/features/tracks/components/TimeAgo';
+import { useUserCardHook } from '@/hooks/useUserCardHook';
+import { buildProfileHref } from '@/utils/socialRoutes';
 
 interface Props {
   notification: Notification;
@@ -23,23 +26,51 @@ function getInitials(displayName: string): string {
 
 export const NotificationItem: React.FC<Props> = ({ notification, hoverable = false }) => {
   const initials = getInitials(notification.actor.username);
+  const actorProfileHref = buildProfileHref(notification.actor.username);
+  const {
+    user: actor,
+    isFollowPending,
+    handleFollowToggle,
+  } = useUserCardHook({
+    user: {
+      id: notification.actor.id,
+      username: notification.actor.username,
+      displayName: notification.actor.displayName,
+      avatarSrc: notification.actor.avatarUrl,
+      followerCount: notification.actor.followerCount ?? 0,
+      isFollowing: notification.actor.isFollowing ?? false,
+    },
+  });
   
   const knownDefaultAvatar = "https://a1.sndcdn.com/images/default_avatar_large.png";
   const shouldShowImage = 
     notification.actor.avatarUrl && 
     notification.actor.avatarUrl !== knownDefaultAvatar;
 
+  const actionLabel =
+    notification.type === "like"
+      ? "liked your track"
+      : notification.type === "repost"
+      ? "reposted your track"
+      : notification.type === "follow"
+      ? "started following you"
+      : notification.type === "comment"
+      ? "commented on your track"
+      : notification.type === "reply"
+      ? "replied to your comment"
+      : "sent you a message";
+
   return (
-    // <li className="flex items-start justify-between gap-3 py-4 border-b border-border-default hover:bg-surface-soft transition-colors">
-      <li className={`
+    <li className={`
       flex items-start justify-between gap-3 py-4 border-b border-border-default transition-colors px-2
+      ${!notification.isRead ? "bg-surface-raised/40" : ""}
       ${hoverable ? "hover:bg-interactive-default cursor-pointer" : ""} 
     `}>
       <div className="flex gap-3 items-start overflow-hidden w-full">
         
         {/* AVATAR COLUMN */}
         <div className="shrink-0 mt-1">
-          <Link href={`/user/${notification.actor.id}`}>
+          <Link href={actorProfileHref}>
             {shouldShowImage ? (
               <Image
                 src={notification.actor.avatarUrl}
@@ -66,12 +97,10 @@ export const NotificationItem: React.FC<Props> = ({ notification, hoverable = fa
           <div className="text-sm leading-tight">
             <p className="text-text-primary">
               <span className="font-bold hover:underline">
-                {notification.actor.username}
+                {actor.displayName || actor.username}
               </span>{" "}
               <span className="text-text-secondary">
-                {notification.type === "like" && "liked your playlist"}
-                {notification.type === "repost" && "reposted your playlist"}
-                {notification.type === "follow" && "started following you"}
+                {actionLabel}
               </span>
               {notification.targetTitle && (
                 <span className="text-text-primary font-medium">
@@ -81,16 +110,19 @@ export const NotificationItem: React.FC<Props> = ({ notification, hoverable = fa
             </p>
           </div>
           
-          <span className="text-[12px] text-text-muted">
-            {notification.createdAt}
-          </span>
+          <TimeAgo date={notification.createdAt} className="text-[12px] text-text-muted" />
         </Link>
       </div>
 
       {/* ACTION COLUMN */}
       <div className="shrink-0 pt-1">
         {notification.type === "follow" && (
-          <FollowButton defaultFollowing={false} size="md"/>
+          <FollowButton
+            size="sm"
+            isFollowing={actor.isFollowing}
+            onToggle={handleFollowToggle}
+            disabled={isFollowPending}
+          />
         )}
       </div>
     </li>

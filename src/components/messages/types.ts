@@ -1,4 +1,8 @@
-import type { TrackCardTrack, TrackCardUser } from '@/components/tracks/track-card/types';
+import type {
+  TrackCardTrack,
+  TrackCardUser,
+} from '@/components/tracks/track-card/types';
+import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 
 export type { TrackCardTrack, TrackCardUser };
 
@@ -13,8 +17,15 @@ export interface User {
 
 // ─── Track ────────────────────────────────────────────────────────────────────
 
-// TrackData extends TrackCardTrack (the single source of truth) with the
-export type TrackData = TrackCardTrack;
+// TrackData extends TrackCardTrack with optional playback metadata used by
+// shared message cards to wire into the global player.
+export type TrackData = TrackCardTrack & {
+  trackUrl?: string;
+  access?: PlaybackAccess;
+  durationSeconds?: number;
+  coverUrl?: string;
+  waveformData?: number[];
+};
 
 // ─── Playlist ─────────────────────────────────────────────────────────────────
 
