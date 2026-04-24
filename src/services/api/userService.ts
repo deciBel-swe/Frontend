@@ -6,7 +6,7 @@ import type {
   AddNewEmailRequest,
   FollowResponse,
   MessageResponse,
-  PaginatedFeedResponse,
+  PaginatedHistoryResponse,
   PaginatedFollowersResponse,
   PaginatedTracksResponse,
   PrivateSocialLinks,
@@ -95,7 +95,7 @@ export interface UserService {
   updateImages(payload: FormData): Promise<UpdateImagesResponse>;
 
   /** Get current user listening history (GET /users/me/history). */
-  getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse>;
+  getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse>;
 
   /** Get suggested users to follow (GET /users/suggested). */
   getSuggestedUsers(size?: number): Promise<UsersSuggestedResponse>;
@@ -261,7 +261,7 @@ export class RealUserService implements UserService {
     });
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse> {
+  async getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_HISTORY, {
       params: toQueryParams(params),
     });

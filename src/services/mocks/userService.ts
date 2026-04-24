@@ -17,7 +17,7 @@ import type {
   AddNewEmailRequest,
   FollowResponse,
   MessageResponse,
-  PaginatedFeedResponse,
+  PaginatedHistoryResponse,
   PaginatedFollowersResponse,
   PaginatedTracksResponse,
   PrivateSocialLinks,
@@ -611,7 +611,7 @@ export class MockUserService implements UserService {
     };
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse> {
+  async getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse> {
     await delay();
     const me = getCurrentUser();
     return paginate(me.history, params);
