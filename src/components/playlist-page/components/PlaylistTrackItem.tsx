@@ -22,6 +22,7 @@ export type PlaylistTrack = {
   isReposted?: boolean;
   likeCount?: number;
   repostCount?: number;
+  secretToken?: string;
 };
 
 export type Playlist = {

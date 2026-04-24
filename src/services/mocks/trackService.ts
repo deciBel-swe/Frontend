@@ -662,8 +662,8 @@ export class MockTrackService implements TrackService {
     }
 
     return {
-      resourceType: 'TRACK',
-      resourceId: track.id,
+      type: 'TRACK',
+      id: track.id,
     };
   }
 

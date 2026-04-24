@@ -190,6 +190,8 @@ export function useLikedTracks(
               isReposted: track.isReposted,
               likeCount: track.likeCount,
               repostCount: track.repostCount,
+              isPrivate: metadata?.isPrivate,
+              secretToken: metadata?.secretToken?.trim() || '',
             },
             trackUrl: metadata?.trackUrl ?? track.trackUrl,
             access: toPlaybackAccess(metadata?.access),

@@ -280,6 +280,7 @@ const buildTrackListItem = (
       isReposted: metadata?.isReposted ?? seed.isReposted,
       likeCount: metadata?.likeCount ?? seed.likeCount,
       repostCount: metadata?.repostCount ?? seed.repostCount,
+      secretToken: metadata?.secretToken ?? ""
     },
     trackUrl: metadata?.trackUrl ?? seed.trackUrl ?? undefined,
     access: toPlaybackAccess(metadata?.access ?? seed.access),

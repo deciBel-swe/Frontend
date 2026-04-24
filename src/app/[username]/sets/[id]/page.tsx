@@ -281,7 +281,7 @@ const mapPlaylistTracksToItems = (
         id,
         trackSlug: resolveTrackSlug(track),
         artistUsername: resolveTrackArtistUsername(track),
-        secretToken: resolveTrackSecretToken(track),
+        secretToken: resolveTrackSecretToken(track)?.trim() || '',
         title: resolveTrackTitle(track),
         artist: resolveTrackArtist(track, fallbackArtist),
         coverUrl,

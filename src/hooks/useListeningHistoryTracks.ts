@@ -110,6 +110,8 @@ export function useListeningHistoryTracks({
               isReposted: metadata?.isReposted,
               likeCount: metadata?.likeCount,
               repostCount: metadata?.repostCount,
+              isPrivate: metadata?.isPrivate,
+              secretToken: metadata?.secretToken ?? ''
             },
             trackUrl: metadata?.trackUrl,
             access: toPlaybackAccess(metadata?.access),

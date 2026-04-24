@@ -269,7 +269,7 @@ export const trackMetadataSchema = z.object({
   repostCount: z.number().int().nonnegative().optional(),
   commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
-  secretToken: z.string().optional(),
+  secretToken: nullableStringWithDefault('if-you-are-seeing-this-then-something-went-very-wrong-with-backend').optional(),
   uploadDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;

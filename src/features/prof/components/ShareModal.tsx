@@ -5,8 +5,6 @@ import Image from 'next/image';
 
 import { CheckIcon, CopyIcon } from '@/components/nav/TrackActionBar';
 import { SocialShareButtons } from '@/components/icons/SocialIcons';
-import { usePlaylistSecretLink } from '@/hooks/usePlaylistSecretLink';
-import { useSecretLink } from '@/hooks/useSecretLink';
 import {
   buildPlaylistSecretUrl,
   buildPlaylistUrl,
@@ -114,34 +112,21 @@ function ProfileShareContent({ profileUrl }: { profileUrl: string }) {
 }
 
 function PrivateTrackShareContent({
-  trackId,
   sharePathId,
   shareUsername,
   existingToken,
 }: {
-  trackId: string;
   sharePathId?: string;
   shareUsername?: string;
   existingToken?: string | null;
 }) {
-  const { secretUrl, secretToken, isLoading, isError, regenerate, isRegenerating } =
-    useSecretLink(existingToken ? undefined : trackId, {
-      shareUsername,
-      sharePathId,
-    });
-  const effectiveToken = existingToken?.trim() || secretToken;
+  const secretToken = existingToken?.trim() || '';
+  console.log('Existing token:', existingToken, 'Trimmed token:', secretToken);
   const effectiveUrl =
-    effectiveToken && shareUsername?.trim() && sharePathId?.trim()
-      ? buildTrackSecretUrl(shareUsername, sharePathId, effectiveToken)
-      : secretUrl;
-
-  if (isLoading && !existingToken) {
-    return (
-      <div className="h-10 w-full animate-pulse rounded bg-surface-raised" />
-    );
-  }
-
-  if (!effectiveUrl || (isError && !existingToken)) {
+    secretToken && shareUsername?.trim() && sharePathId?.trim()
+      ? buildTrackSecretUrl(shareUsername, sharePathId, secretToken)
+      : null;
+  if (!effectiveUrl) {
     return (
       <p className="text-xs text-status-error">Unable to load secret link.</p>
     );
@@ -154,63 +139,26 @@ function PrivateTrackShareContent({
       <p className="text-xs leading-snug text-text-muted">
         This track is private and can only be shared with the link above.
       </p>
-      {!existingToken ? (
-        <div className="flex justify-end pt-1">
-          <button
-            onClick={() => {
-              const confirmed = window.confirm(
-                'Resetting the secret link will invalidate the previous one. Anyone with the old link will lose access. Continue?'
-              );
-              if (confirmed) {
-                void regenerate();
-              }
-            }}
-            disabled={isRegenerating}
-            className="rounded border border-border-default px-3 py-1.5 text-xs font-medium text-text-primary transition-colors duration-150 hover:bg-surface-raised disabled:opacity-40"
-          >
-            {isRegenerating ? 'Resetting...' : 'Reset secret link'}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
 
 function PrivatePlaylistShareContent({
-  playlistId,
   sharePathId,
   shareUsername,
   existingToken,
 }: {
-  playlistId: string;
   sharePathId?: string;
   shareUsername?: string;
   existingToken?: string | null;
 }) {
-  const {
-    secretUrl,
-    secretToken,
-    isLoading,
-    isError,
-    regenerate,
-    isRegenerating,
-  } = usePlaylistSecretLink(existingToken ? undefined : playlistId, {
-    shareUsername,
-    sharePathId,
-  });
-  const effectiveToken = existingToken?.trim() || secretToken;
+  const effectiveToken = existingToken?.trim() || '';
   const effectiveUrl =
     effectiveToken && shareUsername?.trim() && sharePathId?.trim()
       ? buildPlaylistSecretUrl(shareUsername, sharePathId, effectiveToken)
-      : secretUrl;
+      : null;
 
-  if (isLoading && !existingToken) {
-    return (
-      <div className="h-10 w-full animate-pulse rounded bg-surface-raised" />
-    );
-  }
-
-  if (!effectiveUrl || (isError && !existingToken)) {
+  if (!effectiveUrl) {
     return (
       <p className="text-xs text-status-error">Unable to load secret link.</p>
     );
@@ -223,24 +171,6 @@ function PrivatePlaylistShareContent({
       <p className="text-xs leading-snug text-text-muted">
         This playlist is private and can only be opened with the link above.
       </p>
-      {!existingToken ? (
-        <div className="flex justify-end pt-1">
-          <button
-            onClick={() => {
-              const confirmed = window.confirm(
-                'Resetting the secret link will invalidate the previous one. Anyone with the old link will lose access. Continue?'
-              );
-              if (confirmed) {
-                void regenerate();
-              }
-            }}
-            disabled={isRegenerating}
-            className="rounded border border-border-default px-3 py-1.5 text-xs font-medium text-text-primary transition-colors duration-150 hover:bg-surface-raised disabled:opacity-40"
-          >
-            {isRegenerating ? 'Resetting...' : 'Reset secret link'}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -483,7 +413,6 @@ export function ShareModal(props: ShareModalProps) {
       const track = props.track ?? PLACEHOLDER_TRACK;
       shareContent = props.isPrivate ? (
         <PrivateTrackShareContent
-          trackId={props.trackId}
           sharePathId={props.sharePathId}
           shareUsername={props.shareUsername}
           existingToken={props.existingToken}
@@ -500,7 +429,6 @@ export function ShareModal(props: ShareModalProps) {
       const playlist = props.playlist ?? PLACEHOLDER_PLAYLIST;
       shareContent = props.isPrivate ? (
         <PrivatePlaylistShareContent
-          playlistId={props.playlistId}
           sharePathId={props.sharePathId}
           shareUsername={props.shareUsername}
           existingToken={props.existingToken}

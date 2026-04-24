@@ -10,10 +10,6 @@ jest.mock('@/hooks/useCopyTrackLink', () => ({
   useCopyTrackLink: () => ({ handleCopy: jest.fn() }),
 }));
 
-jest.mock('@/hooks/useSecretLink', () => ({
-  useSecretLink: () => ({ secretUrl: '' }),
-}));
-
 jest.mock('@/hooks/useTrackVisibility', () => ({
   useTrackVisibility: () => ({ visibility: { isPrivate: false } }),
 }));
