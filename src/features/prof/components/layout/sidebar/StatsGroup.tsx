@@ -24,7 +24,9 @@ const StatsGroup = ({
       <Link href={`/${username}/following`}>
         <StateItem count={countFollowing} text="Following" />
       </Link>
-      <StateItem count={countTracks} text="Tracks" />
+      <Link href={`/${username}/tracks`}>
+        <StateItem count={countTracks} text="Tracks" />
+      </Link>
     </div>
   );
 };
