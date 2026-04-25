@@ -98,6 +98,30 @@ export default function MessageList({
           avatar: '',
         };
 
+    const queueTracks = (playlist.tracks ?? [])
+      .filter(
+        (track): track is NonNullable<typeof track> & { trackUrl: string } =>
+          typeof track.trackUrl === 'string' && track.trackUrl.trim().length > 0
+      )
+      .map((track) =>
+        playerTrackMappers.fromAdapterInput(
+          {
+            id: track.id,
+            title: track.title,
+            trackUrl: track.trackUrl,
+            artist: track.artist,
+            durationSeconds: track.durationSeconds,
+            coverUrl: track.coverUrl || track.cover,
+            waveformData: track.waveformData,
+          },
+          {
+            access: track.access === 'BLOCKED' ? 'BLOCKED' : 'PLAYABLE',
+          }
+        )
+      );
+
+    const playback = queueTracks[0];
+
     return (
       <div className="w-full overflow-x-auto rounded-lg">
         <div className="min-w-95">
@@ -132,7 +156,13 @@ export default function MessageList({
               plays: String(t.plays ?? 0),
               isLiked: t.isLiked,
               isReposted: t.isReposted,
+              durationSeconds: t.durationSeconds,
+              trackUrl: t.trackUrl,
+              access: t.access,
             }))}
+            playback={playback}
+            queueTracks={queueTracks.length > 0 ? queueTracks : undefined}
+            queueSource="playlist"
             waveform={[]}
             showHeader={false}
           />

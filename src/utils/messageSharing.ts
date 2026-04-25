@@ -176,7 +176,21 @@ const toPlaylistTrackData = (playlist: PlaylistResponse): TrackData[] =>
             track.artist.avatarUrl || '/images/default_avatar_image_1.png',
         },
         cover: track.coverUrl || '/images/default_song_image_1.png',
-        duration: '0:00',
+        coverUrl: track.coverUrl,
+        duration:
+          typeof track.durationSeconds === 'number'
+            ? formatDuration(track.durationSeconds)
+            : '0:00',
+        durationSeconds:
+          typeof track.durationSeconds === 'number'
+            ? track.durationSeconds
+            : undefined,
+        trackUrl:
+          typeof track.trackUrl === 'string' ? track.trackUrl : undefined,
+        access: track.access === 'BLOCKED' ? 'BLOCKED' : 'PLAYABLE',
+        waveformData: Array.isArray(track.waveformData)
+          ? track.waveformData
+          : undefined,
         plays: track.playCount ?? 0,
         comments: track.commentCount,
         isLiked: track.isLiked,
@@ -200,6 +214,11 @@ const toPlaylistTrackData = (playlist: PlaylistResponse): TrackData[] =>
       },
       cover: '/images/default_song_image_1.png',
       duration: formatDuration(track.durationSeconds ?? 0),
+      durationSeconds:
+        typeof track.durationSeconds === 'number'
+          ? track.durationSeconds
+          : undefined,
+      trackUrl: typeof track.trackUrl === 'string' ? track.trackUrl : undefined,
       plays: 0,
       likeCount: 0,
       repostCount: 0,
