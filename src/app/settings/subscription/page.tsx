@@ -216,10 +216,12 @@ export default function SubscriptionPage() {
                         : 'Auto renew'
                     }
                   />
-                  <SettingsRow
-                    label="Next renewal"
-                    value={toDateLabel(subscriptionStatus.currentPeriodEnd)}
-                  />
+                  {subscriptionStatus.currentPeriodEnd !== null && (
+                    <SettingsRow
+                      label="Next renewal"
+                      value={toDateLabel(subscriptionStatus.currentPeriodEnd)}
+                    />
+                  )}
                   <div className="py-4">
                     <SubscriptionActions
                       onCancel={() => {
