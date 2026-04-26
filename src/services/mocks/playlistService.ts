@@ -419,7 +419,7 @@ export class MockPlaylistService implements PlaylistService {
     await delay();
 
     const viewerId = resolveCurrentMockUserId();
-    const owner = getMockUsersStore().find((user) => user.id === userId);
+    const owner = getMockUsersStore().find((user) => user.username === username);
 
     if (!owner) {
       throw new Error('User not found');

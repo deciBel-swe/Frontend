@@ -310,7 +310,7 @@ describe.skip('MockPlaylistService', () => {
     expect(Array.isArray(myPlaylists.content)).toBe(true);
     expect(myPlaylists.pageSize).toBe(5);
 
-    const userPlaylistsPromise = service.getUserPlaylists(1, {
+    const userPlaylistsPromise = service.getUserPlaylists('mockartist', {
       page: 0,
       size: 5,
     });

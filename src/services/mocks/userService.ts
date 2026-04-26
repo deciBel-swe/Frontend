@@ -651,11 +651,14 @@ export class MockUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     await delay();
-    const user = findUser(userId);
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     if (!params) {
       return [...user.playlists];
     }
