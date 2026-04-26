@@ -12,6 +12,7 @@ import { authService } from '@/services';
 interface EmailSentConfirmationProps {
   email: string;
   onBackToRegister?: () => void;
+  variant?: 'verification' | 'password-reset';
 }
 
 /**
@@ -40,6 +41,7 @@ interface EmailSentConfirmationProps {
 const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
   email,
   onBackToRegister,
+  variant = 'verification',
 }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -47,11 +49,18 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
     setLoading(true);
     setMessage('');
     try {
-      const result = await authService.resendVerification(email);
+      const result =
+        variant === 'password-reset'
+          ? await authService.forgotPassword(email)
+          : await authService.resendVerification(email);
       setMessage(result.message);
     } catch (err) {
       console.error(err);
-      setMessage('Failed to send verification email');
+      setMessage(
+        variant === 'password-reset'
+          ? 'Failed to send reset email'
+          : 'Failed to send verification email'
+      );
     } finally {
       setLoading(false);
     }
@@ -69,7 +78,9 @@ const EmailSentConfirmation: React.FC<EmailSentConfirmationProps> = ({
           Check your inbox!
         </h1>
         <p className="mt-3 text-sm text-text-muted">
-          Click on the link we sent to{' '}
+          {variant === 'password-reset'
+            ? 'Click the password reset link we sent to '
+            : 'Click on the link we sent to '}
           <span className="font-semibold text-text-primary">{email}</span>
         </p>
 

@@ -201,6 +201,16 @@ export const API_CONTRACTS = {
       coolDown: z.number().int().nonnegative().optional().nullable(),
     }),
   }),
+  FORGOT_PASSWORD: defineContract({
+    method: 'POST',
+    url: API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
+    requestSchema: z.object({
+      email: z.string().trim().email(),
+    }),
+    responseSchema: z.object({
+      message: z.string().trim().min(1),
+    }),
+  }),
   USERS_ME: defineContract({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME,

@@ -348,23 +348,28 @@ export const apiRequest = async <TRequest, TResponse>(
       )
     : requestOptions.payload;
 
-  const response = await apiClient.request({
-    method: endpoint.method,
-    url: endpoint.url,
-    data: validatedPayload,
-    params: requestOptions.params,
-    signal: requestOptions.signal,
-    headers: requestOptions.headers,
-    onUploadProgress: requestOptions.onUploadProgress,
-  });
-  const responsePayload =
-    response.status === 204 || response.data === '' ? undefined : response.data;
+  try {
+    const response = await apiClient.request({
+      method: endpoint.method,
+      url: endpoint.url,
+      data: validatedPayload,
+      params: requestOptions.params,
+      signal: requestOptions.signal,
+      headers: requestOptions.headers,
+      onUploadProgress: requestOptions.onUploadProgress,
+    });
+    const responsePayload =
+      response.status === 204 || response.data === '' ? undefined : response.data;
 
-  return parseWithSchema(
-    endpoint.responseSchema,
-    responsePayload,
-    `Invalid response DTO from ${endpoint.url}`
-  );
+    return parseWithSchema(
+      endpoint.responseSchema,
+      responsePayload,
+      `Invalid response DTO from ${endpoint.url}`
+    );
+  } catch (error) {
+    const normalizedError = normalizeApiError(error);
+    throw new Error(normalizedError.message);
+  }
 };
 
 /**

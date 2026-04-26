@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { authService } from '@/services';
 import ContinueButton from '../ContinueButton';
 import EmailSentConfirmation from './EmailSentConfirmation';
 import FloatingInputField from '../FormFields/FloatingInputField';
@@ -23,7 +24,7 @@ import {
  */
 interface ResetPasswordFormProps {
   email?: string;
-  onSend?: (email: string) => void;
+  onSend?: (email: string) => Promise<void> | void;
 }
 
 type ResetPasswordFormValues = Pick<SignInFormValues, 'email'>;
@@ -54,18 +55,21 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
   const [fieldErrors, setFieldErrors] = useState<
     FieldErrors<ResetPasswordFormValues>
   >({});
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const isFormComplete = resetPasswordSchema.safeParse(formValues).success;
   const { getRecaptchaToken } = useReCaptcha();
 
   const updateEmail = (value: string) => {
     setFormValues({ email: value });
+    setSubmitError('');
     setFieldErrors((previous) =>
       previous.email ? { ...previous, email: undefined } : previous
     );
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const parsedValues = resetPasswordSchema.safeParse(formValues);
@@ -73,18 +77,39 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
       setFieldErrors(getSchemaFieldErrors(parsedValues.error));
       return;
     }
-    getRecaptchaToken('reset_password').then((recaptchaResult) => {
+
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const recaptchaResult = await getRecaptchaToken('reset_password');
       if (!recaptchaResult.success) {
         setFieldErrors({
           email:
             recaptchaResult.error ||
             'ReCaptcha verification failed. Please try again.',
         });
+        return;
       }
+
       setFieldErrors({});
-      onSend?.(parsedValues.data.email);
+
+      if (onSend) {
+        await onSend(parsedValues.data.email);
+      } else {
+        await authService.forgotPassword(parsedValues.data.email);
+      }
+
       setShowConfirmation(true);
-    });
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'We could not send a reset link right now. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -116,8 +141,10 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
               to reset your password.
             </p>
 
-            <ContinueButton type="submit" disabled={!isFormComplete}>
-              Send reset link
+            {submitError ? <p className="text-red-400 text-xs">{submitError}</p> : null}
+
+            <ContinueButton type="submit" disabled={!isFormComplete || isSubmitting}>
+              {isSubmitting ? 'Sending...' : 'Send reset link'}
             </ContinueButton>
           </form>
         </div>
@@ -127,6 +154,7 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = ({
         <EmailSentConfirmation
           email={formValues.email}
           onBackToRegister={() => setShowConfirmation(false)}
+          variant="password-reset"
         />
       )}
     </div>
