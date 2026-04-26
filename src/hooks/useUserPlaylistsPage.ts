@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import { mapProfilePlaylistToCard } from '@/features/playlists/mappers/profilePlaylistCardMapper';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
