@@ -85,7 +85,13 @@ export const EmbedTabContent: FC<EmbedTabContentProps> = ({
         onToggleShowOverlays={toggleShowOverlays}
       />
 
-      <EmbedPreview config={config} />
+      <EmbedPreview
+        config={config}
+        title={title}
+        artist={artist}
+        coverUrl={coverUrl}
+        duration={duration}
+      />
     </div>
   );
 };
