@@ -25,7 +25,7 @@ import type {
 } from '@/types/user';
 // import { paginatedPlaylistResponse } from '@/types/playlist';
 import type { PaginatedPlaylistsResponse } from '@/types/playlists';
-import type { PaginatedSearchResponseDTO } from '@/types/discovery';
+import type { PaginatedRepostResponseDTO } from '@/types/discovery';
 
 export interface PaginationParams {
   page?: number;
@@ -113,13 +113,13 @@ export interface UserService {
   ): Promise<UserPlaylistsResponse>;
 
   /** Get current user's repost resources (GET /users/me/repost). */
-  getMyReposts(params?: PaginationParams): Promise<PaginatedSearchResponseDTO>;
+  getMyReposts(params?: PaginationParams): Promise<PaginatedRepostResponseDTO>;
 
-  /** Get a specific user's repost resources (GET /users/{userId}/repost). */
+  /** Get a specific user's repost resources (GET /users/repost/{username}). */
   getUserReposts(
-    userId: number,
+    username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO>;
+  ): Promise<PaginatedRepostResponseDTO>;
 
   /** Get current user's playlists (GET /users/me/playlists). */
   getMePlaylists(params?: PaginationParams): Promise<UserPlaylistsResponse>;
@@ -250,9 +250,7 @@ export class RealUserService implements UserService {
     });
   }
 
-  async updateImages(
-    payload: FormData
-  ): Promise<UpdateImagesResponse> {
+  async updateImages(payload: FormData): Promise<UpdateImagesResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_IMAGES_UPDATE, {
       payload,
       headers: {
@@ -261,7 +259,9 @@ export class RealUserService implements UserService {
     });
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse> {
+  async getHistory(
+    params?: PaginationParams
+  ): Promise<PaginatedHistoryResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_HISTORY, {
       params: toQueryParams(params),
     });
@@ -293,17 +293,17 @@ export class RealUserService implements UserService {
 
   async getMyReposts(
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     return apiRequest(API_CONTRACTS.USERS_ME_REPOSTS, {
       params: toQueryParams(params),
     });
   }
 
   async getUserReposts(
-    userId: number,
+    username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
-    return apiRequest(API_CONTRACTS.USERS_REPOSTS(userId), {
+  ): Promise<PaginatedRepostResponseDTO> {
+    return apiRequest(API_CONTRACTS.USERS_REPOSTS(username), {
       params: toQueryParams(params),
     });
   }
@@ -358,8 +358,7 @@ export class RealUserService implements UserService {
   async unblockUser(userId: number): Promise<MessageResponse> {
     try {
       await apiRequest(API_CONTRACTS.USERS_UNBLOCK(userId));
-    }
-    catch (error) { 
+    } catch (error) {
       console.error(`Failed to unblock user with ID ${userId}:`, error);
     }
     return { message: 'User unblocked' };

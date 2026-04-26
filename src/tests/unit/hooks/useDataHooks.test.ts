@@ -64,7 +64,9 @@ const mockNormalizeApiError = normalizeApiError as jest.Mock;
 
 const mockUserService = userService as jest.Mocked<typeof userService>;
 const mockTrackService = trackService as jest.Mocked<typeof trackService>;
-const mockPlaybackService = playbackService as jest.Mocked<typeof playbackService>;
+const mockPlaybackService = playbackService as jest.Mocked<
+  typeof playbackService
+>;
 
 describe.skip('low-coverage data hooks', () => {
   beforeEach(() => {
@@ -248,7 +250,9 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('sets error state when fetch fails', async () => {
-      mockUserService.getPublicUserByUsername.mockRejectedValue(new Error('boom'));
+      mockUserService.getPublicUserByUsername.mockRejectedValue(
+        new Error('boom')
+      );
 
       const { result } = renderHook(() =>
         useFollowing({ username: 'remote-user', page: 0, size: 4 })
@@ -265,7 +269,12 @@ describe.skip('low-coverage data hooks', () => {
     it('loads users who liked the track', async () => {
       mockUserService.getUsersWhoLikedTrack.mockResolvedValue({
         content: [
-          { id: 1, username: 'fan-a', avatarUrl: '/fan-a.png', isFollowing: true },
+          {
+            id: 1,
+            username: 'fan-a',
+            avatarUrl: '/fan-a.png',
+            isFollowing: true,
+          },
         ],
       } as any);
 
@@ -284,13 +293,20 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('falls back to repost users endpoint when repost API fails', async () => {
-      mockUserService.getUsersWhoRepostedTrack.mockRejectedValue(new Error('no list'));
+      mockUserService.getUsersWhoRepostedTrack.mockRejectedValue(
+        new Error('no list')
+      );
       mockTrackService.getRepostUsers.mockResolvedValue({
         content: [{ id: 2, displayName: 'Reposter', avatarUrl: '/r.png' }],
       } as any);
 
       const { result } = renderHook(() =>
-        useTrackEngagementPage({ trackId: '13', type: 'reposts', page: 1, size: 5 })
+        useTrackEngagementPage({
+          trackId: '13',
+          type: 'reposts',
+          page: 1,
+          size: 5,
+        })
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -358,7 +374,9 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('sets error state when history call fails', async () => {
-      mockPlaybackService.getListeningHistory.mockRejectedValue(new Error('down'));
+      mockPlaybackService.getListeningHistory.mockRejectedValue(
+        new Error('down')
+      );
 
       const { result } = renderHook(() => useListeningHistoryTracks());
 
@@ -447,10 +465,6 @@ describe.skip('low-coverage data hooks', () => {
 
   describe('useUserRepostPage', () => {
     it('loads and maps mixed repost resources', async () => {
-      mockUserService.getPublicUserByUsername.mockResolvedValue({
-        profile: { id: 99 },
-      } as any);
-
       mockUserService.getUserReposts.mockResolvedValue({
         content: [
           {
@@ -571,10 +585,13 @@ describe.skip('low-coverage data hooks', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(mockUserService.getPublicUserByUsername).not.toHaveBeenCalled();
-      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(77, {
-        page: 0,
-        size: 100,
-      });
+      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(
+        'owner-user',
+        {
+          page: 0,
+          size: 100,
+        }
+      );
       expect(result.current.items).toHaveLength(2);
       expect(result.current.items[0]).toMatchObject({
         kind: 'track',
@@ -609,10 +626,119 @@ describe.skip('low-coverage data hooks', () => {
       expect(result.current.isError).toBe(false);
     });
 
-    it('sets error state when fetching reposts fails', async () => {
-      mockUserService.getPublicUserByUsername.mockResolvedValue({
-        profile: { id: 77 },
+    it('normalizes flat repost payloads into cards', async () => {
+      mockUserService.getUserReposts.mockResolvedValue({
+        content: [
+          {
+            id: 128,
+            title: '(short) Yippee sound effect!!',
+            trackSlug: '-short-yippee-sound-effect-',
+            artist: {
+              id: 67,
+              username: 'omar2710',
+              displayName: 'omar2710',
+              avatarUrl:
+                'https://decibelblob.blob.core.windows.net/uploads/avatars/223b2574-52c0-4a4b-8d44-e3a67378b132_•_𝘍𝘳𝘪𝘦𝘳𝘦𝘯_(1).jfif',
+            },
+            trackUrl:
+              'https://decibelblob.blob.core.windows.net/uploads/audio/327a5b76-7839-4fd7-b38c-f3f0e73e4e84_(short)_Yippee_sound_effect!!.mp3',
+            trackPreviewUrl: null,
+            coverUrl: null,
+            waveformUrl:
+              'https://decibelblob.blob.core.windows.net/uploads/waveform-data/4cda4b37-bfd0-423a-81a3-4e3b73f365c8_(short)_Yippee_sound_effect!!.json',
+            genre: 'Electronic',
+            isReposted: true,
+            isLiked: false,
+            tags: ['Chill', 'Ambient'],
+            releaseDate: '2026-04-26',
+            playCount: 1,
+            CompletedPlayCount: 1,
+            likeCount: 1,
+            repostCount: 2,
+            commentCount: 7,
+            isPrivate: false,
+            trackDurationSeconds: 2,
+            uploadDate: '2026-04-26',
+            description: '1231313',
+            secretToken: 'c123b047-af96-45b0-b905-8b86f9c9eaab',
+            access: 'PLAYABLE',
+            repostedBy: {
+              username: 'owner-user',
+              displayName: 'Owner User',
+              avatarUrl: '/owner.png',
+            },
+          },
+          {
+            id: 201,
+            title: 'Flat Playlist Repost',
+            playlistSlug: 'flat-playlist-repost',
+            isLiked: false,
+            isReposted: true,
+            description: '',
+            isPrivate: false,
+            coverArtUrl: 'https://playlist-cover.png',
+            totalDurationSeconds: 140,
+            trackCount: 1,
+            owner: {
+              id: 9,
+              username: 'playlist-owner',
+              displayName: 'Playlist Owner',
+              avatarUrl: 'https://playlist-owner.png',
+              isFollowing: false,
+              followerCount: 3,
+              trackCount: 1,
+            },
+            genre: 'house',
+            createdAt: '2025-01-01T00:00:00.000Z',
+            tracks: [],
+            secretToken: 'playlist-token',
+            repostedBy: {
+              username: 'owner-user',
+              displayName: 'Owner User',
+              avatarUrl: '/owner.png',
+            },
+          },
+        ],
       } as any);
+
+      const { result } = renderHook(() => useUserRepostPage('owner-user'));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(2);
+      expect(result.current.items[0]).toMatchObject({
+        kind: 'track',
+        card: {
+          postedText: 'reposted a track',
+          repostedBy: {
+            username: 'owner-user',
+            displayName: 'Owner User',
+            avatar: '/owner.png',
+          },
+          track: {
+            id: 128,
+            title: '(short) Yippee sound effect!!',
+          },
+        },
+      });
+      expect(result.current.items[1]).toMatchObject({
+        kind: 'playlist',
+        card: {
+          postedText: 'reposted a set',
+          repostedBy: {
+            username: 'owner-user',
+            displayName: 'Owner User',
+            avatar: '/owner.png',
+          },
+          track: {
+            id: 201,
+            title: 'Flat Playlist Repost',
+          },
+        },
+      });
+    });
+
+    it('sets error state when fetching reposts fails', async () => {
       mockUserService.getUserReposts.mockRejectedValue(new Error('bad'));
 
       const { result } = renderHook(() => useUserRepostPage('owner-user'));
@@ -721,7 +847,9 @@ describe.skip('low-coverage data hooks', () => {
 
     it('fetches profile and normalizes errors when request fails', async () => {
       mockUseProfileOwnerContext.mockReturnValue({ routeUsername: 'other' });
-      mockUserService.getPublicUserByUsername.mockRejectedValue(new Error('no user'));
+      mockUserService.getPublicUserByUsername.mockRejectedValue(
+        new Error('no user')
+      );
       mockNormalizeApiError.mockReturnValue({
         statusCode: 404,
         message: 'Not found',

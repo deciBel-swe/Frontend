@@ -11,15 +11,29 @@ import {
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { userService } from '@/services';
-
-const normalizeIdentity = (value: string | undefined): string =>
-  (value ?? '').trim().toLowerCase();
+import type { ResourceRefFullDTO } from '@/types/discovery';
+import type { FullPlaylistDTO } from '@/types/playlists';
+import type { FullTrackDTO } from '@/types/tracks';
 
 type RepostedByShape = {
   username?: string;
   displayName?: string;
   avatarUrl?: string;
 };
+
+type RepostMetadataShape = {
+  repostedBy?: RepostedByShape | null;
+  repostedAt?: string | null;
+};
+
+type FlatTrackRepostDTO = FullTrackDTO & RepostMetadataShape;
+
+type FlatPlaylistRepostDTO = FullPlaylistDTO & RepostMetadataShape;
+
+type RepostResourceDTO =
+  | ResourceRefFullDTO
+  | FlatTrackRepostDTO
+  | FlatPlaylistRepostDTO;
 
 export type UserRepostPageItem =
   | {
@@ -56,6 +70,60 @@ const toRepostedBy = (
   };
 };
 
+const normalizeRepostResource = (
+  resource: RepostResourceDTO
+): ResourceRefFullDTO | null => {
+  if ('type' in resource) {
+    if (resource.type === 'TRACK' && resource.track) {
+      return resource as ResourceRefFullDTO;
+    }
+
+    if (resource.type === 'PLAYLIST' && resource.playlist) {
+      return resource as ResourceRefFullDTO;
+    }
+
+    return null;
+  }
+
+  if ('trackSlug' in resource) {
+    return {
+      type: 'TRACK',
+      id: resource.id,
+      track: resource as FullTrackDTO,
+      playlist: null,
+      user: null,
+      repostedBy: resource.repostedBy
+        ? ({
+            username: resource.repostedBy.username,
+            displayName: resource.repostedBy.displayName,
+            avatarUrl: resource.repostedBy.avatarUrl,
+          } as ResourceRefFullDTO['repostedBy'])
+        : null,
+      repostedAt: resource.repostedAt ?? '',
+    };
+  }
+
+  if ('playlistSlug' in resource) {
+    return {
+      type: 'PLAYLIST',
+      id: resource.id,
+      track: null,
+      playlist: resource as FullPlaylistDTO,
+      user: null,
+      repostedBy: resource.repostedBy
+        ? ({
+            username: resource.repostedBy.username,
+            displayName: resource.repostedBy.displayName,
+            avatarUrl: resource.repostedBy.avatarUrl,
+          } as ResourceRefFullDTO['repostedBy'])
+        : null,
+      repostedAt: resource.repostedAt ?? '',
+    };
+  }
+
+  return null;
+};
+
 type UseUserRepostPageOptions = {
   page?: number;
   size?: number;
@@ -90,44 +158,24 @@ export function useUserRepostPage(
         };
       }
 
-      let targetUserId: number | undefined;
-
-      const contextUsername = ownerContext?.routeUsername;
-      const contextUserId = ownerContext?.publicUser?.profile.id;
-
-      if (
-        contextUserId &&
-        normalizeIdentity(contextUsername) === normalizeIdentity(targetUsername)
-      ) {
-        targetUserId = contextUserId;
-      } else if (
-        user?.id !== undefined &&
-        normalizeIdentity(user.username) === normalizeIdentity(targetUsername)
-      ) {
-        targetUserId = user.id;
-      } else {
-        const publicUser = await userService.getPublicUserByUsername(targetUsername);
-        targetUserId = publicUser.profile.id;
-      }
-
-      if (!targetUserId) {
-        throw new Error('Unable to resolve repost owner id.');
-      }
-
-      const response = await userService.getUserReposts(targetUserId, {
+      const response = await userService.getUserReposts(targetUsername, {
         page: pageNumber,
         size: pageSize,
       });
+      const repostResources = response.content as RepostResourceDTO[];
 
       return {
-        items: response.content.flatMap(
+        items: repostResources.flatMap(
           (resource, index): UserRepostPageItem[] => {
-            const repostedBy = (
-              resource as { repostedBy?: RepostedByShape }
-            ).repostedBy;
+            const normalizedResource = normalizeRepostResource(resource);
+            if (!normalizedResource) {
+              return [];
+            }
 
-            if (resource.type === 'TRACK') {
-              const trackCard = mapTrackResourceToTrackCard(resource);
+            const repostedBy = normalizedResource.repostedBy ?? undefined;
+
+            if (normalizedResource.type === 'TRACK') {
+              const trackCard = mapTrackResourceToTrackCard(normalizedResource);
               if (!trackCard) {
                 return [];
               }
@@ -135,7 +183,7 @@ export function useUserRepostPage(
               return [
                 {
                   kind: 'track',
-                  id: `track-${resource.id}-${pageNumber}-${index}`,
+                  id: `track-${normalizedResource.id}-${pageNumber}-${index}`,
                   card: {
                     ...trackCard,
                     postedText: 'reposted a track',
@@ -145,8 +193,9 @@ export function useUserRepostPage(
               ];
             }
 
-            if (resource.type === 'PLAYLIST') {
-              const playlistCard = mapPlaylistResourceToPlaylistCard(resource);
+            if (normalizedResource.type === 'PLAYLIST') {
+              const playlistCard =
+                mapPlaylistResourceToPlaylistCard(normalizedResource);
               if (!playlistCard) {
                 return [];
               }
@@ -154,7 +203,7 @@ export function useUserRepostPage(
               return [
                 {
                   kind: 'playlist',
-                  id: `playlist-${resource.id}-${pageNumber}-${index}`,
+                  id: `playlist-${normalizedResource.id}-${pageNumber}-${index}`,
                   card: {
                     ...playlistCard,
                     postedText: 'reposted a set',
@@ -174,13 +223,7 @@ export function useUserRepostPage(
         last: Boolean(response.last),
       };
     },
-    [
-      ownerContext?.publicUser?.profile.id,
-      ownerContext?.routeUsername,
-      targetUsername,
-      user?.id,
-      user?.username,
-    ]
+    [targetUsername]
   );
 
   const {
@@ -194,10 +237,11 @@ export function useUserRepostPage(
   } = useInfinitePaginatedResource<UserRepostPageItem>({
     enabled: infinite && targetUsername.length > 0,
     pageSize: size,
-    resetKey: `${targetUsername}|${size}|${ownerContext?.publicUser?.profile.id ?? ''}`,
+    resetKey: `${targetUsername}|${size}`,
     fetchPage: fetchRepostPage,
     dedupeBy: (item) => item.id,
-    initialErrorMessage: 'Failed to load reposted resources. Please try again later.',
+    initialErrorMessage:
+      'Failed to load reposted resources. Please try again later.',
   });
 
   useEffect(() => {
@@ -245,13 +289,7 @@ export function useUserRepostPage(
     return () => {
       isCancelled = true;
     };
-  }, [
-    fetchRepostPage,
-    infinite,
-    page,
-    size,
-    targetUsername,
-  ]);
+  }, [fetchRepostPage, infinite, page, size, targetUsername]);
 
   return {
     items: infinite ? infiniteItems : items,
