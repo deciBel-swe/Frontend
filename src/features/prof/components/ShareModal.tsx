@@ -11,6 +11,8 @@ import {
   buildTrackSecretUrl,
   buildTrackUrl,
 } from '@/utils/resourcePaths';
+import { EmbedTabContent } from '@/components/share/embed/EmbedTabContent';
+import ScrollableArea from '@/components/scroll/ScrollableArea';
 
 type ShareTab = 'share' | 'embed' | 'message';
 
@@ -390,6 +392,27 @@ export function ShareModal(props: ShareModalProps) {
     [props.tabs, props.variant]
   );
 
+    /**
+   * Resolves the public URL for the current resource so EmbedTabContent
+   * can build its widget src without knowing about variants internally.
+   */
+  const embedResourceUrl = useMemo(() => {
+    if (props.variant === 'profile') return props.profileUrl;
+    if (props.variant === 'track') {
+      const track = props.track ?? PLACEHOLDER_TRACK;
+      return buildTrackUrl(
+        props.shareUsername?.trim() || track.artist,
+        props.sharePathId?.trim() || props.trackId,
+      );
+    }
+    // playlist
+    const playlist = props.playlist ?? PLACEHOLDER_PLAYLIST;
+    return buildPlaylistUrl(
+      props.shareUsername?.trim() || playlist.owner,
+      props.sharePathId?.trim() || props.playlistId,
+    );
+  }, [props]);
+
   if (!props.isOpen) {
     return null;
   }
@@ -443,9 +466,7 @@ export function ShareModal(props: ShareModalProps) {
       );
     }
   } else if (activeTab === 'embed') {
-    shareContent = (
-      <p className="text-xs text-text-muted">Embed functionality coming soon.</p>
-    );
+    shareContent = <EmbedTabContent resourceUrl={embedResourceUrl} />;
   } else if (activeTab === 'message') {
     shareContent = (
       <p className="text-xs text-text-muted">
@@ -460,10 +481,11 @@ export function ShareModal(props: ShareModalProps) {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm dark:bg-white/60"
         onClick={props.onClose}
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
-        <div className="border-b border-border-default px-5 py-4 text-sm font-semibold">
+
+      <div className="relative w-full max-w-lg overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
+        {/* <div className="border-b border-border-default px-5 py-4 text-sm font-semibold">
           Share
-        </div>
+        </div> */}
 
         <div className="border-b border-border-default">
           <nav className="flex">
@@ -488,12 +510,14 @@ export function ShareModal(props: ShareModalProps) {
             })}
           </nav>
         </div>
-
+    <ScrollableArea>
         <div className="space-y-4 p-5">
-          {resolvedPreview}
+           {activeTab === 'share' && resolvedPreview}
           {shareContent}
         </div>
+            </ScrollableArea>
       </div>
+
     </div>
   );
 }
