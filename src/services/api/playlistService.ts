@@ -52,9 +52,9 @@ export interface PlaylistService {
   /** Get a playlist with tracks (GET /playlists/:playlistId). */
   getPlaylist(playlistId: number): Promise<PlaylistResponse>;
 
-  /** Get a user's public playlists (GET /users/{userId}/playlists). */
+  /** Get a user's public playlists (GET /users/{username}/playlists). */
   getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse>;
 
@@ -145,10 +145,10 @@ export class RealPlaylistService implements PlaylistService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(userId), {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(username), {
       params: toQueryParams(params),
     });
   }

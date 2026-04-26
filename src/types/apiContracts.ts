@@ -430,10 +430,10 @@ export const API_CONTRACTS = {
       responseSchema: playlistResponseSchema,
     }),
 
-  PLAYLISTS_USER_PLAYLISTS: (userId: number) =>
+  PLAYLISTS_USER_PLAYLISTS: (username: string) =>
     defineContract<void, z.infer<typeof paginatedPlaylistsResponseSchema>>({
       method: 'GET',
-      url: API_ENDPOINTS.USERS.PLAYLISTS(userId),
+      url: API_ENDPOINTS.USERS.PLAYLISTS(username),
       responseSchema: paginatedPlaylistsResponseSchema,
     }),
 

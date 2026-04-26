@@ -413,7 +413,7 @@ export class MockPlaylistService implements PlaylistService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
     await delay();
