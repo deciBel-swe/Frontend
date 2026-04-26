@@ -16,8 +16,16 @@ import { EmbedOptions } from '@/components/share/embed/EmbedOptions';
 import { EmbedPreview } from '@/components/share/embed/EmbedPreview';
 
 interface EmbedTabContentProps {
-  /** The public URL of the resource to embed (track or playlist). */
+  /** The public URL of the resource to embed (your app's URL, not SoundCloud). */
   resourceUrl: string;
+  /** Track/playlist title shown in thumbnails and preview. */
+  title: string;
+  /** Artist/owner name shown in thumbnails and preview. */
+  artist: string;
+  /** Cover image URL injected into thumbnails and preview. */
+  coverUrl?: string;
+  /** Duration string e.g. "3:20" shown in preview. */
+  duration?: string;
 }
 
 /**
@@ -25,11 +33,21 @@ interface EmbedTabContentProps {
  * Composes style picker → code box → options → live preview.
  *
  * @param resourceUrl - The canonical resource URL to embed.
+ * @param title - The title of the track or playlist.
+ * @param artist - The artist or owner of the track or playlist.
+ * @param coverUrl - The URL of the cover image.
+ * @param duration - The duration of the track.
  *
  * @example
  * <EmbedTabContent resourceUrl="https://soundground.app/tracks/ocean-eyes" />
  */
-export const EmbedTabContent: FC<EmbedTabContentProps> = ({ resourceUrl }) => {
+export const EmbedTabContent: FC<EmbedTabContentProps> = ({
+  resourceUrl,
+  title,
+  artist,
+  coverUrl,
+  duration,
+}) => {
   const {
     config,
     setStyle,
@@ -47,7 +65,13 @@ export const EmbedTabContent: FC<EmbedTabContentProps> = ({ resourceUrl }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <EmbedStylePicker selected={config.style} onSelect={setStyle} />
+       <EmbedStylePicker
+        selected={config.style}
+        onSelect={setStyle}
+        coverUrl={coverUrl}
+        title={title}
+        artist={artist}
+      />
 
       <EmbedCodeBox iframeCode={iframeCode} wordPressCode={wordPressCode} />
 

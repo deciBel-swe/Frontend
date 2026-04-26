@@ -466,7 +466,35 @@ export function ShareModal(props: ShareModalProps) {
       );
     }
   } else if (activeTab === 'embed') {
-    shareContent = <EmbedTabContent resourceUrl={embedResourceUrl} />;
+      // Resolve track/playlist metadata for the embed picker & preview
+    const embedTitle =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).title
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).title
+        : '';
+    const embedArtist =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).artist
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).owner
+        : '';
+    const embedCover =
+      props.variant === 'track'
+        ? props.track?.coverUrl
+        : props.variant === 'playlist'
+        ? props.playlist?.coverUrl
+        : undefined;
+    const embedDuration =
+      props.variant === 'track' ? props.track?.duration : undefined;
+
+    shareContent = <EmbedTabContent
+        resourceUrl={embedResourceUrl}
+        title={embedTitle}
+        artist={embedArtist}
+        coverUrl={embedCover}
+        duration={embedDuration}
+      />;
   } else if (activeTab === 'message') {
     shareContent = (
       <p className="text-xs text-text-muted">
