@@ -2,12 +2,12 @@
  * Shared types for the Pro upgrade feature.
  */
 
-export type PlanTier = 'artist' | 'pro' | 'free' | 'none';
+export type PlanTier = 'pro' | 'free';
 
 export interface FeatureBadge {
   text: string;
-  /** Controls badge colour: purple for artist, gold for pro */
-  variant: 'artist' | 'pro' | 'free' | 'none';
+  /** Controls badge colour for subscription tiers. */
+  variant: 'pro' | 'free';
 }
 
 export interface PlanFeature {

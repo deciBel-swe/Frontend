@@ -565,7 +565,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.role = payload.newRole;
-    if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
+    if (payload.newRole === 'LISTENER' && me.tier === 'PRO') {
       me.tier = 'FREE';
     }
     commitMockUserState();

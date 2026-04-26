@@ -40,7 +40,7 @@ const mockAuthService = authService as jest.Mocked<typeof authService>;
 const artistUser: LoginUserDTO = {
   id: 1,
   username: 'mockartist',
-  tier: 'ARTIST',
+  tier: 'PRO',
   avatarUrl: '/images/default_song_image.png',
 };
 const listenerUser: LoginUserDTO = {
@@ -173,7 +173,7 @@ describe('bootstrap', () => {
 // --------------------------------
 
 describe('login', () => {
-  it('logs in as artist and derives role from ARTIST tier', async () => {
+  it('logs in as artist and derives role from PRO tier', async () => {
     mockAuthService.login.mockResolvedValue(artistSession);
     renderHarness();
     await waitForReady();
