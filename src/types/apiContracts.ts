@@ -62,6 +62,7 @@ import {
 } from './user';
 import { paginatedTrackFeedResponseSchema } from './feed';
 import {
+  paginatedRepostResponseSchema,
   paginatedSearchResponseSchema,
   paginatedStationResponseSchema,
   trendingTracksResponseSchema,
@@ -304,11 +305,11 @@ export const API_CONTRACTS = {
 
   USERS_ME_REPOSTS: defineContract<
     void,
-    z.infer<typeof paginatedSearchResponseSchema>
+    z.infer<typeof paginatedRepostResponseSchema>
   >({
     method: 'GET',
     url: API_ENDPOINTS.USERS.ME_REPOSTS,
-    responseSchema: paginatedSearchResponseSchema,
+    responseSchema: paginatedRepostResponseSchema,
   }),
 
   USERS_ME_BLOCKED: defineContract<
@@ -344,10 +345,10 @@ export const API_CONTRACTS = {
     }),
 
   USERS_REPOSTS: (username: string) =>
-    defineContract<void, z.infer<typeof paginatedSearchResponseSchema>>({
+    defineContract<void, z.infer<typeof paginatedRepostResponseSchema>>({
       method: 'GET',
       url: API_ENDPOINTS.USERS.REPOSTS(username),
-      responseSchema: paginatedSearchResponseSchema,
+      responseSchema: paginatedRepostResponseSchema,
     }),
 
   USERS_LIKED_PLAYLISTS: (username: string) =>

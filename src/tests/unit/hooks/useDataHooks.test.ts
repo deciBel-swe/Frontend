@@ -626,6 +626,118 @@ describe.skip('low-coverage data hooks', () => {
       expect(result.current.isError).toBe(false);
     });
 
+    it('normalizes flat repost payloads into cards', async () => {
+      mockUserService.getUserReposts.mockResolvedValue({
+        content: [
+          {
+            id: 128,
+            title: '(short) Yippee sound effect!!',
+            trackSlug: '-short-yippee-sound-effect-',
+            artist: {
+              id: 67,
+              username: 'omar2710',
+              displayName: 'omar2710',
+              avatarUrl:
+                'https://decibelblob.blob.core.windows.net/uploads/avatars/223b2574-52c0-4a4b-8d44-e3a67378b132_•_𝘍𝘳𝘪𝘦𝘳𝘦𝘯_(1).jfif',
+            },
+            trackUrl:
+              'https://decibelblob.blob.core.windows.net/uploads/audio/327a5b76-7839-4fd7-b38c-f3f0e73e4e84_(short)_Yippee_sound_effect!!.mp3',
+            trackPreviewUrl: null,
+            coverUrl: null,
+            waveformUrl:
+              'https://decibelblob.blob.core.windows.net/uploads/waveform-data/4cda4b37-bfd0-423a-81a3-4e3b73f365c8_(short)_Yippee_sound_effect!!.json',
+            genre: 'Electronic',
+            isReposted: true,
+            isLiked: false,
+            tags: ['Chill', 'Ambient'],
+            releaseDate: '2026-04-26',
+            playCount: 1,
+            CompletedPlayCount: 1,
+            likeCount: 1,
+            repostCount: 2,
+            commentCount: 7,
+            isPrivate: false,
+            trackDurationSeconds: 2,
+            uploadDate: '2026-04-26',
+            description: '1231313',
+            secretToken: 'c123b047-af96-45b0-b905-8b86f9c9eaab',
+            access: 'PLAYABLE',
+            repostedBy: {
+              username: 'owner-user',
+              displayName: 'Owner User',
+              avatarUrl: '/owner.png',
+            },
+          },
+          {
+            id: 201,
+            title: 'Flat Playlist Repost',
+            playlistSlug: 'flat-playlist-repost',
+            isLiked: false,
+            isReposted: true,
+            description: '',
+            isPrivate: false,
+            coverArtUrl: 'https://playlist-cover.png',
+            totalDurationSeconds: 140,
+            trackCount: 1,
+            owner: {
+              id: 9,
+              username: 'playlist-owner',
+              displayName: 'Playlist Owner',
+              avatarUrl: 'https://playlist-owner.png',
+              isFollowing: false,
+              followerCount: 3,
+              trackCount: 1,
+            },
+            genre: 'house',
+            createdAt: '2025-01-01T00:00:00.000Z',
+            tracks: [],
+            secretToken: 'playlist-token',
+            repostedBy: {
+              username: 'owner-user',
+              displayName: 'Owner User',
+              avatarUrl: '/owner.png',
+            },
+          },
+        ],
+      } as any);
+
+      const { result } = renderHook(() => useUserRepostPage('owner-user'));
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(2);
+      expect(result.current.items[0]).toMatchObject({
+        kind: 'track',
+        card: {
+          postedText: 'reposted a track',
+          repostedBy: {
+            username: 'owner-user',
+            displayName: 'Owner User',
+            avatar: '/owner.png',
+          },
+          track: {
+            id: 128,
+            title: '(short) Yippee sound effect!!',
+          },
+        },
+      });
+      expect(result.current.items[1]).toMatchObject({
+        kind: 'playlist',
+        card: {
+          postedText: 'reposted a set',
+          repostedBy: {
+            username: 'owner-user',
+            displayName: 'Owner User',
+            avatar: '/owner.png',
+          },
+          track: {
+            id: 201,
+            title: 'Flat Playlist Repost',
+          },
+        },
+      });
+    });
+
     it('sets error state when fetching reposts fails', async () => {
       mockUserService.getUserReposts.mockRejectedValue(new Error('bad'));
 

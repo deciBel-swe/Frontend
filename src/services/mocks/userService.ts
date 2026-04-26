@@ -41,7 +41,7 @@ import type {
   PlaylistType,
 } from '@/types/playlists';
 import type {
-  PaginatedSearchResponseDTO,
+  PaginatedRepostResponseDTO,
   ResourceRefFullDTO,
 } from '@/types/discovery';
 import type { FullTrackDTO } from '@/types/tracks';
@@ -668,7 +668,7 @@ export class MockUserService implements UserService {
 
   async getMyReposts(
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     await delay();
 
     const viewer = getCurrentUser();
@@ -699,7 +699,7 @@ export class MockUserService implements UserService {
   async getUserReposts(
     username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     await delay();
 
     const viewer = getCurrentUser();

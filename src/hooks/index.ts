@@ -130,7 +130,7 @@ export { useTrackPage } from './useTrackPage';
 export { useTrackCard } from './useTrackCard';
 
 /**
- * useUserRepostPage — loads reposted tracks for the current user profile page.
+ * useUserRepostPage — loads reposted tracks and playlists for the current user profile page.
  */
 export { useUserRepostPage } from './useUserRepostPage';
 
