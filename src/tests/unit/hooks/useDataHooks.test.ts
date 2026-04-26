@@ -64,7 +64,9 @@ const mockNormalizeApiError = normalizeApiError as jest.Mock;
 
 const mockUserService = userService as jest.Mocked<typeof userService>;
 const mockTrackService = trackService as jest.Mocked<typeof trackService>;
-const mockPlaybackService = playbackService as jest.Mocked<typeof playbackService>;
+const mockPlaybackService = playbackService as jest.Mocked<
+  typeof playbackService
+>;
 
 describe.skip('low-coverage data hooks', () => {
   beforeEach(() => {
@@ -248,7 +250,9 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('sets error state when fetch fails', async () => {
-      mockUserService.getPublicUserByUsername.mockRejectedValue(new Error('boom'));
+      mockUserService.getPublicUserByUsername.mockRejectedValue(
+        new Error('boom')
+      );
 
       const { result } = renderHook(() =>
         useFollowing({ username: 'remote-user', page: 0, size: 4 })
@@ -265,7 +269,12 @@ describe.skip('low-coverage data hooks', () => {
     it('loads users who liked the track', async () => {
       mockUserService.getUsersWhoLikedTrack.mockResolvedValue({
         content: [
-          { id: 1, username: 'fan-a', avatarUrl: '/fan-a.png', isFollowing: true },
+          {
+            id: 1,
+            username: 'fan-a',
+            avatarUrl: '/fan-a.png',
+            isFollowing: true,
+          },
         ],
       } as any);
 
@@ -284,13 +293,20 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('falls back to repost users endpoint when repost API fails', async () => {
-      mockUserService.getUsersWhoRepostedTrack.mockRejectedValue(new Error('no list'));
+      mockUserService.getUsersWhoRepostedTrack.mockRejectedValue(
+        new Error('no list')
+      );
       mockTrackService.getRepostUsers.mockResolvedValue({
         content: [{ id: 2, displayName: 'Reposter', avatarUrl: '/r.png' }],
       } as any);
 
       const { result } = renderHook(() =>
-        useTrackEngagementPage({ trackId: '13', type: 'reposts', page: 1, size: 5 })
+        useTrackEngagementPage({
+          trackId: '13',
+          type: 'reposts',
+          page: 1,
+          size: 5,
+        })
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -358,7 +374,9 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('sets error state when history call fails', async () => {
-      mockPlaybackService.getListeningHistory.mockRejectedValue(new Error('down'));
+      mockPlaybackService.getListeningHistory.mockRejectedValue(
+        new Error('down')
+      );
 
       const { result } = renderHook(() => useListeningHistoryTracks());
 
@@ -447,10 +465,6 @@ describe.skip('low-coverage data hooks', () => {
 
   describe('useUserRepostPage', () => {
     it('loads and maps mixed repost resources', async () => {
-      mockUserService.getPublicUserByUsername.mockResolvedValue({
-        profile: { id: 99 },
-      } as any);
-
       mockUserService.getUserReposts.mockResolvedValue({
         content: [
           {
@@ -571,10 +585,13 @@ describe.skip('low-coverage data hooks', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(mockUserService.getPublicUserByUsername).not.toHaveBeenCalled();
-      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(77, {
-        page: 0,
-        size: 100,
-      });
+      expect(mockUserService.getUserReposts).toHaveBeenCalledWith(
+        'owner-user',
+        {
+          page: 0,
+          size: 100,
+        }
+      );
       expect(result.current.items).toHaveLength(2);
       expect(result.current.items[0]).toMatchObject({
         kind: 'track',
@@ -610,9 +627,6 @@ describe.skip('low-coverage data hooks', () => {
     });
 
     it('sets error state when fetching reposts fails', async () => {
-      mockUserService.getPublicUserByUsername.mockResolvedValue({
-        profile: { id: 77 },
-      } as any);
       mockUserService.getUserReposts.mockRejectedValue(new Error('bad'));
 
       const { result } = renderHook(() => useUserRepostPage('owner-user'));
@@ -721,7 +735,9 @@ describe.skip('low-coverage data hooks', () => {
 
     it('fetches profile and normalizes errors when request fails', async () => {
       mockUseProfileOwnerContext.mockReturnValue({ routeUsername: 'other' });
-      mockUserService.getPublicUserByUsername.mockRejectedValue(new Error('no user'));
+      mockUserService.getPublicUserByUsername.mockRejectedValue(
+        new Error('no user')
+      );
       mockNormalizeApiError.mockReturnValue({
         statusCode: 404,
         message: 'Not found',

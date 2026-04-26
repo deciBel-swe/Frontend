@@ -12,9 +12,6 @@ import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerCont
 import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { userService } from '@/services';
 
-const normalizeIdentity = (value: string | undefined): string =>
-  (value ?? '').trim().toLowerCase();
-
 type RepostedByShape = {
   username?: string;
   displayName?: string;
@@ -90,31 +87,7 @@ export function useUserRepostPage(
         };
       }
 
-      let targetUserId: number | undefined;
-
-      const contextUsername = ownerContext?.routeUsername;
-      const contextUserId = ownerContext?.publicUser?.profile.id;
-
-      if (
-        contextUserId &&
-        normalizeIdentity(contextUsername) === normalizeIdentity(targetUsername)
-      ) {
-        targetUserId = contextUserId;
-      } else if (
-        user?.id !== undefined &&
-        normalizeIdentity(user.username) === normalizeIdentity(targetUsername)
-      ) {
-        targetUserId = user.id;
-      } else {
-        const publicUser = await userService.getPublicUserByUsername(targetUsername);
-        targetUserId = publicUser.profile.id;
-      }
-
-      if (!targetUserId) {
-        throw new Error('Unable to resolve repost owner id.');
-      }
-
-      const response = await userService.getUserReposts(targetUserId, {
+      const response = await userService.getUserReposts(targetUsername, {
         page: pageNumber,
         size: pageSize,
       });
@@ -122,9 +95,8 @@ export function useUserRepostPage(
       return {
         items: response.content.flatMap(
           (resource, index): UserRepostPageItem[] => {
-            const repostedBy = (
-              resource as { repostedBy?: RepostedByShape }
-            ).repostedBy;
+            const repostedBy = (resource as { repostedBy?: RepostedByShape })
+              .repostedBy;
 
             if (resource.type === 'TRACK') {
               const trackCard = mapTrackResourceToTrackCard(resource);
@@ -174,13 +146,7 @@ export function useUserRepostPage(
         last: Boolean(response.last),
       };
     },
-    [
-      ownerContext?.publicUser?.profile.id,
-      ownerContext?.routeUsername,
-      targetUsername,
-      user?.id,
-      user?.username,
-    ]
+    [targetUsername]
   );
 
   const {
@@ -194,10 +160,11 @@ export function useUserRepostPage(
   } = useInfinitePaginatedResource<UserRepostPageItem>({
     enabled: infinite && targetUsername.length > 0,
     pageSize: size,
-    resetKey: `${targetUsername}|${size}|${ownerContext?.publicUser?.profile.id ?? ''}`,
+    resetKey: `${targetUsername}|${size}`,
     fetchPage: fetchRepostPage,
     dedupeBy: (item) => item.id,
-    initialErrorMessage: 'Failed to load reposted resources. Please try again later.',
+    initialErrorMessage:
+      'Failed to load reposted resources. Please try again later.',
   });
 
   useEffect(() => {
@@ -245,13 +212,7 @@ export function useUserRepostPage(
     return () => {
       isCancelled = true;
     };
-  }, [
-    fetchRepostPage,
-    infinite,
-    page,
-    size,
-    targetUsername,
-  ]);
+  }, [fetchRepostPage, infinite, page, size, targetUsername]);
 
   return {
     items: infinite ? infiniteItems : items,
