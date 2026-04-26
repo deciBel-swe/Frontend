@@ -220,7 +220,7 @@ export const API_ENDPOINTS = {
       `/conversations/${userId}/messages`,
   },
   SUBSCRIPTION: {
-    CHECKOUT: '/subscriptions/checkout',
+    CHECKOUT: '/subscription/checkout',
     CANCEL: '/subscription/cancel',
     STATUS: '/subscription/status',
     RENEW: '/subscription/renew',
