@@ -71,7 +71,7 @@ export default function TrackCardModals({
           title: playlist.title,
           trackCount: playlist.trackCount ?? playlist.tracks?.length ?? 0,
           isPrivate: playlist.isPrivate,
-          coverUrl: playlist.coverArtUrl,
+          coverUrl: playlist.coverArtUrl ?? undefined,
         } satisfies PlaylistItem;
       });
 
