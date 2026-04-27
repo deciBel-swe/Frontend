@@ -65,6 +65,7 @@ interface PlaylistShareModalProps extends ShareModalBaseProps {
   isPrivate: boolean;
   existingToken?: string | null;
   playlist?: PlaylistPreviewData;
+  activeTrackPreview?: TrackPreviewData;
 }
 
 interface ProfileShareModalProps extends ShareModalBaseProps {
@@ -497,21 +498,45 @@ export function ShareModal(props: ShareModalProps) {
         : undefined;
     const embedDuration =
       props.variant === 'track' ? props.track?.duration : undefined;
-    const embedWaveformData =
-      props.variant === 'track' ? props.track?.waveformData : undefined;
-    const embedWaveformUrl =
-      props.variant === 'track' ? props.track?.waveformUrl : undefined;
-    const embedIsPlaying =
-      props.variant === 'track' ? props.track?.isPlaying : undefined;
-    const embedCurrentTime =
-      props.variant === 'track' ? props.track?.currentTime : undefined;
-    const embedDurationSeconds =
-      props.variant === 'track' ? props.track?.durationSeconds : undefined;
-    const embedOnPlayPause =
-      props.variant === 'track' ? props.track?.onPlayPause : undefined;
-    const embedOnWaveformSeek =
-      props.variant === 'track' ? props.track?.onWaveformSeek : undefined;
+    // const embedWaveformData =
+    //   props.variant === 'track' ? props.track?.waveformData : undefined;
+    // const embedWaveformUrl =
+    //   props.variant === 'track' ? props.track?.waveformUrl : undefined;
+    // const embedIsPlaying =
+    //   props.variant === 'track' ? props.track?.isPlaying : undefined;
+    // const embedCurrentTime =
+    //   props.variant === 'track' ? props.track?.currentTime : undefined;
+    // const embedDurationSeconds =
+    //   props.variant === 'track' ? props.track?.durationSeconds : undefined;
+    // const embedOnPlayPause =
+    //   props.variant === 'track' ? props.track?.onPlayPause : undefined;
+    // const embedOnWaveformSeek =
+    //   props.variant === 'track' ? props.track?.onWaveformSeek : undefined;
+      let embedIsPlaying: boolean | undefined;
+      let embedCurrentTime: number | undefined;
+      let embedDurationSeconds: number | undefined;
+      let embedOnPlayPause: (() => void) | undefined;
+      let embedOnWaveformSeek: ((fraction: number) => void) | undefined;
+      let embedWaveformData: number[] | undefined;
+      let embedWaveformUrl: string | undefined;
 
+      if (props.variant === 'track') {
+        embedIsPlaying = props.track?.isPlaying;
+        embedCurrentTime = props.track?.currentTime;
+        embedDurationSeconds = props.track?.durationSeconds;
+        embedOnPlayPause = props.track?.onPlayPause;
+        embedOnWaveformSeek = props.track?.onWaveformSeek;
+        embedWaveformData = props.track?.waveformData;
+        embedWaveformUrl = props.track?.waveformUrl;
+      } else if (props.variant === 'playlist' && props.activeTrackPreview) {
+        embedIsPlaying = props.activeTrackPreview.isPlaying;
+        embedCurrentTime = props.activeTrackPreview.currentTime;
+        embedDurationSeconds = props.activeTrackPreview.durationSeconds;
+        embedOnPlayPause = props.activeTrackPreview.onPlayPause;
+        embedOnWaveformSeek = props.activeTrackPreview.onWaveformSeek;
+        embedWaveformData = props.activeTrackPreview.waveformData;
+        embedWaveformUrl = props.activeTrackPreview.waveformUrl;
+      }
     shareContent = <EmbedTabContent
         resourceUrl={embedResourceUrl}
         title={embedTitle}
