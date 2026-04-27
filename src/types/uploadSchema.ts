@@ -55,12 +55,12 @@ export const uploadSchema = z.object({
       'Description contains invalid symbols'
     )
     .optional(),
-  releaseDate: z
+  uploadDate: z
     .string()
     .trim()
-    .min(1, 'Release date is required')
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Release date must be YYYY-MM-DD')
-    .refine((value) => value <= getTodayIsoDate(), 'Release date cannot be in the future'),
+    .min(1, 'Upload date is required')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Upload date must be YYYY-MM-DD')
+    .refine((value) => value <= getTodayIsoDate(), 'Upload date cannot be in the future'),
   privacy: trackPrivacyValueSchema,
 });
 

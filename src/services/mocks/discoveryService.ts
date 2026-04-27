@@ -186,7 +186,7 @@ const buildResourceForTrack = (
       commentCount: 0,
       isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
       trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
-      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.uploadDate ?? getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
       description: '',
       trendingRank: 0,
       access: resolveMockResourceAccess({

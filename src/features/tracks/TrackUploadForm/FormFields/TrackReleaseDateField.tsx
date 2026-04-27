@@ -1,22 +1,22 @@
 'use client';
 
-interface TrackReleaseDateFieldProps {
+interface TrackUploadDateFieldProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
   maxDate?: string;
 }
 
-export default function TrackReleaseDateField({
+export default function TrackUploadDateField({
   value,
   onChange,
   error,
   maxDate,
-}: TrackReleaseDateFieldProps) {
+}: TrackUploadDateFieldProps) {
   return (
     <div>
       <label className="block text-[10px] font-extrabold text-text-primary mb-1">
-        Release date <span className="text-status-error">*</span>
+        Upload date <span className="text-status-error">*</span>
       </label>
       <div className="relative w-full">
         <input

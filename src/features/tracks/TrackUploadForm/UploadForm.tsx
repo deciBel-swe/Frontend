@@ -6,7 +6,7 @@ import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTe
 import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
 import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
-import TrackReleaseDateField from '@/features/tracks/TrackUploadForm/FormFields/TrackReleaseDateField';
+import TrackUploadDateField from '@/features/tracks/TrackUploadForm/FormFields/TrackReleaseDateField';
 import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
 
 interface UploadFormProps {
@@ -34,11 +34,11 @@ interface UploadFormProps {
   onTagsChange: (value: string[]) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
-  releaseDate?: string;
-  releaseDateError?: string;
-  onReleaseDateChange?: (value: string) => void;
-  releaseDateMax?: string;
-  showReleaseDate?: boolean;
+  uploadDate?: string;
+  uploadDateError?: string;
+  onUploadDateChange?: (value: string) => void;
+  uploadDateMax?: string;
+  showUploadDate?: boolean;
   privacy: TrackPrivacyValue;
   onPrivacyChange: (value: TrackPrivacyValue) => void;
 }
@@ -68,11 +68,11 @@ export default function UploadForm({
   onTagsChange,
   description,
   onDescriptionChange,
-  releaseDate = '',
-  releaseDateError,
-  onReleaseDateChange,
-  releaseDateMax,
-  showReleaseDate = false,
+  uploadDate = '',
+  uploadDateError,
+  onUploadDateChange,
+  uploadDateMax,
+  showUploadDate = false,
   privacy,
   onPrivacyChange,
 }: UploadFormProps) {
@@ -175,12 +175,12 @@ export default function UploadForm({
                   value={description}
                   onChange={onDescriptionChange}
                 />
-                {showReleaseDate && onReleaseDateChange ? (
-                  <TrackReleaseDateField
-                    value={releaseDate}
-                    onChange={onReleaseDateChange}
-                    error={releaseDateError}
-                    maxDate={releaseDateMax}
+                {showUploadDate && onUploadDateChange ? (
+                  <TrackUploadDateField
+                    value={uploadDate}
+                    onChange={onUploadDateChange}
+                    error={uploadDateError}
+                    maxDate={uploadDateMax}
                   />
                 ) : null}
                 <div>

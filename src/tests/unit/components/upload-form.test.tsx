@@ -108,16 +108,16 @@ describe('UploadForm', () => {
     const { rerender } = render(
       <UploadForm
         {...baseProps}
-        showReleaseDate
-        releaseDate="2026-04-04"
-        onReleaseDateChange={jest.fn()}
+        showUploadDate
+        uploadDate="2026-04-04"
+        onUploadDateChange={jest.fn()}
       />
     );
 
-    expect(screen.getByText(/release date/i)).toBeInTheDocument();
+    expect(screen.getByText(/upload date/i)).toBeInTheDocument();
 
     rerender(
-      <UploadForm {...baseProps} showReleaseDate releaseDate="2026-04-04" />
+      <UploadForm {...baseProps} showUploadDate uploadDate="2026-04-04" />
     );
 
     expect(screen.queryByText(/release date/i)).not.toBeInTheDocument();

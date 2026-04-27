@@ -54,8 +54,8 @@ export default function UploadView() {
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
-  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
-  const [releaseDateError, setReleaseDateError] = useState('');
+  const [uploadDate, setUploadDate] = useState(todayIsoDate);
+  const [uploadDateError, setUploadDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -124,7 +124,7 @@ export default function UploadView() {
       genre,
       tags,
       description,
-      releaseDate,
+      uploadDate,
       privacy,
     });
 
@@ -132,13 +132,13 @@ export default function UploadView() {
       const fieldErrors = validation.error.flatten().fieldErrors;
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
-      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setGenreError('');
-    setReleaseDateError('');
+    setUploadDateError('');
     setError('');
     setUploadProgress(0);
 
@@ -153,7 +153,8 @@ export default function UploadView() {
     formData.append('title', title);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
-    formData.append('releaseDate', releaseDate);
+    formData.append('releaseDate', uploadDate); // Backend requires releaseDate
+    formData.append('uploadDate', uploadDate); // Actual upload timestamp
     if (description.trim().length > 0) {
       formData.append('description', description);
     }
@@ -209,8 +210,8 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
-    setReleaseDate(todayIsoDate);
-    setReleaseDateError('');
+    setUploadDate(todayIsoDate);
+    setUploadDateError('');
     setPrivacy('public');
     setArtworkFile(null);
     setArtworkPreview(null);
@@ -356,16 +357,16 @@ export default function UploadView() {
         onTagsChange={setTags}
         description={description}
         onDescriptionChange={setDescription}
-        releaseDate={releaseDate}
-        releaseDateError={releaseDateError}
-        onReleaseDateChange={(nextDate) => {
-          setReleaseDate(nextDate);
-          if (releaseDateError) {
-            setReleaseDateError('');
+        uploadDate={uploadDate}
+        uploadDateError={uploadDateError}
+        onUploadDateChange={(nextDate) => {
+          setUploadDate(nextDate);
+          if (uploadDateError) {
+            setUploadDateError('');
           }
         }}
-        releaseDateMax={todayIsoDate}
-        showReleaseDate
+        uploadDateMax={todayIsoDate}
+        showUploadDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />
