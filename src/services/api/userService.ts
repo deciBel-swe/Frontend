@@ -25,7 +25,7 @@ import type {
 } from '@/types/user';
 // import { paginatedPlaylistResponse } from '@/types/playlist';
 import type { PaginatedPlaylistsResponse } from '@/types/playlists';
-import type { PaginatedRepostResponseDTO } from '@/types/discovery';
+import type { PaginatedSearchResponseDTO } from '@/types/discovery';
 
 export interface PaginationParams {
   page?: number;
@@ -113,13 +113,13 @@ export interface UserService {
   ): Promise<UserPlaylistsResponse>;
 
   /** Get current user's repost resources (GET /users/me/repost). */
-  getMyReposts(params?: PaginationParams): Promise<PaginatedRepostResponseDTO>;
+  getMyReposts(params?: PaginationParams): Promise<PaginatedSearchResponseDTO>;
 
   /** Get a specific user's repost resources (GET /users/repost/{username}). */
   getUserReposts(
     username: string,
     params?: PaginationParams
-  ): Promise<PaginatedRepostResponseDTO>;
+  ): Promise<PaginatedSearchResponseDTO>;
 
   /** Get current user's playlists (GET /users/me/playlists). */
   getMePlaylists(params?: PaginationParams): Promise<UserPlaylistsResponse>;
@@ -293,7 +293,7 @@ export class RealUserService implements UserService {
 
   async getMyReposts(
     params?: PaginationParams
-  ): Promise<PaginatedRepostResponseDTO> {
+  ): Promise<PaginatedSearchResponseDTO> {
     return apiRequest(API_CONTRACTS.USERS_ME_REPOSTS, {
       params: toQueryParams(params),
     });
@@ -302,7 +302,7 @@ export class RealUserService implements UserService {
   async getUserReposts(
     username: string,
     params?: PaginationParams
-  ): Promise<PaginatedRepostResponseDTO> {
+  ): Promise<PaginatedSearchResponseDTO> {
     return apiRequest(API_CONTRACTS.USERS_REPOSTS(username), {
       params: toQueryParams(params),
     });
