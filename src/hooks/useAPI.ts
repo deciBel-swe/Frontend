@@ -290,6 +290,19 @@ const parseWithSchema = <TSchema extends z.ZodTypeAny>(
  * 4) Final generic fallback.
  */
 export const normalizeApiError = (error: unknown): ApiErrorDTO => {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'statusCode' in error &&
+    'message' in error
+  ) {
+    const parsedError = apiErrorDTOSchema.safeParse(error);
+
+    if (parsedError.success) {
+      return parsedError.data;
+    }
+  }
+
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<unknown>;
     const parsedError = apiErrorDTOSchema.safeParse(axiosError.response?.data);
@@ -368,7 +381,7 @@ export const apiRequest = async <TRequest, TResponse>(
     );
   } catch (error) {
     const normalizedError = normalizeApiError(error);
-    throw new Error(normalizedError.message);
+    throw Object.assign(new Error(normalizedError.message), normalizedError);
   }
 };
 
