@@ -289,6 +289,7 @@ const toPlaylistResponse = (
     genre: firstTrackRecord?.genre ?? 'Unknown',
     createdAt: new Date().toISOString(),
     tracks,
+    trackSummary: tracks,
     secretToken: playlist.secretLink ?? '',
     firstTrackWaveformUrl:
       firstTrackRecord?.waveformUrl ??

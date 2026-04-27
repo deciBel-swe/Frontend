@@ -1071,7 +1071,7 @@ export default function PlaylistPage() {
         isSaving={isEditSaving}
         playlist={{
           title: playlist.title,
-          description: playlist.description,
+          description: playlist.description ?? undefined,
           genre: playlist.genre,
           tags: playlistTags,
           isPrivate: playlist.isPrivate,
