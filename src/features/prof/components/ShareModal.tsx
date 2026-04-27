@@ -20,16 +20,17 @@ export interface TrackPreviewData {
   title: string;
   artist: string;
   coverUrl?: string;
-  /** Duration string e.g. "3:20" — forwarded to useTrackCardPlayback. */
   duration?: string;
-  /**
-   * Extra fields used by the Embed tab to wire a real playable preview.
-   * Optional so existing callers that only use the Share tab don't need to change.
-   */
-  trackNumericId?: number;
-  trackUrl?: string;
+  /** Inline waveform samples (0–1). Takes priority over waveformUrl. */
   waveformData?: number[];
+  /** URL to fetch waveform JSON from (used if waveformData is absent). */
   waveformUrl?: string;
+  /** Live playback state forwarded from the layout. */
+  isPlaying?: boolean;
+  currentTime?: number;
+  durationSeconds?: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }
 
 export interface PlaylistPreviewData {
@@ -475,48 +476,56 @@ export function ShareModal(props: ShareModalProps) {
       );
     }
   } else if (activeTab === 'embed') {
-    // Resolve metadata for the embed picker & playable preview
-    const embedTrack = props.variant === 'track' ? (props.track ?? PLACEHOLDER_TRACK) : null;
-    const embedPlaylist = props.variant === 'playlist' ? (props.playlist ?? PLACEHOLDER_PLAYLIST) : null;
+      // Resolve track/playlist metadata for the embed picker & preview
+    const embedTitle =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).title
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).title
+        : '';
+    const embedArtist =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).artist
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).owner
+        : '';
+    const embedCover =
+      props.variant === 'track'
+        ? props.track?.coverUrl
+        : props.variant === 'playlist'
+        ? props.playlist?.coverUrl
+        : undefined;
+    const embedDuration =
+      props.variant === 'track' ? props.track?.duration : undefined;
+    const embedWaveformData =
+      props.variant === 'track' ? props.track?.waveformData : undefined;
+    const embedWaveformUrl =
+      props.variant === 'track' ? props.track?.waveformUrl : undefined;
+    const embedIsPlaying =
+      props.variant === 'track' ? props.track?.isPlaying : undefined;
+    const embedCurrentTime =
+      props.variant === 'track' ? props.track?.currentTime : undefined;
+    const embedDurationSeconds =
+      props.variant === 'track' ? props.track?.durationSeconds : undefined;
+    const embedOnPlayPause =
+      props.variant === 'track' ? props.track?.onPlayPause : undefined;
+    const embedOnWaveformSeek =
+      props.variant === 'track' ? props.track?.onWaveformSeek : undefined;
 
-    const embedTitle = embedTrack?.title ?? embedPlaylist?.title ?? '';
-    const embedArtist = embedTrack?.artist ?? embedPlaylist?.owner ?? '';
-    const embedCover = embedTrack?.coverUrl ?? embedPlaylist?.coverUrl;
-    const embedDuration = embedTrack?.duration ?? '0:00';
-
-    // Build a minimal PlayerTrack for useTrackCardPlayback when we have enough data
-    const embedPlayback =
-      embedTrack?.trackNumericId && embedTrack?.trackUrl
-        ? {
-            id: embedTrack.trackNumericId,
-            title: embedTrack.title,
-            artistName: embedTrack.artist,
-            trackUrl: embedTrack.trackUrl,
-            access: 'PLAYABLE' as const,
-            coverUrl: embedTrack.coverUrl,
-            waveformData: embedTrack.waveformData,
-            durationSeconds: undefined,
-          }
-        : null;
-
-    shareContent = embedPlayback ? (
-      <EmbedTabContent
+    shareContent = <EmbedTabContent
         resourceUrl={embedResourceUrl}
         title={embedTitle}
         artist={embedArtist}
         coverUrl={embedCover}
         duration={embedDuration}
-        playback={embedPlayback}
-        queueTracks={[embedPlayback]}
-        waveformData={embedTrack?.waveformData ?? []}
-        waveformUrl={embedTrack?.waveformUrl}
-      />
-    ) : (
-      // Fallback when track URL / id are not available (e.g. playlist variant)
-      <p className="text-xs text-text-muted">
-        Embed preview unavailable — track playback data not provided.
-      </p>
-    );
+        waveformData={embedWaveformData}
+        waveformUrl={embedWaveformUrl}
+        isPlaying={embedIsPlaying}
+        currentTime={embedCurrentTime}
+        durationSeconds={embedDurationSeconds}
+        onPlayPause={embedOnPlayPause}
+        onWaveformSeek={embedOnWaveformSeek}
+      />;
   } else if (activeTab === 'message') {
     shareContent = (
       <p className="text-xs text-text-muted">

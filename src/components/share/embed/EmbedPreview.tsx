@@ -17,7 +17,7 @@ import Image from 'next/image';
 import type { EmbedConfig, EmbedStyle } from './embedService';
 import { LogoIcon } from '@/components/icons/NavIcons';
 import { useWaveformData } from '@/hooks/useWaveformData';
-import { EmbedWaveform } from './EmbedWaveform';
+import Waveform from '@/components/waveform/Waveform';
 
 // Fallback waveform — used only when no real data is available
 const FALLBACK_WAVEFORM: number[] = [
@@ -29,18 +29,17 @@ const FALLBACK_WAVEFORM: number[] = [
 
 interface EmbedPreviewProps {
   config: EmbedConfig;
-  /** Track or playlist title. */
   title: string;
-  /** Artist or owner name. */
   artist: string;
-  /** Cover image URL. */
   coverUrl?: string;
-  /** Track duration string e.g. "3:20". */
   duration?: string;
-  /** Inline waveform samples (0–1). Takes priority over waveformUrl. */
   waveformData?: number[];
-  /** URL to fetch waveform JSON from (used if waveformData is absent). */
   waveformUrl?: string;
+  isPlaying?: boolean;
+  currentTime?: number;
+  durationSeconds?: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }
 
 
@@ -87,6 +86,10 @@ function VisualPreview({
   duration,
   color,
   waveformData,
+  currentTime,
+  durationSeconds,
+  onPlayPause,
+  onWaveformSeek,
 }: {
   title: string;
   artist: string;
@@ -94,18 +97,15 @@ function VisualPreview({
   duration?: string;
   color: string;
   waveformData: number[];
+  currentTime: number;
+  durationSeconds: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }) {
   return (
     <div className="relative w-full overflow-hidden rounded" style={{ height: 300 }}>
-      {/* Cover image / fallback */}
       {coverUrl ? (
-        <Image
-          src={coverUrl}
-          alt={title}
-          fill
-          className="object-cover"
-          sizes="448px"
-        />
+        <Image src={coverUrl} alt={title} fill className="object-cover" sizes="448px" />
       ) : (
         <div className="absolute inset-0 bg-neutral-800" />
       )}
@@ -126,14 +126,20 @@ function VisualPreview({
       {/* Bottom gradient + controls */}
       <div
         className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-8"
-        style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-        }}
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
       >
         <div className="flex items-center gap-3">
-          <PlayBtn color={color} size={36} />
+          <button onClick={onPlayPause} className="shrink-0">
+            <PlayBtn color={color} size={36} />
+          </button>
           <div className="flex-1">
-            <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
+            <Waveform
+              data={waveformData}
+              currentTime={currentTime}
+              durationSeconds={durationSeconds}
+              onWaveformClick={onWaveformSeek}
+              barClassName="bg-text-muted hover:bg-brand-primary"
+            />
           </div>
           <span className="text-[10px] tabular-nums text-white/80">{duration ?? '0:00'}</span>
         </div>
@@ -152,6 +158,10 @@ function MiniPreview({
   duration,
   color,
   waveformData,
+  currentTime,
+  durationSeconds,
+  onPlayPause,
+  onWaveformSeek,
 }: {
   title: string;
   artist: string;
@@ -159,27 +169,39 @@ function MiniPreview({
   duration?: string;
   color: string;
   waveformData: number[];
+  currentTime: number;
+  durationSeconds: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }) {
   return (
     <div className="flex items-center gap-3 rounded border border-border-default bg-white p-3" style={{ height: 90 }}>
-      {/* Cover */}
+      {/* Cover + play overlay */}
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded">
         {coverUrl ? (
           <Image src={coverUrl} alt={title} fill className="object-cover" sizes="64px" />
         ) : (
           <div className="h-full w-full bg-neutral-200" />
         )}
-        {/* Play button overlay */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <button
+          onClick={onPlayPause}
+          className="absolute inset-0 flex items-center justify-center"
+        >
           <PlayBtn color={color} size={28} />
-        </div>
+        </button>
       </div>
 
       {/* Info + waveform */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="truncate text-[10px] text-neutral-400">{artist}</p>
         <p className="truncate text-xs font-semibold text-neutral-800">{title}</p>
-        <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
+        <Waveform
+          data={waveformData}
+          currentTime={currentTime}
+          durationSeconds={durationSeconds}
+          onWaveformClick={onWaveformSeek}
+          barClassName="bg-text-muted hover:bg-brand-primary"
+        />
       </div>
 
       {/* Duration + brand */}
@@ -201,6 +223,10 @@ function TextPreview({
   duration,
   color,
   waveformData,
+  currentTime,
+  durationSeconds,
+  onPlayPause,
+  onWaveformSeek,
 }: {
   title: string;
   artist: string;
@@ -208,6 +234,10 @@ function TextPreview({
   duration?: string;
   color: string;
   waveformData: number[];
+  currentTime: number;
+  durationSeconds: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }) {
   const fakeTracks = [title, 'Another Track', 'Third Wave', 'Late Night', 'Echoes'];
 
@@ -222,10 +252,18 @@ function TextPreview({
             <div className="h-full w-full bg-neutral-200" />
           )}
         </div>
-        <PlayBtn color={color} size={24} />
+        <button onClick={onPlayPause} className="shrink-0">
+          <PlayBtn color={color} size={24} />
+        </button>
         <div className="flex flex-1 flex-col gap-1 overflow-hidden">
           <p className="truncate text-[9px] text-neutral-400">{artist}</p>
-          <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
+          <Waveform
+            data={waveformData}
+            currentTime={currentTime}
+            durationSeconds={durationSeconds}
+            onWaveformClick={onWaveformSeek}
+            barClassName="bg-text-muted hover:bg-brand-primary"
+          />
         </div>
         <span className="shrink-0 text-[10px] tabular-nums text-neutral-400">
           {duration ?? '0:00'}
@@ -256,10 +294,20 @@ function TextPreview({
 
 // ─── STYLE → COMPONENT MAP ────────────────────────────────────────────────────
 
-const PREVIEW_MAP: Record<
-  EmbedStyle,
-  FC<{ title: string; artist: string; coverUrl?: string; duration?: string; color: string; waveformData: number[] }>
-> = {
+type PreviewComponentProps = {
+  title: string;
+  artist: string;
+  coverUrl?: string;
+  duration?: string;
+  color: string;
+  waveformData: number[];
+  currentTime: number;
+  durationSeconds: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
+};
+
+const PREVIEW_MAP: Record<EmbedStyle, FC<PreviewComponentProps>> = {
   visual: VisualPreview,
   mini: MiniPreview,
   text: TextPreview,
@@ -267,18 +315,6 @@ const PREVIEW_MAP: Record<
 
 // ─── PUBLIC COMPONENT ─────────────────────────────────────────────────────────
 
-/**
- * Mock embed player preview — renders a faithful HTML simulation of the
- * embedded widget so the user can see exactly what their embed will look like.
- *
- * @param config       - Current embed config (style, color, height, etc.)
- * @param title        - Track/playlist title.
- * @param artist       - Artist/owner name.
- * @param coverUrl     - Cover image URL.
- * @param duration     - Duration string, e.g. "3:20".
- * @param waveformData - Inline waveform samples (0–1). Takes priority over waveformUrl.
- * @param waveformUrl  - URL to fetch waveform JSON from.
- */
 export const EmbedPreview: FC<EmbedPreviewProps> = ({
   config,
   title,
@@ -287,11 +323,15 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
   duration,
   waveformData,
   waveformUrl,
+  isPlaying: _isPlaying,
+  currentTime = 0,
+  durationSeconds = 1,
+  onPlayPause,
+  onWaveformSeek,
 }) => {
   const PreviewComponent = PREVIEW_MAP[config.style];
 
   const resolvedSamples = useWaveformData(waveformData, waveformUrl);
-  // Fall back to deterministic placeholder when no real data is available
   const waveformForPreview = resolvedSamples.length > 0 ? resolvedSamples : FALLBACK_WAVEFORM;
 
   return (
@@ -306,6 +346,10 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
         duration={duration}
         color={config.color}
         waveformData={waveformForPreview}
+        currentTime={currentTime}
+        durationSeconds={durationSeconds}
+        onPlayPause={onPlayPause}
+        onWaveformSeek={onWaveformSeek}
       />
     </div>
   );
