@@ -541,7 +541,7 @@ export function ShareModal(props: ShareModalProps) {
         onClick={props.onClose}
       />
 
-      <div className="relative w-full max-w-lg overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
+      <div className="relative w-full max-w-lg h-[80vh] overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
         {/* <div className="border-b border-border-default px-5 py-4 text-sm font-semibold">
           Share
         </div> */}
