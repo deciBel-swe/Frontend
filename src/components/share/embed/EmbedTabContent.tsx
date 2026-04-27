@@ -8,8 +8,8 @@
  */
 
 import { type FC, useMemo } from 'react';
-import { useEmbedConfig } from '@/components/share/embed/useEmbedConfig';
-import { buildIframeCode, buildWordPressCode } from '@/components/share/embed/embedService';
+import { useEmbedConfig } from '@/components/share/embed/hooks/useEmbedConfig';
+import { buildIframeCode, buildWordPressCode } from '@/components/share/embed/services/embedService';
 import { EmbedStylePicker } from '@/components/share/embed/EmbedStylePicker';
 import { EmbedCodeBox } from '@/components/share/embed/EmbedCodeBox';
 import { EmbedOptions } from '@/components/share/embed/EmbedOptions';

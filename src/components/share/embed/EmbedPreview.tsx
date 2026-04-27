@@ -14,7 +14,7 @@
 
 import { type FC } from 'react';
 import Image from 'next/image';
-import type { EmbedConfig, EmbedStyle } from './embedService';
+import type { EmbedConfig, EmbedStyle } from './services/embedService';
 import { LogoIcon } from '@/components/icons/NavIcons';
 import { useWaveformData } from '@/hooks/useWaveformData';
 import Waveform from '@/components/waveform/Waveform';
@@ -175,7 +175,7 @@ function MiniPreview({
   onWaveformSeek?: (fraction: number) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded border border-border-default bg-white p-3" style={{ height: 90 }}>
+    <div className="flex items-center gap-3 rounded border border-border-default bg-surface-default p-3" style={{ height: 90 }}>
       {/* Cover + play overlay */}
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded">
         {coverUrl ? (

@@ -9,7 +9,7 @@ export { EmbedStylePicker } from './EmbedStylePicker';
 export { EmbedCodeBox } from './EmbedCodeBox';
 export { EmbedOptions } from './EmbedOptions';
 export { EmbedPreview } from './EmbedPreview';
-export { useEmbedConfig } from './useEmbedConfig';
+export { useEmbedConfig } from './hooks/useEmbedConfig';
 export {
   buildIframeCode,
   buildWordPressCode,
@@ -18,4 +18,4 @@ export {
   STYLE_HEIGHT_MAP,
   type EmbedConfig,
   type EmbedStyle,
-} from './embedService';
+} from './services/embedService';

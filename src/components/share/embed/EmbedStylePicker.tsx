@@ -9,7 +9,7 @@
  */
 
 import { type FC } from 'react';
-import type { EmbedStyle } from './embedService';
+import type { EmbedStyle } from './services/embedService';
 
 interface EmbedStylePickerProps {
   selected: EmbedStyle;
@@ -27,7 +27,7 @@ const WAVEFORM_HEIGHTS = [6, 10, 14, 8, 12, 16, 6, 10, 8, 14, 12, 6, 10, 8, 12];
 function MiniWaveform({
   x,
   y,
-  color = '#ff5500',
+  color = 'fill-brand-primary',
   opacity = 0.7,
 }: {
   x: number;
@@ -106,10 +106,10 @@ function VisualThumbnail({
       <rect x="0" y="0" width="120" height="58" fill="url(#visual-grad)" rx="2" />
 
       <PlayButton cx={14} cy={42} r={8} />
-      <MiniWaveform x={26} y={42} color="white" opacity={0.85} />
+      <MiniWaveform x={26} y={42} color="fill-surface-default" opacity={0.85} />
 
       {/* Bottom metadata bar */}
-      <rect x="0" y="58" width="120" height="22" fill="white" />
+      <rect x="0" y="58" width="120" height="22" fill="fill-surface-default" />
       <rect x="5" y="63" width="45" height="3" rx="1.5" fill="#bbb" />
       {title && (
         <text x="5" y="74" fontSize="5" fill="#555" fontFamily="sans-serif">
@@ -124,7 +124,7 @@ function VisualThumbnail({
 function MiniThumbnail({ coverUrl }: { coverUrl?: string }) {
   return (
     <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-      <rect width="120" height="80" fill="white" rx="2" />
+      <rect width="120" height="80" fill="fill-surface-default" rx="2" />
       <defs>
         <clipPath id="mini-clip">
           <rect x="4" y="20" width="36" height="36" rx="2" />

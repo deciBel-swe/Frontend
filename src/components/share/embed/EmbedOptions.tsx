@@ -8,7 +8,7 @@
  */
 
 import { type FC, type ChangeEvent } from 'react';
-import { EMBED_COLOR_PRESETS, EMBED_HEIGHT_OPTIONS, type EmbedConfig } from './embedService';
+import { EMBED_COLOR_PRESETS, EMBED_HEIGHT_OPTIONS, type EmbedConfig } from './services/embedService';
 
 interface EmbedOptionsProps {
   config: EmbedConfig;

@@ -11,7 +11,7 @@ import {
   type EmbedConfig,
   type EmbedStyle,
   STYLE_HEIGHT_MAP,
-} from './embedService';
+} from '../services/embedService';
 
 interface UseEmbedConfigOptions {
   /** The public URL of the resource being embedded. */
