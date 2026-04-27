@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
 import CommentInput from '@/components/comments/CommentInput';
+import Button from '@/components/buttons/Button';
 
 export type CommentReply = {
   id: string | number;
@@ -99,13 +100,15 @@ export default function CommentItem({
               </button>
             )}
             {onReport && (
-              <button
+              <Button
+                variant='secondary'
+                size='sm'
                 onClick={() => onReport(comment.id)}
-                className="text-xs text-text-muted hover:text-status-error transition-colors"
+                className="text-xs hover:text-status-error transition-colors"
                 aria-label="Report comment"
               >
                 Report
-              </button>
+              </Button>
             )}
           </div>
         </div>
