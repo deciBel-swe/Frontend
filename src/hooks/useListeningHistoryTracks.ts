@@ -103,7 +103,7 @@ export function useListeningHistoryTracks({
               cover: metadata?.coverUrl ?? '/images/default_song_image.png',
               duration: durationSeconds ? formatDuration(durationSeconds) : '',
               plays: metadata?.playCount,
-              createdAt: asIsoDate(metadata?.releaseDate),
+              createdAt: asIsoDate(metadata?.uploadDate ?? metadata?.releaseDate),
               genre: metadata?.genre,
               durationSeconds,
               isLiked: metadata?.isLiked,

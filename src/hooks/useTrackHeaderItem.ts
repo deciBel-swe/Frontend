@@ -209,7 +209,7 @@ export function useTrackHeaderItem({
           trackSlug: trackMetadata.trackSlug,
           secretToken: trackMetadata.secretToken?.trim() || undefined,
           coverUrl: trackMetadata.coverUrl,
-          timeAgo: formatTimeAgo(trackMetadata.releaseDate),
+          timeAgo: formatTimeAgo(trackMetadata.uploadDate || trackMetadata.releaseDate),
           tags: trackMetadata.tags,
           genre: trackMetadata.genre,
           waveformUrl: trackMetadata.waveformUrl ?? '',
