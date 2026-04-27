@@ -3,9 +3,6 @@
 /**
  * @file EmbedStylePicker.tsx
  * @description Three-option embed style selector (visual / mini / text).
- * Each thumbnail renders a miniature version of that player style using
- * the actual track cover art when available.
- * Follows the Presenter pattern — pure UI, receives config via props.
  */
 
 import { type FC } from 'react';
@@ -14,25 +11,22 @@ import type { EmbedStyle } from './services/embedService';
 interface EmbedStylePickerProps {
   selected: EmbedStyle;
   onSelect: (style: EmbedStyle) => void;
-  /** Track/playlist cover image URL — shown inside the thumbnails. */
   coverUrl?: string;
   title?: string;
   artist?: string;
 }
 
-// Deterministic waveform bar heights — avoids hydration mismatch from Math.random()
 const WAVEFORM_HEIGHTS = [6, 10, 14, 8, 12, 16, 6, 10, 8, 14, 12, 6, 10, 8, 12];
 
-/** Shared mini waveform used across all thumbnails. */
 function MiniWaveform({
   x,
   y,
-  color = 'fill-brand-primary',
+  colorClass = 'fill-brand-primary',
   opacity = 0.7,
 }: {
   x: number;
   y: number;
-  color?: string;
+  colorClass?: string;
   opacity?: number;
 }) {
   return (
@@ -45,7 +39,7 @@ function MiniWaveform({
           width="2.5"
           height={h}
           rx="1"
-          fill={color}
+          className={colorClass}
           opacity={opacity}
         />
       ))}
@@ -53,25 +47,22 @@ function MiniWaveform({
   );
 }
 
-/** Reusable orange play button (circle + triangle). */
 function PlayButton({ cx, cy, r }: { cx: number; cy: number; r: number }) {
   return (
     <>
-      <circle cx={cx} cy={cy} r={r} fill="#ff5500" />
+      <circle cx={cx} cy={cy} r={r} className="fill-brand-primary" />
       <path
         d={`M${cx - r * 0.3} ${cy - r * 0.4} L${cx - r * 0.3} ${cy + r * 0.4} L${cx + r * 0.45} ${cy} Z`}
-        fill="white"
+        className="fill-neutral-0"
       />
     </>
   );
 }
 
-/** Dark placeholder square when no cover image is available. */
 function CoverFallback({ x, y, size }: { x: number; y: number; size: number }) {
-  return <rect x={x} y={y} width={size} height={size} rx="2" fill="#2a2a2a" />;
+  return <rect x={x} y={y} width={size} height={size} rx="2" className="fill-surface-raised" />;
 }
 
-/** ── VISUAL: full-width cover + gradient + play + waveform ── */
 function VisualThumbnail({
   coverUrl,
   title,
@@ -102,17 +93,15 @@ function VisualThumbnail({
         <CoverFallback x={0} y={0} size={58} />
       )}
 
-      {/* Gradient overlay for readability */}
       <rect x="0" y="0" width="120" height="58" fill="url(#visual-grad)" rx="2" />
 
       <PlayButton cx={14} cy={42} r={8} />
-      <MiniWaveform x={26} y={42} color="fill-surface-default" opacity={0.85} />
+      <MiniWaveform x={26} y={42} colorClass="fill-neutral-0" opacity={0.85} />
 
-      {/* Bottom metadata bar */}
-      <rect x="0" y="58" width="120" height="22" fill="fill-surface-default" />
-      <rect x="5" y="63" width="45" height="3" rx="1.5" fill="#bbb" />
+      <rect x="0" y="58" width="120" height="22" className="fill-surface-default" />
+      <rect x="5" y="63" width="45" height="3" rx="1.5" className="fill-text-secondary/30" />
       {title && (
-        <text x="5" y="74" fontSize="5" fill="#555" fontFamily="sans-serif">
+        <text x="5" y="74" fontSize="5" className="fill-text-secondary" fontFamily="sans-serif">
           {title.slice(0, 22)}
         </text>
       )}
@@ -120,11 +109,10 @@ function VisualThumbnail({
   );
 }
 
-/** ── MINI: small square cover on the left + waveform on the right ── */
 function MiniThumbnail({ coverUrl }: { coverUrl?: string }) {
   return (
     <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-      <rect width="120" height="80" fill="fill-surface-default" rx="2" />
+      <rect width="120" height="80" className="fill-surface-default" rx="2" />
       <defs>
         <clipPath id="mini-clip">
           <rect x="4" y="20" width="36" height="36" rx="2" />
@@ -144,60 +132,15 @@ function MiniThumbnail({ coverUrl }: { coverUrl?: string }) {
 
       <PlayButton cx={22} cy={38} r={7} />
 
-      {/* Info text */}
-      <rect x="46" y="22" width="38" height="3.5" rx="1.75" fill="#555" opacity="0.5" />
-      <rect x="46" y="29" width="28" height="2.5" rx="1.25" fill="#aaa" opacity="0.5" />
+      <rect x="46" y="22" width="38" height="3.5" rx="1.75" className="fill-text-primary" opacity="0.5" />
+      <rect x="46" y="29" width="28" height="2.5" rx="1.25" className="fill-text-secondary" opacity="0.5" />
 
-      {/* Waveform */}
-      <MiniWaveform x={46} y={42} color="#ff5500" opacity={0.6} />
+      <MiniWaveform x={46} y={42} colorClass="fill-brand-primary" opacity={0.6} />
 
-      {/* Duration */}
-      <rect x="46" y="52" width="16" height="2" rx="1" fill="#ddd" />
+      <rect x="46" y="52" width="16" height="2" rx="1" className="fill-border-strong" />
     </svg>
   );
 }
-
-// /** ── CLASSIC: compact player bar on top + track list rows below ── */
-// function TextThumbnail({ coverUrl }: { coverUrl?: string }) {
-//   return (
-//     <svg viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-//       <rect width="120" height="80" fill="white" rx="2" />
-
-//       {/* Top player bar */}
-//       <rect x="0" y="0" width="120" height="22" rx="2" fill="#f5f5f5" />
-
-//       <defs>
-//         <clipPath id="text-clip">
-//           <rect x="2" y="2" width="18" height="18" rx="1" />
-//         </clipPath>
-//       </defs>
-//       {coverUrl ? (
-//         <image
-//           href={coverUrl}
-//           x="2" y="2" width="18" height="18"
-//           preserveAspectRatio="xMidYMid slice"
-//           clipPath="url(#text-clip)"
-//         />
-//       ) : (
-//         <CoverFallback x={2} y={2} size={18} />
-//       )}
-
-//       <PlayButton cx={11} cy={11} r={5} />
-//       <MiniWaveform x={24} y={11} color="#ff5500" opacity={0.6} />
-
-//       {/* Track rows */}
-//       {[28, 36, 44, 52, 60].map((y, i) => (
-//         <rect
-//           key={y}
-//           x="4" y={y}
-//           width={[80, 65, 72, 55, 68][i]}
-//           height="3" rx="1.5"
-//           fill={i === 0 ? '#ccc' : '#e8e8e8'}
-//         />
-//       ))}
-//     </svg>
-//   );
-// }
 
 const STYLES: {
   id: EmbedStyle;
@@ -206,18 +149,8 @@ const STYLES: {
 }[] = [
   { id: 'visual', label: 'Visual', Thumb: VisualThumbnail },
   { id: 'mini', label: 'Mini', Thumb: MiniThumbnail },
-//   { id: 'text', label: 'Classic', Thumb: TextThumbnail },
 ];
 
-/**
- * Three clickable thumbnails for choosing the embed player style.
- * Thumbnails show the actual cover art when provided.
- *
- * @param selected - Currently active style.
- * @param onSelect - Callback when a style is selected.
- * @param coverUrl - Optional cover URL injected into each thumbnail.
- * @param title    - Optional title shown in the visual thumbnail footer.
- */
 export const EmbedStylePicker: FC<EmbedStylePickerProps> = ({
   selected,
   onSelect,

@@ -3,13 +3,6 @@
 /**
  * @file EmbedPreview.tsx
  * @description Visual mock of the embedded player widget.
- *
- * Since this is a SoundCloud *clone* (not SoundCloud itself), the iframe
- * widget URL points to your own app. Until the widget endpoint exists,
- * this component renders a faithful HTML mock of what the embedded player
- * will look like — matching the three style variants.
- *
- * Presenter component — receives config + track metadata via props.
  */
 
 import { type FC } from 'react';
@@ -19,7 +12,6 @@ import { LogoIcon } from '@/components/icons/NavIcons';
 import { useWaveformData } from '@/hooks/useWaveformData';
 import Waveform from '@/components/waveform/Waveform';
 
-// Fallback waveform — used only when no real data is available
 const FALLBACK_WAVEFORM: number[] = [
   0.40, 0.65, 0.80, 0.55, 0.70, 0.90, 0.45, 0.75, 0.60, 0.85,
   0.50, 0.70, 0.40, 0.60, 0.80, 0.55, 0.75, 0.65, 0.90, 0.45,
@@ -42,9 +34,6 @@ interface EmbedPreviewProps {
   onWaveformSeek?: (fraction: number) => void;
 }
 
-
-
-/** The orange circular play button. */
 function PlayBtn({ color, size = 36, isPlaying = false }: { color: string; size?: number; isPlaying?: boolean }) {
   return (
     <div
@@ -53,17 +42,18 @@ function PlayBtn({ color, size = 36, isPlaying = false }: { color: string; size?
     >
       {isPlaying ? (
         <div className="flex items-center justify-center gap-1">
-          <div style={{ width: size * 0.12, height: size * 0.4, backgroundColor: 'white', borderRadius: size * 0.03 }} />
-          <div style={{ width: size * 0.12, height: size * 0.4, backgroundColor: 'white', borderRadius: size * 0.03 }} />
+          <div className="bg-neutral-0" style={{ width: size * 0.12, height: size * 0.4, borderRadius: size * 0.03 }} />
+          <div className="bg-neutral-0" style={{ width: size * 0.12, height: size * 0.4, borderRadius: size * 0.03 }} />
         </div>
       ) : (
         <div
+          className="border-l-neutral-0"
           style={{
             width: 0,
             height: 0,
             borderTop: `${size * 0.2}px solid transparent`,
             borderBottom: `${size * 0.2}px solid transparent`,
-            borderLeft: `${size * 0.3}px solid white`,
+            borderLeftWidth: size * 0.3,
             marginLeft: size * 0.06,
           }}
         />
@@ -72,19 +62,15 @@ function PlayBtn({ color, size = 36, isPlaying = false }: { color: string; size?
   );
 }
 
-/** App brand mark shown in top-right  watermark. */
 function BrandMark() {
   return (
-    <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-widest text-neutral-400">
+    <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-widest text-text-secondary">
       <LogoIcon />
       Decibel
     </span>
   );
 }
 
-// ─── VISUAL STYLE PREVIEW ────────────────────────────────────────────────────
-
-/** Full-bleed cover with play/waveform bar overlaid at the bottom. */
 function VisualPreview({
   title,
   artist,
@@ -111,27 +97,25 @@ function VisualPreview({
   onWaveformSeek?: (fraction: number) => void;
 }) {
   return (
-    <div className="relative w-full overflow-hidden rounded" style={{ height: 300 }}>
+    <div className="relative w-full overflow-hidden rounded bg-surface-raised" style={{ height: 300 }}>
       {coverUrl ? (
         <Image src={coverUrl} alt={title} fill className="object-cover" sizes="448px" />
       ) : (
         <div className="absolute inset-0 bg-neutral-800" />
       )}
 
-      {/* Top bar */}
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-3 py-2">
         <div className="flex flex-col items-start gap-1">
-          <span className=" bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+          <span className="bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-0">
             {artist}
           </span>
-          <span className=" bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+          <span className="bg-black/60 px-1.5 py-0.5 text-[10px] text-neutral-0">
             {title}
           </span>
         </div>
         <BrandMark />
       </div>
 
-      {/* Bottom gradient + controls */}
       <div
         className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-8"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
@@ -149,16 +133,13 @@ function VisualPreview({
               barClassName="bg-text-muted hover:bg-brand-primary"
             />
           </div>
-          <span className="text-[10px] tabular-nums text-white/80">{duration ?? '0:00'}</span>
+          <span className="text-[10px] tabular-nums text-neutral-0/80">{duration ?? '0:00'}</span>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── MINI STYLE PREVIEW ───────────────────────────────────────────────────────
-
-/** Compact single-row player. */
 function MiniPreview({
   title,
   artist,
@@ -186,12 +167,11 @@ function MiniPreview({
 }) {
   return (
     <div className="flex items-center gap-3 rounded border border-border-default bg-surface-default p-3" style={{ height: 90 }}>
-      {/* Cover + play overlay */}
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded">
         {coverUrl ? (
           <Image src={coverUrl} alt={title} fill className="object-cover" sizes="64px" />
         ) : (
-          <div className="h-full w-full bg-neutral-200" />
+          <div className="h-full w-full bg-surface-raised" />
         )}
         <button
           onClick={onPlayPause}
@@ -201,10 +181,9 @@ function MiniPreview({
         </button>
       </div>
 
-      {/* Info + waveform */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="truncate text-[10px] text-neutral-400">{artist}</p>
-        <p className="truncate text-xs font-semibold text-neutral-800">{title}</p>
+        <p className="truncate text-[10px] text-text-secondary">{artist}</p>
+        <p className="truncate text-xs font-semibold text-text-primary">{title}</p>
         <Waveform
           data={waveformData}
           currentTime={currentTime}
@@ -214,18 +193,14 @@ function MiniPreview({
         />
       </div>
 
-      {/* Duration + brand */}
       <div className="flex shrink-0 flex-col items-end gap-1">
         <BrandMark />
-        <span className="text-[10px] tabular-nums text-neutral-400">{duration ?? '0:00'}</span>
+        <span className="text-[10px] tabular-nums text-text-secondary">{duration ?? '0:00'}</span>
       </div>
     </div>
   );
 }
 
-// ─── CLASSIC/TEXT STYLE PREVIEW ───────────────────────────────────────────────
-
-/** Player bar on top + a list of tracks below. */
 function TextPreview({
   title,
   artist,
@@ -254,21 +229,20 @@ function TextPreview({
   const fakeTracks = [title, 'Another Track', 'Third Wave', 'Late Night', 'Echoes'];
 
   return (
-    <div className="flex flex-col overflow-hidden rounded border border-border-default bg-white" style={{ minHeight: 200 }}>
-      {/* Player bar */}
-      <div className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2">
+    <div className="flex flex-col overflow-hidden rounded border border-border-default bg-surface-default" style={{ minHeight: 200 }}>
+      <div className="flex items-center gap-2 border-b border-border-default px-3 py-2 bg-bg-subtle">
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded">
           {coverUrl ? (
             <Image src={coverUrl} alt={title} fill className="object-cover" sizes="40px" />
           ) : (
-            <div className="h-full w-full bg-neutral-200" />
+            <div className="h-full w-full bg-surface-raised" />
           )}
         </div>
         <button onClick={onPlayPause} className="shrink-0">
           <PlayBtn color={color} size={24} isPlaying={isPlaying} />
         </button>
         <div className="flex flex-1 flex-col gap-1 overflow-hidden">
-          <p className="truncate text-[9px] text-neutral-400">{artist}</p>
+          <p className="truncate text-[9px] text-text-secondary">{artist}</p>
           <Waveform
             data={waveformData}
             currentTime={currentTime}
@@ -277,25 +251,24 @@ function TextPreview({
             barClassName="bg-text-muted hover:bg-brand-primary"
           />
         </div>
-        <span className="shrink-0 text-[10px] tabular-nums text-neutral-400">
+        <span className="shrink-0 text-[10px] tabular-nums text-text-secondary">
           {duration ?? '0:00'}
         </span>
         <BrandMark />
       </div>
 
-      {/* Track list */}
       {fakeTracks.map((t, i) => (
         <div
           key={i}
           className={`flex items-center gap-2 px-3 py-1.5 text-xs ${
             i === 0
-              ? 'bg-neutral-50 font-semibold text-neutral-800'
-              : 'text-neutral-500 hover:bg-neutral-50'
+              ? 'bg-surface-raised font-semibold text-text-primary'
+              : 'text-text-muted hover:bg-surface-raised'
           }`}
         >
-          <span className="w-4 shrink-0 text-center text-[10px] text-neutral-300">{i + 1}</span>
+          <span className="w-4 shrink-0 text-center text-[10px] text-text-secondary/50">{i + 1}</span>
           <span className="flex-1 truncate">{t}</span>
-          <span className="shrink-0 text-[10px] tabular-nums text-neutral-300">
+          <span className="shrink-0 text-[10px] tabular-nums text-text-secondary/50">
             {['3:20', '4:05', '2:58', '5:12', '3:44'][i]}
           </span>
         </div>
@@ -303,8 +276,6 @@ function TextPreview({
     </div>
   );
 }
-
-// ─── STYLE → COMPONENT MAP ────────────────────────────────────────────────────
 
 type PreviewComponentProps = {
   title: string;
@@ -326,8 +297,6 @@ const PREVIEW_MAP: Record<EmbedStyle, FC<PreviewComponentProps>> = {
   text: TextPreview,
 };
 
-// ─── PUBLIC COMPONENT ─────────────────────────────────────────────────────────
-
 export const EmbedPreview: FC<EmbedPreviewProps> = ({
   config,
   title,
@@ -343,7 +312,6 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
   onWaveformSeek,
 }) => {
   const PreviewComponent = PREVIEW_MAP[config.style];
-
   const resolvedSamples = useWaveformData(waveformData, waveformUrl);
   const waveformForPreview = resolvedSamples.length > 0 ? resolvedSamples : FALLBACK_WAVEFORM;
 
