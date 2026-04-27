@@ -66,7 +66,7 @@ function PlayBtn({ color, size = 36 }: { color: string; size?: number }) {
   );
 }
 
-/** App brand mark shown in top-right (mimics "SoundCloud ≋≋" watermark). */
+/** App brand mark shown in top-right  watermark. */
 function BrandMark() {
   return (
     <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-widest text-neutral-400">
@@ -112,11 +112,11 @@ function VisualPreview({
 
       {/* Top bar */}
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <span className="rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+        <div className="flex flex-col items-start gap-1">
+          <span className=" bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
             {artist}
           </span>
-          <span className="rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
+          <span className=" bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
             {title}
           </span>
         </div>

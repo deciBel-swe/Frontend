@@ -63,9 +63,9 @@ export const EmbedOptions: FC<EmbedOptionsProps> = ({
   onColorChange,
   onHeightChange,
   onToggleAutoPlay,
-  onToggleShowComments,
-  onToggleShowRecommendations,
-  onToggleShowOverlays,
+//   onToggleShowComments,
+//   onToggleShowRecommendations,
+//   onToggleShowOverlays,
 }) => {
   const handleHexInput = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -154,7 +154,7 @@ export const EmbedOptions: FC<EmbedOptionsProps> = ({
           checked={config.autoPlay}
           onChange={onToggleAutoPlay}
         />
-        <OptionCheckbox
+        {/* <OptionCheckbox
           label="Show comments"
           checked={config.showComments}
           onChange={onToggleShowComments}
@@ -168,7 +168,7 @@ export const EmbedOptions: FC<EmbedOptionsProps> = ({
           label="Show Decibel overlays"
           checked={config.showOverlays}
           onChange={onToggleShowOverlays}
-        />
+        /> */}
       </div>
     </div>
   );
