@@ -3,6 +3,7 @@
  * @description Pure utility functions for generating embed codes.
  * Follows the Service Layer pattern — no side effects, easily testable.
  */
+import { config as appConfig } from '@/config';
 
 /** The visual style of the embedded player. */
 export type EmbedStyle = 'visual' | 'mini' | 'text';
@@ -42,20 +43,20 @@ export const STYLE_HEIGHT_MAP: Record<EmbedStyle, number> = {
  * @param config - Full embed configuration.
  * @returns Encoded query string (without leading "?").
  */
-function buildWidgetParams(config: EmbedConfig): string {
-  const params = new URLSearchParams({
-    url: config.resourceUrl,
-    color: config.color.replace('#', '%23'),
-    auto_play: String(config.autoPlay),
-    hide_related: String(!config.showRecommendations),
-    show_comments: String(config.showComments),
-    show_user: 'true',
-    show_reposts: 'false',
-    show_teaser: 'true',
-    visual: String(STYLE_VISUAL_MAP[config.style]),
-  });
-  return params.toString();
-}
+// function buildWidgetParams(config: EmbedConfig): string {
+//   const params = new URLSearchParams({
+//     url: config.resourceUrl,
+//     color: config.color.replace('#', '%23'),
+//     auto_play: String(config.autoPlay),
+//     hide_related: String(!config.showRecommendations),
+//     show_comments: String(config.showComments),
+//     show_user: 'true',
+//     show_reposts: 'false',
+//     show_teaser: 'true',
+//     visual: String(STYLE_VISUAL_MAP[config.style]),
+//   });
+//   return params.toString();
+// }
 
 /**
  * Generates the standard HTML iframe embed code.
@@ -64,10 +65,25 @@ function buildWidgetParams(config: EmbedConfig): string {
  * @returns Ready-to-paste iframe string.
  */
 export function buildIframeCode(config: EmbedConfig): string {
-  const widgetUrl = `https://w.soundcloud.com/player/?${buildWidgetParams(config)}`;
-  return `<iframe width="100%" height="${config.height}" scrolling="no" frameborder="no" allow="autoplay" src="${widgetUrl}"></iframe>`;
-}
+ const embedUrl = buildEmbedUrl(config);
+  // const frameHeight = config.height || 400;
 
+  return `<iframe width="100%" height="${config.height}" scrolling="no" frameborder="no" allow="autoplay" src="${embedUrl}" ></iframe>`;
+}
+function buildEmbedUrl(config: EmbedConfig): string {
+  const base = appConfig.api.appUrl;
+  const baseUrl = `${base}/embed/player`;
+  const params = new URLSearchParams({
+    trackId: config.resourceUrl, // resourceUrl holds the track ID
+    color: config.color.replace('#', ''),
+    auto_play: String(config.autoPlay),
+    hide_related: String(!config.showRecommendations),
+    show_comments: String(config.showComments),
+    show_overlays: String(config.showOverlays),
+    visual: String(STYLE_VISUAL_MAP[config.style]),
+  });
+  return `${baseUrl}?${params.toString()}`;
+}
 /**
  * Generates the WordPress shortcode equivalent.
  *
@@ -75,7 +91,7 @@ export function buildIframeCode(config: EmbedConfig): string {
  * @returns WordPress embed shortcode string.
  */
 export function buildWordPressCode(config: EmbedConfig): string {
-  return `[soundcloud url="${config.resourceUrl}" params="color=%23${config.color.replace('#', '')}&auto_play=${config.autoPlay}&hide_related=${!config.showRecommendations}&show_comments=${config.showComments}&show_user=true&show_reposts=false&show_teaser=true&visual=${STYLE_VISUAL_MAP[config.style]}" width="100%" height="${config.height}" iframe="true" /]`;
+  return `[decibel url="${config.resourceUrl}" params="color=%23${config.color.replace('#', '')}&auto_play=${config.autoPlay}&hide_related=${!config.showRecommendations}&show_comments=${config.showComments}&show_user=true&show_reposts=false&show_teaser=true&visual=${STYLE_VISUAL_MAP[config.style]}" width="100%" height="${config.height}" iframe="true" /]`;
 }
 
 /** Preset color swatches shown in the embed options panel. */
