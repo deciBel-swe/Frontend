@@ -45,23 +45,29 @@ interface EmbedPreviewProps {
 
 
 /** The orange circular play button. */
-function PlayBtn({ color, size = 36 }: { color: string; size?: number }) {
+function PlayBtn({ color, size = 36, isPlaying = false }: { color: string; size?: number; isPlaying?: boolean }) {
   return (
     <div
       className="flex shrink-0 items-center justify-center rounded-full"
       style={{ width: size, height: size, backgroundColor: color }}
     >
-      {/* Triangle */}
-      <div
-        style={{
-          width: 0,
-          height: 0,
-          borderTop: `${size * 0.2}px solid transparent`,
-          borderBottom: `${size * 0.2}px solid transparent`,
-          borderLeft: `${size * 0.3}px solid white`,
-          marginLeft: size * 0.06,
-        }}
-      />
+      {isPlaying ? (
+        <div className="flex items-center justify-center gap-1">
+          <div style={{ width: size * 0.12, height: size * 0.4, backgroundColor: 'white', borderRadius: size * 0.03 }} />
+          <div style={{ width: size * 0.12, height: size * 0.4, backgroundColor: 'white', borderRadius: size * 0.03 }} />
+        </div>
+      ) : (
+        <div
+          style={{
+            width: 0,
+            height: 0,
+            borderTop: `${size * 0.2}px solid transparent`,
+            borderBottom: `${size * 0.2}px solid transparent`,
+            borderLeft: `${size * 0.3}px solid white`,
+            marginLeft: size * 0.06,
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -88,6 +94,7 @@ function VisualPreview({
   waveformData,
   currentTime,
   durationSeconds,
+  isPlaying,
   onPlayPause,
   onWaveformSeek,
 }: {
@@ -99,6 +106,7 @@ function VisualPreview({
   waveformData: number[];
   currentTime: number;
   durationSeconds: number;
+  isPlaying?: boolean;
   onPlayPause?: () => void;
   onWaveformSeek?: (fraction: number) => void;
 }) {
@@ -130,7 +138,7 @@ function VisualPreview({
       >
         <div className="flex items-center gap-3">
           <button onClick={onPlayPause} className="shrink-0">
-            <PlayBtn color={color} size={36} />
+            <PlayBtn color={color} size={36} isPlaying={isPlaying} />
           </button>
           <div className="flex-1">
             <Waveform
@@ -160,6 +168,7 @@ function MiniPreview({
   waveformData,
   currentTime,
   durationSeconds,
+  isPlaying,
   onPlayPause,
   onWaveformSeek,
 }: {
@@ -171,6 +180,7 @@ function MiniPreview({
   waveformData: number[];
   currentTime: number;
   durationSeconds: number;
+  isPlaying?: boolean;
   onPlayPause?: () => void;
   onWaveformSeek?: (fraction: number) => void;
 }) {
@@ -187,7 +197,7 @@ function MiniPreview({
           onClick={onPlayPause}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <PlayBtn color={color} size={28} />
+          <PlayBtn color={color} size={28} isPlaying={isPlaying} />
         </button>
       </div>
 
@@ -225,6 +235,7 @@ function TextPreview({
   waveformData,
   currentTime,
   durationSeconds,
+  isPlaying,
   onPlayPause,
   onWaveformSeek,
 }: {
@@ -236,6 +247,7 @@ function TextPreview({
   waveformData: number[];
   currentTime: number;
   durationSeconds: number;
+  isPlaying?: boolean;
   onPlayPause?: () => void;
   onWaveformSeek?: (fraction: number) => void;
 }) {
@@ -253,7 +265,7 @@ function TextPreview({
           )}
         </div>
         <button onClick={onPlayPause} className="shrink-0">
-          <PlayBtn color={color} size={24} />
+          <PlayBtn color={color} size={24} isPlaying={isPlaying} />
         </button>
         <div className="flex flex-1 flex-col gap-1 overflow-hidden">
           <p className="truncate text-[9px] text-neutral-400">{artist}</p>
@@ -303,6 +315,7 @@ type PreviewComponentProps = {
   waveformData: number[];
   currentTime: number;
   durationSeconds: number;
+  isPlaying?: boolean;
   onPlayPause?: () => void;
   onWaveformSeek?: (fraction: number) => void;
 };
@@ -348,6 +361,7 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
         waveformData={waveformForPreview}
         currentTime={currentTime}
         durationSeconds={durationSeconds}
+        isPlaying={_isPlaying}
         onPlayPause={onPlayPause}
         onWaveformSeek={onWaveformSeek}
       />
