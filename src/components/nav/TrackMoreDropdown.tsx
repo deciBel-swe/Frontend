@@ -12,6 +12,7 @@ export type TrackMoreDropdownProps = {
   onAddToNextUp?: () => void;
   onAddToPlaylist?: () => void;
   onStation?: () => void;
+  onReport?: () => void;
 };
 
 export default function TrackMoreDropdown({
@@ -20,6 +21,7 @@ export default function TrackMoreDropdown({
   onClose,
   onAddToNextUp,
   onAddToPlaylist,
+  onReport,
 }: TrackMoreDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +54,7 @@ export default function TrackMoreDropdown({
             items={[
             onAddToNextUp && { label: 'Add to Next up', icon: <ListPlus size={16} />, onClick: onAddToNextUp },
             onAddToPlaylist && { label: 'Add to Playlist', icon: <ListMusic size={16} />, onClick: onAddToPlaylist },
+            onReport && { label: 'Report', icon: <MoreHorizontal size={16} />, onClick: onReport },
             ].filter(Boolean) as DropdownMenuItem[]}
         />
       )}

@@ -29,6 +29,7 @@ export type Comment = {
 type CommentItemProps = {
   comment: Comment;
   onReply?: (commentId: string | number, text: string) => Promise<void>;
+  onReport?: (commentId: string | number) => void;
   isReplySubmitting?: boolean;
   isReplyingThisComment?: boolean;
   currentUserAvatar?: string;
@@ -37,6 +38,7 @@ type CommentItemProps = {
 export default function CommentItem({
   comment,
   onReply,
+  onReport,
   isReplySubmitting = false,
   isReplyingThisComment = false,
   currentUserAvatar,
@@ -94,6 +96,15 @@ export default function CommentItem({
                 aria-label="Reply to comment"
               >
                 Reply
+              </button>
+            )}
+            {onReport && (
+              <button
+                onClick={() => onReport(comment.id)}
+                className="text-xs text-text-muted hover:text-status-error transition-colors"
+                aria-label="Report comment"
+              >
+                Report
               </button>
             )}
           </div>

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from '@/features/auth';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { useWaveformData } from '@/hooks/useWaveformData';
+import { useReportTrack } from '@/features/admin/hooks';
+import ReportModal from '@/components/track-page/report/components/ReportModal';
 import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import TrackCardArtwork from './TrackCardArtwork';
 import TrackCardFooter from './TrackCardFooter';
@@ -112,6 +114,38 @@ export default function TrackCardRoot({
 
   const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
 
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const { reportTrack, isLoading: isReportSubmitting } = useReportTrack();
+
+  const openTrackReport = useCallback(() => {
+    setIsReportOpen(true);
+  }, []);
+
+  const closeReport = useCallback(() => {
+    setIsReportOpen(false);
+  }, []);
+
+  const submitReport = useCallback(
+    async (reason: string, details?: string) => {
+      if (!track?.id) {
+        return;
+      }
+
+      try {
+        await reportTrack(track.id, { reason, description: details });
+      } finally {
+        closeReport();
+      }
+    },
+    [closeReport, reportTrack, track?.id]
+  );
+
+  /**
+   * Whether to show the report option. We hide it when the viewer is the
+   * track owner (same logic used to show the edit button).
+   */
+  // const canReport = !showEditButton;
+ 
   if (isDeleted) {
     return null;
   }
@@ -229,6 +263,7 @@ export default function TrackCardRoot({
             onMoreClose={() => setIsMoreOpen(false)}
             onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
             onStation={() => {}}
+            onReport={openTrackReport}
           />
 
           {/* <div className="pt-1 text-xs text-text-muted">{track.duration}</div> */}
@@ -250,6 +285,13 @@ export default function TrackCardRoot({
         setIsPlaylistModalOpen={setIsPlaylistModalOpen}
         setActiveTab={setActiveTab}
       />
+      <ReportModal
+            isOpen={isReportOpen}
+            target="track"
+            isSubmitting={isReportSubmitting}
+            onClose={closeReport}
+            onSubmit={submitReport}
+          />
     </div>
   );
 }

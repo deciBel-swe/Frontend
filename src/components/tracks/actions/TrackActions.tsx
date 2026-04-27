@@ -25,6 +25,7 @@ type TrackActionsProps = {
   showEdit?: boolean;
   showDelete?: boolean;
   showMore?: boolean;
+  showReport?: boolean;
 
   // Callback actions
   onLike?: () => void;
@@ -35,6 +36,7 @@ type TrackActionsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   onMore?: () => void;
+  onReport?: () => void;
 
   onAddToPlaylist?: () => void;
   onStation?: () => void;
@@ -58,6 +60,7 @@ export default function TrackActions({
   showEdit = false,
   showDelete = false,
   showMore = false,
+  showReport = false,
 
   onLike,
   onRepost,
@@ -66,6 +69,7 @@ export default function TrackActions({
   onAddToQueue,
   onEdit,
   onDelete,
+  onReport,
 
   onAddToPlaylist,
   onStation,
@@ -137,6 +141,7 @@ export default function TrackActions({
           onAddToNextUp={showAddToQueue ? onAddToQueue : undefined}
           onAddToPlaylist={onAddToPlaylist}
           onStation={onStation}
+          onReport={showReport ? onReport : undefined}
         />
       )}
     </div>
