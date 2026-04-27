@@ -94,6 +94,13 @@ export default function Layout({ children }: LayoutProps) {
               artist: hero.artistName,
               coverUrl: hero.coverUrl,
               duration: hero.duration,
+              waveformData: hero.waveformData,
+              waveformUrl: hero.waveformUrl,
+              isPlaying,
+              currentTime: waveformCurrentTime,
+              durationSeconds: waveformDurationSeconds,
+              onPlayPause,
+              onWaveformSeek,
             }}
           />
         </div>
