@@ -16,12 +16,15 @@ import { type FC } from 'react';
 import Image from 'next/image';
 import type { EmbedConfig, EmbedStyle } from './embedService';
 import { LogoIcon } from '@/components/icons/NavIcons';
+import { useWaveformData } from '@/hooks/useWaveformData';
+import { EmbedWaveform } from './EmbedWaveform';
 
-// Deterministic waveform data — no Math.random() to avoid hydration issues
-const WAVEFORM_BARS = [
-  40, 65, 80, 55, 70, 90, 45, 75, 60, 85, 50, 70, 40, 60, 80,
-  55, 75, 65, 90, 45, 70, 55, 80, 60, 75, 50, 65, 85, 45, 70,
-  60, 80, 55, 70, 40, 65, 90, 50, 75, 60,
+// Fallback waveform — used only when no real data is available
+const FALLBACK_WAVEFORM: number[] = [
+  0.40, 0.65, 0.80, 0.55, 0.70, 0.90, 0.45, 0.75, 0.60, 0.85,
+  0.50, 0.70, 0.40, 0.60, 0.80, 0.55, 0.75, 0.65, 0.90, 0.45,
+  0.70, 0.55, 0.80, 0.60, 0.75, 0.50, 0.65, 0.85, 0.45, 0.70,
+  0.60, 0.80, 0.55, 0.70, 0.40, 0.65, 0.90, 0.50, 0.75, 0.60,
 ];
 
 interface EmbedPreviewProps {
@@ -34,36 +37,13 @@ interface EmbedPreviewProps {
   coverUrl?: string;
   /** Track duration string e.g. "3:20". */
   duration?: string;
-  /** Accent color override (uses config.color by default). */
+  /** Inline waveform samples (0–1). Takes priority over waveformUrl. */
+  waveformData?: number[];
+  /** URL to fetch waveform JSON from (used if waveformData is absent). */
+  waveformUrl?: string;
 }
 
-/** Small waveform rendered as inline divs. */
-function Waveform({
-  color,
-  playedFraction = 0.27,
-}: {
-  color: string;
-  playedFraction?: number;
-}) {
-  return (
-    <div className="flex h-8 items-end gap-px">
-      {WAVEFORM_BARS.map((pct, i) => {
-        const played = i / WAVEFORM_BARS.length < playedFraction;
-        return (
-          <div
-            key={i}
-            className="w-1 rounded-sm"
-            style={{
-              height: `${pct}%`,
-              backgroundColor: played ? color : '#d4d4d4',
-              opacity: played ? 1 : 0.8,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
+
 
 /** The orange circular play button. */
 function PlayBtn({ color, size = 36 }: { color: string; size?: number }) {
@@ -106,12 +86,14 @@ function VisualPreview({
   coverUrl,
   duration,
   color,
+  waveformData,
 }: {
   title: string;
   artist: string;
   coverUrl?: string;
   duration?: string;
   color: string;
+  waveformData: number[];
 }) {
   return (
     <div className="relative w-full overflow-hidden rounded" style={{ height: 300 }}>
@@ -151,7 +133,7 @@ function VisualPreview({
         <div className="flex items-center gap-3">
           <PlayBtn color={color} size={36} />
           <div className="flex-1">
-            <Waveform color={color} />
+            <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
           </div>
           <span className="text-[10px] tabular-nums text-white/80">{duration ?? '0:00'}</span>
         </div>
@@ -169,12 +151,14 @@ function MiniPreview({
   coverUrl,
   duration,
   color,
+  waveformData,
 }: {
   title: string;
   artist: string;
   coverUrl?: string;
   duration?: string;
   color: string;
+  waveformData: number[];
 }) {
   return (
     <div className="flex items-center gap-3 rounded border border-border-default bg-white p-3" style={{ height: 90 }}>
@@ -195,7 +179,7 @@ function MiniPreview({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="truncate text-[10px] text-neutral-400">{artist}</p>
         <p className="truncate text-xs font-semibold text-neutral-800">{title}</p>
-        <Waveform color={color} />
+        <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
       </div>
 
       {/* Duration + brand */}
@@ -216,12 +200,14 @@ function TextPreview({
   coverUrl,
   duration,
   color,
+  waveformData,
 }: {
   title: string;
   artist: string;
   coverUrl?: string;
   duration?: string;
   color: string;
+  waveformData: number[];
 }) {
   const fakeTracks = [title, 'Another Track', 'Third Wave', 'Late Night', 'Echoes'];
 
@@ -239,7 +225,7 @@ function TextPreview({
         <PlayBtn color={color} size={24} />
         <div className="flex flex-1 flex-col gap-1 overflow-hidden">
           <p className="truncate text-[9px] text-neutral-400">{artist}</p>
-          <Waveform color={color} />
+          <EmbedWaveform data={waveformData} currentTime={0} durationSeconds={1} />
         </div>
         <span className="shrink-0 text-[10px] tabular-nums text-neutral-400">
           {duration ?? '0:00'}
@@ -272,7 +258,7 @@ function TextPreview({
 
 const PREVIEW_MAP: Record<
   EmbedStyle,
-  FC<{ title: string; artist: string; coverUrl?: string; duration?: string; color: string }>
+  FC<{ title: string; artist: string; coverUrl?: string; duration?: string; color: string; waveformData: number[] }>
 > = {
   visual: VisualPreview,
   mini: MiniPreview,
@@ -285,11 +271,13 @@ const PREVIEW_MAP: Record<
  * Mock embed player preview — renders a faithful HTML simulation of the
  * embedded widget so the user can see exactly what their embed will look like.
  *
- * @param config   - Current embed config (style, color, height, etc.)
- * @param title    - Track/playlist title.
- * @param artist   - Artist/owner name.
- * @param coverUrl - Cover image URL.
- * @param duration - Duration string, e.g. "3:20".
+ * @param config       - Current embed config (style, color, height, etc.)
+ * @param title        - Track/playlist title.
+ * @param artist       - Artist/owner name.
+ * @param coverUrl     - Cover image URL.
+ * @param duration     - Duration string, e.g. "3:20".
+ * @param waveformData - Inline waveform samples (0–1). Takes priority over waveformUrl.
+ * @param waveformUrl  - URL to fetch waveform JSON from.
  */
 export const EmbedPreview: FC<EmbedPreviewProps> = ({
   config,
@@ -297,8 +285,14 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
   artist,
   coverUrl,
   duration,
+  waveformData,
+  waveformUrl,
 }) => {
   const PreviewComponent = PREVIEW_MAP[config.style];
+
+  const resolvedSamples = useWaveformData(waveformData, waveformUrl);
+  // Fall back to deterministic placeholder when no real data is available
+  const waveformForPreview = resolvedSamples.length > 0 ? resolvedSamples : FALLBACK_WAVEFORM;
 
   return (
     <div>
@@ -311,6 +305,7 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
         coverUrl={coverUrl}
         duration={duration}
         color={config.color}
+        waveformData={waveformForPreview}
       />
     </div>
   );

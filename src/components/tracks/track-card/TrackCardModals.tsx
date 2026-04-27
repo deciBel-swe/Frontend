@@ -24,6 +24,14 @@ type TrackCardModalsProps = {
     };
     cover: string;
     duration: string;
+    /** Numeric track ID — used by the embed preview player. */
+    trackNumericId?: number;
+    /** Streaming URL — used by the embed preview player. */
+    trackUrl?: string;
+    /** Raw waveform amplitude array — used by the embed preview waveform. */
+    waveformData?: number[];
+    /** Fallback waveform URL — used when waveformData is empty. */
+    waveformUrl?: string;
   };
   editOpen: boolean;
   isShareOpen: boolean;
@@ -176,6 +184,10 @@ export default function TrackCardModals({
           artist: artistDisplayName,
           coverUrl: track.cover,
           duration: track.duration,
+          trackNumericId: track.trackNumericId,
+          trackUrl: track.trackUrl,
+          waveformData: track.waveformData,
+          waveformUrl: track.waveformUrl,
         }}
       />
 
