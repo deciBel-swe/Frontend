@@ -323,9 +323,8 @@ const findPlaylistOwner = (
 };
 
 const playlistLikeCount = (playlistId: number): number => {
-  return inMemoryUsers.filter((user) =>
-    user.likedPlaylists.includes(playlistId)
-  ).length;
+  return inMemoryUsers.filter((user) => user.likedPlaylists.includes(playlistId))
+    .length;
 };
 
 const playlistRepostCount = (playlistId: number): number => {
@@ -378,9 +377,7 @@ const buildFullPlaylist = (
     description: playlist.description ?? '',
     isPrivate: playlist.isPrivate,
     coverArtUrl:
-      playlist.CoverArt ||
-      firstTrack?.coverUrl ||
-      '/images/default_song_image.png',
+      playlist.CoverArt || firstTrack?.coverUrl || '/images/default_song_image.png',
     totalDurationSeconds,
     trackCount: tracks.length,
     owner: ownerSummary,
@@ -488,10 +485,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
 
-    if (
-      payload.displayName !== undefined &&
-      payload.displayName.trim().length > 0
-    ) {
+    if (payload.displayName !== undefined && payload.displayName.trim().length > 0) {
       me.displayName = payload.displayName.trim();
     }
 
@@ -503,10 +497,7 @@ export class MockUserService implements UserService {
     }
 
     if (payload.socialLinks) {
-      me.socialLinks = mergeDefinedSocialLinks(
-        me.socialLinks,
-        payload.socialLinks
-      );
+      me.socialLinks = mergeDefinedSocialLinks(me.socialLinks, payload.socialLinks);
     }
 
     commitMockUserState();
@@ -582,7 +573,9 @@ export class MockUserService implements UserService {
     };
   }
 
-  async updateImages(payload: FormData): Promise<UpdateImagesResponse> {
+  async updateImages(
+    payload: FormData
+  ): Promise<UpdateImagesResponse> {
     await delay();
     const me = getCurrentUser();
 
@@ -620,9 +613,7 @@ export class MockUserService implements UserService {
     };
   }
 
-  async getHistory(
-    params?: PaginationParams
-  ): Promise<PaginatedHistoryResponse> {
+  async getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse> {
     await delay();
     const me = getCurrentUser();
     return paginate(me.history, params);
@@ -697,16 +688,13 @@ export class MockUserService implements UserService {
   }
 
   async getUserReposts(
-    username: string,
+    userId: number,
     params?: PaginationParams
   ): Promise<PaginatedSearchResponseDTO> {
     await delay();
 
     const viewer = getCurrentUser();
-    const targetUser = inMemoryUsers.find((item) => item.username === username);
-    if (!targetUser) {
-      throw new Error('User not found');
-    }
+    const targetUser = findUser(userId);
     const repostedBy = toUserSummary(targetUser, viewer);
     const resources: ResourceRefFullDTO[] = [];
 
@@ -904,9 +892,7 @@ export class MockUserService implements UserService {
     }
 
     const usersWhoLiked = inMemoryUsers
-      .filter((user) =>
-        user.likedTracks.some((likedTrack) => likedTrack.id === trackId)
-      )
+      .filter((user) => user.likedTracks.some((likedTrack) => likedTrack.id === trackId))
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoLiked, params);
@@ -938,20 +924,12 @@ export class MockUserService implements UserService {
           id: playlist.owner.id,
           username: playlist.owner.username,
         },
-        tracks: playlist.tracks.map(
-          (track: {
-            trackId: number;
-            title: string;
-            trackUrl: string;
-            durationSeconds: number;
-            [key: string]: unknown;
-          }) => ({
-            trackId: track.trackId,
-            title: track.title,
-            trackUrl: track.trackUrl,
-            durationSeconds: track.durationSeconds,
-          })
-        ),
+        tracks: playlist.tracks.map((track: { trackId: number; title: string; trackUrl: string; durationSeconds: number; [key: string]: unknown }) => ({
+          trackId: track.trackId,
+          title: track.title,
+          trackUrl: track.trackUrl,
+          durationSeconds: track.durationSeconds,
+        })),
       }));
 
     return paginate(likedPlaylists, params);

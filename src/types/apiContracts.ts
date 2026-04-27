@@ -343,10 +343,10 @@ export const API_CONTRACTS = {
       responseSchema: userPlaylistsResponseSchema,
     }),
 
-  USERS_REPOSTS: (username: string) =>
+  USERS_REPOSTS: (userId: number) =>
     defineContract<void, z.infer<typeof paginatedSearchResponseSchema>>({
       method: 'GET',
-      url: API_ENDPOINTS.USERS.REPOSTS(username),
+      url: API_ENDPOINTS.USERS.REPOSTS(userId),
       responseSchema: paginatedSearchResponseSchema,
     }),
 

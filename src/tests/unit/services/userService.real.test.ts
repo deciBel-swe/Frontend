@@ -118,10 +118,10 @@ describe('RealUserService', () => {
       isLast: true,
     });
 
-    await service.getUserReposts('mockartist', { page: 0, size: 10 });
+    await service.getUserReposts(11, { page: 0, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_REPOSTS('mockartist'),
+      API_CONTRACTS.USERS_REPOSTS(11),
       {
         params: { page: 0, size: 10 },
       }
