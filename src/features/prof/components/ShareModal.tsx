@@ -14,7 +14,7 @@ import {
 import { EmbedTabContent } from '@/components/share/embed/EmbedTabContent';
 import ScrollableArea from '@/components/scroll/ScrollableArea';
 
-type ShareTab = 'share' | 'embed' | 'message';
+type ShareTab = 'share' | 'embed';
 
 export interface TrackPreviewData {
   title: string;
@@ -385,12 +385,11 @@ const PLACEHOLDER_PLAYLIST: PlaylistPreviewData = {
 const DEFAULT_MEDIA_TABS: { id: ShareTab; label: string }[] = [
   { id: 'share', label: 'Share' },
   { id: 'embed', label: 'Embed' },
-  { id: 'message', label: 'Message' },
 ];
 
 const DEFAULT_PROFILE_TABS: { id: ShareTab; label: string }[] = [
   { id: 'share', label: 'Share' },
-  { id: 'message', label: 'Message' },
+
 ];
 
 export function ShareModal(props: ShareModalProps) {
@@ -551,13 +550,7 @@ export function ShareModal(props: ShareModalProps) {
         onPlayPause={embedOnPlayPause}
         onWaveformSeek={embedOnWaveformSeek}
       />;
-  } else if (activeTab === 'message') {
-    shareContent = (
-      <p className="text-xs text-text-muted">
-        Message functionality coming soon.
-      </p>
-    );
-  }
+  } 
 
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center">
