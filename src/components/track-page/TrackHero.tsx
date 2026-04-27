@@ -44,7 +44,7 @@ export default function TrackHero({
   genre,
   waveformUrl,
   waveformData,
-  // duration,
+  duration,
   currentUserAvatar,
   currentUserName,
   waveformComments = [],
@@ -152,11 +152,11 @@ export default function TrackHero({
               />
             </div>
 
-            {/* <div className="flex justify-end mt-1">
+            <div className="flex justify-end mt-1">
               <span className="text-xs font-mono text-text-muted bg-neutral-900/60 px-1.5 py-0.5 rounded">
                 {duration}
               </span>
-            </div> */}
+            </div>
           </div>
         </div>
 
