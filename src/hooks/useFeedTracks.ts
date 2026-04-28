@@ -7,7 +7,7 @@ import type { FeedItemDTO } from '@/types/feed';
 import {
   mapPlaylistResourceToPlaylistCard,
   mapTrackResourceToTrackCard,
-} from '@/features/search/mappers/searchResultMappers';
+} from '@/features/search/mappers/feedMapper';
 
 type FeedCardItem =
   | {
