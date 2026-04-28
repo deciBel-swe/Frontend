@@ -3,8 +3,11 @@ import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-car
 import type { TrackCardProps } from '@/components/tracks/track-card';
 import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { feedService } from '@/services';
-import type { FeedItemDTO } from '@/types/discovery';
-import { mapPlaylistResourceToPlaylistCard, mapTrackResourceToTrackCard } from '@/features/search/mappers/searchResultMappers';
+import type { FeedItemDTO } from '@/types/feed';
+import {
+  mapPlaylistResourceToPlaylistCard,
+  mapTrackResourceToTrackCard,
+} from '@/features/search/mappers/searchResultMappers';
 
 type FeedCardItem =
   | {
@@ -42,7 +45,7 @@ const toFeedActor = (
 ): { username: string; displayName?: string; avatar?: string } | undefined => {
   const actor =
     item.repostedBy ??
-    ((
+    (
       item as unknown as {
         actor?: {
           username?: string;
@@ -51,15 +54,15 @@ const toFeedActor = (
         };
       }
     ).actor ??
-      ((
-        item as unknown as {
-          likedBy?: {
-            username?: string;
-            displayName?: string;
-            avatarUrl?: string;
-          };
-        }
-      ).likedBy));
+    (
+      item as unknown as {
+        likedBy?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).likedBy;
 
   if (!actor?.username) {
     return undefined;
@@ -82,13 +85,16 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
       return null;
     }
 
+    const shouldShowRepost =
+      item.type === 'TRACK_REPOSTED' || Boolean(item.repostedBy);
+
     return {
       kind: 'track',
       id: `track-${item.id}-${item.resource.id}`,
       card: {
         ...card,
         postedText,
-        repostedBy: item.type === 'TRACK_REPOSTED' ? actor : card.repostedBy,
+        repostedBy: shouldShowRepost ? actor : card.repostedBy,
       },
     };
   }
@@ -165,7 +171,10 @@ export function useFeedTracks(page = 0, size = 10, infinite = false) {
     pageSize: size,
     resetKey: `${size}|${refreshIndex}`,
     fetchPage: async (pageNumber, pageSize) => {
-      const response = await feedService.getfeed({ page: pageNumber, size: pageSize });
+      const response = await feedService.getfeed({
+        page: pageNumber,
+        size: pageSize,
+      });
 
       return {
         items: mapFeedItems(response.content ?? []),
@@ -196,12 +205,12 @@ export function useFeedTracks(page = 0, size = 10, infinite = false) {
         if (!isCancelled) {
           setFeedItems(response.content);
         }
-      } catch(error) {
+      } catch (error) {
         if (!isCancelled) {
           setFeedItems([]);
           setIsError(true);
         }
-          console.error('Error fetching feed tracks:', error);
+        console.error('Error fetching feed tracks:', error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
