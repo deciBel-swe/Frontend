@@ -1,5 +1,5 @@
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import type { ResourceRefFullDTO } from '@/types/discovery';
+import type { SearchResourceRefDTO } from '@/types/discovery';
 import { formatDuration } from '@/utils/formatDuration';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
@@ -12,7 +12,7 @@ import type {
 
 const DEFAULT_IMAGE = '/images/default_song_image.png';
 type PlaylistResourceTrack = NonNullable<
-  NonNullable<ResourceRefFullDTO['playlist']>['tracks']
+  NonNullable<SearchResourceRefDTO['playlist']>['tracks']
 >[number];
 
 const toDuration = (seconds?: number): string => {
@@ -91,23 +91,47 @@ const toTrackDurationSeconds = (track: unknown): number | undefined => {
   return undefined;
 };
 
-const mapPlaylistTrackToCompactTrack = (track: PlaylistResourceTrack) => ({
-  id: track.id,
-  trackSlug: track.trackSlug,
-  artistUsername: track.artist.username,
-  title: track.title,
-  artist: track.artist.displayName || track.artist.username,
-  coverUrl: track.coverUrl || DEFAULT_IMAGE,
-  plays: track.playCount.toLocaleString(),
-  trackUrl: track.trackUrl,
-  durationSeconds: toTrackDurationSeconds(track),
-  available: track.access === 'PLAYABLE',
-  isLiked: track.isLiked,
-  isReposted: track.isReposted,
-  likeCount: track.likeCount,
-  repostCount: track.repostCount,
-  access: track.access,
-});
+const isPlaylistTrackSummary = (
+  track: PlaylistResourceTrack
+): track is Extract<
+  PlaylistResourceTrack,
+  { id: number; artist: { username: string } }
+> => {
+  const payload = track as { id?: number; artist?: { username?: string } };
+  return typeof payload.id === 'number' && !!payload.artist?.username;
+};
+
+const mapPlaylistTrackToCompactTrack = (track: PlaylistResourceTrack) => {
+  if (!isPlaylistTrackSummary(track)) {
+    return {
+      id: track.trackId,
+      title: track.title,
+      artist: 'Unknown artist',
+      coverUrl: DEFAULT_IMAGE,
+      plays: '0',
+      trackUrl: track.trackUrl,
+      durationSeconds: toTrackDurationSeconds(track),
+    };
+  }
+
+  return {
+    id: track.id,
+    trackSlug: track.trackSlug,
+    artistUsername: track.artist.username,
+    title: track.title,
+    artist: track.artist.displayName || track.artist.username,
+    coverUrl: track.coverUrl || DEFAULT_IMAGE,
+    plays: (track.playCount ?? 0).toLocaleString(),
+    trackUrl: track.trackUrl,
+    durationSeconds: toTrackDurationSeconds(track),
+    available: track.access === 'PLAYABLE',
+    isLiked: track.isLiked,
+    isReposted: track.isReposted,
+    likeCount: track.likeCount,
+    repostCount: track.repostCount,
+    access: track.access,
+  };
+};
 
 const mergeUniqueBy = <T>(
   previous: T[],
@@ -142,14 +166,14 @@ const toEverythingOrderItem = (
   id,
 });
 
-export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
-  trackResources: ResourceRefFullDTO[];
-  playlistResources: ResourceRefFullDTO[];
-  userResources: ResourceRefFullDTO[];
+export function partitionResourcesByType(resources: SearchResourceRefDTO[]): {
+  trackResources: SearchResourceRefDTO[];
+  playlistResources: SearchResourceRefDTO[];
+  userResources: SearchResourceRefDTO[];
 } {
-  const trackResources: ResourceRefFullDTO[] = [];
-  const playlistResources: ResourceRefFullDTO[] = [];
-  const userResources: ResourceRefFullDTO[] = [];
+  const trackResources: SearchResourceRefDTO[] = [];
+  const playlistResources: SearchResourceRefDTO[] = [];
+  const userResources: SearchResourceRefDTO[] = [];
 
   for (const resource of resources) {
     if (resource.type === 'TRACK') {
@@ -175,13 +199,24 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
 }
 
 export function mapTrackResourceToTrackCard(
-  resource: ResourceRefFullDTO
+  resource: SearchResourceRefDTO
 ): TrackCardProps | null {
   if (resource.type !== 'TRACK' || !resource.track) {
     return null;
   }
 
   const track = resource.track;
+  if (!track.artist || !track.artist.username) {
+    return null;
+  }
+
+  const trackUrl = track.trackUrl ?? undefined;
+  if (!trackUrl) {
+    return null;
+  }
+
+  const durationSeconds = toTrackDurationSeconds(track);
+
   const artistName = track.artist.displayName || track.artist.username;
   const trackArtist = {
     username: track.artist.username,
@@ -197,9 +232,9 @@ export function mapTrackResourceToTrackCard(
     {
       id: track.id,
       title: track.title,
-      trackUrl: track.trackUrl,
+      trackUrl,
       artist: track.artist,
-      durationSeconds: track.trackDurationSeconds,
+      durationSeconds,
       coverUrl: cover,
     },
     {
@@ -223,8 +258,8 @@ export function mapTrackResourceToTrackCard(
       artist: trackArtist,
       title: track.title,
       cover,
-      duration: toDuration(track.trackDurationSeconds),
-      waveformUrl: track.waveformUrl,
+      duration: toDuration(durationSeconds),
+      waveformUrl: track.waveformUrl ?? undefined,
       plays: track.playCount,
       comments: track.commentCount,
       genre: track.genre,
@@ -232,7 +267,7 @@ export function mapTrackResourceToTrackCard(
       isReposted: track.isReposted,
       likeCount: track.likeCount,
       repostCount: track.repostCount,
-      createdAt: track.uploadDate,
+      createdAt: track.uploadDate ?? undefined,
     },
     waveform,
     playback,
@@ -240,13 +275,17 @@ export function mapTrackResourceToTrackCard(
 }
 
 export function mapPlaylistResourceToPlaylistCard(
-  resource: ResourceRefFullDTO
+  resource: SearchResourceRefDTO
 ): PlaylistHorizontalProps | null {
   if (resource.type !== 'PLAYLIST' || !resource.playlist) {
     return null;
   }
 
   const playlist = resource.playlist;
+  if (!playlist.owner || !playlist.owner.username) {
+    return null;
+  }
+
   const ownerDisplayName =
     playlist.owner.displayName || playlist.owner.username;
   const ownerArtist = {
@@ -255,24 +294,36 @@ export function mapPlaylistResourceToPlaylistCard(
     avatar: playlist.owner.avatarUrl || DEFAULT_IMAGE,
   };
   const cover = playlist.coverArtUrl || DEFAULT_IMAGE;
-  const queueTracks = playlist.tracks.map((track) => {
+  const queueTracks = (playlist.tracks ?? []).flatMap((track) => {
+    if (!isPlaylistTrackSummary(track)) {
+      return [];
+    }
+
+    if (!track.trackUrl) {
+      return [];
+    }
+
     const artistDisplayName = track.artist.displayName || track.artist.username;
 
-    return playerTrackMappers.fromAdapterInput(
-      {
-        id: track.id,
-        title: track.title,
-        trackUrl: track.trackUrl,
-        artist: track.artist,
-        durationSeconds: toTrackDurationSeconds(track),
-        coverUrl: track.coverUrl || DEFAULT_IMAGE,
-        waveformData: toWaveform((track as { waveformData?: unknown }).waveformData),
-      },
-      {
-        access: toPlaybackAccess(track.access),
-        fallbackArtistName: artistDisplayName,
-      }
-    );
+    return [
+      playerTrackMappers.fromAdapterInput(
+        {
+          id: track.id,
+          title: track.title,
+          trackUrl: track.trackUrl,
+          artist: track.artist,
+          durationSeconds: toTrackDurationSeconds(track),
+          coverUrl: track.coverUrl || DEFAULT_IMAGE,
+          waveformData: toWaveform(
+            (track as { waveformData?: unknown }).waveformData
+          ),
+        },
+        {
+          access: toPlaybackAccess(track.access),
+          fallbackArtistName: artistDisplayName,
+        }
+      ),
+    ];
   });
   const playback = queueTracks[0];
 
@@ -303,17 +354,20 @@ export function mapPlaylistResourceToPlaylistCard(
       createdAt: playlist.createdAt,
     },
     waveform: toWaveform(
-      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData ?? undefined
+      (playlist as { firstTrackWaveformData?: unknown })
+        .firstTrackWaveformData ?? undefined
     ),
     playback,
     queueTracks,
     queueSource: 'playlist',
-    relatedTracks: playlist.tracks.slice(0, 5).map(mapPlaylistTrackToCompactTrack),
+    relatedTracks: playlist.tracks
+      .slice(0, 5)
+      .map(mapPlaylistTrackToCompactTrack),
   };
 }
 
 export function mapUserResourceToUserCard(
-  resource: ResourceRefFullDTO
+  resource: SearchResourceRefDTO
 ): UserCardData | null {
   if (resource.type !== 'USER' || !resource.user) {
     return null;
@@ -332,18 +386,33 @@ export function mapUserResourceToUserCard(
 }
 
 export function mapResourceToEverythingOrderItem(
-  resource: ResourceRefFullDTO
+  resource: SearchResourceRefDTO
 ): EverythingOrderItem | null {
+  const resourceId =
+    typeof resource.id === 'number'
+      ? String(resource.id)
+      : resource.type === 'TRACK'
+        ? String(resource.track?.id ?? '')
+        : resource.type === 'PLAYLIST'
+          ? String(resource.playlist?.id ?? '')
+          : resource.type === 'USER'
+            ? String(resource.user?.id ?? '')
+            : '';
+
+  if (!resourceId) {
+    return null;
+  }
+
   if (resource.type === 'TRACK') {
-    return toEverythingOrderItem('track', String(resource.resourceId));
+    return toEverythingOrderItem('track', resourceId);
   }
 
   if (resource.type === 'PLAYLIST') {
-    return toEverythingOrderItem('playlist', String(resource.resourceId));
+    return toEverythingOrderItem('playlist', resourceId);
   }
 
   if (resource.type === 'USER') {
-    return toEverythingOrderItem('user', String(resource.resourceId));
+    return toEverythingOrderItem('user', resourceId);
   }
 
   return null;
@@ -354,7 +423,11 @@ export function mergeSearchBuckets(
   incoming: SearchBuckets
 ): SearchBuckets {
   return {
-    tracks: mergeUniqueBy(previous.tracks, incoming.tracks, (track) => track.trackId),
+    tracks: mergeUniqueBy(
+      previous.tracks,
+      incoming.tracks,
+      (track) => track.trackId
+    ),
     playlists: mergeUniqueBy(
       previous.playlists,
       incoming.playlists,
@@ -368,9 +441,5 @@ export function mergeEverythingOrder(
   previous: EverythingOrderItem[],
   incoming: EverythingOrderItem[]
 ): EverythingOrderItem[] {
-  return mergeUniqueBy(
-    previous,
-    incoming,
-    (item) => `${item.kind}:${item.id}`
-  );
+  return mergeUniqueBy(previous, incoming, (item) => `${item.kind}:${item.id}`);
 }
