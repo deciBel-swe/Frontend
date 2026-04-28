@@ -17,8 +17,8 @@ import type { FullTrackDTO } from '@/types/tracks';
 
 type RepostedByShape = {
   username?: string;
-  displayName?: string;
-  avatarUrl?: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
 };
 
 type RepostMetadataShape = {
@@ -54,8 +54,8 @@ const toRepostedBy = (
   if (repostedBy?.username) {
     return {
       username: repostedBy.username,
-      displayName: repostedBy.displayName,
-      avatar: repostedBy.avatarUrl,
+      displayName: repostedBy.displayName ?? undefined,
+      avatar: repostedBy.avatarUrl ?? undefined,
     };
   }
 

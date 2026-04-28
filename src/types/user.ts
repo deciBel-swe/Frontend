@@ -189,8 +189,8 @@ export const userSummarySchema = z
   .object({
     id: z.number().int().nonnegative(),
     username: z.string().trim().min(1),
-    displayName: z.string().trim().min(1),
-    avatarUrl: z.string().url(),
+    displayName: z.string().trim().min(1).nullable(),
+    avatarUrl: z.string().url().nullable(),
     isFollowing: z.boolean().optional().default(false),
     followerCount: z
       .number()
