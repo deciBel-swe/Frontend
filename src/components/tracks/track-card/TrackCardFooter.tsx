@@ -28,6 +28,7 @@ type TrackCardFooterProps = {
   onMoreClose: () => void;
   onAddToPlaylist?: () => void;
   onStation?: () => void;
+  onReport?: () => void;
 };
 
 export default function TrackCardFooter({
@@ -55,6 +56,7 @@ export default function TrackCardFooter({
   onMoreClose,
   onAddToPlaylist,
   onStation,
+  onReport,
 }: TrackCardFooterProps) {
   return (
     <div className="flex w-full items-center">
@@ -78,6 +80,8 @@ export default function TrackCardFooter({
         onMoreClose={onMoreClose}
         onAddToPlaylist={onAddToPlaylist}
         onStation={onStation}
+        showReport={!showEditButton}
+        onReport={onReport}
       />
 
       <TrackCardStats
