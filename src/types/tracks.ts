@@ -174,7 +174,9 @@ export type TrackMetadataArtist = z.infer<typeof trackMetadataArtistSchema>;
 export const trackDetailsResponseSchema = z.object({
   id: z.number().int().nonnegative(),
   title: z.string().trim().min(1),
-  trackSlug: nullableStringWithDefault('if-you-are-seeing-this-please-contact-backend').optional(),
+  trackSlug: nullableStringWithDefault(
+    'if-you-are-seeing-this-please-contact-backend'
+  ).optional(),
   slug: z.string().trim().min(1).optional(),
   durationSeconds: z.coerce.number().int().nonnegative().optional().nullable(),
   trackDurationSeconds: z.coerce
@@ -204,7 +206,9 @@ export const trackDetailsResponseSchema = z.object({
   commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
   CompletedPlayCount: z.number().int().nonnegative().optional(),
-  secretToken: nullableStringWithDefault('if-you-are-seeing-this-token-please-contact-backend').optional(),
+  secretToken: nullableStringWithDefault(
+    'if-you-are-seeing-this-token-please-contact-backend'
+  ).optional(),
   trackPreviewUrl: z.string().trim().min(1).optional().nullable(),
   trendingRank: z.number().int().nonnegative().optional(),
   uploadDate: z.string().trim().optional().nullable(),
@@ -219,14 +223,15 @@ export const paginatedTracksResponseSchema = z.object({
   totalPages: z.number().int().nonnegative(),
   isLast: z.boolean(),
 });
-export type PaginatedTracksResponse = z.infer<typeof paginatedTracksResponseSchema>;
+export type PaginatedTracksResponse = z.infer<
+  typeof paginatedTracksResponseSchema
+>;
 export type PaginatedTrackMetadataResponse = Omit<
   PaginatedTracksResponse,
   'content'
 > & {
   content: TrackMetaData[];
 };
-
 
 /** Schema for PATCH /tracks/:trackId */
 export const trackUpdateResponseSchema = z.object({
@@ -269,7 +274,9 @@ export const trackMetadataSchema = z.object({
   repostCount: z.number().int().nonnegative().optional(),
   commentCount: z.number().int().nonnegative().optional(),
   playCount: z.number().int().nonnegative().optional(),
-  secretToken: nullableStringWithDefault('if-you-are-seeing-this-then-something-went-very-wrong-with-backend').optional(),
+  secretToken: nullableStringWithDefault(
+    'if-you-are-seeing-this-then-something-went-very-wrong-with-backend'
+  ).optional(),
   uploadDate: z.string().optional().default(''),
 });
 export type TrackMetaData = z.infer<typeof trackMetadataSchema>;
@@ -342,13 +349,13 @@ export const fullTrackSchema = z
       id: z.number().int().nonnegative(),
       username: z.string().trim().min(1),
       displayName: z.string().trim().min(1),
-      avatarUrl: z.string().url(),
+      avatarUrl: z.string().url().nullable(),
       isFollowing: z.boolean(),
       followerCount: z.number().int().nonnegative(),
       trackCount: z.number().int().nonnegative(),
     }),
     trackUrl: z.string().url(),
-    coverUrl: z.string().url(),
+    coverUrl: z.string().url().nullable(),
     waveformUrl: z.string().url(),
     genre: z.string().trim().min(1),
     isReposted: z.boolean(),

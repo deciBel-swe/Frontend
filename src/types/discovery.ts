@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { paginatedResponseSchema } from './pagination';
-import { fullPlaylistSchema } from './playlists';
-import { fullTrackSchema, trackSummarySchema } from './tracks';
+import { fullPlaylistSchema, playlistResponseSchema } from './playlists';
+import {
+  fullTrackSchema,
+  trackDetailsResponseSchema,
+  trackSummarySchema,
+} from './tracks';
 import { nullableStringWithDefault, userSummarySchema } from './user';
 
 // ================================
@@ -28,6 +32,19 @@ export const resourceRefFullSchema = z
   })
   .passthrough();
 export type ResourceRefFullDTO = z.infer<typeof resourceRefFullSchema>;
+
+export const searchResourceRefSchema = z
+  .object({
+    type: resourceTypeSchema,
+    id: z.number().int().nonnegative().optional(),
+    playlist: playlistResponseSchema.nullable(),
+    track: trackDetailsResponseSchema.nullable(),
+    user: userSummarySchema.nullable(),
+    repostedBy: userSummarySchema.optional().nullable(),
+    repostedAt: nullableStringWithDefault(''),
+  })
+  .passthrough();
+export type SearchResourceRefDTO = z.infer<typeof searchResourceRefSchema>;
 
 // ================================
 // Feed
@@ -66,7 +83,7 @@ export type PaginatedFeedResponseDTO = z.infer<
 // ================================
 
 export const paginatedSearchResponseSchema = paginatedResponseSchema(
-  resourceRefFullSchema
+  searchResourceRefSchema
 );
 export type PaginatedSearchResponseDTO = z.infer<
   typeof paginatedSearchResponseSchema
@@ -88,7 +105,7 @@ const flatRepostTrackSchema = z
   .object({
     id: z.number().int().nonnegative(),
     title: z.string().trim().min(1),
-    trackSlug: z.string().trim().min(1),
+    trackSlug: z.string().trim().min(1).optional().nullable(),
     artist: repostTrackArtistSchema,
     trackUrl: z.string().url(),
     trackPreviewUrl: z.string().url().optional().nullable(),
@@ -108,7 +125,7 @@ const flatRepostTrackSchema = z
     isPrivate: z.boolean().optional(),
     trackDurationSeconds: z.number().int().nonnegative().optional(),
     uploadDate: z.string().trim().optional(),
-    description: z.string().optional(),
+    description: nullableStringWithDefault(''),
     access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']).optional(),
     secretToken: z.string().trim().optional(),
     repostedBy: userSummarySchema.optional().nullable(),
