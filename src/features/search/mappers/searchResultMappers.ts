@@ -1,5 +1,6 @@
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import type { SearchResourceRefDTO } from '@/types/discovery';
+import type { FeedResourceRefFullDTO } from '@/types/feed';
 import { formatDuration } from '@/utils/formatDuration';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
@@ -12,7 +13,9 @@ import type {
 
 const DEFAULT_IMAGE = '/images/default_song_image.png';
 type PlaylistResourceTrack = NonNullable<
-  NonNullable<SearchResourceRefDTO['playlist']>['tracks']
+  NonNullable<Search
+    (ResourceRefFullDTO | FeedResourceRefDTO|SearchResourceRefDTO)['playlist']
+  >['tracks']
 >[number];
 
 const toDuration = (seconds?: number): string => {
@@ -199,7 +202,7 @@ export function partitionResourcesByType(resources: SearchResourceRefDTO[]): {
 }
 
 export function mapTrackResourceToTrackCard(
-  resource: SearchResourceRefDTO
+  resource: SearchResourceRefDTO | FeedResourceRefFullDTO | SearchResourceRefDTO
 ): TrackCardProps | null {
   if (resource.type !== 'TRACK' || !resource.track) {
     return null;
@@ -232,7 +235,7 @@ export function mapTrackResourceToTrackCard(
     {
       id: track.id,
       title: track.title,
-      trackUrl,
+      trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
       artist: track.artist,
       durationSeconds,
       coverUrl: cover,
@@ -253,12 +256,12 @@ export function mapTrackResourceToTrackCard(
     showHeader: true,
     track: {
       id: track.id,
-      trackSlug: track.trackSlug,
+      trackSlug: track.trackSlug ?? undefined,
       artistUsername: track.artist.username,
       artist: trackArtist,
       title: track.title,
       cover,
-      duration: toDuration(durationSeconds),
+      duration: toDuration(track.trackDurationSeconds),
       waveformUrl: track.waveformUrl ?? undefined,
       plays: track.playCount,
       comments: track.commentCount,
@@ -275,7 +278,7 @@ export function mapTrackResourceToTrackCard(
 }
 
 export function mapPlaylistResourceToPlaylistCard(
-  resource: SearchResourceRefDTO
+  resource: ResourceRefFullDTO | FeedResourceRefFullDTO | SearchResourceRefDTO
 ): PlaylistHorizontalProps | null {
   if (resource.type !== 'PLAYLIST' || !resource.playlist) {
     return null;
@@ -310,13 +313,15 @@ export function mapPlaylistResourceToPlaylistCard(
         {
           id: track.id,
           title: track.title,
-          trackUrl: track.trackUrl,
+          trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
           artist: track.artist,
           durationSeconds: toTrackDurationSeconds(track),
           coverUrl: track.coverUrl || DEFAULT_IMAGE,
           waveformData: toWaveform(
-            (track as { waveformData?: unknown }).waveformData
-          ),
+            
+          (track as { waveformData?: unknown }).waveformData
+          
+        ),
         },
         {
           access: toPlaybackAccess(track.access),
@@ -338,7 +343,7 @@ export function mapPlaylistResourceToPlaylistCard(
     showHeader: true,
     track: {
       id: playlist.id,
-      playlistSlug: playlist.playlistSlug,
+      playlistSlug: playlist.playlistSlug ?? undefined,
       artistUsername: playlist.owner.username,
       artist: ownerArtist,
       title: playlist.title,
@@ -423,6 +428,11 @@ export function mergeSearchBuckets(
   incoming: SearchBuckets
 ): SearchBuckets {
   return {
+    tracks: mergeUniqueBy(
+      previous.tracks,
+      incoming.tracks,
+      (track) => track.trackId
+    ),
     tracks: mergeUniqueBy(
       previous.tracks,
       incoming.tracks,

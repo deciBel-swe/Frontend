@@ -32,17 +32,13 @@ interface UpgradeCardProps {
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 const priceColour: Record<Plan['tier'], string> = {
-  artist: 'text-violet-600',
   pro: 'text-amber-600',
   free: 'text-violet-600',
-  none: 'text-violet-600',
 };
 
 const cardBorder: Record<Plan['tier'], string> = {
-  artist: 'border border-violet-200',
   pro: 'border-2 border-amber-400',
   free: 'border border-violet-200',
-  none: 'border border-violet-200',
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────

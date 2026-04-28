@@ -24,13 +24,7 @@ export const nullableStringWithDefault = (defaultValue: string) =>
     }
     return value;
   }, z.string().nullable().optional());
-const userTierSchema = z.enum([
-  'FREE',
-  'ARTIST',
-  'ARTIST_PRO',
-  'LISTENER',
-  'OTHER',
-]);
+const userTierSchema = z.enum(['FREE', 'PRO']);
 
 const userProfileSchema = z.object({
   displayName: nullableStringWithDefault(''),
@@ -248,13 +242,13 @@ export const updateRoleRequestSchema = z.object({
 export type UpdateRoleRequest = z.infer<typeof updateRoleRequestSchema>;
 
 export const updateTierRequestSchema = z.object({
-  newTier: z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']),
+  newTier: z.enum(['FREE', 'PRO']),
 });
 export type UpdateTierRequest = z.infer<typeof updateTierRequestSchema>;
 
 export const updateTierResponseSchema = z
   .object({
-    tier: z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']),
+    tier: z.enum(['FREE', 'PRO']),
     login: z.unknown().optional(),
   })
   .passthrough();
