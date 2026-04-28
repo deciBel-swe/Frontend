@@ -9,9 +9,9 @@ import type {
   PaginatedSearchResponseDTO,
   PaginatedStationResponseDTO,
   ResourceRefFullDTO,
+  SearchResourceRefDTO,
   TrendingTracksResponseDTO,
 } from '@/types/discovery';
-import type { UserSummaryDTO } from '@/types/user';
 import type { TrackSummaryDTO } from '@/types/tracks';
 import type { PlaylistSummaryDTO } from '@/types/playlists';
 import type { FullTrackDTO } from '@/types/tracks';
@@ -51,7 +51,18 @@ const paginate = <T>(items: T[], params?: PaginationParams) => {
   };
 };
 
-const buildUserSummary = (userId: number): UserSummaryDTO => {
+type StrictUserSummaryDTO = {
+  [key: string]: unknown;
+  id: number;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  isFollowing: boolean;
+  followerCount: number;
+  trackCount: number;
+};
+
+const buildUserSummary = (userId: number): StrictUserSummaryDTO => {
   const user = getMockUsersStore().find((item) => item.id === userId);
   if (!user) {
     return {
@@ -67,8 +78,8 @@ const buildUserSummary = (userId: number): UserSummaryDTO => {
 
   return {
     id: user.id,
-    username: user.username,
-    displayName: user.displayName || user.username,
+    username: user.username ?? 'unknown',
+    displayName: user.displayName ?? user.username ?? 'unknown',
     avatarUrl: user.profile.profilePic ?? '',
     isFollowing: false,
     followerCount: user.followers.size,
@@ -173,29 +184,42 @@ const buildResourceForTrack = (
     playlist: null,
     track: {
       ...(summary as unknown as FullTrackDTO),
-      waveformUrl: getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
+      waveformUrl:
+        getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
       genre: getMockTracksStore().find((t) => t.id === trackId)?.genre ?? '',
       isReposted: false,
       isLiked: false,
       tags: getMockTracksStore().find((t) => t.id === trackId)?.tags ?? [],
-      releaseDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      releaseDate:
+        getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
       playCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
       CompletedPlayCount: 0,
       likeCount: getMockTracksStore().find((t) => t.id === trackId)?.likes ?? 0,
-      repostCount: getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
+      repostCount:
+        getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
       commentCount: 0,
-      isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
-      trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
-      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      isPrivate: Boolean(
+        getMockTracksStore().find((t) => t.id === trackId)?.isPrivate
+      ),
+      trackDurationSeconds:
+        getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ??
+        0,
+      uploadDate:
+        getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
       description: '',
       trendingRank: 0,
       access: resolveMockResourceAccess({
-        isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
-        ownerId: getMockTracksStore().find((t) => t.id === trackId)?.artist.id ?? 0,
+        isPrivate: Boolean(
+          getMockTracksStore().find((t) => t.id === trackId)?.isPrivate
+        ),
+        ownerId:
+          getMockTracksStore().find((t) => t.id === trackId)?.artist.id ?? 0,
         viewerId,
       }),
-      secretToken: getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
-      trackPreviewUrl: getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
+      secretToken:
+        getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
+      trackPreviewUrl:
+        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
     },
     user: null,
   };
@@ -225,7 +249,8 @@ const buildResourceForPlaylist = (
       tracks: playlistSummary.tracks,
       isReposted: false,
       likeCount: (playlistSummary as { likeCount?: number }).likeCount ?? 0,
-      repostCount: (playlistSummary as { repostCount?: number }).repostCount ?? 0,
+      repostCount:
+        (playlistSummary as { repostCount?: number }).repostCount ?? 0,
       firstTrackWaveformUrl:
         firstTrackRecord?.waveformUrl ?? '/images/default-waveform.json',
       firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
@@ -241,6 +266,30 @@ const buildResourceForUser = (userId: number): ResourceRefFullDTO => ({
   playlist: null,
   track: null,
   user: buildUserSummary(userId),
+});
+
+const toSearchResourceRef = (
+  resource: ResourceRefFullDTO
+): SearchResourceRefDTO => ({
+  ...resource,
+  playlist: resource.playlist
+    ? {
+        ...resource.playlist,
+        isReposted: resource.playlist.isReposted ?? false,
+        coverArtUrl: resource.playlist.coverArtUrl ?? '',
+        firstTrackWaveformUrl: resource.playlist.firstTrackWaveformUrl ?? '',
+        owner: {
+          ...resource.playlist.owner,
+          avatarUrl: resource.playlist.owner.avatarUrl ?? '',
+        },
+      }
+    : null,
+  track: resource.track
+    ? {
+        ...resource.track,
+        coverUrl: resource.track.coverUrl ?? '',
+      }
+    : null,
 });
 
 export class MockDiscoveryService implements DiscoveryService {
@@ -275,68 +324,75 @@ export class MockDiscoveryService implements DiscoveryService {
       user.username.toLowerCase().includes(query)
     );
 
-    const playlistMatches = getMockUsersStore()
-      .flatMap((user) =>
-        user.playlists.filter((playlist) => {
-          if (
-            !canAccessMockResource({
-              isPrivate: playlist.isPrivate,
-              ownerId: user.id,
-              viewerId,
-            })
-          ) {
-            return false;
-          }
+    const playlistMatches = getMockUsersStore().flatMap((user) =>
+      user.playlists.filter((playlist) => {
+        if (
+          !canAccessMockResource({
+            isPrivate: playlist.isPrivate,
+            ownerId: user.id,
+            viewerId,
+          })
+        ) {
+          return false;
+        }
 
-          return playlist.title.toLowerCase().includes(query);
-        })
-      );
+        return playlist.title.toLowerCase().includes(query);
+      })
+    );
 
-    const trackResources = trackMatches.map((track) =>
-      buildResourceForTrack(track.id, viewerId)
-    ).filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
-    const userResources = userMatches.map((user) => buildResourceForUser(user.id));
-    const playlistResources = playlistMatches.map((playlist) =>
-      buildResourceForPlaylist(playlist.id, viewerId)
-    ).filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
+    const trackResources = trackMatches
+      .map((track) => buildResourceForTrack(track.id, viewerId))
+      .filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
+    const userResources = userMatches.map((user) =>
+      buildResourceForUser(user.id)
+    );
+    const playlistResources = playlistMatches
+      .map((playlist) => buildResourceForPlaylist(playlist.id, viewerId))
+      .filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
+
+    const searchTrackResources = trackResources.map(toSearchResourceRef);
+    const searchUserResources = userResources.map(toSearchResourceRef);
+    const searchPlaylistResources = playlistResources.map(toSearchResourceRef);
 
     if (type === 'TRACK') {
-      return paginate(trackResources, params);
+      return paginate(searchTrackResources, params);
     }
 
     if (type === 'USER') {
-      return paginate(userResources, params);
+      return paginate(searchUserResources, params);
     }
 
     if (type === 'PLAYLIST') {
-      return paginate(playlistResources, params);
+      return paginate(searchPlaylistResources, params);
     }
 
-    const results: ResourceRefFullDTO[] = [];
+    const results: SearchResourceRefDTO[] = [];
     const maxLength = Math.max(
-      trackResources.length,
-      userResources.length,
-      playlistResources.length
+      searchTrackResources.length,
+      searchUserResources.length,
+      searchPlaylistResources.length
     );
 
     for (let index = 0; index < maxLength; index += 1) {
-      if (trackResources[index]) {
-        results.push(trackResources[index]);
+      if (searchTrackResources[index]) {
+        results.push(searchTrackResources[index]);
       }
 
-      if (userResources[index]) {
-        results.push(userResources[index]);
+      if (searchUserResources[index]) {
+        results.push(searchUserResources[index]);
       }
 
-      if (playlistResources[index]) {
-        results.push(playlistResources[index]);
+      if (searchPlaylistResources[index]) {
+        results.push(searchPlaylistResources[index]);
       }
     }
 
     return paginate(results, params);
   }
 
-  async getTrending(params?: TrendingParams): Promise<TrendingTracksResponseDTO> {
+  async getTrending(
+    params?: TrendingParams
+  ): Promise<TrendingTracksResponseDTO> {
     await delay();
 
     const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
@@ -351,8 +407,7 @@ export class MockDiscoveryService implements DiscoveryService {
         })
       )
       .sort(
-        (a, b) =>
-          (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
+        (a, b) => (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
       )
       .slice(0, limit)
       .map((track, index) => {
