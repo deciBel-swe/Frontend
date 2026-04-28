@@ -3,6 +3,7 @@ import {
   type FeedItemDTO,
   type FeedResourceRefFullDTO,
   type FeedPlaylistDTO,
+  type FeedPlaylistTrackDTO,
   type FeedTrackDTO,
 } from '@/types/feed';
 import type { UserSummaryDTO } from '@/types/user';
@@ -119,6 +120,51 @@ export class MockFeedService implements FeedService {
       };
     };
 
+    const buildPlaylistTrack = (
+      trackId: number
+    ): FeedPlaylistTrackDTO | null => {
+      const track = getMockTracksStore().find((item) => item.id === trackId);
+      if (!track) {
+        return null;
+      }
+      if (
+        !canAccessMockResource({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId: currentUserId,
+        })
+      ) {
+        return null;
+      }
+
+      return {
+        id: track.id,
+        title: track.title,
+        trackSlug: track.trackSlug,
+        artist: userSummaryFromId(track.artist.id),
+        trackUrl: track.trackUrl,
+        trackPreviewUrl: track.trackUrl,
+        coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+        playCount: (track.likes ?? track.likeCount) * 25,
+        likeCount: track.likes ?? track.likeCount,
+        repostCount: track.reposters ?? track.repostCount,
+        commentCount: 0,
+        isLiked:
+          currentUser?.likedTracks.some(
+            (likedTrack) => likedTrack.id === track.id
+          ) ?? false,
+        isReposted:
+          currentUser?.reposts.some((repost) => repost.id === track.id) ??
+          false,
+        secretToken: track.secretLink ?? '',
+        access: resolveMockResourceAccess({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId: currentUserId,
+        }),
+      };
+    };
+
     const buildFullPlaylist = (playlistId: number): FeedPlaylistDTO | null => {
       const users = getMockUsersStore();
       for (const user of users) {
@@ -142,10 +188,9 @@ export class MockFeedService implements FeedService {
         );
 
         const playlistTracks = playlist.tracks
-          .map((item) => buildFullTrack(item.trackId))
-          .filter((item): item is FeedTrackDTO => Boolean(item));
+          .map((item) => buildPlaylistTrack(item.trackId))
+          .filter((item): item is FeedPlaylistTrackDTO => Boolean(item));
 
-        const firstTrack = playlistTracks[0];
         const firstTrackRecord = getMockTracksStore().find(
           (track) => track.id === playlist.tracks[0]?.trackId
         );
@@ -166,7 +211,7 @@ export class MockFeedService implements FeedService {
           tracks: playlistTracks,
           secretToken: playlist.secretLink ?? '',
           firstTrackWaveformUrl:
-            firstTrack?.waveformUrl ?? '/images/default-waveform.json',
+            firstTrackRecord?.waveformUrl ?? '/images/default-waveform.json',
           firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
         };
       }

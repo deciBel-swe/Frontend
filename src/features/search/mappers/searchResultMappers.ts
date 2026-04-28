@@ -13,7 +13,9 @@ import type {
 
 const DEFAULT_IMAGE = '/images/default_song_image.png';
 type PlaylistResourceTrack = NonNullable<
-  NonNullable<ResourceRefFullDTO['playlist']>['tracks']
+  NonNullable<
+    (ResourceRefFullDTO | FeedResourceRefFullDTO)['playlist']
+  >['tracks']
 >[number];
 
 const toDuration = (seconds?: number): string => {
@@ -94,13 +96,13 @@ const toTrackDurationSeconds = (track: unknown): number | undefined => {
 
 const mapPlaylistTrackToCompactTrack = (track: PlaylistResourceTrack) => ({
   id: track.id,
-  trackSlug: track.trackSlug,
+  trackSlug: track.trackSlug ?? '',
   artistUsername: track.artist.username,
   title: track.title,
   artist: track.artist.displayName || track.artist.username,
   coverUrl: track.coverUrl || DEFAULT_IMAGE,
-  plays: track.playCount.toLocaleString(),
-  trackUrl: track.trackUrl,
+  plays: (track.playCount ?? 0).toLocaleString(),
+  trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
   durationSeconds: toTrackDurationSeconds(track),
   available: track.access === 'PLAYABLE',
   isLiked: track.isLiked,
@@ -263,7 +265,7 @@ export function mapPlaylistResourceToPlaylistCard(
       {
         id: track.id,
         title: track.title,
-        trackUrl: track.trackUrl,
+        trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
         artist: track.artist,
         durationSeconds: toTrackDurationSeconds(track),
         coverUrl: track.coverUrl || DEFAULT_IMAGE,
@@ -290,7 +292,7 @@ export function mapPlaylistResourceToPlaylistCard(
     showHeader: true,
     track: {
       id: playlist.id,
-      playlistSlug: playlist.playlistSlug,
+      playlistSlug: playlist.playlistSlug ?? undefined,
       artistUsername: playlist.owner.username,
       artist: ownerArtist,
       title: playlist.title,

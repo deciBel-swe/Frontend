@@ -88,7 +88,7 @@ const flatRepostTrackSchema = z
   .object({
     id: z.number().int().nonnegative(),
     title: z.string().trim().min(1),
-    trackSlug: z.string().trim().min(1),
+    trackSlug: z.string().trim().min(1).optional().nullable(),
     artist: repostTrackArtistSchema,
     trackUrl: z.string().url(),
     trackPreviewUrl: z.string().url().optional().nullable(),
@@ -108,7 +108,7 @@ const flatRepostTrackSchema = z
     isPrivate: z.boolean().optional(),
     trackDurationSeconds: z.number().int().nonnegative().optional(),
     uploadDate: z.string().trim().optional(),
-    description: z.string().optional(),
+    description: nullableStringWithDefault(''),
     access: z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']).optional(),
     secretToken: z.string().trim().optional(),
     repostedBy: userSummarySchema.optional().nullable(),
