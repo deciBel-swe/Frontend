@@ -39,6 +39,9 @@ export interface AuthService {
   /** Resend email verification message (POST /auth/resend-verification). */
   resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }>;
 
+  /** Send password reset message (POST /auth/forgot-password). */
+  forgotPassword(email: string): Promise<{ message: string }>;
+
   /** Verify email token (POST /auth/verify-email). */
   verifyEmail(token: string): Promise<{ message: string }>;
 
@@ -156,6 +159,13 @@ export class RealAuthService implements AuthService {
   async resendVerification(email: string): Promise<{ message: string; coolDown?: number | null }> {
     const response = await apiRequest(API_CONTRACTS.RESEND_VERIFICATION, {
       payload: { email ,deviceInfo: buildDeviceInfo()},
+    });
+    return response;
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await apiRequest(API_CONTRACTS.FORGOT_PASSWORD, {
+      payload: { email },
     });
     return response;
   }
