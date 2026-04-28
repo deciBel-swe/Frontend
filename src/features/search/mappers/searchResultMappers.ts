@@ -1,5 +1,6 @@
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import type { ResourceRefFullDTO } from '@/types/discovery';
+import type { FeedResourceRefFullDTO } from '@/types/feed';
 import { formatDuration } from '@/utils/formatDuration';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
@@ -175,7 +176,7 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
 }
 
 export function mapTrackResourceToTrackCard(
-  resource: ResourceRefFullDTO
+  resource: ResourceRefFullDTO | FeedResourceRefFullDTO
 ): TrackCardProps | null {
   if (resource.type !== 'TRACK' || !resource.track) {
     return null;
@@ -197,7 +198,7 @@ export function mapTrackResourceToTrackCard(
     {
       id: track.id,
       title: track.title,
-      trackUrl: track.trackUrl,
+      trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
       artist: track.artist,
       durationSeconds: track.trackDurationSeconds,
       coverUrl: cover,
@@ -218,13 +219,13 @@ export function mapTrackResourceToTrackCard(
     showHeader: true,
     track: {
       id: track.id,
-      trackSlug: track.trackSlug,
+      trackSlug: track.trackSlug ?? undefined,
       artistUsername: track.artist.username,
       artist: trackArtist,
       title: track.title,
       cover,
       duration: toDuration(track.trackDurationSeconds),
-      waveformUrl: track.waveformUrl,
+      waveformUrl: track.waveformUrl ?? undefined,
       plays: track.playCount,
       comments: track.commentCount,
       genre: track.genre,
@@ -232,7 +233,7 @@ export function mapTrackResourceToTrackCard(
       isReposted: track.isReposted,
       likeCount: track.likeCount,
       repostCount: track.repostCount,
-      createdAt: track.uploadDate,
+      createdAt: track.uploadDate ?? undefined,
     },
     waveform,
     playback,
@@ -240,7 +241,7 @@ export function mapTrackResourceToTrackCard(
 }
 
 export function mapPlaylistResourceToPlaylistCard(
-  resource: ResourceRefFullDTO
+  resource: ResourceRefFullDTO | FeedResourceRefFullDTO
 ): PlaylistHorizontalProps | null {
   if (resource.type !== 'PLAYLIST' || !resource.playlist) {
     return null;
@@ -266,7 +267,9 @@ export function mapPlaylistResourceToPlaylistCard(
         artist: track.artist,
         durationSeconds: toTrackDurationSeconds(track),
         coverUrl: track.coverUrl || DEFAULT_IMAGE,
-        waveformData: toWaveform((track as { waveformData?: unknown }).waveformData),
+        waveformData: toWaveform(
+          (track as { waveformData?: unknown }).waveformData
+        ),
       },
       {
         access: toPlaybackAccess(track.access),
@@ -303,12 +306,15 @@ export function mapPlaylistResourceToPlaylistCard(
       createdAt: playlist.createdAt,
     },
     waveform: toWaveform(
-      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData ?? undefined
+      (playlist as { firstTrackWaveformData?: unknown })
+        .firstTrackWaveformData ?? undefined
     ),
     playback,
     queueTracks,
     queueSource: 'playlist',
-    relatedTracks: playlist.tracks.slice(0, 5).map(mapPlaylistTrackToCompactTrack),
+    relatedTracks: playlist.tracks
+      .slice(0, 5)
+      .map(mapPlaylistTrackToCompactTrack),
   };
 }
 
@@ -354,7 +360,11 @@ export function mergeSearchBuckets(
   incoming: SearchBuckets
 ): SearchBuckets {
   return {
-    tracks: mergeUniqueBy(previous.tracks, incoming.tracks, (track) => track.trackId),
+    tracks: mergeUniqueBy(
+      previous.tracks,
+      incoming.tracks,
+      (track) => track.trackId
+    ),
     playlists: mergeUniqueBy(
       previous.playlists,
       incoming.playlists,
@@ -368,9 +378,5 @@ export function mergeEverythingOrder(
   previous: EverythingOrderItem[],
   incoming: EverythingOrderItem[]
 ): EverythingOrderItem[] {
-  return mergeUniqueBy(
-    previous,
-    incoming,
-    (item) => `${item.kind}:${item.id}`
-  );
+  return mergeUniqueBy(previous, incoming, (item) => `${item.kind}:${item.id}`);
 }

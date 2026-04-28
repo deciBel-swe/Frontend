@@ -1,8 +1,11 @@
-import { PaginatedTrackFeedResponse } from '@/types/feed';
-import type { FeedItemDTO, ResourceRefFullDTO } from '@/types/discovery';
+import {
+  PaginatedTrackFeedResponse,
+  type FeedItemDTO,
+  type FeedResourceRefFullDTO,
+  type FeedPlaylistDTO,
+  type FeedTrackDTO,
+} from '@/types/feed';
 import type { UserSummaryDTO } from '@/types/user';
-import type { FullTrackDTO } from '@/types/tracks';
-import type { FullPlaylistDTO } from '@/types/playlists';
 import { FeedService, PaginationParams } from '../api/feedService';
 import {
   getMockTracksStore,
@@ -63,7 +66,7 @@ export class MockFeedService implements FeedService {
       };
     };
 
-    const buildFullTrack = (trackId: number): FullTrackDTO | null => {
+    const buildFullTrack = (trackId: number): FeedTrackDTO | null => {
       const track = getMockTracksStore().find((item) => item.id === trackId);
       if (!track) {
         return null;
@@ -88,10 +91,12 @@ export class MockFeedService implements FeedService {
         waveformUrl: track.waveformUrl,
         genre: track.genre,
         isReposted:
-          currentUser?.reposts.some((repost) => repost.id === track.id) ?? false,
-        isLiked:
-          currentUser?.likedTracks.some((likedTrack) => likedTrack.id === track.id) ??
+          currentUser?.reposts.some((repost) => repost.id === track.id) ??
           false,
+        isLiked:
+          currentUser?.likedTracks.some(
+            (likedTrack) => likedTrack.id === track.id
+          ) ?? false,
         tags: [...track.tags],
         releaseDate: track.releaseDate,
         playCount: (track.likes ?? track.likeCount) * 25,
@@ -114,7 +119,7 @@ export class MockFeedService implements FeedService {
       };
     };
 
-    const buildFullPlaylist = (playlistId: number): FullPlaylistDTO | null => {
+    const buildFullPlaylist = (playlistId: number): FeedPlaylistDTO | null => {
       const users = getMockUsersStore();
       for (const user of users) {
         const playlist = user.playlists.find((item) => item.id === playlistId);
@@ -138,7 +143,7 @@ export class MockFeedService implements FeedService {
 
         const playlistTracks = playlist.tracks
           .map((item) => buildFullTrack(item.trackId))
-          .filter((item): item is FullTrackDTO => Boolean(item));
+          .filter((item): item is FeedTrackDTO => Boolean(item));
 
         const firstTrack = playlistTracks[0];
         const firstTrackRecord = getMockTracksStore().find(
@@ -172,7 +177,7 @@ export class MockFeedService implements FeedService {
     const buildResource = (
       type: 'TRACK' | 'PLAYLIST',
       id: number
-    ): ResourceRefFullDTO | null => {
+    ): FeedResourceRefFullDTO | null => {
       if (type === 'TRACK') {
         const track = buildFullTrack(id);
         if (!track) {
@@ -202,8 +207,7 @@ export class MockFeedService implements FeedService {
 
     const feedItems: FeedItemDTO[] = [];
     let index = 0;
-    const nextDate = () =>
-      new Date(Date.now() - index++ * 60000).toISOString();
+    const nextDate = () => new Date(Date.now() - index++ * 60000).toISOString();
 
     for (const user of followedUsers) {
       if (blockedUserIds.has(user.id)) {
