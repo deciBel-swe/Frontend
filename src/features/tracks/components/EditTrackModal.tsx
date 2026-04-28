@@ -36,8 +36,8 @@ export default function EditTrackModal({
   const [tags, setTags] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [descriptionTouched, setDescriptionTouched] = useState(false);
-  const [uploadDate, setUploadDate] = useState(todayIsoDate);
-  const [uploadDateError, setUploadDateError] = useState('');
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
     track.cover ?? null
@@ -62,8 +62,8 @@ export default function EditTrackModal({
       setTags([]);
       setDescription('');
       setDescriptionTouched(false);
-      setUploadDate(todayIsoDate);
-      setUploadDateError('');
+      setReleaseDate(todayIsoDate);
+      setReleaseDateError('');
       setPrivacy('public');
       setArtworkPreview(null);
       setArtworkFile(null);
@@ -87,7 +87,7 @@ export default function EditTrackModal({
         setGenre(data.genre ?? '');
         setTags(data.tags ?? []);
         setDescription(data.description ?? '');
-        setUploadDate(data.uploadDate?.trim() || todayIsoDate);
+        setReleaseDate(data.releaseDate?.trim() || todayIsoDate);
         setPrivacy(visibility.isPrivate ? 'private' : 'public');
         setArtworkPreview(data.coverUrl ?? null);
         setArtworkRemoved(false);
@@ -159,14 +159,14 @@ export default function EditTrackModal({
       genre,
       tags: normalizedTags,
       description,
-      uploadDate,
+      releaseDate,
       privacy,
     });
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
-      setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
       setSaveError('');
       return;
     }
@@ -175,7 +175,7 @@ export default function EditTrackModal({
     setSaveError('');
     setTitleError('');
     setGenreError('');
-    setUploadDateError('');
+    setReleaseDateError('');
     setIsSaving(true);
 
     try {
@@ -199,7 +199,7 @@ export default function EditTrackModal({
         formData.append('description', description);
       }
 
-      formData.append('uploadDate', uploadDate);
+      formData.append('releaseDate', releaseDate);
       formData.append('isPrivate', String(privacy === 'private'));
 
       const updatedTrack = await trackService.updateTrack(trackId, formData);
@@ -292,16 +292,16 @@ export default function EditTrackModal({
                   setDescriptionTouched(true);
                   setDescription(v);
                 }}
-                uploadDate={uploadDate}
-                uploadDateError={uploadDateError}
-                onUploadDateChange={(nextDate) => {
-                  setUploadDate(nextDate);
-                  if (uploadDateError) {
-                    setUploadDateError('');
+                releaseDate={releaseDate}
+                releaseDateError={releaseDateError}
+                onReleaseDateChange={(nextDate) => {
+                  setReleaseDate(nextDate);
+                  if (releaseDateError) {
+                    setReleaseDateError('');
                   }
                 }}
-                uploadDateMax={todayIsoDate}
-                showUploadDate
+                releaseDateMax={todayIsoDate}
+                showReleaseDate
                 privacy={privacy}
                 onPrivacyChange={(nextPrivacy) => {
                   setPrivacy(nextPrivacy);

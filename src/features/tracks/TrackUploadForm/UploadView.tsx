@@ -54,8 +54,10 @@ export default function UploadView() {
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
-  const [uploadDate, setUploadDate] = useState(todayIsoDate);
-  const [uploadDateError, setUploadDateError] = useState('');
+  const [releaseDate, setReleaseDate] = useState(todayIsoDate);
+  const [releaseDateError, setReleaseDateError] = useState('');
+  // const [uploadDate, setUploadDate] = useState(todayIsoDate);
+  // const [uploadDateError, setUploadDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -124,7 +126,8 @@ export default function UploadView() {
       genre,
       tags,
       description,
-      uploadDate,
+      // uploadDate,
+      releaseDate,
       privacy,
     });
 
@@ -132,13 +135,15 @@ export default function UploadView() {
       const fieldErrors = validation.error.flatten().fieldErrors;
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
-      setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
+      setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      // setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setGenreError('');
-    setUploadDateError('');
+    setReleaseDateError('');
+    // setUploadDateError('');
     setError('');
     setUploadProgress(0);
 
@@ -153,8 +158,7 @@ export default function UploadView() {
     formData.append('title', title);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
-    formData.append('releaseDate', uploadDate); // Backend requires releaseDate
-    formData.append('uploadDate', uploadDate); // Actual upload timestamp
+    formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
     }
@@ -210,8 +214,10 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
-    setUploadDate(todayIsoDate);
-    setUploadDateError('');
+    // setUploadDate(todayIsoDate);
+    // setUploadDateError('');
+    setReleaseDate(todayIsoDate);
+    setReleaseDateError('');
     setPrivacy('public');
     setArtworkFile(null);
     setArtworkPreview(null);
@@ -357,16 +363,27 @@ export default function UploadView() {
         onTagsChange={setTags}
         description={description}
         onDescriptionChange={setDescription}
-        uploadDate={uploadDate}
-        uploadDateError={uploadDateError}
-        onUploadDateChange={(nextDate) => {
-          setUploadDate(nextDate);
-          if (uploadDateError) {
-            setUploadDateError('');
+        releaseDate={releaseDate}
+        releaseDateError={releaseDateError}
+        onReleaseDateChange={(nextDate) => {
+          setReleaseDate(nextDate);
+          if (releaseDateError) {
+            setReleaseDateError('');
+           
           }
         }}
-        uploadDateMax={todayIsoDate}
-        showUploadDate
+         releaseDateMax={todayIsoDate}
+          showReleaseDate
+        // uploadDate={uploadDate}
+        // uploadDateError={uploadDateError}
+        // onUploadDateChange={(nextDate) => {
+        //   setUploadDate(nextDate);
+        //   if (uploadDateError) {
+        //     setUploadDateError('');
+        //   }
+        // }}
+        // uploadDateMax={todayIsoDate}
+        // showUploadDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />
