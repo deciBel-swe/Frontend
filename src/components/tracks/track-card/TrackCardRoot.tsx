@@ -275,7 +275,14 @@ export default function TrackCardRoot({
         routeTrackId={routeTrackId}
         trackNumericId={track.id}
         isPrivate={resolvedIsPrivate}
-        track={track}
+            track={{
+      ...track,
+      // Fields required by the Embed tab's playable preview
+      trackNumericId: track.id,           // numeric id for PlayerTrack
+      trackUrl: playback?.trackUrl,       // streaming URL
+      waveformData: resolvedWaveform,     // already resolved by useWaveformData
+      waveformUrl: track.waveformUrl,     // fallback fetch URL (may be undefined)
+    }}
         editOpen={editOpen}
         isShareOpen={isShareOpen}
         isPlaylistModalOpen={isPlaylistModalOpen}

@@ -11,14 +11,26 @@ import {
   buildTrackSecretUrl,
   buildTrackUrl,
 } from '@/utils/resourcePaths';
+import { EmbedTabContent } from '@/components/share/embed/EmbedTabContent';
+import ScrollableArea from '@/components/scroll/ScrollableArea';
 
-type ShareTab = 'share' | 'embed' | 'message';
+type ShareTab = 'share' | 'embed';
 
 export interface TrackPreviewData {
   title: string;
   artist: string;
   coverUrl?: string;
   duration?: string;
+  /** Inline waveform samples (0–1). Takes priority over waveformUrl. */
+  waveformData?: number[];
+  /** URL to fetch waveform JSON from (used if waveformData is absent). */
+  waveformUrl?: string;
+  /** Live playback state forwarded from the layout. */
+  isPlaying?: boolean;
+  currentTime?: number;
+  durationSeconds?: number;
+  onPlayPause?: () => void;
+  onWaveformSeek?: (fraction: number) => void;
 }
 
 export interface PlaylistPreviewData {
@@ -53,6 +65,7 @@ interface PlaylistShareModalProps extends ShareModalBaseProps {
   isPrivate: boolean;
   existingToken?: string | null;
   playlist?: PlaylistPreviewData;
+  activeTrackPreview?: TrackPreviewData;
 }
 
 interface ProfileShareModalProps extends ShareModalBaseProps {
@@ -372,12 +385,11 @@ const PLACEHOLDER_PLAYLIST: PlaylistPreviewData = {
 const DEFAULT_MEDIA_TABS: { id: ShareTab; label: string }[] = [
   { id: 'share', label: 'Share' },
   { id: 'embed', label: 'Embed' },
-  { id: 'message', label: 'Message' },
 ];
 
 const DEFAULT_PROFILE_TABS: { id: ShareTab; label: string }[] = [
   { id: 'share', label: 'Share' },
-  { id: 'message', label: 'Message' },
+
 ];
 
 export function ShareModal(props: ShareModalProps) {
@@ -389,6 +401,27 @@ export function ShareModal(props: ShareModalProps) {
       (props.variant === 'profile' ? DEFAULT_PROFILE_TABS : DEFAULT_MEDIA_TABS),
     [props.tabs, props.variant]
   );
+
+    /**
+   * Resolves the public URL for the current resource so EmbedTabContent
+   * can build its widget src without knowing about variants internally.
+   */
+  const embedResourceUrl = useMemo(() => {
+    if (props.variant === 'profile') return props.profileUrl;
+    if (props.variant === 'track') {
+      const track = props.track ?? PLACEHOLDER_TRACK;
+      return buildTrackUrl(
+        props.shareUsername?.trim() || track.artist,
+        props.sharePathId?.trim() || props.trackId,
+      );
+    }
+    // playlist
+    const playlist = props.playlist ?? PLACEHOLDER_PLAYLIST;
+    return buildPlaylistUrl(
+      props.shareUsername?.trim() || playlist.owner,
+      props.sharePathId?.trim() || props.playlistId,
+    );
+  }, [props]);
 
   if (!props.isOpen) {
     return null;
@@ -443,16 +476,81 @@ export function ShareModal(props: ShareModalProps) {
       );
     }
   } else if (activeTab === 'embed') {
-    shareContent = (
-      <p className="text-xs text-text-muted">Embed functionality coming soon.</p>
-    );
-  } else if (activeTab === 'message') {
-    shareContent = (
-      <p className="text-xs text-text-muted">
-        Message functionality coming soon.
-      </p>
-    );
-  }
+      // Resolve track/playlist metadata for the embed picker & preview
+    const embedTitle =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).title
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).title
+        : '';
+    const embedArtist =
+      props.variant === 'track'
+        ? (props.track ?? PLACEHOLDER_TRACK).artist
+        : props.variant === 'playlist'
+        ? (props.playlist ?? PLACEHOLDER_PLAYLIST).owner
+        : '';
+    const embedCover =
+      props.variant === 'track'
+        ? props.track?.coverUrl
+        : props.variant === 'playlist'
+        ? props.playlist?.coverUrl
+        : undefined;
+    const embedDuration =
+      props.variant === 'track' ? props.track?.duration : undefined;
+    // const embedWaveformData =
+    //   props.variant === 'track' ? props.track?.waveformData : undefined;
+    // const embedWaveformUrl =
+    //   props.variant === 'track' ? props.track?.waveformUrl : undefined;
+    // const embedIsPlaying =
+    //   props.variant === 'track' ? props.track?.isPlaying : undefined;
+    // const embedCurrentTime =
+    //   props.variant === 'track' ? props.track?.currentTime : undefined;
+    // const embedDurationSeconds =
+    //   props.variant === 'track' ? props.track?.durationSeconds : undefined;
+    // const embedOnPlayPause =
+    //   props.variant === 'track' ? props.track?.onPlayPause : undefined;
+    // const embedOnWaveformSeek =
+    //   props.variant === 'track' ? props.track?.onWaveformSeek : undefined;
+      let embedIsPlaying: boolean | undefined;
+      let embedCurrentTime: number | undefined;
+      let embedDurationSeconds: number | undefined;
+      let embedOnPlayPause: (() => void) | undefined;
+      let embedOnWaveformSeek: ((fraction: number) => void) | undefined;
+      let embedWaveformData: number[] | undefined;
+      let embedWaveformUrl: string | undefined;
+
+      if (props.variant === 'track') {
+        embedIsPlaying = props.track?.isPlaying;
+        embedCurrentTime = props.track?.currentTime;
+        embedDurationSeconds = props.track?.durationSeconds;
+        embedOnPlayPause = props.track?.onPlayPause;
+        embedOnWaveformSeek = props.track?.onWaveformSeek;
+        embedWaveformData = props.track?.waveformData;
+        embedWaveformUrl = props.track?.waveformUrl;
+      } else if (props.variant === 'playlist' && props.activeTrackPreview) {
+        embedIsPlaying = props.activeTrackPreview.isPlaying;
+        embedCurrentTime = props.activeTrackPreview.currentTime;
+        embedDurationSeconds = props.activeTrackPreview.durationSeconds;
+        embedOnPlayPause = props.activeTrackPreview.onPlayPause;
+        embedOnWaveformSeek = props.activeTrackPreview.onWaveformSeek;
+        embedWaveformData = props.activeTrackPreview.waveformData;
+        embedWaveformUrl = props.activeTrackPreview.waveformUrl;
+      }
+    shareContent = <EmbedTabContent
+        resourceUrl={embedResourceUrl}
+        title={embedTitle}
+        artist={embedArtist}
+        coverUrl={embedCover}
+        duration={embedDuration}
+        waveformData={embedWaveformData}
+        waveformUrl={embedWaveformUrl}
+        isPlaying={embedIsPlaying}
+        currentTime={embedCurrentTime}
+        durationSeconds={embedDurationSeconds}
+        onPlayPause={embedOnPlayPause}
+        onWaveformSeek={embedOnWaveformSeek}
+      />;
+  } 
 
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center">
@@ -460,10 +558,11 @@ export function ShareModal(props: ShareModalProps) {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm dark:bg-white/60"
         onClick={props.onClose}
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
-        <div className="border-b border-border-default px-5 py-4 text-sm font-semibold">
+
+      <div className="relative w-full max-w-lg h-[80vh] overflow-hidden rounded-lg border border-white/10 bg-white shadow-2xl dark:bg-black">
+        {/* <div className="border-b border-border-default px-5 py-4 text-sm font-semibold">
           Share
-        </div>
+        </div> */}
 
         <div className="border-b border-border-default">
           <nav className="flex">
@@ -488,12 +587,14 @@ export function ShareModal(props: ShareModalProps) {
             })}
           </nav>
         </div>
-
+    <ScrollableArea>
         <div className="space-y-4 p-5">
-          {resolvedPreview}
+           {activeTab === 'share' && resolvedPreview}
           {shareContent}
         </div>
+            </ScrollableArea>
       </div>
+
     </div>
   );
 }
