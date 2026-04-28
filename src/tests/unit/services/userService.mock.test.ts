@@ -105,7 +105,7 @@ describe('MockUserService', () => {
     const mePlaylists = await mePlaylistsPromise;
     expect(mePlaylists.length).toBeGreaterThan(0);
 
-    const publicPlaylistsPromise = service.getUserPlaylists(1, {
+    const publicPlaylistsPromise = service.getUserPlaylists('user001', {
       page: 0,
       size: 2,
     });

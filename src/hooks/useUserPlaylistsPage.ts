@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import { mapProfilePlaylistToCard } from '@/features/playlists/mappers/profilePlaylistCardMapper';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
-import { playlistService, userService } from '@/services';
+import { playlistService } from '@/services';
 
 const normalizeIdentity = (value: string | undefined): string =>
   (value ?? '').trim().toLowerCase();
@@ -27,7 +27,6 @@ export function useUserPlaylistsPage({
   const [cards, setCards] = useState<PlaylistHorizontalProps[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  const resolvedUserIdRef = useRef<number | undefined>(undefined);
 
   const routeUsername = username.trim();
   const isOwnedProfile = Boolean(ownerContext?.isOwner);
@@ -40,29 +39,6 @@ export function useUserPlaylistsPage({
     ownerContext?.ownerUser?.profile.profilePic ||
     undefined;
 
-  const resolveUserId = useCallback(async () => {
-    if (resolvedUserIdRef.current) {
-      return resolvedUserIdRef.current;
-    }
-
-    if (typeof ownerContext?.publicUser?.profile.id === 'number') {
-      resolvedUserIdRef.current = ownerContext.publicUser.profile.id;
-      return resolvedUserIdRef.current;
-    }
-
-    if (routeUsername.length === 0) {
-      return undefined;
-    }
-
-    const publicUser = await userService.getPublicUserByUsername(routeUsername);
-    resolvedUserIdRef.current = publicUser.profile.id;
-    return resolvedUserIdRef.current;
-  }, [ownerContext?.publicUser?.profile.id, routeUsername]);
-
-  useEffect(() => {
-    resolvedUserIdRef.current = undefined;
-  }, [ownerContext?.publicUser?.profile.id, routeUsername]);
-
   const fetchPlaylistPage = useCallback(
     async (pageNumber: number, pageSize: number) => {
       const response = isOwnedProfile
@@ -70,24 +46,19 @@ export function useUserPlaylistsPage({
             page: pageNumber,
             size: pageSize,
           })
-        : await (async () => {
-            const resolvedUserId = await resolveUserId();
-            if (!resolvedUserId) {
-              return {
-                content: [],
-                pageNumber,
-                pageSize,
-                totalElements: 0,
-                totalPages: 0,
-                isLast: true,
-              };
-            }
-
-            return playlistService.getUserPlaylists(resolvedUserId, {
-              page: pageNumber,
-              size: pageSize,
-            });
-          })();
+        : routeUsername.length > 0
+        ? await playlistService.getUserPlaylists(routeUsername, {
+            page: pageNumber,
+            size: pageSize,
+          })
+        : {
+            content: [],
+            pageNumber,
+            pageSize,
+            totalElements: 0,
+            totalPages: 0,
+            isLast: true,
+          };
 
       return {
         items: response.content.map((playlist) =>
@@ -110,7 +81,6 @@ export function useUserPlaylistsPage({
       isOwnedProfile,
       profileAvatar,
       profileUsername,
-      resolveUserId,
       routeUsername,
     ]
   );

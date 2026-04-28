@@ -23,9 +23,7 @@ export const buildTrackHref = (track: TrackMetaData): string => {
 };
 
 export const buildPlaylistHref = (playlist: PlaylistResponse): string => {
-  const username = normalizeSegment(
-    playlist.owner?.username || playlist.owner?.displayName
-  );
+  const username = normalizeSegment(playlist.owner?.username);
   const identifier = normalizeSegment(playlist.playlistSlug || playlist.id);
 
   if (username.length === 0 || identifier.length === 0) {

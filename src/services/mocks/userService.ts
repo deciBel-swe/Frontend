@@ -673,11 +673,14 @@ export class MockUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     await delay();
-    const user = findUser(userId);
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     if (!params) {
       return [...user.playlists];
     }
@@ -787,11 +790,29 @@ export class MockUserService implements UserService {
           title: playlist.title,
           type: playlist.type,
           isLiked: user.likedPlaylists.includes(playlist.id),
-          owner: { id: owner.id, username: owner.username },
-          tracks: playlist.tracks,
+          owner: {
+            id: owner.id,
+            username: owner.username,
+            displayName: owner.displayName || owner.username,
+            avatarUrl: owner.profile.profilePic || '',
+            followerCount: owner.followers.size,
+            trackCount: owner.tracks.length,
+            isFollowing: false,
+          },
+          tracks: [],
+          trackSummary: [],
           isReposted: user.repostedPlaylists.includes(playlist.id),
           likeCount: playlistLikeCount(playlist.id),
           repostCount: playlistRepostCount(playlist.id),
+          playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+          description: playlist.description || '',
+          isPrivate: playlist.isPrivate,
+          coverArtUrl: playlist.CoverArt || '',
+          totalDurationSeconds: 0,
+          trackCount: 0,
+          genre: undefined,
+          createdAt: new Date().toISOString(),
+          firstTrackWaveformUrl: '',
         });
       }
     }
@@ -959,21 +980,23 @@ export class MockUserService implements UserService {
         owner: {
           id: playlist.owner.id,
           username: playlist.owner.username,
+          displayName: playlist.owner.displayName || playlist.owner.username,
+          avatarUrl: playlist.owner.avatarUrl || '',
+          followerCount: 0,
+          trackCount: 0,
+          isFollowing: false,
         },
-        tracks: playlist.tracks.map(
-          (track: {
-            trackId: number;
-            title: string;
-            trackUrl: string;
-            durationSeconds: number;
-            [key: string]: unknown;
-          }) => ({
-            trackId: track.trackId,
-            title: track.title,
-            trackUrl: track.trackUrl,
-            durationSeconds: track.durationSeconds,
-          })
-        ),
+        tracks: [],
+        trackSummary: [],
+        playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+        description: playlist.description || '',
+        isPrivate: playlist.isPrivate,
+        coverArtUrl: playlist.CoverArt || '',
+        totalDurationSeconds: 0,
+        trackCount: 0,
+        genre: undefined,
+        createdAt: new Date().toISOString(),
+        firstTrackWaveformUrl: '',
       }));
 
     return paginate(likedPlaylists, params);

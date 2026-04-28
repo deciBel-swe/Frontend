@@ -136,7 +136,7 @@ export const API_ENDPOINTS = {
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
-    PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
+    PLAYLISTS: (username: string) => `/users/${username}/playlists`,
     LIKED_PLAYLISTS: (
       username: string //this should be changed in backend should be userid not username
     ) => `/users/${username}/liked-playlists`,

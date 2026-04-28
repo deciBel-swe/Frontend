@@ -289,6 +289,7 @@ const toPlaylistResponse = (
     genre: firstTrackRecord?.genre ?? 'Unknown',
     createdAt: new Date().toISOString(),
     tracks,
+    trackSummary: tracks,
     secretToken: playlist.secretLink ?? '',
     firstTrackWaveformUrl:
       firstTrackRecord?.waveformUrl ??
@@ -413,13 +414,13 @@ export class MockPlaylistService implements PlaylistService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
     await delay();
 
     const viewerId = resolveCurrentMockUserId();
-    const owner = getMockUsersStore().find((user) => user.id === userId);
+    const owner = getMockUsersStore().find((user) => user.username === username);
 
     if (!owner) {
       throw new Error('User not found');

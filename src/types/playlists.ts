@@ -31,7 +31,7 @@ export const playlistOwnerSchema = z.object({
   id: z.number().int(),
   username: z.string(),
   displayName: z.string().optional(),
-  avatarUrl: z.string().optional(),
+  avatarUrl: z.string().nullable().optional(),
   isFollowing: z.boolean().optional(),
   followerCount: z.number().int().nonnegative().optional(),
   trackCount: z.number().int().nonnegative().optional(),
@@ -60,19 +60,34 @@ export const playlistResponseSchema = z
     repostCount: z.number().int().nonnegative().optional(),
     owner: playlistOwnerSchema.optional(),
     tracks: z.array(playlistTrackSchema).optional().default([]),
+    // API sends track data as trackSummary / trackSummaryDto depending on endpoint
+    trackSummary: z.array(playlistTrackSchema).nullable().optional(),
+    trackSummaryDto: z.array(playlistTrackSchema).nullable().optional(),
     playlistSlug: z.string().trim().min(1).optional(),
-    description: z.string().optional(),
+    description: z.string().nullable().optional(),
     isPrivate: z.boolean().optional(),
-    coverArtUrl: z.string().optional(),
+    coverArtUrl: z.string().nullable().optional(),
     totalDurationSeconds: z.number().int().nonnegative().optional(),
     trackCount: z.number().int().nonnegative().optional(),
     genre: z.string().optional(),
+    // API sends genres as an array; normalized to genre below
+    genres: z.array(z.string()).nullable().optional(),
     createdAt: z.string().optional(),
     secretToken: z.string().trim().optional(),
-    firstTrackWaveformUrl: z.string().optional(),
+    firstTrackWaveformUrl: z.string().nullable().optional(),
     firstTrackWaveformData: z.unknown().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .transform((data) => ({
+    ...data,
+    // Normalize trackSummaryDto / trackSummary → tracks
+    tracks:
+      data.tracks.length > 0
+        ? data.tracks
+        : (data.trackSummaryDto ?? data.trackSummary ?? []),
+    // Normalize genres array → genre string (first entry)
+    genre: data.genre ?? data.genres?.[0],
+  }));
 export type PlaylistResponse = z.infer<typeof playlistResponseSchema>;
 
 // ================================
@@ -287,14 +302,27 @@ export type PlaylistRepostResponse = z.infer<typeof playlistRepostResponseSchema
 // Playlist Pagination
 // ================================
 
-export const paginatedPlaylistsResponseSchema = z.object({
-  content: z.array(playlistResponseSchema),
-  pageNumber: z.number().int().nonnegative(),
-  pageSize: z.number().int().nonnegative(),
-  totalElements: z.number().int().nonnegative(),
-  totalPages: z.number().int().nonnegative(),
-  isLast: z.boolean(),
-});
+export const paginatedPlaylistsResponseSchema = z
+  .object({
+    content: z.array(playlistResponseSchema),
+    // Support both Spring Page naming (number/size/last) and legacy naming (pageNumber/pageSize/isLast)
+    pageNumber: z.number().int().nonnegative().optional(),
+    number: z.number().int().nonnegative().optional(),
+    pageSize: z.number().int().nonnegative().optional(),
+    size: z.number().int().nonnegative().optional(),
+    totalElements: z.number().int().nonnegative().optional(),
+    totalPages: z.number().int().nonnegative().optional(),
+    isLast: z.boolean().optional(),
+    last: z.boolean().optional(),
+  })
+  .transform((data) => ({
+    content: data.content,
+    pageNumber: data.pageNumber ?? data.number ?? 0,
+    pageSize: data.pageSize ?? data.size ?? data.content.length,
+    totalElements: data.totalElements ?? data.content.length,
+    totalPages: data.totalPages ?? 1,
+    isLast: data.isLast ?? data.last ?? true,
+  }));
 export type PaginatedPlaylistsResponse = z.infer<
   typeof paginatedPlaylistsResponseSchema
 >;

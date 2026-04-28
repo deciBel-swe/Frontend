@@ -473,7 +473,7 @@ export default function PlaylistPage() {
 
   const bannerWaveform = useWaveformData(
     embeddedWaveform,
-    playlist?.firstTrackWaveformUrl
+    playlist?.firstTrackWaveformUrl ?? undefined
   );
 
   const activeTrack = useMemo(() => {
@@ -1000,7 +1000,7 @@ export default function PlaylistPage() {
           owner={{
             username: playlist.owner?.username || username,
             displayName: playlist.owner?.displayName,
-            avatarUrl: playlist.owner?.avatarUrl,
+            avatarUrl: playlist.owner?.avatarUrl ?? undefined,
             id: playlist.owner?.id || username,
             followersCount: playlist.owner?.followerCount,
           }}
@@ -1071,7 +1071,7 @@ export default function PlaylistPage() {
         isSaving={isEditSaving}
         playlist={{
           title: playlist.title,
-          description: playlist.description,
+          description: playlist.description ?? undefined,
           genre: playlist.genre,
           tags: playlistTags,
           isPrivate: playlist.isPrivate,

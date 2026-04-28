@@ -217,7 +217,7 @@ export function mapProfilePlaylistToCard(
         playlist.coverArtUrl ||
         (tracks[0] ? resolveTrackCover(tracks[0]) : DEFAULT_IMAGE),
       duration: formatDuration(Math.max(0, totalDurationSeconds)),
-      waveformUrl: playlist.firstTrackWaveformUrl,
+      waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
       plays: playlist.trackCount ?? tracks.length,
       genre: playlist.genre,
       isLiked: playlist.isLiked,
