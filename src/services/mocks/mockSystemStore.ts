@@ -3,7 +3,7 @@ import type { PlaylistType } from '@/types/playlists';
 import { normalizeStoredMockSlug } from './mockResourceUtils';
 
 type MockRole = 'LISTENER' | 'ARTIST' | 'OTHER';
-type MockTier = 'FREE' | 'ARTIST' | 'ARTIST_PRO' | 'LISTENER' | 'OTHER';
+type MockTier = 'FREE' | 'PRO';
 
 export type MockAuthAccount = {
   id: number;
@@ -199,7 +199,7 @@ const SHARED_AVATAR_URLS = [
   'https://api.dicebear.com/7.x/avataaars/png?seed=sara',
   'https://api.dicebear.com/7.x/avataaars/png?seed=leo',
   'https://api.dicebear.com/7.x/avataaars/png?seed=nina',
-  'https://api.dicebear.com/7.x/avataaars/png?seed=omar'
+  'https://api.dicebear.com/7.x/avataaars/png?seed=omar',
 ];
 const SHARED_TRACK_COVER_URLS = [
   '/images/default_song_image_1.png',
@@ -210,7 +210,7 @@ const SHARED_TRACK_COVER_URLS = [
   'https://picsum.photos/seed/track5/300/300',
   'https://picsum.photos/seed/track6/300/300',
   'https://picsum.photos/seed/track7/300/300',
-]
+];
 const SHARED_PLAYLIST_COVER_URLS = [
   'https://picsum.photos/seed/playlist1/400/400',
   'https://picsum.photos/seed/playlist2/400/400',
@@ -219,7 +219,7 @@ const SHARED_PLAYLIST_COVER_URLS = [
   'https://picsum.photos/seed/playlist5/400/400',
   'https://picsum.photos/seed/playlist6/400/400',
   'https://picsum.photos/seed/playlist7/400/400',
-]
+];
 
 const SHARED_USER_COVER_URLS = [
   'https://picsum.photos/seed/usercover1/800/300',
@@ -229,7 +229,7 @@ const SHARED_USER_COVER_URLS = [
   'https://picsum.photos/seed/usercover5/800/300',
   'https://picsum.photos/seed/usercover6/800/300',
   'https://picsum.photos/seed/usercover7/800/300',
-]
+];
 
 const DEFAULT_PASSWORD_HASH =
   '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
@@ -253,7 +253,7 @@ const buildSeedAuthAccounts = (): MockAuthAccount[] =>
       avatarUrl: SHARED_AVATAR_URLS[index % SHARED_AVATAR_URLS.length],
       password: DEFAULT_PASSWORD_HASH,
       emailVerified: true,
-      tier: isTopOwner ? 'ARTIST' : 'FREE',
+      tier: isTopOwner ? 'PRO' : 'FREE',
     };
   });
 
@@ -269,13 +269,14 @@ const buildBaseUser = (account: MockAuthAccount): MockUserRecord => {
     email: account.email,
     emailVerified: true,
     role: isTopOwner ? 'ARTIST' : 'LISTENER',
-    tier: isTopOwner ? 'ARTIST' : 'FREE',
+    tier: isTopOwner ? 'PRO' : 'FREE',
     profile: {
       bio: `Profile for ${account.username}.`,
       city: '',
       country: '',
       profilePic: SHARED_AVATAR_URLS[account.id % SHARED_AVATAR_URLS.length],
-      coverPic: SHARED_USER_COVER_URLS[account.id % SHARED_USER_COVER_URLS.length],
+      coverPic:
+        SHARED_USER_COVER_URLS[account.id % SHARED_USER_COVER_URLS.length],
       favoriteGenres: [],
     },
     socialLinks: {
@@ -323,7 +324,6 @@ const seedUsers = (): MockUserRecord[] => {
   return users;
 };
 
-
 const BASE_TRACK_URL =
   'https://decibelblob.blob.core.windows.net/uploads/audio/b0a977d2-3903-49a4-8557-aae029c9f376_Taha.mp3';
 
@@ -346,10 +346,15 @@ const TRACK_GENRES = [
 const makeTrack = (
   id: number,
   title: string,
-  artist: { id: number; username: string; displayName: string, avatarUrl: string },
+  artist: {
+    id: number;
+    username: string;
+    displayName: string;
+    avatarUrl: string;
+  },
   genre: string,
   tags: string[],
-  isPrivate = false,
+  isPrivate = false
 ): MockTrackRecord => {
   const trackSlug = normalizeStoredMockSlug(undefined, title, 'track');
   const secretToken = isPrivate ? `secret-track-${id}` : undefined;
@@ -362,7 +367,7 @@ const makeTrack = (
       ...artist,
     },
     trackUrl: BASE_TRACK_URL,
-    coverUrl: SHARED_TRACK_COVER_URLS[id % SHARED_TRACK_COVER_URLS.length] ,
+    coverUrl: SHARED_TRACK_COVER_URLS[id % SHARED_TRACK_COVER_URLS.length],
     waveformUrl: BASE_WAVEFORM_URL,
     genre,
     isReposted: false,
@@ -391,7 +396,9 @@ const makeTrack = (
   };
 };
 
-export const seedTracks = (users: MockUserRecord[] = seedUsers()): MockTrackRecord[] => {
+export const seedTracks = (
+  users: MockUserRecord[] = seedUsers()
+): MockTrackRecord[] => {
   const tracks: MockTrackRecord[] = [];
   const owners = users.slice(0, TOP_OWNER_COUNT);
 
@@ -458,7 +465,8 @@ const seedPlaylists = (
       description: `Curated collection ${index + 1}`,
       type: 'PLAYLIST',
       isPrivate: false,
-      CoverArt: SHARED_PLAYLIST_COVER_URLS[index % SHARED_PLAYLIST_COVER_URLS.length],
+      CoverArt:
+        SHARED_PLAYLIST_COVER_URLS[index % SHARED_PLAYLIST_COVER_URLS.length],
       isLiked: false,
       isReposted: false,
       owner: {
@@ -488,22 +496,32 @@ const assignTrackAndPlaylistEngagement = (
     const user = users[index];
 
     const likedTrackStart = (index * 17) % tracks.length;
-    user.likedTracks = Array.from({ length: LIKED_TRACKS_PER_USER }, (_, offset) => {
-      const track = tracks[(likedTrackStart + offset) % tracks.length];
-      return { id: track.id, title: track.title, genre: track.genre };
-    });
+    user.likedTracks = Array.from(
+      { length: LIKED_TRACKS_PER_USER },
+      (_, offset) => {
+        const track = tracks[(likedTrackStart + offset) % tracks.length];
+        return { id: track.id, title: track.title, genre: track.genre };
+      }
+    );
 
     const repostTrackStart = (index * 29) % tracks.length;
-    user.reposts = Array.from({ length: REPOSTED_TRACKS_PER_USER }, (_, offset) => {
-      const track = tracks[(repostTrackStart + offset) % tracks.length];
-      return { id: track.id, title: track.title, genre: track.genre };
-    });
+    user.reposts = Array.from(
+      { length: REPOSTED_TRACKS_PER_USER },
+      (_, offset) => {
+        const track = tracks[(repostTrackStart + offset) % tracks.length];
+        return { id: track.id, title: track.title, genre: track.genre };
+      }
+    );
 
     const likedPlaylistStart = (index * 3) % playlists.length;
-    user.likedPlaylists = Array.from({ length: LIKED_PLAYLISTS_PER_USER }, (_, offset) => {
-      const playlist = playlists[(likedPlaylistStart + offset) % playlists.length];
-      return playlist.id;
-    });
+    user.likedPlaylists = Array.from(
+      { length: LIKED_PLAYLISTS_PER_USER },
+      (_, offset) => {
+        const playlist =
+          playlists[(likedPlaylistStart + offset) % playlists.length];
+        return playlist.id;
+      }
+    );
 
     const repostedPlaylistStart = (index * 7) % playlists.length;
     user.repostedPlaylists = Array.from(
@@ -773,7 +791,9 @@ const toPersistedState = (
 ): PersistedMockSystemState => ({
   authAccounts: Array.from(current.authAccountsByEmail.values()),
   users: current.users.map((user) => serializeUser(user, options)),
-  tracks: current.tracks.map((track) => compactTrackForPersistence(track, options)),
+  tracks: current.tracks.map((track) =>
+    compactTrackForPersistence(track, options)
+  ),
   comments: current.comments,
   emailVerification: current.emailVerification,
 });
@@ -977,13 +997,11 @@ const ensureUserFromAccount = (account: MockAuthAccount): MockUserRecord => {
     existing.email = account.email;
     existing.username = account.username;
     existing.displayName =
-    account.displayName?.trim() ||
-    existing.displayName ||
-    account.username;
+      account.displayName?.trim() || existing.displayName || account.username;
     existing.emailVerified = account.emailVerified;
     existing.tier = account.tier;
     existing.profile.profilePic =
-    account.avatarUrl || existing.profile.profilePic;
+      account.avatarUrl || existing.profile.profilePic;
     return existing;
   }
 
