@@ -56,6 +56,8 @@ export default function UploadView() {
   const [description, setDescription] = useState('');
   const [releaseDate, setReleaseDate] = useState(todayIsoDate);
   const [releaseDateError, setReleaseDateError] = useState('');
+  // const [uploadDate, setUploadDate] = useState(todayIsoDate);
+  // const [uploadDateError, setUploadDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
@@ -124,6 +126,7 @@ export default function UploadView() {
       genre,
       tags,
       description,
+      // uploadDate,
       releaseDate,
       privacy,
     });
@@ -133,12 +136,14 @@ export default function UploadView() {
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
       setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      // setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setGenreError('');
     setReleaseDateError('');
+    // setUploadDateError('');
     setError('');
     setUploadProgress(0);
 
@@ -209,6 +214,8 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
+    // setUploadDate(todayIsoDate);
+    // setUploadDateError('');
     setReleaseDate(todayIsoDate);
     setReleaseDateError('');
     setPrivacy('public');
@@ -362,10 +369,21 @@ export default function UploadView() {
           setReleaseDate(nextDate);
           if (releaseDateError) {
             setReleaseDateError('');
+           
           }
         }}
-        releaseDateMax={todayIsoDate}
-        showReleaseDate
+         releaseDateMax={todayIsoDate}
+          showReleaseDate
+        // uploadDate={uploadDate}
+        // uploadDateError={uploadDateError}
+        // onUploadDateChange={(nextDate) => {
+        //   setUploadDate(nextDate);
+        //   if (uploadDateError) {
+        //     setUploadDateError('');
+        //   }
+        // }}
+        // uploadDateMax={todayIsoDate}
+        // showUploadDate
         privacy={privacy}
         onPrivacyChange={setPrivacy}
       />

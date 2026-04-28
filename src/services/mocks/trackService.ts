@@ -245,7 +245,7 @@ const toMetadata = async (
     commentCount: track.commentCount,
     playCount: 0,
     secretToken: track.secretLink ?? '',
-    uploadDate: track.releaseDate,
+    uploadDate: track.uploadDate ?? track.releaseDate,
     access: resolveMockResourceAccess({
       isPrivate: track.isPrivate,
       ownerId: track.artist.id,
@@ -574,7 +574,8 @@ export class MockTrackService implements TrackService {
             description,
             tags,
             releaseDate,
-            uploadDate: releaseDate,
+            // uploadDate: releaseDate,
+            uploadDate: new Date().toISOString(),
             playCount: 0,
             completedPlayCount: 0,
             likeCount: 0,

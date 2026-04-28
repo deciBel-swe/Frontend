@@ -183,7 +183,7 @@ export function useLikedTracks(
               cover: metadata?.coverUrl ?? track.coverUrl,
               duration: durationSeconds ? formatDuration(durationSeconds) : '',
               plays: track.playCount,
-              createdAt: asIsoDate(track.releaseDate),
+              createdAt: asIsoDate(track.uploadDate ?? track.releaseDate),
               genre: track.genre,
               durationSeconds,
               isLiked: track.isLiked,

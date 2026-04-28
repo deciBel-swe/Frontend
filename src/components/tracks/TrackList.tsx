@@ -164,7 +164,7 @@ export default function TrackList({
           title: track.title,
           cover: track.coverUrl,
           duration: durationSeconds ? formatDuration(durationSeconds) : '',
-          createdAt: track.releaseDate,
+          createdAt: track.uploadDate || track.releaseDate,
           genre: track.genre,
           durationSeconds,
           isPrivate: track.isPrivate,

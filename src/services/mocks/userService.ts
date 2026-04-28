@@ -296,7 +296,7 @@ const buildFullTrack = (
     commentCount: 0,
     isPrivate: track.isPrivate,
     trackDurationSeconds: track.durationSeconds ?? 0,
-    uploadDate: track.releaseDate,
+    uploadDate: track.uploadDate ?? track.releaseDate,
     description: track.description ?? '',
     trendingRank: 0,
     access: resolveMockResourceAccess({

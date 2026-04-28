@@ -388,7 +388,9 @@ export function useTrackPage({
         }
 
         const trackCreatedAt =
-          trackMetadata.releaseDate && trackMetadata.releaseDate.trim().length > 0
+          trackMetadata.uploadDate && trackMetadata.uploadDate.trim().length > 0
+            ? trackMetadata.uploadDate
+            : trackMetadata.releaseDate && trackMetadata.releaseDate.trim().length > 0
             ? trackMetadata.releaseDate
             : null;
         const artistUsername = trackMetadata.artist.username ?? username;
