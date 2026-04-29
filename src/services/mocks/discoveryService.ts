@@ -397,8 +397,6 @@ export class MockDiscoveryService implements DiscoveryService {
   ): Promise<TrendingTracksResponseDTO> {
     await delay();
 
-    const pageNumber = Math.max(0, params?.page ?? 0);
-    const pageSize = Math.max(1, params?.size ?? params?.limit ?? 20);
     const viewerId = resolveCurrentMockUserId();
 
     const allTracks = [...getMockTracksStore()]
@@ -411,35 +409,30 @@ export class MockDiscoveryService implements DiscoveryService {
       )
       .sort(
         (a, b) => (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
-      );
+      )
+      .map((track) => ({
+        ...track,
+        type: 'TRACK' as const,
+        releaseDate: new Date(track.releaseDate),
+        uploadDate: track.uploadDate ? new Date(track.uploadDate) : undefined,
+        access: resolveMockResourceAccess({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        }),
+        commentCount: 0,
+        completedPlayCount: 0,
+        trackDurationSeconds: track.durationSeconds ?? 0,
+        trackPreviewUrl: track.trackUrl ?? null,
+        trackSlug: track.trackSlug,
+        trackUrl: track.trackUrl ?? null,
+        waveformUrl: track.waveformUrl ?? '',
+      }));
 
-    const paginated = paginate(allTracks, {
-      page: pageNumber,
-      size: pageSize,
+    return paginate(allTracks, {
+      page: params?.page,
+      size: params?.size ?? params?.limit ?? 20,
     });
-
-    const tracks = paginated.content.map((track) => ({
-      ...track,
-      releaseDate: new Date(track.releaseDate),
-      uploadDate: track.uploadDate ? new Date(track.uploadDate) : undefined,
-      access: resolveMockResourceAccess({
-        isPrivate: track.isPrivate,
-        ownerId: track.artist.id,
-        viewerId,
-      }),
-      commentCount: 0,
-      completedPlayCount: 0,
-      trackDurationSeconds: track.durationSeconds ?? 0,
-      trackPreviewUrl: track.trackUrl ?? null,
-      trackSlug: track.trackSlug,
-      trackUrl: track.trackUrl ?? null,
-      waveformUrl: track.waveformUrl ?? '',
-    }));
-
-    return {
-      ...paginated,
-      content: tracks,
-    };
   }
 
   async getGenreStation(

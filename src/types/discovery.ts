@@ -3,7 +3,6 @@ import { paginatedResponseSchema } from './pagination';
 import { fullPlaylistSchema, playlistResponseSchema } from './playlists';
 import {
   fullTrackSchema,
-  paginatedTrackResponseSchema,
   trackAccessSchema,
   trackArtistSchema,
   trackDetailsResponseSchema,

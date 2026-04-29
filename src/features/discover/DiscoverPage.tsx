@@ -106,13 +106,11 @@ export default function DiscoverPage({
   likedTracks = [],
   recentlyPlayedItems = [],
   genreTracks = [],
-  moreTrendingTracks = [],
   isLoadingLiked = false,
   isLoadingRecent = false,
   isLoadingTrending = false,
   hasTrendingError = false,
   isLoadingGenre = false,
-  isLoadingMoreTrending = false,
   onTrendingPrevPage,
   onTrendingNextPage,
   canTrendingPrevPage = true,
@@ -129,10 +127,6 @@ export default function DiscoverPage({
   onGenreNextPage,
   canGenrePrevPage = true,
   canGenreNextPage = true,
-  onMoreTrendingPrevPage,
-  onMoreTrendingNextPage,
-  canMoreTrendingPrevPage = true,
-  canMoreTrendingNextPage = true,
 }: DiscoverPageProps) {
   // ── Guest view ─────────────────────────────────────────────────────────────
   if (!isLoggedIn) {

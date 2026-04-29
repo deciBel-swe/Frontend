@@ -21,7 +21,7 @@ import {
   userService,
 } from '@/services';
 import { useTrendingTracks } from '@/hooks';
-import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
+import type { StationItemDTO } from '@/types/discovery';
 import type { TrackMetaData } from '@/types/tracks';
 import type { ListeningHistoryItem, UserMe } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
@@ -180,36 +180,6 @@ const loadPaginatedWindow = async <T,>(
   }
 
   return pages;
-};
-
-const mapTrackResourceToSeed = (
-  resource: ResourceRefFullDTO
-): DiscoverTrackSeed | null => {
-  if (resource.type !== 'TRACK' || !resource.track) {
-    return null;
-  }
-
-  const track = resource.track;
-
-  return {
-    id: track.id,
-    title: track.title,
-    trackSlug: track.trackSlug,
-    artist: track.artist,
-    coverUrl: track.coverUrl,
-    trackUrl: track.trackUrl,
-    access: track.access,
-    genre: track.genre,
-    playCount: track.playCount,
-    likeCount: track.likeCount,
-    repostCount: track.repostCount,
-    isLiked: track.isLiked,
-    isReposted: track.isReposted,
-    durationSeconds: resolveDurationSeconds(track),
-    waveformData: (track as { waveformData?: unknown }).waveformData,
-    createdAt: track.uploadDate || track.releaseDate,
-    postedText: 'posted a track',
-  };
 };
 
 const mapTrackCardToSeed = (card: TrackCardProps): DiscoverTrackSeed => {
@@ -530,7 +500,7 @@ export default function Page() {
             currentSeeds.length === PAGE_SIZE && !trendingIsLast
           );
         }
-      } catch (e) {
+      } catch {
         if (!isCancelled) {
           setTrendingTracks([]);
           setHasTrendingNextPage(false);

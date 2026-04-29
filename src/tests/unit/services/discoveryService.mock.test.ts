@@ -21,8 +21,8 @@ describe('MockDiscoveryService', () => {
 
   it('returns trending tracks', async () => {
     const result = await service.getTrending({ limit: 5 });
-    expect(result.length).toBeGreaterThan(0);
-    expect(result[0].type).toBe('TRACK');
+    expect(result.content?.length ?? 0).toBeGreaterThan(0);
+    expect(result.content?.[0]?.type).toBe('TRACK');
   });
 
   it('returns station feeds', async () => {
