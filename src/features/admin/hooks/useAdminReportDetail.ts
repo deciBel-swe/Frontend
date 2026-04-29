@@ -46,7 +46,7 @@ export function useAdminReportDetail(reportId?: number | null) {
       return;
     }
 
-    void getReportDetail();
+    void getReportDetail().catch(() => undefined);
   }, [getReportDetail, reportId]);
 
   return {

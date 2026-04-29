@@ -15,7 +15,7 @@
  * <TopNavBar onSearch={(q) => router.push(`/search?q=${q}`)} />
  */
 
-import { type FC, useEffect } from 'react';
+import { type FC } from 'react';
 import Link from 'next/link';
 
 import SignInModal from '@/features/auth/components/Forms/SignInModal';
@@ -120,16 +120,9 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
 
   const {
     subscriptionStatus,
-    fetchSubscriptionStatus,
     isLoading: isSubscriptionLoading,
     isError: hasSubscriptionError,
-  } = useSubscriptionStatus();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      void fetchSubscriptionStatus();
-    }
-  }, [isAuthenticated, fetchSubscriptionStatus]);
+  } = useSubscriptionStatus({ enabled: isAuthenticated });
 
   const normalizedPlan = subscriptionStatus?.plan?.trim().toLowerCase();
   const hasActiveProSubscription =

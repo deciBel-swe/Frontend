@@ -117,4 +117,18 @@ describe('subscription hooks', () => {
       mockedSubscriptionService.getSubscriptionStatus
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('useSubscriptionStatus does not auto-load when disabled', async () => {
+    const { result } = renderHook(() =>
+      useSubscriptionStatus({ enabled: false })
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.subscriptionStatus).toBeNull();
+    expect(result.current.isError).toBe(false);
+    expect(
+      mockedSubscriptionService.getSubscriptionStatus
+    ).not.toHaveBeenCalled();
+  });
 });

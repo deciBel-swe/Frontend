@@ -16,9 +16,8 @@ import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { discoveryService, playbackService, trackService, userService } from '@/services';
 import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
 import type { TrackMetaData } from '@/types/tracks';
-import type { ListeningHistoryItem } from '@/types/user';
+import type { ListeningHistoryItem, UserMe } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
-import type { UserMe } from '@/types/user';
 
 const PAGE_SIZE = 5;
 const QUEUE_LOOKAHEAD_PAGES = 4;
@@ -373,6 +372,7 @@ const buildDiscoverTrackItems = (
 
 export default function Page() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserMe | null>(null);
 
   const [isLoadingTrending, setIsLoadingTrending] = useState(true);
   const [isLoadingLiked, setIsLoadingLiked] = useState(true);
@@ -401,6 +401,43 @@ export default function Page() {
   const [hasRecentNextPage, setHasRecentNextPage] = useState(false);
   const [hasGenreNextPage, setHasGenreNextPage] = useState(false);
   const [hasMoreTrendingNextPage, setHasMoreTrendingNextPage] = useState(false);
+
+  const preferredGenre = useMemo(() => {
+    const genres = currentUser?.profile.favoriteGenres ?? [];
+    const firstGenre = genres.find((genre) => genre.trim().length > 0);
+    return firstGenre?.trim() || null;
+  }, [currentUser?.profile.favoriteGenres]);
+
+  const seedArtistId = currentUser?.id ?? null;
+
+  useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) {
+      setCurrentUser(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadCurrentUser = async () => {
+      try {
+        const me = await userService.getUserMe();
+
+        if (!isCancelled) {
+          setCurrentUser(me);
+        }
+      } catch {
+        if (!isCancelled) {
+          setCurrentUser(null);
+        }
+      }
+    };
+
+    void loadCurrentUser();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isAuthLoading]);
 
   useEffect(() => {
     if (isAuthLoading || isAuthenticated) {
@@ -567,6 +604,7 @@ export default function Page() {
       try {
         const pages = await loadPaginatedWindow(genrePage, (pageNumber) =>
           discoveryService.getGenreStation({
+            genre: preferredGenre,
             page: pageNumber,
             size: PAGE_SIZE,
           })
@@ -611,7 +649,7 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [genrePage, isAuthenticated, isAuthLoading]);
+  }, [genrePage, isAuthenticated, isAuthLoading, preferredGenre]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) {
@@ -637,6 +675,7 @@ export default function Page() {
           moreTrendingPage,
           (pageNumber) =>
             discoveryService.getArtistStation({
+              artistId: seedArtistId,
               page: pageNumber,
               size: PAGE_SIZE,
             })
@@ -681,7 +720,7 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [isAuthenticated, isAuthLoading, moreTrendingPage]);
+  }, [isAuthenticated, isAuthLoading, moreTrendingPage, seedArtistId]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) {

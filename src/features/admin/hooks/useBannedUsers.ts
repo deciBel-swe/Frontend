@@ -40,7 +40,7 @@ export function useBannedUsers(params?: PaginationParams) {
   );
 
   useEffect(() => {
-    void getBannedUsers();
+    void getBannedUsers().catch(() => undefined);
   }, [getBannedUsers]);
 
   return {

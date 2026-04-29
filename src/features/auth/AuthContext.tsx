@@ -114,7 +114,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
     };
 
-    bootstrap();
+    void bootstrap().catch(() => undefined);
     return () => {
       cancelled = true;
     };

@@ -33,7 +33,7 @@ export function usePlatformAnalytics() {
   }, []);
 
   useEffect(() => {
-    void getPlatformAnalytics();
+    void getPlatformAnalytics().catch(() => undefined);
   }, [getPlatformAnalytics]);
 
   return {
