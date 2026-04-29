@@ -3,6 +3,7 @@ import type {
   PaginatedTrackMetadataResponse,
   paginationRepostUser,
   SecretLink,
+  TrackAccess,
   TrackMetaData,
   TrackResourceRefDTO,
   UploadTrackResponse,
@@ -25,7 +26,6 @@ import { PaginationParams } from '../api/trackService';
 import {
   canAccessMockResource,
   createUniqueMockSlug,
-  resolveMockResourceAccess,
 } from './mockResourceUtils';
 
 const MOCK_DELAY_MS = 220;
@@ -246,13 +246,15 @@ const toMetadata = async (
     playCount: 0,
     secretToken: track.secretLink ?? '',
     uploadDate: track.uploadDate ?? track.releaseDate,
-    access: resolveMockResourceAccess({
+    access: canAccessMockResource({
       isPrivate: track.isPrivate,
       ownerId: track.artist.id,
       viewerId: currentUserId,
       resourceToken: track.secretLink,
       providedToken: options?.providedToken,
-    }),
+    })
+      ? track.access
+      : 'BLOCKED',
   };
 };
 
@@ -324,16 +326,19 @@ const toTrackListItem = (
   commentCount: 0,
   releaseDate: new Date(track.releaseDate),
   repostCount: track.reposters ?? track.repostCount,
-  access: resolveMockResourceAccess({
+  access: canAccessMockResource({
     isPrivate: track.isPrivate,
     ownerId: track.artist.id,
     viewerId,
-  }),
+    resourceToken: track.secretLink,
+  })
+    ? track.access
+    : 'BLOCKED',
   secretToken: track.secretLink ?? '',
   tags: [...track.tags],
   title: track.title,
   trackUrl: track.trackUrl,
-  trackPreviewUrl: track.trackUrl,
+  trackPreviewUrl: track.trackPreviewUrl || track.trackUrl,
   trendingRank: 0,
   uploadDate: new Date(track.releaseDate),
   waveformUrl: track.waveformUrl,
@@ -401,6 +406,27 @@ const getOptionalBooleanField = (
   }
 
   return undefined;
+};
+
+const getAccessField = (
+  formData: FormData,
+  fallback: TrackAccess = 'PLAYABLE'
+): TrackAccess => {
+  const value = formData.get('access');
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  if (
+    normalized === 'PLAYABLE' ||
+    normalized === 'PREVIEW' ||
+    normalized === 'BLOCKED'
+  ) {
+    return normalized;
+  }
+
+  return fallback;
 };
 
 const getTagsField = (formData: FormData): string[] => {
@@ -533,6 +559,7 @@ export class MockTrackService implements TrackService {
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
+        const access = getAccessField(formData);
         const releaseDate = getStringField(
           formData,
           'releaseDate',
@@ -584,7 +611,7 @@ export class MockTrackService implements TrackService {
             isPrivate,
             trackDurationSeconds: durationSeconds,
             trendingRank: 0,
-            access: 'PLAYABLE',
+            access,
             trackPreviewUrl: FALLBACK_AUDIO_TRACK_URL,
             durationSeconds,
             secretLink: undefined,
@@ -641,7 +668,7 @@ export class MockTrackService implements TrackService {
             description: uploaded.description ?? '',
             secretToken: uploaded.secretToken ?? '',
             durationSeconds: uploaded.durationSeconds ?? 0,
-            access: 'PLAYABLE',
+            access: uploaded.access,
           });
         };
 
@@ -772,6 +799,7 @@ export class MockTrackService implements TrackService {
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
+    const access = getAccessField(formData, current.access);
     const removeCover = getOptionalBooleanField(formData, 'removeCover');
     const nextWaveformSamples = parseWaveformPayloadFromForm(formData);
 
@@ -810,7 +838,7 @@ export class MockTrackService implements TrackService {
           ? Math.max(30, Math.min(1200, nextWaveformSamples.length * 2))
           : current.durationSeconds,
       isPrivate: nextIsPrivate,
-      access: 'PLAYABLE',
+      access,
       secretToken: nextSecretLink,
       secretLink: nextSecretLink,
       coverUrl: nextCoverUrl,
@@ -831,7 +859,7 @@ export class MockTrackService implements TrackService {
       isPrivate: updated.isPrivate,
       tags: [...updated.tags],
       releaseDate: updated.releaseDate,
-      access: 'PLAYABLE',
+      access: updated.access,
     };
   }
 
@@ -906,7 +934,7 @@ export class MockTrackService implements TrackService {
     const updated: MockTrackRecord = {
       ...current,
       isPrivate: data.isPrivate,
-      access: 'PLAYABLE',
+      access: current.access,
       secretLink,
       secretToken: secretLink,
     };

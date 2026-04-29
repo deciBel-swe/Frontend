@@ -20,11 +20,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const asIsoDate = (value: unknown): string | undefined => {
@@ -113,8 +113,14 @@ export function useListeningHistoryTracks({
               isPrivate: metadata?.isPrivate,
               secretToken: metadata?.secretToken ?? ''
             },
-            trackUrl: metadata?.trackUrl,
             access: toPlaybackAccess(metadata?.access),
+            trackUrl:
+              (metadata?.access === 'PREVIEW'
+                ? metadata.trackPreviewUrl
+                : metadata?.trackUrl) ??
+              metadata?.trackUrl ??
+              metadata?.trackPreviewUrl,
+            trackPreviewUrl: metadata?.trackPreviewUrl ?? metadata?.trackUrl,
             waveform: metadata?.waveformData ?? [],
           } satisfies TrackListItem;
         })

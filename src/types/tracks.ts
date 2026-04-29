@@ -26,6 +26,7 @@ const nullableStringWithDefault = (defaultValue: string) =>
   }, z.string());
 
 export const trackAccessSchema = z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']);
+export type TrackAccess = z.infer<typeof trackAccessSchema>;
 // ================================
 // Track Upload
 // ================================
@@ -65,7 +66,7 @@ export const uploadTrackResponseSchema = z
         avatarUrl: z.string().trim().min(1).optional().nullable(),
       })
       .passthrough(),
-    trackUrl: z.string().trim().min(1),
+    trackUrl: z.string().trim().min(1).nullable().optional(),
     trackPreviewUrl: z.string().trim().min(1).nullable().optional(),
     coverUrl: trackImageWithDefault,
     waveformUrl: z.string().trim().min(1),
@@ -88,6 +89,7 @@ export const uploadTrackResponseSchema = z
   })
   .transform((payload) => ({
     ...payload,
+    trackUrl: payload.trackUrl ?? payload.trackPreviewUrl ?? '',
     trackPreviewUrl: payload.trackPreviewUrl ?? payload.trackUrl,
     durationSeconds: payload.trackDurationSeconds,
   }));

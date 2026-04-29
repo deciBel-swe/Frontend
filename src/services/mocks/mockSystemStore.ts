@@ -643,7 +643,7 @@ const normalizeTrackRecord = (track: MockTrackRecord): MockTrackRecord => {
   return {
     ...track,
     trackSlug: normalizeStoredMockSlug(track.trackSlug, track.title, 'track'),
-    access: track.isPrivate ? 'BLOCKED' : 'PLAYABLE',
+    access: track.access ?? (track.isPrivate ? 'BLOCKED' : 'PLAYABLE'),
     secretToken,
     secretLink: secretToken,
   };

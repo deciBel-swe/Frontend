@@ -60,11 +60,11 @@ type PaginatedWindowResponse<T> = {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ) => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED' as const;
   }
 
-  return 'PLAYABLE' as const;
+  return access === 'PREVIEW' ? ('PREVIEW' as const) : ('PLAYABLE' as const);
 };
 
 const normalizeWaveform = (value: unknown): number[] => {

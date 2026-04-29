@@ -76,11 +76,11 @@ const toWaveform = (value: unknown): number[] => {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ) => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED' as const;
   }
 
-  return 'PLAYABLE' as const;
+  return access === 'PREVIEW' ? ('PREVIEW' as const) : ('PLAYABLE' as const);
 };
 
 const toTrackDurationSeconds = (track: unknown): number | undefined => {
@@ -139,7 +139,7 @@ const mapPlaylistTrackToCompactTrack = (
     plays: (track.playCount ?? 0).toLocaleString(),
     trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
     durationSeconds: toTrackDurationSeconds(track),
-    available: track.access === 'PLAYABLE',
+    available: track.access !== 'BLOCKED',
     isLiked: track.isLiked,
     isReposted: track.isReposted,
     likeCount: track.likeCount,

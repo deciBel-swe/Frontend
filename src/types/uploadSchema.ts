@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { trackPrivacyValueSchema } from './tracks';
+import { trackAccessSchema, trackPrivacyValueSchema } from './tracks';
 
 export const MAX_TITLE_LENGTH = 300;
 export const MAX_GENRE_LENGTH = 80;
@@ -68,6 +68,7 @@ export const uploadSchema = z.object({
     // .regex(/^\d{4}-\d{2}-\d{2}$/, 'Upload date must be YYYY-MM-DD')
     // .refine((value) => value <= getTodayIsoDate(), 'Upload date cannot be in the future'),
   privacy: trackPrivacyValueSchema,
+  access: trackAccessSchema,
 });
 
 export type UploadFormValues = z.infer<typeof uploadSchema>;
