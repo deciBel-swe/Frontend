@@ -27,7 +27,6 @@ import type { ListeningHistoryItem, UserMe } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
 
 const PAGE_SIZE = 5;
-const TRENDING_PAGE_SIZE = 10;
 const QUEUE_LOOKAHEAD_PAGES = 4;
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 const DEFAULT_COVER = '/images/default_song_image.png';
