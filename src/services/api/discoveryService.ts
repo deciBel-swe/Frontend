@@ -11,6 +11,14 @@ export interface PaginationParams {
   size?: number;
 }
 
+export interface GenreStationParams extends PaginationParams {
+  genre: string;
+}
+
+export interface ArtistStationParams extends PaginationParams {
+  artistId: number;
+}
+
 export interface SearchParams extends PaginationParams {
   q: string;
   type?: 'ALL' | 'TRACK' | 'USER' | 'PLAYLIST';
@@ -26,14 +34,19 @@ export interface SearchRequestOptions {
   signal?: AbortSignal;
 }
 
-const toQueryParams = <T extends object>(
-  params?: T
+const toQueryParams = (
+  params?:
+    | SearchParams
+    | TrendingParams
+    | GenreStationParams
+    | ArtistStationParams
+    | PaginationParams
 ): ApiQueryParams | undefined => {
   if (!params) {
     return undefined;
   }
 
-  return Object.keys(params).length > 0 ? (params as ApiQueryParams) : undefined;
+  return Object.keys(params).length > 0 ? { ...params } : undefined;
 };
 
 /**
@@ -45,8 +58,12 @@ export interface DiscoveryService {
     options?: SearchRequestOptions
   ): Promise<PaginatedSearchResponseDTO>;
   getTrending(params?: TrendingParams): Promise<TrendingTracksResponseDTO>;
-  getGenreStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
-  getArtistStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
+  getGenreStation(
+    params: GenreStationParams
+  ): Promise<PaginatedStationResponseDTO>;
+  getArtistStation(
+    params: ArtistStationParams
+  ): Promise<PaginatedStationResponseDTO>;
   getLikesStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
 }
 
@@ -70,18 +87,18 @@ export class RealDiscoveryService implements DiscoveryService {
   }
 
   async getGenreStation(
-    params?: PaginationParams
+    params: GenreStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_GENRE, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 
   async getArtistStation(
-    params?: PaginationParams
+    params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_ARTIST, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 
@@ -89,7 +106,7 @@ export class RealDiscoveryService implements DiscoveryService {
     params?: PaginationParams
   ): Promise<PaginatedStationResponseDTO> {
     return apiRequest(API_CONTRACTS.STATIONS_LIKES, {
-      params: toQueryParams(params as ApiQueryParams),
+      params: toQueryParams(params),
     });
   }
 }

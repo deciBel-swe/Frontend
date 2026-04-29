@@ -8,10 +8,12 @@ import { API_CONTRACTS } from '@/types/apiContracts';
 import type { MessageResponse } from '@/types/user';
 import type {
   AdminLoginResponse,
+  AdminReportDetail,
   AdminReportsPage,
-  BanUserRequest,
+  BannedUsersResponse,
   PlatformAnalyticsResponse,
   ReportRequest,
+  UpdateUserBanStatusRequest,
   UpdateAdminReportStatusRequest,
 } from '@/types/admin';
 
@@ -61,6 +63,10 @@ export interface AdminService {
   adminLogin(payload: AdminLoginRequest): Promise<AdminLoginResponse>;
   /* get platform reports with pagination */
   getPlatformReports(params?: PaginationParams): Promise<AdminReportsPage>;
+  /* get one report in detail */
+  getReportById(reportId: number): Promise<AdminReportDetail>;
+  /* get banned users */
+  getBannedUsers(params?: PaginationParams): Promise<BannedUsersResponse>;
   updateReportStatus(
     reportId: number,
     payload: UpdateAdminReportStatusRequest
@@ -68,7 +74,7 @@ export interface AdminService {
   /* delete a track as moderator */
   deleteTrackAsModerator(trackId: number): Promise<MessageResponse>;
   /* ban a user */
-  banUser(userId: number, payload?: BanUserRequest): Promise<MessageResponse>;
+  banUser(userId: number): Promise<MessageResponse>;
   /* unban a user */
   unbanUser(userId: number): Promise<MessageResponse>;
   /* get platform analytics */
@@ -120,6 +126,26 @@ export class RealAdminService implements AdminService {
     }
   }
 
+  async getReportById(reportId: number): Promise<AdminReportDetail> {
+    try {
+      return await apiRequest(API_CONTRACTS.ADMIN_REPORT_BY_ID(reportId));
+    } catch (error) {
+      throw normalizeApiError(error);
+    }
+  }
+
+  async getBannedUsers(
+    params?: PaginationParams
+  ): Promise<BannedUsersResponse> {
+    try {
+      return await apiRequest(API_CONTRACTS.ADMIN_BANNED_USERS, {
+        params: toQueryParams(params),
+      });
+    } catch (error) {
+      throw normalizeApiError(error);
+    }
+  }
+
   async updateReportStatus(
     reportId: number,
     payload: UpdateAdminReportStatusRequest
@@ -144,12 +170,11 @@ export class RealAdminService implements AdminService {
     }
   }
 
-  async banUser(
-    userId: number,
-    payload?: BanUserRequest
-  ): Promise<MessageResponse> {
+  async banUser(userId: number): Promise<MessageResponse> {
     try {
-      return await apiRequest(API_CONTRACTS.ADMIN_BAN_USER(userId), {
+      const payload: UpdateUserBanStatusRequest = { banned: true };
+
+      return await apiRequest(API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(userId), {
         payload,
       });
     } catch (error) {
@@ -159,7 +184,11 @@ export class RealAdminService implements AdminService {
 
   async unbanUser(userId: number): Promise<MessageResponse> {
     try {
-      return await apiRequest(API_CONTRACTS.ADMIN_UNBAN_USER(userId));
+      const payload: UpdateUserBanStatusRequest = { banned: false };
+
+      return await apiRequest(API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(userId), {
+        payload,
+      });
     } catch (error) {
       throw normalizeApiError(error);
     }

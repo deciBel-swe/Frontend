@@ -15,12 +15,14 @@ export { useAdminLogin } from './useAdminLogin';
 export { useBanUser } from './useBanUser';
 export { useUnbanUser } from './useUnbanUser';
 export { useDeleteTrackAsModerator } from './useDeleteTrackAsModerator';
+export { useBannedUsers } from './useBannedUsers';
 
 /**
  * Reporting hooks.
  */
 export { useReportTrack } from './useReportTrack';
 export { useReportComment } from './useReportComment';
+export { useAdminReportDetail } from './useAdminReportDetail';
 export { useUpdateReportStatus } from './useUpdateReportStatus';
 
 /**

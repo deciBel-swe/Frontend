@@ -97,10 +97,12 @@ import {
 import {
   adminLoginRequestSchema,
   adminLoginResponseSchema,
+  adminReportDetailSchema,
   adminReportsPageSchema,
-  banUserRequestSchema,
+  bannedUsersResponseSchema,
   platformAnalyticsResponseSchema,
   reportRequestSchema,
+  updateUserBanStatusRequestSchema,
   updateAdminReportStatusRequestSchema,
 } from './admin';
 import {
@@ -667,6 +669,22 @@ export const API_CONTRACTS = {
     responseSchema: adminReportsPageSchema,
   }),
 
+  ADMIN_REPORT_BY_ID: (reportId: number) =>
+    defineContract<void, z.infer<typeof adminReportDetailSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.ADMIN.REPORT_BY_ID(reportId),
+      responseSchema: adminReportDetailSchema,
+    }),
+
+  ADMIN_BANNED_USERS: defineContract<
+    void,
+    z.infer<typeof bannedUsersResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.ADMIN.BANNED_USERS,
+    responseSchema: bannedUsersResponseSchema,
+  }),
+
   ADMIN_UPDATE_REPORT_STATUS: (reportId: number) =>
     defineContract<
       z.infer<typeof updateAdminReportStatusRequestSchema>,
@@ -685,20 +703,14 @@ export const API_CONTRACTS = {
       responseSchema: messageResponseSchema,
     }),
 
-  ADMIN_BAN_USER: (userId: number) =>
+  ADMIN_UPDATE_USER_BAN_STATUS: (userId: number) =>
     defineContract<
-      z.infer<typeof banUserRequestSchema> | undefined,
+      z.infer<typeof updateUserBanStatusRequestSchema>,
       z.infer<typeof messageResponseSchema>
     >({
-      method: 'PUT',
+      method: 'PATCH',
       url: API_ENDPOINTS.ADMIN.BAN_USER(userId),
-      responseSchema: messageResponseSchema,
-    }),
-
-  ADMIN_UNBAN_USER: (userId: number) =>
-    defineContract<void, z.infer<typeof messageResponseSchema>>({
-      method: 'PUT',
-      url: API_ENDPOINTS.ADMIN.UNBAN_USER(userId),
+      requestSchema: updateUserBanStatusRequestSchema,
       responseSchema: messageResponseSchema,
     }),
 

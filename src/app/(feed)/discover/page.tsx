@@ -13,11 +13,12 @@ import type {
   QueueSource,
 } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import { discoveryService, playbackService, trackService } from '@/services';
+import { discoveryService, playbackService, trackService, userService } from '@/services';
 import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
 import type { TrackMetaData } from '@/types/tracks';
 import type { ListeningHistoryItem } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
+import type { UserMe } from '@/types/user';
 
 const PAGE_SIZE = 5;
 const QUEUE_LOOKAHEAD_PAGES = 4;
@@ -483,6 +484,16 @@ export default function Page() {
     let isCancelled = false;
 
     const loadLikedStation = async () => {
+      if (isAuthLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
+        setLikedTracks([]);
+        setIsLoadingLiked(false);
+        return;
+      }
+
       setIsLoadingLiked(true);
 
       try {
@@ -545,6 +556,12 @@ export default function Page() {
     let isCancelled = false;
 
     const loadGenreStation = async () => {
+      if (!preferredGenre) {
+        setGenreTracks([]);
+        setIsLoadingGenre(false);
+        return;
+      }
+
       setIsLoadingGenre(true);
 
       try {
@@ -607,6 +624,12 @@ export default function Page() {
     let isCancelled = false;
 
     const loadArtistStation = async () => {
+      if (seedArtistId === null) {
+        setMoreTrendingTracks([]);
+        setIsLoadingMoreTrending(false);
+        return;
+      }
+
       setIsLoadingMoreTrending(true);
 
       try {
