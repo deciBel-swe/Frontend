@@ -198,9 +198,16 @@ const buildResourceForTrack = (
       repostCount:
         getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
       commentCount: 0,
-      isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
-      trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
-      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.uploadDate ?? getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      isPrivate: Boolean(
+        getMockTracksStore().find((t) => t.id === trackId)?.isPrivate
+      ),
+      trackDurationSeconds:
+        getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ??
+        0,
+      uploadDate:
+        getMockTracksStore().find((t) => t.id === trackId)?.uploadDate ??
+        getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ??
+        '',
       description: '',
       trendingRank: 0,
       access: resolveMockResourceAccess({
@@ -390,10 +397,10 @@ export class MockDiscoveryService implements DiscoveryService {
   ): Promise<TrendingTracksResponseDTO> {
     await delay();
 
-    const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
+    const limit = params?.limit ?? 20;
     const viewerId = resolveCurrentMockUserId();
 
-    const tracks = [...getMockTracksStore()]
+    const allTracks = [...getMockTracksStore()]
       .filter((track) =>
         canAccessMockResource({
           isPrivate: track.isPrivate,
@@ -403,18 +410,34 @@ export class MockDiscoveryService implements DiscoveryService {
       )
       .sort(
         (a, b) => (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
-      )
-      .slice(0, limit)
-      .map((track, index) => {
-        const resource = buildResourceForTrack(track.id, viewerId);
-        if (resource?.track) {
-          resource.track.trendingRank = index + 1;
-        }
-        return resource;
-      })
-      .filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
+      );
 
-    return tracks;
+    const tracks = allTracks.slice(0, limit).map((track) => ({
+      ...track,
+      releaseDate: new Date(track.releaseDate),
+      uploadDate: track.uploadDate ? new Date(track.uploadDate) : undefined,
+      access: resolveMockResourceAccess({
+        isPrivate: track.isPrivate,
+        ownerId: track.artist.id,
+        viewerId,
+      }),
+      commentCount: 0,
+      completedPlayCount: 0,
+      trackDurationSeconds: track.durationSeconds ?? 0,
+      trackPreviewUrl: track.trackUrl ?? null,
+      trackSlug: track.trackSlug,
+      trackUrl: track.trackUrl ?? null,
+      waveformUrl: track.waveformUrl ?? '',
+    }));
+
+    return {
+      content: tracks,
+      isLast: allTracks.length <= limit,
+      pageNumber: 0,
+      pageSize: tracks.length,
+      totalElements: allTracks.length,
+      totalPages: Math.ceil(allTracks.length / limit),
+    };
   }
 
   async getGenreStation(

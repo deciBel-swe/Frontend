@@ -21,6 +21,8 @@ type DiscoverSectionProps<T> = {
   isLoading?: boolean;
   /** Number of skeleton placeholders to show while loading */
   skeletonCount?: number;
+  emptyTitle?: string;
+  emptyDescription?: string;
   onPrevPage?: () => void;
   onNextPage?: () => void;
   canPrevPage?: boolean;
@@ -45,6 +47,8 @@ export default function DiscoverSection<T>({
   scrollStep,
   isLoading = false,
   skeletonCount = 6,
+  emptyTitle = 'Nothing here yet',
+  emptyDescription = 'Check back soon for new tracks.',
   onPrevPage,
   onNextPage,
   canPrevPage = true,
@@ -67,10 +71,7 @@ export default function DiscoverSection<T>({
         </div>
       ) : items.length === 0 ? (
         /* ── Empty state ─────────────────────────────────────────────────── */
-         <EmptyState
-          title="Nothing here yet"
-          description="Check back soon for new tracks."
-        />
+        <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
         /* ── Carousel ────────────────────────────────────────────────────── */
         <Carousel

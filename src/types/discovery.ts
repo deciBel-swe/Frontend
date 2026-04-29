@@ -3,6 +3,9 @@ import { paginatedResponseSchema } from './pagination';
 import { fullPlaylistSchema, playlistResponseSchema } from './playlists';
 import {
   fullTrackSchema,
+  paginatedTrackResponseSchema,
+  trackAccessSchema,
+  trackArtistSchema,
   trackDetailsResponseSchema,
   trackSummarySchema,
 } from './tracks';
@@ -204,7 +207,48 @@ export type PaginatedRepostResponseDTO = z.infer<
 // Trending
 // ================================
 
-export const trendingTracksResponseSchema = z.array(resourceRefFullSchema);
+export const trendingTrackResponseSchema = z
+  .object({
+    access: trackAccessSchema,
+    artist: trackArtistSchema,
+    commentCount: z.number().optional().default(0),
+    completedPlayCount: z.number().optional(),
+    CompletedPlayCount: z.number().optional(),
+    coverUrl: z.string().trim().optional().nullable(),
+    description: nullableStringWithDefault(''),
+    genre: z.string().trim().optional().default(''),
+    id: z.number().int().nonnegative(),
+    isLiked: z.boolean().optional().default(false),
+    isReposted: z.boolean().optional().default(false),
+    likeCount: z.number().optional().default(0),
+    playCount: z.number().optional().default(0),
+    releaseDate: z.coerce.date().optional(),
+    repostCount: z.number().optional().default(0),
+    secretToken: nullableStringWithDefault('').optional(),
+    tags: z.array(z.string().nullable()).optional().nullable(),
+    title: z.string().trim().min(1),
+    trackDurationSeconds: z.number().int().nonnegative().optional(),
+    trackPreviewUrl: z.string().trim().optional().nullable(),
+    trackSlug: z.string().trim().optional().nullable(),
+    trackUrl: z.string().trim().optional().nullable(),
+    uploadDate: z.coerce.date().optional(),
+    waveformUrl: z.string().trim().optional().nullable(),
+  })
+  .passthrough();
+export type TrendingTrackResponseDTO = z.infer<
+  typeof trendingTrackResponseSchema
+>;
+
+export const trendingTracksResponseSchema = z
+  .object({
+    content: z.array(trendingTrackResponseSchema).optional(),
+    isLast: z.boolean().optional(),
+    pageNumber: z.number().optional(),
+    pageSize: z.number().optional(),
+    totalElements: z.number().optional(),
+    totalPages: z.number().optional(),
+  })
+  .passthrough();
 export type TrendingTracksResponseDTO = z.infer<
   typeof trendingTracksResponseSchema
 >;

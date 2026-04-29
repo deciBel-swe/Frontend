@@ -25,7 +25,7 @@ export interface SearchParams extends PaginationParams {
   genre?: string;
 }
 
-export interface TrendingParams {
+export interface TrendingParams extends PaginationParams {
   genre?: string;
   limit?: number;
 }
@@ -64,7 +64,9 @@ export interface DiscoveryService {
   getArtistStation(
     params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO>;
-  getLikesStation(params?: PaginationParams): Promise<PaginatedStationResponseDTO>;
+  getLikesStation(
+    params?: PaginationParams
+  ): Promise<PaginatedStationResponseDTO>;
 }
 
 export class RealDiscoveryService implements DiscoveryService {
