@@ -52,6 +52,8 @@ export const metadata: Metadata = {
  * - All pages inherit bg-bg-base and text-text-primary from the body rule in
  *   globals.css — no hardcoded colours in any component.
  */
+import RootRouteHijack from '@/features/change-email/RootRouteHijack';
+
 export default function RootLayout({
   children,
 }: {
@@ -60,13 +62,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      /**
-       * Font CSS variables are applied here so every descendant can reference
-       * var(--font-sans) and var(--font-mono) regardless of theme.
-       * `suppressHydrationWarning` is required because next-themes injects the
-       * theme class on the client after hydration, which would otherwise cause
-       * a React mismatch warning.
-       */
       className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
@@ -82,14 +77,10 @@ export default function RootLayout({
               <div className="flex flex-col items-center min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
                 <div className="w-full max-w-300">
                   <TopNavBar />
-                  {/* QueryProvider is a client‑component wrapper that creates the
-                       QueryClient on the client side.*/}
                   <QueryProvider>
-                    {children}
-                    {/*
-                      Persistent global player runtime.
-                      Mounted once at the app shell so playback survives route changes.
-                    */}
+                    <RootRouteHijack>
+                      {children}
+                    </RootRouteHijack>
                     <Toaster />
                     <GlobalAudioPlayer />
                   </QueryProvider>

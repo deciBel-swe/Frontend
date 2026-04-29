@@ -32,6 +32,12 @@ export const ProfileOwnerProvider = ({
   username: string;
   children: React.ReactNode;
 }) => {
+  // Hijack system verification routes to prevent profile data fetching
+  const normalizedUsername = username.toLowerCase().trim();
+  if (normalizedUsername === 'verify-email-change' || normalizedUsername === 'verify-email') {
+    return <>{children}</>;
+  }
+
   const { user, isLoading: isAuthLoading } = useAuth();
   const [publicUser, setPublicUser] = useState<UserPublic | null>(null);
   const [isPublicLoading, setIsPublicLoading] = useState(false);

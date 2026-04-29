@@ -37,6 +37,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
   DASHBOARD: '/dashboard',
   SUBSCRIPTION: '/settings/subscription',
+  VERIFY_EMAIL_CHANGE: '/settings/verify-email-change',
   HELP: '/help',
   SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',
@@ -116,6 +117,8 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     ME: '/users/me',
+    ME_CHANGE_EMAIL: '/users/me/email',
+    ME_EMAIL_VERIFY: '/users/me/email/verify',
     ME_PLAYLISTS: '/users/me/playlists',
     ME_TRACKS: '/users/me/tracks',
     ME_LIKED_TRACKS: '/users/me/liked-tracks',

@@ -22,6 +22,8 @@ import type {
   UserPlaylistsResponse,
   UserPublic,
   UsersSuggestedResponse,
+  ChangeEmailResponse,
+  VerifyEmailChangeResponse,
 } from '@/types/user';
 // import { paginatedPlaylistResponse } from '@/types/playlist';
 import type { PaginatedPlaylistsResponse } from '@/types/playlists';
@@ -79,6 +81,12 @@ export interface UserService {
   updatePrimaryEmail(
     payload: UpdatePrimaryEmailRequest
   ): Promise<MessageResponse>;
+  
+  /** Change primary email (PATCH /users/me/email). */
+  changeEmail(payload: UpdatePrimaryEmailRequest): Promise<ChangeEmailResponse>;
+
+  /** Verify email change (POST /users/me/email/verify?token). */
+  verifyEmailChange(token: string): Promise<VerifyEmailChangeResponse>;
 
   /** Update social links (PATCH /users/me/social-links). */
   updateSocialLinks(
@@ -227,6 +235,20 @@ export class RealUserService implements UserService {
   ): Promise<MessageResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_UPDATE_PRIMARY_EMAIL, {
       payload,
+    });
+  }
+
+  async changeEmail(
+    payload: UpdatePrimaryEmailRequest
+  ): Promise<ChangeEmailResponse> {
+    return apiRequest(API_CONTRACTS.USERS_ME_CHANGE_EMAIL, {
+      payload,
+    });
+  }
+
+  async verifyEmailChange(token: string): Promise<VerifyEmailChangeResponse> {
+    return apiRequest(API_CONTRACTS.USERS_ME_EMAIL_VERIFY, {
+      params: { token },
     });
   }
 

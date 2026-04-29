@@ -44,7 +44,15 @@ const resolveSafeRedirect = (
  * The real auth service will keep the same cookie name.
  */
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
+  
+  // Redirect /verify-email-change to /settings/verify-email-change
+  if (pathname === '/verify-email-change') {
+    const verifyUrl = request.nextUrl.clone();
+    verifyUrl.pathname = '/settings/verify-email-change';
+    return NextResponse.redirect(verifyUrl);
+  }
+  
   const isAuthenticated = request.cookies.has('decibel_auth');
   // // todo this needs to be changes later with actual cookies
   // const isAuthenticated = true;

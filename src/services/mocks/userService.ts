@@ -34,6 +34,8 @@ import type {
   UserPlaylistsResponse,
   UserPublic,
   UsersSuggestedResponse,
+  ChangeEmailResponse,
+  VerifyEmailChangeResponse,
 } from '@/types/user';
 import type {
   PaginatedPlaylistsResponse,
@@ -543,6 +545,29 @@ export class MockUserService implements UserService {
     me.emailVerified = false;
     commitMockUserState();
     return { message: 'Primary email updated' };
+  }
+
+  async changeEmail(
+    payload: UpdatePrimaryEmailRequest
+  ): Promise<ChangeEmailResponse> {
+    await delay();
+    // In real flow, we don't change it here. We just send an email.
+    // We could store it in a 'pendingEmail' field in the mock user if we wanted to be fancy.
+    return { message: 'A verification link has been sent to your new email address.' };
+  }
+
+  async verifyEmailChange(token: string): Promise<VerifyEmailChangeResponse> {
+    await delay();
+    if (!token) throw new Error('Invalid token');
+    
+    const me = getCurrentUser();
+    // For mock simplicity, we'll just say it's verified and maybe change it to something if we had the pending one.
+    // Since we don't have the pending email easily accessible here without more mock state, 
+    // we'll just return success.
+    me.emailVerified = true;
+    commitMockUserState();
+    
+    return { message: 'Email changed successfully' };
   }
 
   async updateSocialLinks(
