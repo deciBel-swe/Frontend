@@ -24,7 +24,10 @@
 import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
 import MinimalPlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import DiscoverSection from '@/features/discover/DiscoverSection';
-import type { DiscoverTrackItem, DiscoverPlaylistItem } from '@/features/discover/types/DiscoverTypes';
+import type {
+  DiscoverTrackItem,
+  DiscoverPlaylistItem,
+} from '@/features/discover/types/DiscoverTypes';
 
 type DiscoverPageProps = {
   /** TODO: replace with useAuth() */
@@ -54,6 +57,7 @@ type DiscoverPageProps = {
   isLoadingRecent?: boolean;
   /** TODO: set to useTrendingTracks().isLoading */
   isLoadingTrending?: boolean;
+  hasTrendingError?: boolean;
   /** TODO: set to useGenreTracks().isLoading */
   isLoadingGenre?: boolean;
   /** TODO: set to useArtistStation().isLoading */
@@ -89,7 +93,7 @@ type DiscoverPageProps = {
 
 /** Type-guard: is this item a playlist or a track? */
 function isPlaylistItem(
-  item: DiscoverTrackItem | DiscoverPlaylistItem,
+  item: DiscoverTrackItem | DiscoverPlaylistItem
 ): item is DiscoverPlaylistItem {
   return 'coverUrl' in item;
 }
@@ -102,12 +106,11 @@ export default function DiscoverPage({
   likedTracks = [],
   recentlyPlayedItems = [],
   genreTracks = [],
-  moreTrendingTracks = [],
   isLoadingLiked = false,
   isLoadingRecent = false,
   isLoadingTrending = false,
+  hasTrendingError = false,
   isLoadingGenre = false,
-  isLoadingMoreTrending = false,
   onTrendingPrevPage,
   onTrendingNextPage,
   canTrendingPrevPage = true,
@@ -124,19 +127,25 @@ export default function DiscoverPage({
   onGenreNextPage,
   canGenrePrevPage = true,
   canGenreNextPage = true,
-  onMoreTrendingPrevPage,
-  onMoreTrendingNextPage,
-  canMoreTrendingPrevPage = true,
-  canMoreTrendingNextPage = true,
 }: DiscoverPageProps) {
   // ── Guest view ─────────────────────────────────────────────────────────────
   if (!isLoggedIn) {
     return (
       <div className="w-full">
         <DiscoverSection<DiscoverTrackItem>
-          title="Trending"
+          title={isLoadingTrending ? '' : 'Trending '}
           items={trendingTracks}
           isLoading={isLoadingTrending}
+          emptyTitle={
+            hasTrendingError
+              ? 'Failed to load trending tracks'
+              : 'Nothing here yet'
+          }
+          emptyDescription={
+            hasTrendingError
+              ? 'Please try again in a moment.'
+              : 'Check back soon for new tracks.'
+          }
           renderItem={(discoverItem, index) => (
             <MinimalTrackCard
               key={`trending-${discoverItem.item.track.id}-${index}`}
@@ -230,21 +239,31 @@ export default function DiscoverPage({
 
       {/* 4. More Based on Trending */}
       <DiscoverSection<DiscoverTrackItem>
-        title="More based on trending"
-        items={moreTrendingTracks}
-        isLoading={isLoadingMoreTrending}
+        title={isLoadingTrending ? '' : 'Trending '}
+        items={trendingTracks}
+        isLoading={isLoadingTrending}
+        emptyTitle={
+          hasTrendingError
+            ? 'Failed to load trending tracks'
+            : 'Nothing here yet'
+        }
+        emptyDescription={
+          hasTrendingError
+            ? 'Please try again in a moment.'
+            : 'Check back soon for new tracks.'
+        }
         renderItem={(discoverItem, index) => (
           <MinimalTrackCard
-            key={`trending-more-${discoverItem.item.track.id}-${index}`}
+            key={`trending-auth-${discoverItem.item.track.id}-${index}`}
             item={discoverItem.item}
             queueTracks={discoverItem.queueTracks}
             queueSource={discoverItem.queueSource ?? 'likes'}
           />
         )}
-        onPrevPage={onMoreTrendingPrevPage}
-        onNextPage={onMoreTrendingNextPage}
-        canPrevPage={canMoreTrendingPrevPage}
-        canNextPage={canMoreTrendingNextPage}
+        onPrevPage={onTrendingPrevPage}
+        onNextPage={onTrendingNextPage}
+        canPrevPage={canTrendingPrevPage}
+        canNextPage={canTrendingNextPage}
       />
     </div>
   );

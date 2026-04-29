@@ -177,6 +177,31 @@ const toUserPublic = (
     : null,
 });
 
+const getEffectiveFavoriteGenres = (user: MockUserRecord): string[] => {
+  const explicitGenres = user.profile.favoriteGenres
+    .map((genre) => genre.trim())
+    .filter((genre) => genre.length > 0);
+
+  if (explicitGenres.length > 0) {
+    return explicitGenres;
+  }
+
+  const fallbackGenres = new Set<string>();
+
+  for (const track of [...user.likedTracks, ...user.reposts, ...user.tracks]) {
+    const normalizedGenre = track.genre.trim();
+    if (normalizedGenre.length > 0) {
+      fallbackGenres.add(normalizedGenre);
+    }
+
+    if (fallbackGenres.size >= 3) {
+      break;
+    }
+  }
+
+  return [...fallbackGenres];
+};
+
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
@@ -191,7 +216,7 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
     country: user.profile.country,
     profilePic: user.profile.profilePic,
     coverPic: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
+    favoriteGenres: getEffectiveFavoriteGenres(user),
   },
   socialLinks: {
     instagram: user.socialLinks.instagram,
