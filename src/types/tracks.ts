@@ -66,7 +66,7 @@ export const uploadTrackResponseSchema = z
       })
       .passthrough(),
     trackUrl: z.string().trim().min(1),
-    trackPreviewUrl: z.string().trim().min(1),
+    trackPreviewUrl: z.string().trim().min(1).nullable().optional(),
     coverUrl: trackImageWithDefault,
     waveformUrl: z.string().trim().min(1),
     genre: z.string().trim().min(1),
@@ -88,6 +88,7 @@ export const uploadTrackResponseSchema = z
   })
   .transform((payload) => ({
     ...payload,
+    trackPreviewUrl: payload.trackPreviewUrl ?? payload.trackUrl,
     durationSeconds: payload.trackDurationSeconds,
   }));
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;

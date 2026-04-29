@@ -62,6 +62,6 @@ describe('useTrackUpload', () => {
     });
 
     expect(result.current.status).toBe('error');
-    expect(result.current.error).toBe('Upload failed');
+    expect(result.current.error).toBe('boom');
   });
 });

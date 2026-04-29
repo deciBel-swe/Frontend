@@ -823,7 +823,27 @@ export default function Page() {
     trendingTracks.length,
   ]);
 
-  if (!isAuthLoading && hasDiscoverError) {
+  if (isAuthLoading) {
+    return (
+      <div className="w-full">
+        <DiscoverPage
+          isLoggedIn={true}
+          trendingTracks={[]}
+          likedTracks={[]}
+          recentlyPlayedItems={[]}
+          genreTracks={[]}
+          moreTrendingTracks={[]}
+          isLoadingTrending={true}
+          isLoadingLiked={true}
+          isLoadingRecent={true}
+          isLoadingGenre={true}
+          isLoadingMoreTrending={true}
+        />
+      </div>
+    );
+  }
+
+  if (hasDiscoverError) {
     return (
       <p className="text-sm text-text-muted">
         Failed to load discover data. Please try again later.

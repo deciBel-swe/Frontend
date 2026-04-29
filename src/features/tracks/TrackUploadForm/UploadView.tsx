@@ -23,6 +23,7 @@ const ALLOWED_TYPES = [
   'audio/mp4',
 ];
 const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac'];
+const FREE_TRACK_LIMIT_ERROR = 'out of free tracks';
 
 const getWaveformParseErrorMessage = (err: unknown): string => {
   if (err instanceof Error && err.message.trim().length > 0) {
@@ -34,6 +35,10 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 
 const getUploadErrorMessage = (err: unknown): string => {
   if (err instanceof Error && err.message.trim().length > 0) {
+    if (err.message.toLowerCase().includes(FREE_TRACK_LIMIT_ERROR)) {
+      return 'Free upload limit reached. Use Blocked or upgrade.';
+    }
+
     return err.message;
   }
 
@@ -197,7 +202,6 @@ export default function UploadView() {
       setError(getUploadErrorMessage(err));
       setIsUploading(false);
       setUploadProgress(0);
-      console.error('Track upload error:', err);
     }
   };
 
