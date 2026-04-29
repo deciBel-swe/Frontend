@@ -70,6 +70,12 @@ const BLOCKED_TRACK: PlayerTrack = {
   access: 'BLOCKED',
 };
 
+const PREVIEW_TRACK: PlayerTrack = {
+  ...PLAYABLE_TRACK,
+  id: 3,
+  access: 'PREVIEW',
+};
+
 const OTHER_PLAYABLE_TRACK: PlayerTrack = {
   ...PLAYABLE_TRACK,
   id: 99,
@@ -145,11 +151,25 @@ describe('TrackCard playback integration', () => {
 
     const playButton = screen.getByRole('button', { name: 'Playback blocked' });
     expect(playButton).toBeDisabled();
+    expect(screen.getByText('Blocked')).toBeInTheDocument();
 
     await user.click(playButton);
 
     expect(mockPlayTrack).not.toHaveBeenCalled();
     expect(mockSetQueue).not.toHaveBeenCalled();
+  });
+
+  it('shows a preview badge when playback access is preview', () => {
+    render(
+      <TrackCard
+        {...baseProps}
+        playback={PREVIEW_TRACK}
+        queueTracks={[PREVIEW_TRACK]}
+        queueSource="feed"
+      />
+    );
+
+    expect(screen.getByText('Preview')).toBeInTheDocument();
   });
 
   it('sets queue and plays when playable track is clicked', async () => {

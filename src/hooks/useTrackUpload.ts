@@ -1,6 +1,20 @@
 import { useState } from 'react';
 import { trackService } from '@/services';
 
+const FREE_TRACK_LIMIT_ERROR = 'out of free tracks';
+
+const getUploadErrorMessage = (err: unknown): string => {
+  if (err instanceof Error && err.message.trim().length > 0) {
+    if (err.message.toLowerCase().includes(FREE_TRACK_LIMIT_ERROR)) {
+      return 'Free upload limit reached. Use Blocked or upgrade.';
+    }
+
+    return err.message;
+  }
+
+  return 'Upload failed';
+};
+
 export function useTrackUpload() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<
@@ -23,8 +37,7 @@ export function useTrackUpload() {
       return response;
     } catch (err) {
       setStatus('error');
-      setError('Upload failed');
-      console.error('Track upload error:', err);
+      setError(getUploadErrorMessage(err));
     }
   };
 

@@ -19,11 +19,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const asIsoDate = (value: unknown): string | undefined => {
@@ -200,8 +200,16 @@ export function useLikedTracks(
               isPrivate: metadata?.isPrivate,
               secretToken: metadata?.secretToken?.trim() || '',
             },
-            trackUrl: metadata?.trackUrl ?? track.trackUrl,
             access: toPlaybackAccess(metadata?.access),
+            trackUrl:
+              (metadata?.access === 'PREVIEW'
+                ? metadata.trackPreviewUrl
+                : metadata?.trackUrl) ??
+              metadata?.trackUrl ??
+              metadata?.trackPreviewUrl ??
+              track.trackUrl,
+            trackPreviewUrl:
+              metadata?.trackPreviewUrl ?? track.trackPreviewUrl ?? track.trackUrl,
             waveform: metadata?.waveformData ?? [],
           } satisfies TrackListItem;
         })

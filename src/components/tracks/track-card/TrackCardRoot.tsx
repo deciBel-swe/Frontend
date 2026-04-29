@@ -196,6 +196,7 @@ export default function TrackCardRoot({
             repostedBySlug={repostedBySlug}
             repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
+            access={playback?.access}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
             onPlayClick={handlePlayFromCard}
