@@ -26,12 +26,26 @@ describe('MockDiscoveryService', () => {
   });
 
   it('returns station feeds', async () => {
-    const genre = await service.getGenreStation({ page: 0, size: 5 });
-    const artist = await service.getArtistStation({ page: 0, size: 5 });
+    const genre = await service.getGenreStation({
+      genre: 'Electronic',
+      page: 0,
+      size: 5,
+    });
+    const artist = await service.getArtistStation({
+      artistId: 1,
+      page: 0,
+      size: 5,
+    });
     const likes = await service.getLikesStation({ page: 0, size: 5 });
 
     expect(genre.content.length).toBeGreaterThan(0);
+    expect(genre.content.every((item) => item.track.genre === 'Electronic')).toBe(
+      true
+    );
     expect(artist.content.length).toBeGreaterThan(0);
+    expect(artist.content.every((item) => item.track.artist.id === 1)).toBe(
+      true
+    );
     expect(likes.content.length).toBeGreaterThan(0);
   });
 });

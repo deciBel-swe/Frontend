@@ -1,5 +1,7 @@
 import type {
   DiscoveryService,
+  ArtistStationParams,
+  GenreStationParams,
   PaginationParams,
   SearchRequestOptions,
   SearchParams,
@@ -50,6 +52,9 @@ const paginate = <T>(items: T[], params?: PaginationParams) => {
     isLast,
   };
 };
+
+const normalizeGenre = (value: string | undefined | null): string =>
+  value?.trim().toLowerCase() ?? '';
 
 type StrictUserSummaryDTO = {
   [key: string]: unknown;
@@ -113,6 +118,7 @@ const buildTrackSummary = (
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
     artist: buildUserSummary(track.artist.id),
+    genre: track.genre,
     playCount: (track.likes ?? track.likeCount) * 25,
     likeCount: track.likes ?? track.likeCount,
     repostCount: track.reposters ?? track.repostCount,
@@ -125,6 +131,8 @@ const buildTrackSummary = (
       ownerId: track.artist.id,
       viewerId,
     }),
+    trackDurationSeconds: track.durationSeconds ?? 0,
+    waveformUrl: track.waveformUrl ?? '',
   };
 };
 
@@ -436,10 +444,11 @@ export class MockDiscoveryService implements DiscoveryService {
   }
 
   async getGenreStation(
-    params?: PaginationParams
+    params: GenreStationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
     const viewerId = resolveCurrentMockUserId();
+    const requestedGenre = normalizeGenre(params.genre);
     const items = getMockTracksStore()
       .filter((track) =>
         canAccessMockResource({
@@ -447,6 +456,11 @@ export class MockDiscoveryService implements DiscoveryService {
           ownerId: track.artist.id,
           viewerId,
         })
+      )
+      .filter((track) =>
+        requestedGenre.length > 0
+          ? normalizeGenre(track.genre) === requestedGenre
+          : true
       )
       .map((track, index) => ({
         id: track.id,
@@ -469,7 +483,7 @@ export class MockDiscoveryService implements DiscoveryService {
   }
 
   async getArtistStation(
-    params?: PaginationParams
+    params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
     const viewerId = resolveCurrentMockUserId();
@@ -481,6 +495,7 @@ export class MockDiscoveryService implements DiscoveryService {
           viewerId,
         })
       )
+      .filter((track) => track.artist.id === params.artistId)
       .map((track, index) => ({
         id: track.id,
         type: 'TRACK' as const,
