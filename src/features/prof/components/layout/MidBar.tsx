@@ -61,7 +61,7 @@ const buttonBase =
         : await userService.unfollowUser(targetUserId);
       setIsFollowing(response.isFollowing);
        
-    } catch(error) {
+    } catch {
       setIsFollowing(previousFollowing);
     } finally {
       setIsFollowPending(false);
@@ -85,7 +85,7 @@ const buttonBase =
         await userService.unblockUser(targetUserId);
       }
        
-    } catch(error) {
+    } catch {
       setIsBlocked(previousBlocked);
     } finally {
       setIsBlockPending(false);
