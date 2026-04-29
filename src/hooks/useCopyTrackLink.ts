@@ -1,10 +1,14 @@
 import { useState, useCallback } from 'react';
+import {
+  buildTrackSecretUrl,
+  buildTrackUrl,
+} from '@/utils/resourcePaths';
 
 interface UseCopyTrackLinkProps {
   trackId: string | number;
   routeTrackId?: string;
   isPrivate: boolean;
-  secretUrl: string | null;
+  secretToken?: string | null;
   artistName?: string;
   trackTitle?: string;
 }
@@ -13,7 +17,7 @@ export function useCopyTrackLink({
   trackId,
   routeTrackId,
   isPrivate,
-  secretUrl,
+  secretToken,
   artistName,
 }: UseCopyTrackLinkProps) {
   const [copied, setCopied] = useState(false);
@@ -21,27 +25,12 @@ export function useCopyTrackLink({
   const handleCopy = useCallback(async () => {
     let urlToCopy = '';
     const routeId = routeTrackId?.trim() || String(trackId);
+    const normalizedSecretToken = secretToken?.trim();
 
-    if (isPrivate && secretUrl) {
-      if (artistName) {
-        try {
-          const parsed = new URL(secretUrl);
-          const secretToken = parsed.searchParams.get('s');
-          if (secretToken) {
-            const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-            urlToCopy = `${window.location.origin}/${userSlug}/${routeId}?s=${secretToken}`;
-          }
-        } catch {
-          // fall back to service formatted URL if parsing fails
-        }
-      }
-
-      if (!urlToCopy) {
-        urlToCopy = secretUrl;
-      }
+    if (isPrivate && artistName && normalizedSecretToken) {
+      urlToCopy = buildTrackSecretUrl(artistName, routeId, normalizedSecretToken);
     } else if (!isPrivate && artistName) {
-      const userSlug = artistName.toLowerCase().replace(/\s+/g, '');
-      urlToCopy = `${window.location.origin}/${userSlug}/${routeId}`;
+      urlToCopy = buildTrackUrl(artistName, routeId);
     }
 
     if (!urlToCopy) return;
@@ -49,7 +38,7 @@ export function useCopyTrackLink({
     await navigator.clipboard.writeText(urlToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [artistName, isPrivate, routeTrackId, secretUrl, trackId]);
+  }, [artistName, isPrivate, routeTrackId, secretToken, trackId]);
 
   return { copied, handleCopy };
 }

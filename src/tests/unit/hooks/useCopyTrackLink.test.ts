@@ -36,7 +36,7 @@ describe('useCopyTrackLink', () => {
       useCopyTrackLink({
         trackId: 42,
         isPrivate: true,
-        secretUrl: 'https://api.test/tracks/42?s=abc123',
+        secretToken: 'abc123',
         artistName: 'DJ Nova',
       })
     );
@@ -45,7 +45,7 @@ describe('useCopyTrackLink', () => {
       await result.current.handleCopy();
     });
 
-    expect(writeText).toHaveBeenCalledWith('https://decibel.test/djnova/42?s=abc123');
+    expect(writeText).toHaveBeenCalledWith('https://decibel.test/djnova/42?token=abc123');
     expect(result.current.copied).toBe(true);
 
     act(() => {
@@ -55,12 +55,12 @@ describe('useCopyTrackLink', () => {
     expect(result.current.copied).toBe(false);
   });
 
-  it('falls back to provided secret URL when parsing fails', async () => {
+  it('does nothing for private tracks when no secret token is available', async () => {
     const { result } = renderHook(() =>
       useCopyTrackLink({
         trackId: 'x',
         isPrivate: true,
-        secretUrl: 'not-a-valid-url',
+        secretToken: null,
         artistName: 'Artist',
       })
     );
@@ -69,7 +69,7 @@ describe('useCopyTrackLink', () => {
       await result.current.handleCopy();
     });
 
-    expect(writeText).toHaveBeenCalledWith('not-a-valid-url');
+    expect(writeText).not.toHaveBeenCalled();
   });
 
   it('copies public track URL for non-private tracks', async () => {
@@ -77,7 +77,7 @@ describe('useCopyTrackLink', () => {
       useCopyTrackLink({
         trackId: 99,
         isPrivate: false,
-        secretUrl: null,
+        secretToken: null,
         artistName: 'Space Kid',
       })
     );
@@ -94,7 +94,7 @@ describe('useCopyTrackLink', () => {
       useCopyTrackLink({
         trackId: 1,
         isPrivate: false,
-        secretUrl: null,
+        secretToken: null,
       })
     );
 

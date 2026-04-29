@@ -1,43 +1,61 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { normalizeApiError } from '@/hooks/useAPI';
+import { useAuth } from '@/features/auth/useAuth';
 import { notificationService } from '@/services';
 import type { ApiErrorDTO } from '@/types';
-import type { UnreadCountResponse } from '@/types/notification';
 
 export function useUnreadCount() {
-  const [unreadCountResponse, setUnreadCountResponse] =
-    useState<UnreadCountResponse | null>(null);
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<
+    import('@/types/notification').NotificationDTO[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<ApiErrorDTO | null>(null);
 
   const getUnreadCount = useCallback(async () => {
+    return notifications.filter((notification) => !notification.isRead).length;
+  }, [notifications]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setNotifications([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setIsError(false);
     setError(null);
 
-    try {
-      const result = await notificationService.getUnreadCount();
-      setUnreadCountResponse(result);
-      return result;
-    } catch (caughtError) {
-      const normalizedError = normalizeApiError(caughtError);
-      setIsError(true);
-      setError(normalizedError);
-      throw normalizedError;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    const unsubscribe = notificationService.subscribeToNotifications(
+      user.id,
+      (result) => {
+        setNotifications(result);
+        setIsLoading(false);
+      },
+      (caughtError) => {
+        setIsError(true);
+        setError({
+          statusCode: 500,
+          message: caughtError.message || 'Failed to load unread count.',
+          error: 'NOTIFICATION_SUBSCRIBE_FAILED',
+        });
+        setIsLoading(false);
+      }
+    );
 
-  useEffect(() => {
-    void getUnreadCount();
-  }, [getUnreadCount]);
+    return () => unsubscribe();
+  }, [user?.id]);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((notification) => !notification.isRead).length,
+    [notifications]
+  );
 
   return {
-    unreadCount: unreadCountResponse?.unreadCount ?? 0,
-    unreadCountResponse,
+    unreadCount,
+    unreadCountResponse: { unreadCount },
     getUnreadCount,
     isLoading,
     isError,

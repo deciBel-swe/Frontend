@@ -27,7 +27,10 @@ interface UpgradeProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const Upgrade: FC<UpgradeProps> = ({ onSelectPlan, onSkip }) => (
-  <section aria-labelledby="upgrade-heading" className="flex flex-col items-center">
+  <section
+    aria-labelledby="upgrade-heading"
+    className="flex flex-col items-center"
+  >
     {/* ── Header ──────────────────────────────────────────────────── */}
     <header className="text-center mb-8 px-4">
       <h2
@@ -42,7 +45,7 @@ export const Upgrade: FC<UpgradeProps> = ({ onSelectPlan, onSkip }) => (
     </header>
 
     {/* ── Plan cards ──────────────────────────────────────────────── */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
+    <div className="grid grid-cols-1 gap-5 w-full max-w-xl">
       {PLANS.map((plan) => (
         <UpgradeCard key={plan.id} plan={plan} onSelect={onSelectPlan} />
       ))}
@@ -55,7 +58,17 @@ export const Upgrade: FC<UpgradeProps> = ({ onSelectPlan, onSkip }) => (
       className="mt-8 flex items-center gap-2 px-5 py-2.5 rounded-full border border-border-default text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-primary transition-colors duration-150"
     >
       Or continue without a paid plan
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
         <line x1="5" y1="12" x2="19" y2="12" />
         <polyline points="12 5 19 12 12 19" />
       </svg>

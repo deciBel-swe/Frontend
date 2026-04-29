@@ -1,20 +1,27 @@
 import { config } from '@/config';
-import { ApiQueryParams, apiRequest } from '@/hooks/useAPI';
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  ApiQueryParams,
+  apiRequest,
+} from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
+  PaginatedTrackMetadataResponse,
   paginatedTrackResponse,
   SecretLink,
   TrackDetailsResponse,
   TrackMetaData,
   TrackResourceRefDTO,
   TrackUpdateResponse,
-  UploadTrackAcceptedResponse,
+  TrackUploadStatusResponse,
+  UploadTrackResponse,
   TrackVisibility,
   UpdateTrackVisibilityDto,
   likeResponse,
   paginationRepostUser,
   repostResponse,
 } from '@/types/tracks';
+import { trackUploadStatusResponseSchema } from '@/types/tracks';
 
 export interface PaginationParams {
   page?: number;
@@ -22,7 +29,8 @@ export interface PaginationParams {
 }
 
 const toQueryParams = (
-  params?: PaginationParams
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params?: PaginationParams | any
 ): ApiQueryParams | undefined => {
   if (!params) {
     return undefined;
@@ -35,7 +43,9 @@ const toQueryParams = (
   if (params.size !== undefined) {
     query.size = params.size;
   }
-
+  if (params.trackSlug !== undefined) {
+    query['track-slug'] = params.trackSlug;
+  }
   return Object.keys(query).length > 0 ? query : undefined;
 };
 /**
@@ -45,11 +55,11 @@ const toQueryParams = (
  * It combines upload, viewing metadata, and privacy/secret-link operations.
  */
 export interface TrackService {
-  /** Upload a track with progress updates (POST /tracks/upload) */
+  /** Upload a track via the interactive V2 endpoint and websocket progress stream. */
   uploadTrack(
     formData: FormData,
     onProgress: (progress: number) => void
-  ): Promise<UploadTrackAcceptedResponse>;
+  ): Promise<UploadTrackResponse>;
 
   /** Resolve track slug to internal id (GET /tracks/resolve?trackSlug=...). */
   resolveTrackSlug(trackSlug: string): Promise<TrackResourceRefDTO>;
@@ -65,6 +75,9 @@ export interface TrackService {
 
   /** Read current user tracks via /users/me/tracks */
   getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]>;
+  getMyTracksPage(
+    params?: PaginationParams
+  ): Promise<PaginatedTrackMetadataResponse>;
 
   /** Read all visible tracks for feed listing (GET /users/me/tracks) */
   getAllTracks(): Promise<TrackMetaData[]>;
@@ -157,7 +170,12 @@ const normalizeTrackMetadata = (
       avatarUrl: payload.artist?.avatarUrl,
     },
     trackUrl: toAbsoluteUrl(payload.trackUrl, `/tracks/${trackId}`),
+    trackPreviewUrl: toAbsoluteUrl(
+      payload.trackPreviewUrl ?? payload.trackUrl,
+      `/tracks/${trackId}`
+    ),
     access: payload.access ?? 'PLAYABLE',
+    isPrivate: payload.isPrivate,
     ...(resolvedDuration !== undefined && resolvedDuration !== null
       ? { durationSeconds: resolvedDuration }
       : {}),
@@ -175,7 +193,9 @@ const normalizeTrackMetadata = (
     isReposted: payload.isReposted,
     likeCount: payload.likeCount,
     repostCount: payload.repostCount,
+    commentCount: payload.commentCount,
     playCount: payload.playCount,
+    secretToken: payload.secretToken,
     uploadDate: payload.uploadDate ?? '',
   };
 };
@@ -241,30 +261,319 @@ const hydrateWaveformData = async (
   };
 };
 
+const TRACK_UPLOAD_SOCKET_PATH = '/api/ws';
+const TRACK_UPLOAD_STATUS_TOPIC_PREFIX = '/topic/track-status';
+const TRACK_UPLOAD_CONNECT_TIMEOUT_MS = 10_000;
+const TRACK_UPLOAD_ACTIVITY_TIMEOUT_MS = 120_000;
+const DEFAULT_TRACK_UPLOAD_ACCESS = 'PLAYABLE';
+
+type TrackUploadStatusStream = {
+  completed: Promise<UploadTrackResponse>;
+  disconnect: () => Promise<void>;
+};
+
+type StompSubscriptionLike = {
+  unsubscribe: () => void;
+};
+
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
+const createTrackUploadId = (): string => {
+  const randomUuid = globalThis.crypto?.randomUUID?.();
+  if (typeof randomUuid === 'string' && randomUuid.trim().length > 0) {
+    return randomUuid;
+  }
+
+  return `track-upload-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+};
+
+const ensureTrackUploadFields = (formData: FormData): string => {
+  const currentUploadId = formData.get('uploadId');
+  const uploadId =
+    typeof currentUploadId === 'string' && currentUploadId.trim().length > 0
+      ? currentUploadId.trim()
+      : createTrackUploadId();
+
+  formData.set('uploadId', uploadId);
+
+  const currentAccess = formData.get('access');
+  if (
+    typeof currentAccess !== 'string' ||
+    currentAccess.trim().length === 0
+  ) {
+    formData.set('access', DEFAULT_TRACK_UPLOAD_ACCESS);
+  }
+
+  return uploadId;
+};
+
+const getStoredAccessToken = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const normalizeSockJsBaseUrl = (value: string): string =>
+  value
+    .replace(/^wss:/i, 'https:')
+    .replace(/^ws:/i, 'http:')
+    .replace(/\/+$/, '');
+
+const buildTrackUploadSocketUrl = (baseUrl: string): string => {
+  if (baseUrl.endsWith(TRACK_UPLOAD_SOCKET_PATH)) {
+    return baseUrl;
+  }
+
+  if (baseUrl.endsWith('/api')) {
+    return `${baseUrl}/ws`;
+  }
+
+  return `${baseUrl}${TRACK_UPLOAD_SOCKET_PATH}`;
+};
+
+const resolveTrackUploadSocketUrl = (): string => {
+  const explicitWsUrl = process.env.NEXT_PUBLIC_WS_URL?.trim();
+  if (explicitWsUrl) {
+    return buildTrackUploadSocketUrl(normalizeSockJsBaseUrl(explicitWsUrl));
+  }
+
+  try {
+    const origin = new URL(config.api.baseURL).origin;
+    return buildTrackUploadSocketUrl(normalizeSockJsBaseUrl(origin));
+  } catch {
+    return TRACK_UPLOAD_SOCKET_PATH;
+  }
+};
+
+const openTrackUploadStatusStream = async (
+  uploadId: string,
+  onProgress: (progress: number) => void
+): Promise<TrackUploadStatusStream> => {
+  if (typeof window === 'undefined') {
+    throw new Error('Track uploads require a browser environment.');
+  }
+
+  const [{ Client }, sockJsModule] = await Promise.all([
+    import('@stomp/stompjs'),
+    import('sockjs-client'),
+  ]);
+
+  const SockJS = (
+    'default' in sockJsModule ? sockJsModule.default : sockJsModule
+  ) as new (url: string) => unknown;
+
+  const token = getStoredAccessToken();
+  const socketUrl = resolveTrackUploadSocketUrl();
+
+  return new Promise<TrackUploadStatusStream>((resolve, reject) => {
+    let subscription: StompSubscriptionLike | null = null;
+    let connectionSettled = false;
+    let uploadSettled = false;
+    let disconnecting = false;
+    let activityTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    let resolveCompleted!: (value: UploadTrackResponse) => void;
+    let rejectCompleted!: (reason?: unknown) => void;
+
+    const clearActivityTimeout = () => {
+      if (activityTimeout) {
+        clearTimeout(activityTimeout);
+        activityTimeout = undefined;
+      }
+    };
+
+    const client = new Client({
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+      debug: () => undefined,
+      reconnectDelay: 0,
+      webSocketFactory: () => new SockJS(socketUrl),
+    });
+
+    const disconnect = async (): Promise<void> => {
+      if (disconnecting) {
+        return;
+      }
+
+      disconnecting = true;
+      clearActivityTimeout();
+      subscription?.unsubscribe();
+      await client.deactivate();
+    };
+
+    const completed = new Promise<UploadTrackResponse>((resolveStream, rejectStream) => {
+      resolveCompleted = resolveStream;
+      rejectCompleted = rejectStream;
+    });
+
+    const settleConnectionResolve = () => {
+      if (connectionSettled) {
+        return;
+      }
+
+      connectionSettled = true;
+      clearTimeout(connectTimeout);
+      resolve({ completed, disconnect });
+    };
+
+    const settleConnectionReject = (message: string) => {
+      if (connectionSettled) {
+        return;
+      }
+
+      connectionSettled = true;
+      clearTimeout(connectTimeout);
+      reject(new Error(message));
+    };
+
+    const rejectUpload = (message: string) => {
+      if (!connectionSettled) {
+        settleConnectionReject(message);
+        void disconnect();
+        return;
+      }
+
+      if (uploadSettled) {
+        return;
+      }
+
+      uploadSettled = true;
+      clearActivityTimeout();
+      rejectCompleted(new Error(message));
+      void disconnect();
+    };
+
+    const resetActivityTimeout = () => {
+      clearActivityTimeout();
+      activityTimeout = setTimeout(() => {
+        rejectUpload('Track upload timed out while waiting for processing.');
+      }, TRACK_UPLOAD_ACTIVITY_TIMEOUT_MS);
+    };
+
+    const handleStatusMessage = (status: TrackUploadStatusResponse) => {
+      onProgress(status.progressPercentage);
+      resetActivityTimeout();
+
+      if (status.errorMessage) {
+        rejectUpload(status.errorMessage);
+        return;
+      }
+
+      if (status.trackState === 'FAILED') {
+        rejectUpload('Track upload failed during processing.');
+        return;
+      }
+
+      if (!status.trackResponse || uploadSettled) {
+        return;
+      }
+
+      uploadSettled = true;
+      clearActivityTimeout();
+      resolveCompleted(status.trackResponse);
+      void disconnect();
+    };
+
+    client.onConnect = () => {
+      subscription = client.subscribe(
+        `${TRACK_UPLOAD_STATUS_TOPIC_PREFIX}/${uploadId}`,
+        (frame) => {
+          try {
+            const payload = JSON.parse(frame.body) as unknown;
+            const status = trackUploadStatusResponseSchema.parse(payload);
+            handleStatusMessage(status);
+          } catch (error) {
+            rejectUpload(
+              getErrorMessage(
+                error,
+                'Received an invalid track upload status payload.'
+              )
+            );
+          }
+        }
+      );
+
+      onProgress(0);
+      resetActivityTimeout();
+      settleConnectionResolve();
+    };
+
+    client.onStompError = (frame) => {
+      const message =
+        frame.headers.message?.trim() ||
+        'Track upload status connection failed.';
+      rejectUpload(message);
+    };
+
+    client.onWebSocketError = () => {
+      rejectUpload('Track upload status connection failed.');
+    };
+
+    client.onWebSocketClose = (event) => {
+      if (disconnecting || uploadSettled) {
+        return;
+      }
+
+      const reason = event.reason?.trim();
+      rejectUpload(
+        reason && reason.length > 0
+          ? reason
+          : 'Track upload status connection closed unexpectedly.'
+      );
+    };
+
+    const connectTimeout = setTimeout(() => {
+      rejectUpload('Timed out connecting to track upload status.');
+    }, TRACK_UPLOAD_CONNECT_TIMEOUT_MS);
+
+    client.activate();
+  });
+};
+
 export class RealTrackService implements TrackService {
   async uploadTrack(
     formData: FormData,
     onProgress: (progress: number) => void
-  ): Promise<UploadTrackAcceptedResponse> {
-    return apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
-      payload: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (event) => {
-        if (!event.total) {
-          return;
-        }
+  ): Promise<UploadTrackResponse> {
+    const uploadId = ensureTrackUploadFields(formData);
+    const statusStream = await openTrackUploadStatusStream(uploadId, onProgress);
 
-        const progress = Math.round((event.loaded / event.total) * 100);
-        onProgress(progress);
-      },
-    });
+    try {
+      const uploadStart = await apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
+        payload: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const uploadedTrack = await statusStream.completed;
+      if (uploadStart.requestId !== uploadedTrack.id) {
+        throw new Error('Track upload completed with an unexpected track id.');
+      }
+
+      return uploadedTrack;
+    } catch (error) {
+      await statusStream.disconnect();
+      throw error;
+    }
   }
 
   async resolveTrackSlug(trackSlug: string): Promise<TrackResourceRefDTO> {
-    return apiRequest(API_CONTRACTS.TRACKS_RESOLVE, {
-      params: { trackSlug },
+    return apiRequest(API_CONTRACTS.TRACKS_RESOLVE(trackSlug), {
+      params: { 'track-slug': trackSlug },
     });
   }
 
@@ -292,16 +601,26 @@ export class RealTrackService implements TrackService {
   }
 
   async getMyTracks(params?: PaginationParams): Promise<TrackMetaData[]> {
+    const payload = await this.getMyTracksPage(params);
+    return payload.content;
+  }
+
+  async getMyTracksPage(
+    params?: PaginationParams
+  ): Promise<PaginatedTrackMetadataResponse> {
     const payload = await apiRequest(API_CONTRACTS.USERS_ME_TRACKS, {
       params: toQueryParams(params),
     });
 
-    return Promise.all(
-      payload.content.map(async (track) => {
-        const normalized = normalizeTrackMetadata(track.id, track);
-        return hydrateWaveformData(normalized, track);
-      })
-    );
+    return {
+      ...payload,
+      content: await Promise.all(
+        payload.content.map(async (track) => {
+          const normalized = normalizeTrackMetadata(track.id, track);
+          return hydrateWaveformData(normalized, track);
+        })
+      ),
+    };
   }
 
   async getAllTracks(): Promise<TrackMetaData[]> {

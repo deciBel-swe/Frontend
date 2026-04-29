@@ -37,6 +37,8 @@ type TrackHeroHeader = {
   title: string;
   artistName: string;
   artistSlug: string;
+  trackSlug?: string;
+  secretToken?: string;
   coverUrl: string;
   timeAgo: string;
   tags: string[];
@@ -45,6 +47,7 @@ type TrackHeroHeader = {
   waveformData: number[];
   duration: string;
   plays: number;
+  isPrivate: boolean;
 };
 
 const formatTimeAgo = (value: string | undefined): string => {
@@ -203,14 +206,17 @@ export function useTrackHeaderItem({
           title: trackMetadata.title,
           artistName,
           artistSlug: artistName,
+          trackSlug: trackMetadata.trackSlug,
+          secretToken: trackMetadata.secretToken?.trim() || undefined,
           coverUrl: trackMetadata.coverUrl,
-          timeAgo: formatTimeAgo(trackMetadata.releaseDate),
+          timeAgo: formatTimeAgo(trackMetadata.uploadDate || trackMetadata.releaseDate),
           tags: trackMetadata.tags,
           genre: trackMetadata.genre,
           waveformUrl: trackMetadata.waveformUrl ?? '',
           waveformData: trackMetadata.waveformData ?? [],
           duration: durationSeconds ? formatDuration(durationSeconds) : '0:00',
           plays: trackMetadata.playCount ?? 0,
+          isPrivate: trackMetadata.isPrivate ?? false,
         });
 
         setPlayerTrack(

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useAuth } from '@/features/auth';
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
-import { useSecretLink } from '@/hooks/useSecretLink';
 import { useTrackCard } from '@/hooks/useTrackCard';
 import { useTrackVisibility } from '@/hooks/useTrackVisibility';
 import { useWaveformData } from '@/hooks/useWaveformData';
+import { useReportTrack } from '@/features/admin/hooks';
+import ReportModal from '@/components/track-page/report/components/ReportModal';
 import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import TrackCardArtwork from './TrackCardArtwork';
 import TrackCardFooter from './TrackCardFooter';
@@ -34,7 +36,9 @@ export default function TrackCardRoot({
   currentUserAvatar,
   showHeader = true,
 }: TrackCardProps) {
+  const { user: authUser } = useAuth();
   const userSlug = toUserSlug(user.username);
+  const contentUserSlug = toUserSlug(track.artist.username);
   const routeTrackId = track.trackSlug?.trim() || String(track.id);
   const userDisplayName = user.displayName?.trim() || user.username;
   const artistDisplayName =
@@ -55,16 +59,14 @@ export default function TrackCardRoot({
 
   const { visibility } = useTrackVisibility(Number(trackId));
   const resolvedIsPrivate = visibility?.isPrivate ?? isPrivate;
-  const { secretUrl } = useSecretLink(resolvedIsPrivate ? trackId : undefined);
   const { handleCopy } = useCopyTrackLink({
     trackId,
     routeTrackId,
     isPrivate: resolvedIsPrivate,
-    secretUrl,
+    secretToken: track.secretToken,
     artistName: artistUsername,
     trackTitle: track.title,
   });
-
   const {
     timedComments,
     pendingText,
@@ -112,13 +114,50 @@ export default function TrackCardRoot({
 
   const resolvedWaveform = useWaveformData(waveform, track.waveformUrl);
 
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const { reportTrack, isLoading: isReportSubmitting } = useReportTrack();
+
+  const openTrackReport = useCallback(() => {
+    setIsReportOpen(true);
+  }, []);
+
+  const closeReport = useCallback(() => {
+    setIsReportOpen(false);
+  }, []);
+
+  const submitReport = useCallback(
+    async (reason: string, details?: string) => {
+      if (!track?.id) {
+        return;
+      }
+
+      try {
+        await reportTrack(track.id, { reason, description: details });
+      } finally {
+        closeReport();
+      }
+    },
+    [closeReport, reportTrack, track?.id]
+  );
+
+  /**
+   * Whether to show the report option. We hide it when the viewer is the
+   * track owner (same logic used to show the edit button).
+   */
+  // const canReport = !showEditButton;
+ 
   if (isDeleted) {
     return null;
   }
 
+  const currentUserName =
+    authUser?.displayName?.trim() || authUser?.username?.trim() || userDisplayName;
+  const currentUserAvatarSrc =
+    authUser?.avatarUrl?.trim() || currentUserAvatar || user.avatar;
+  const headerAvatar = repostedBy?.avatar?.trim() || user.avatar;
   const currentUser = {
-    name: userDisplayName,
-    avatar: currentUserAvatar ?? user.avatar,
+    name: currentUserName,
+    avatar: currentUserAvatarSrc,
   };
 
   return (
@@ -131,14 +170,14 @@ export default function TrackCardRoot({
         <TrackCardHeader
           userSlug={repostedBySlug ?? userSlug}
           userDisplayName={repostedByDisplayName ?? userDisplayName}
-          userAvatar={user.avatar}
+          userAvatar={headerAvatar}
           postedText={postedText}
         />
       ) : null}
 
       <div className="flex min-w-0 items-start gap-2 sm:gap-3 md:gap-4">
         <TrackCardArtwork
-          userSlug={userSlug}
+          userSlug={contentUserSlug}
           trackId={track.id}
           routeTrackId={routeTrackId}
           coverUrl={track.cover}
@@ -147,7 +186,7 @@ export default function TrackCardRoot({
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <TrackCardMeta
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             artistName={artistDisplayName}
             trackId={track.id}
             routeTrackId={routeTrackId}
@@ -182,7 +221,7 @@ export default function TrackCardRoot({
           />
 
           <TrackCardFooter
-            userSlug={userSlug}
+            userSlug={contentUserSlug}
             trackId={track.id}
             routeTrackId={routeTrackId}
             showEditButton={showEditButton}
@@ -224,6 +263,7 @@ export default function TrackCardRoot({
             onMoreClose={() => setIsMoreOpen(false)}
             onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
             onStation={() => {}}
+            onReport={openTrackReport}
           />
 
           {/* <div className="pt-1 text-xs text-text-muted">{track.duration}</div> */}
@@ -235,7 +275,14 @@ export default function TrackCardRoot({
         routeTrackId={routeTrackId}
         trackNumericId={track.id}
         isPrivate={resolvedIsPrivate}
-        track={track}
+            track={{
+      ...track,
+      // Fields required by the Embed tab's playable preview
+      trackNumericId: track.id,           // numeric id for PlayerTrack
+      trackUrl: playback?.trackUrl,       // streaming URL
+      waveformData: resolvedWaveform,     // already resolved by useWaveformData
+      waveformUrl: track.waveformUrl,     // fallback fetch URL (may be undefined)
+    }}
         editOpen={editOpen}
         isShareOpen={isShareOpen}
         isPlaylistModalOpen={isPlaylistModalOpen}
@@ -245,6 +292,13 @@ export default function TrackCardRoot({
         setIsPlaylistModalOpen={setIsPlaylistModalOpen}
         setActiveTab={setActiveTab}
       />
+      <ReportModal
+            isOpen={isReportOpen}
+            target="track"
+            isSubmitting={isReportSubmitting}
+            onClose={closeReport}
+            onSubmit={submitReport}
+          />
     </div>
   );
 }

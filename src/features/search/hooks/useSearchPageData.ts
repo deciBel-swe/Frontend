@@ -5,7 +5,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { discoveryService } from '@/services';
 import type {
   PaginatedSearchResponseDTO,
-  ResourceRefFullDTO,
+  SearchResourceRefDTO,
 } from '@/types/discovery';
 import type { SearchParams } from '@/services/api/discoveryService';
 import { useSearchNavigation } from '@/features/search/hooks/useSearchNavigation';
@@ -111,7 +111,7 @@ export function transformSearchResponse(
   const buckets = withEmptyBuckets();
   const everythingOrder: SearchFetchResult['everythingOrder'] = [];
 
-  response.content.forEach((resource: ResourceRefFullDTO) => {
+  response.content.forEach((resource: SearchResourceRefDTO) => {
     if (tab === 'everything' || tab === 'tracks') {
       const track = mapTrackResourceToTrackCard(resource);
       if (track) {
@@ -195,8 +195,9 @@ export function useSearchPageData(
   const genreFilter = activeFilters.genre || undefined;
 
   const [buckets, setBuckets] = useState<SearchBuckets>(withEmptyBuckets);
-  const [everythingOrder, setEverythingOrder] =
-    useState<UseSearchPageDataResult['everythingOrder']>([]);
+  const [everythingOrder, setEverythingOrder] = useState<
+    UseSearchPageDataResult['everythingOrder']
+  >([]);
   const [totals, setTotals] = useState(EMPTY_SEARCH_TOTALS);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -279,9 +280,12 @@ export function useSearchPageData(
       const requestId = ++requestCounterRef.current;
 
       try {
-        const response = await discoveryService.search(buildSearchParams(requestContext), {
-          signal: requestContext.signal,
-        });
+        const response = await discoveryService.search(
+          buildSearchParams(requestContext),
+          {
+            signal: requestContext.signal,
+          }
+        );
 
         if (requestId !== requestCounterRef.current) {
           return;
@@ -337,6 +341,7 @@ export function useSearchPageData(
 
         setErrorMessage('Failed to load search results. Please try again.');
         setHasMore(false);
+        console.log('Error fetching search results:', error);
       } finally {
         if (requestId === requestCounterRef.current) {
           inFlightRequestKeyRef.current = null;
@@ -404,7 +409,10 @@ export function useSearchPageData(
   });
 
   const queueTracks = useMemo(
-    () => buckets.tracks.flatMap((track) => (track.playback ? [track.playback] : [])),
+    () =>
+      buckets.tracks.flatMap((track) =>
+        track.playback ? [track.playback] : []
+      ),
     [buckets.tracks]
   );
 

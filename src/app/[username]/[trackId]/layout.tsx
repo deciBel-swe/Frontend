@@ -1,8 +1,9 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
+import { ShareModal } from '@/features/prof/components/ShareModal';
 import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
 import TrackHero from '@/components/track-page/TrackHero';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
@@ -16,6 +17,7 @@ export default function Layout({ children }: LayoutProps) {
   const { username, trackId } = useParams<{ username: string; trackId: string }>();
   const searchParams = useSearchParams();
   const secretToken = getSecretTokenFromQuery(searchParams);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const {
     hero,
     waveformComments,
@@ -74,6 +76,31 @@ export default function Layout({ children }: LayoutProps) {
             }}
             onRepost={() => {
               void onRepost();
+            }}
+            onShare={() => setIsShareOpen(true)}
+          />
+
+          <ShareModal
+            variant="track"
+            isOpen={isShareOpen}
+            onClose={() => setIsShareOpen(false)}
+            trackId={trackId}
+            sharePathId={hero.trackSlug?.trim() || trackId}
+            shareUsername={hero.artistSlug}
+            isPrivate={hero.isPrivate}
+            existingToken={hero.secretToken}
+            track={{
+              title: hero.title,
+              artist: hero.artistName,
+              coverUrl: hero.coverUrl,
+              duration: hero.duration,
+              waveformData: hero.waveformData,
+              waveformUrl: hero.waveformUrl,
+              isPlaying,
+              currentTime: waveformCurrentTime,
+              durationSeconds: waveformDurationSeconds,
+              onPlayPause,
+              onWaveformSeek,
             }}
           />
         </div>

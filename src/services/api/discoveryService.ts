@@ -21,7 +21,7 @@ export interface ArtistStationParams extends PaginationParams {
 
 export interface SearchParams extends PaginationParams {
   q: string;
-  type?: 'ALL' | 'TRACKS' | 'USERS' | 'PLAYLISTS';
+  type?: 'ALL' | 'TRACK' | 'USER' | 'PLAYLIST';
   genre?: string;
 }
 

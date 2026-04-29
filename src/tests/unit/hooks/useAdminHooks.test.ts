@@ -52,7 +52,7 @@ describe('admin hooks', () => {
       email: 'admin@decibel.dev',
       password: 'strong-password',
       deviceInfo: {
-        deviceType: 'DESKTOP' as const,
+        deviceType: 'WEB' as const,
         fingerPrint: 'fp-123',
         deviceName: 'Chrome on Windows',
       },
@@ -94,7 +94,7 @@ describe('admin hooks', () => {
           email: 'admin@decibel.dev',
           password: 'bad-password',
           deviceInfo: {
-            deviceType: 'DESKTOP',
+            deviceType: 'WEB',
             fingerPrint: 'fp-404',
             deviceName: 'Edge',
           },

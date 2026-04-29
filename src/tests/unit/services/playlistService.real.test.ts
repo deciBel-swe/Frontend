@@ -148,10 +148,10 @@ describe('RealPlaylistService', () => {
       isLast: true,
     });
 
-    await service.getUserPlaylists(7, { page: 0, size: 10 });
+    await service.getUserPlaylists('mockartist', { page: 0, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(7),
+      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS('mockartist'),
       {
         params: { page: 0, size: 10 },
       }
@@ -213,8 +213,8 @@ describe('RealPlaylistService', () => {
 
   it('resolves playlist slug via PLAYLISTS_RESOLVE contract', async () => {
     mockedApiRequest.mockResolvedValue({
-      resourceType: 'PLAYLIST',
-      resourceId: 11,
+      type: 'PLAYLIST',
+      id: 11,
     });
 
     await service.resolvePlaylistSlug('late-night-set-11');

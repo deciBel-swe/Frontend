@@ -27,6 +27,11 @@ import {
   persistMockSystemState,
   resolveCurrentMockUserId,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  createUniqueMockSlug,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 
 const MOCK_DELAY_MS = 220;
 
@@ -47,22 +52,16 @@ const getNextPlaylistId = (): number => {
   return Math.max(...allPlaylists.map((playlist) => playlist.id)) + 1;
 };
 
-const toSlug = (value: string, id: number, fallback: string): string => {
-  const normalized = value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  return `${normalized || fallback}-${id}`;
-};
-
 const getPlaylistCoverUrl = (playlistId: number): string =>
   `https://picsum.photos/seed/decibel-playlist-${playlistId}/640/640`;
 
 const getUserAvatar = (user: MockUserRecord): string =>
   user.profile.profilePic ||
   `https://picsum.photos/seed/decibel-user-${user.id}/200/200`;
+
+const resolvePlaylistSlugValue = (playlist: MockPlaylistRecord): string => {
+  return playlist.playlistSlug?.trim() || `playlist-${playlist.id}`;
+};
 
 const resolvePlaylistOwner = (
   playlistId: number
@@ -95,11 +94,12 @@ const resolvePlaylistByToken = (
 const resolvePlaylistBySlug = (
   playlistSlug: string
 ): { owner: MockUserRecord; playlist: MockPlaylistRecord } | null => {
+  const normalizedPlaylistSlug = playlistSlug.trim().toLowerCase();
   const users = getMockUsersStore();
   for (const user of users) {
     for (const playlist of user.playlists) {
-      const slug = toSlug(playlist.title, playlist.id, 'playlist');
-      if (slug === playlistSlug) {
+      const slug = resolvePlaylistSlugValue(playlist).toLowerCase();
+      if (slug === normalizedPlaylistSlug) {
         return { owner: user, playlist };
       }
     }
@@ -143,39 +143,53 @@ const playlistRepostCount = (playlistId: number): number => {
   ).length;
 };
 
+const assertPlaylistOwner = (
+  owner: MockUserRecord,
+  viewerId: number
+): void => {
+  if (owner.id !== viewerId) {
+    throw new Error('Playlist not found');
+  }
+};
+
+const assertPlaylistAccessible = (
+  owner: MockUserRecord,
+  playlist: MockPlaylistRecord,
+  viewerId: number,
+  providedToken?: string | null
+): void => {
+  if (
+    !canAccessMockResource({
+      isPrivate: playlist.isPrivate,
+      ownerId: owner.id,
+      viewerId,
+      resourceToken: playlist.secretLink,
+      providedToken,
+    })
+  ) {
+    throw new Error('Playlist not found');
+  }
+};
+
 const toTrackSummary = (
   trackId: number,
   currentUserId: number
-): TrackSummaryDTO => {
+): TrackSummaryDTO | null => {
   const users = getMockUsersStore();
   const track = getMockTracksStore().find((item) => item.id === trackId);
 
   if (!track) {
-    return {
-      id: trackId,
-      title: `Track ${trackId}`,
-      trackSlug: `track-${trackId}`,
-      coverUrl: `https://picsum.photos/seed/decibel-cover-${trackId}/640/640`,
-      trackUrl: `http://localhost:3000/tracks/${trackId}`,
-      trackPreviewUrl: `http://localhost:3000/tracks/${trackId}`,
-      artist: {
-        id: 0,
-        username: 'unknown',
-        displayName: 'Unknown',
-        avatarUrl: `https://picsum.photos/seed/decibel-user-${trackId}/200/200`,
-        isFollowing: false,
-        followerCount: 0,
-        trackCount: 0,
-      },
-      playCount: 0,
-      likeCount: 0,
-      repostCount: 0,
-      commentCount: 0,
-      isLiked: false,
-      isReposted: false,
-      secretToken: '',
-      access: 'PLAYABLE',
-    };
+    return null;
+  }
+
+  if (
+    !canAccessMockResource({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: currentUserId,
+    })
+  ) {
+    return null;
   }
 
   const artistUser = users.find((item) => item.id === track.artist.id);
@@ -185,14 +199,15 @@ const toTrackSummary = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: toSlug(track.title, track.id, 'track'),
+    trackSlug: track.trackSlug,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
     artist: {
       id: track.artist.id,
       username: track.artist.username,
-      displayName: artistUser?.username ?? track.artist.username,
+      displayName:
+        artistUser?.displayName ?? track.artist.displayName ?? track.artist.username,
       avatarUrl:
         artistUser?.profile.profilePic ??
         `https://picsum.photos/seed/decibel-user-${track.artist.id}/200/200`,
@@ -209,7 +224,11 @@ const toTrackSummary = (
     isLiked: isTrackLikedByUser(track.id, currentUserId),
     isReposted: isTrackRepostedByUser(track.id, currentUserId),
     secretToken: track.secretLink ?? '',
-    access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+    access: resolveMockResourceAccess({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: currentUserId,
+    }),
   };
 };
 
@@ -218,12 +237,23 @@ const toPlaylistResponse = (
   playlist: MockPlaylistRecord,
   currentUserId = resolveCurrentMockUserId()
 ): PlaylistResponse => {
-  const tracks = playlist.tracks.map((item) =>
-    toTrackSummary(item.trackId, currentUserId)
-  );
+  const trackEntries = playlist.tracks
+    .map((item) => ({
+      item,
+      summary: toTrackSummary(item.trackId, currentUserId),
+    }))
+    .filter(
+      (
+        entry
+      ): entry is {
+        item: MockPlaylistRecord['tracks'][number];
+        summary: TrackSummaryDTO;
+      } => Boolean(entry.summary)
+    );
+  const tracks = trackEntries.map((entry) => entry.summary);
 
-  const totalDurationSeconds = playlist.tracks.reduce(
-    (total, track) => total + (track.durationSeconds ?? 0),
+  const totalDurationSeconds = trackEntries.reduce(
+    (total, entry) => total + (entry.item.durationSeconds ?? 0),
     0
   );
   const firstTrack = tracks[0];
@@ -241,7 +271,7 @@ const toPlaylistResponse = (
     isReposted: isPlaylistRepostedByUser(playlist.id, currentUserId),
     likeCount,
     repostCount,
-    playlistSlug: toSlug(playlist.title, playlist.id, 'playlist'),
+    playlistSlug: resolvePlaylistSlugValue(playlist),
     description: playlist.description ?? '',
     isPrivate: playlist.isPrivate,
     coverArtUrl: playlist.CoverArt || firstTrack?.coverUrl || getPlaylistCoverUrl(playlist.id),
@@ -250,7 +280,7 @@ const toPlaylistResponse = (
     owner: {
       id: owner.id,
       username: owner.username,
-      displayName: owner.username,
+      displayName: owner.displayName || owner.username,
       avatarUrl: getUserAvatar(owner),
       isFollowing: owner.followers.has(currentUserId),
       followerCount: owner.followers.size,
@@ -259,6 +289,7 @@ const toPlaylistResponse = (
     genre: firstTrackRecord?.genre ?? 'Unknown',
     createdAt: new Date().toISOString(),
     tracks,
+    trackSummary: tracks,
     secretToken: playlist.secretLink ?? '',
     firstTrackWaveformUrl:
       firstTrackRecord?.waveformUrl ??
@@ -330,10 +361,17 @@ export class MockPlaylistService implements PlaylistService {
     const id = getNextPlaylistId();
     const title = payload.title.trim();
     const description = payload.description?.trim() || undefined;
+    const playlistSlug = createUniqueMockSlug(
+      title,
+      'playlist',
+      owner.playlists.map((playlist) => resolvePlaylistSlugValue(playlist))
+    );
+    const secretLink = payload.isPrivate ? createSecretToken() : undefined;
 
     owner.playlists.unshift({
       id,
       title,
+      playlistSlug,
       description,
       type: payload.type,
       isPrivate: payload.isPrivate,
@@ -346,7 +384,7 @@ export class MockPlaylistService implements PlaylistService {
         avatarUrl: owner.profile.profilePic,
       },
       tracks: [],
-      secretLink: payload.isPrivate ? createSecretToken() : undefined,
+      secretLink,
       secretLinkExpiresAt: payload.isPrivate
         ? toIsoDate(new Date(Date.now() + 1000 * 60 * 60 * 24))
         : undefined,
@@ -369,21 +407,20 @@ export class MockPlaylistService implements PlaylistService {
       throw new Error('Playlist not found');
     }
 
-    return toPlaylistResponse(
-      resolved.owner,
-      resolved.playlist,
-      resolveCurrentMockUserId()
-    );
+    const viewerId = resolveCurrentMockUserId();
+    assertPlaylistAccessible(resolved.owner, resolved.playlist, viewerId);
+
+    return toPlaylistResponse(resolved.owner, resolved.playlist, viewerId);
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
     await delay();
 
     const viewerId = resolveCurrentMockUserId();
-    const owner = getMockUsersStore().find((user) => user.id === userId);
+    const owner = getMockUsersStore().find((user) => user.username === username);
 
     if (!owner) {
       throw new Error('User not found');
@@ -450,12 +487,22 @@ export class MockPlaylistService implements PlaylistService {
     }
 
     const { owner, playlist } = resolved;
+    assertPlaylistOwner(owner, resolveCurrentMockUserId());
+    const nextIsPrivate = payload.isPrivate;
+    const secretLink = nextIsPrivate
+      ? (playlist.secretLink ?? createSecretToken())
+      : playlist.secretLink;
 
     playlist.title = payload.title.trim();
     playlist.description = payload.description?.trim() || undefined;
     playlist.type = payload.type;
-    playlist.isPrivate = payload.isPrivate;
+    playlist.isPrivate = nextIsPrivate;
     playlist.CoverArt = payload.CoverArt;
+    playlist.secretLink = secretLink;
+    playlist.secretLinkExpiresAt =
+      nextIsPrivate && !playlist.secretLinkExpiresAt
+        ? toIsoDate(new Date(Date.now() + 1000 * 60 * 60 * 24))
+        : playlist.secretLinkExpiresAt;
 
     persistMockSystemState();
 
@@ -471,6 +518,7 @@ export class MockPlaylistService implements PlaylistService {
         (playlist) => playlist.id === playlistId
       );
       if (index >= 0) {
+        assertPlaylistOwner(user, resolveCurrentMockUserId());
         user.playlists.splice(index, 1);
         persistMockSystemState();
         return;
@@ -493,6 +541,7 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistOwner(resolved.owner, resolveCurrentMockUserId());
     const playlist = resolved.playlist;
 
     const existing = playlist.tracks.some(
@@ -504,6 +553,15 @@ export class MockPlaylistService implements PlaylistService {
 
     const track = getMockTracksStore().find((item) => item.id === payload.trackId);
     if (!track) {
+      throw new Error('Playlist or track not found');
+    }
+    if (
+      !canAccessMockResource({
+        isPrivate: track.isPrivate,
+        ownerId: track.artist.id,
+        viewerId: resolveCurrentMockUserId(),
+      })
+    ) {
       throw new Error('Playlist or track not found');
     }
 
@@ -528,6 +586,7 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistOwner(resolved.owner, resolveCurrentMockUserId());
 
     const playlist = resolved.playlist;
 
@@ -554,6 +613,7 @@ export class MockPlaylistService implements PlaylistService {
     }
 
     const { owner, playlist } = resolved;
+    assertPlaylistOwner(owner, resolveCurrentMockUserId());
 
     const trackMap = new Map(
       playlist.tracks.map((track) => [track.trackId, track])
@@ -582,6 +642,11 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      resolveCurrentMockUserId()
+    );
   
     const embedCode =
       `<iframe src="/playlists/${playlistId}" ` +
@@ -601,6 +666,7 @@ export class MockPlaylistService implements PlaylistService {
     }
 
     const playlist = resolved.playlist;
+    assertPlaylistOwner(resolved.owner, resolveCurrentMockUserId());
 
     if (!playlist.secretLink) {
       playlist.secretLink = createSecretToken();
@@ -624,6 +690,7 @@ export class MockPlaylistService implements PlaylistService {
     }
 
     const playlist = resolved.playlist;
+    assertPlaylistOwner(resolved.owner, resolveCurrentMockUserId());
 
     playlist.secretLink = createSecretToken();
     playlist.secretLinkExpiresAt = toIsoDate(
@@ -665,9 +732,10 @@ export class MockPlaylistService implements PlaylistService {
     }
 
     const currentUserId = resolveCurrentMockUserId();
+    assertPlaylistAccessible(resolved.owner, resolved.playlist, currentUserId);
     const tracks = resolved.playlist.tracks.map((track) =>
       toTrackSummary(track.trackId, currentUserId)
-    );
+    ).filter((track): track is TrackSummaryDTO => Boolean(track));
 
     return paginateTracks(tracks, params);
   }
@@ -679,10 +747,15 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      resolveCurrentMockUserId()
+    );
 
     return {
-      resourceType: 'PLAYLIST',
-      resourceId: resolved.playlist.id,
+      type: 'PLAYLIST',
+      id: resolved.playlist.id,
     };
   }
 
@@ -701,6 +774,11 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      currentUserId
+    );
 
     if (!currentUser.likedPlaylists.includes(playlistId)) {
       currentUser.likedPlaylists.push(playlistId);
@@ -725,6 +803,11 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      currentUserId
+    );
 
     currentUser.likedPlaylists = currentUser.likedPlaylists.filter(
       (id) => id !== playlistId
@@ -749,6 +832,11 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      currentUserId
+    );
 
     if (!currentUser.repostedPlaylists.includes(playlistId)) {
       currentUser.repostedPlaylists.push(playlistId);
@@ -774,6 +862,11 @@ export class MockPlaylistService implements PlaylistService {
     if (!resolved) {
       throw new Error('Playlist not found');
     }
+    assertPlaylistAccessible(
+      resolved.owner,
+      resolved.playlist,
+      currentUserId
+    );
 
     currentUser.repostedPlaylists = currentUser.repostedPlaylists.filter(
       (id) => id !== playlistId

@@ -1,16 +1,36 @@
 'use client';
 
-import { useState } from 'react';
-import { useSecretLink } from '@/hooks/useSecretLink';
+import { useEffect, useState } from 'react';
+import { trackService } from '@/services';
+import { buildTrackSecretUrl } from '@/utils/resourcePaths';
 
 interface SecretLinkPanelProps {
   trackId: string;
+  secretToken?: string | null;
+  shareUsername?: string;
+  sharePathId?: string;
 }
 
-export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
-  const { secretUrl, isLoading, isError, regenerate, isRegenerating } =
-    useSecretLink(trackId);
+export function SecretLinkPanel({
+  trackId,
+  secretToken: initialSecretToken,
+  shareUsername,
+  sharePathId,
+}: SecretLinkPanelProps) {
+  const [secretToken, setSecretToken] = useState(initialSecretToken?.trim() || '');
+  const [isError, setIsError] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setSecretToken(initialSecretToken?.trim() || '');
+    setIsError(false);
+  }, [initialSecretToken]);
+
+  const secretUrl =
+    secretToken && shareUsername?.trim() && sharePathId?.trim()
+      ? buildTrackSecretUrl(shareUsername, sharePathId, secretToken)
+      : null;
 
   const handleCopy = async () => {
     if (!secretUrl) return;
@@ -24,14 +44,22 @@ export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
       'Regenerating the secret link will invalidate the previous one. Anyone with the old link will lose access. Continue?'
     );
     if (!ok) return;
-    regenerate();
-  };
 
-  if (isLoading) {
-    return (
-      <div className="mt-3 h-10 w-full bg-surface-raised rounded animate-pulse" />
-    );
-  }
+    void (async () => {
+      setIsRegenerating(true);
+      setIsError(false);
+
+      try {
+        const next = await trackService.regenerateSecretLink(trackId);
+        setSecretToken(next.secretLink.trim());
+      } catch {
+        console.error('Failed to regenerate secret link');
+        setIsError(true);
+      } finally {
+        setIsRegenerating(false);
+      }
+    })();
+  };
 
   if (isError || !secretUrl) {
     return (
@@ -47,7 +75,6 @@ export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
         Private Share Link
       </span>
 
-      {/* Link + copy button */}
       <div className="flex items-center gap-2">
         <input
           type="text"
@@ -69,13 +96,12 @@ export function SecretLinkPanel({ trackId }: SecretLinkPanelProps) {
         </button>
       </div>
 
-      {/* Regenerate */}
       <button
         onClick={handleRegenerate}
         disabled={isRegenerating}
         className="self-start text-xs text-text-muted hover:text-text-secondary underline transition-colors duration-150 disabled:opacity-40"
       >
-        {isRegenerating ? 'Regenerating…' : 'Regenerate link'}
+        {isRegenerating ? 'Regenerating...' : 'Regenerate link'}
       </button>
 
       <p className="text-xs text-text-muted leading-snug">

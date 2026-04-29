@@ -15,7 +15,7 @@
  * <TopNavBar onSearch={(q) => router.push(`/search?q=${q}`)} />
  */
 
-import { type FC } from 'react';
+import { type FC, useEffect } from 'react';
 import Link from 'next/link';
 
 import SignInModal from '@/features/auth/components/Forms/SignInModal';
@@ -54,9 +54,11 @@ import {
   USER_DROPDOWN_ITEMS,
   MORE_DROPDOWN_ITEMS,
 } from '@/constants/routes';
-import { CURRENT_USER, TEST_CONVERSATIONS, getInboxItems } from '@/features/messages/testdata';
 import { UpgradeModal } from '@/features/pro/components/UpgradeModal';
+import { useSubscriptionStatus } from '@/features/pro/hooks/useSubscriptionStatus';
 import NotificationsDropdown from '../notifications/NotificationsDropdown';
+import { useInbox } from '@/hooks/useInbox';
+import { useNotifications } from '@/hooks/useNotifications';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TopNavBarProps {
@@ -113,8 +115,31 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
     upgradeOpen,
     closeUpgrade,
   } = useTopNavBar();
+  const { inboxItems, unreadCount: unreadInboxCount } = useInbox();
+  const { unreadCount: unreadNotificationCount } = useNotifications();
 
-  const inboxItems = getInboxItems(TEST_CONVERSATIONS, CURRENT_USER.id);
+  const {
+    subscriptionStatus,
+    fetchSubscriptionStatus,
+    isLoading: isSubscriptionLoading,
+    isError: hasSubscriptionError,
+  } = useSubscriptionStatus();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void fetchSubscriptionStatus();
+    }
+  }, [isAuthenticated, fetchSubscriptionStatus]);
+
+  const normalizedPlan = subscriptionStatus?.plan?.trim().toLowerCase();
+  const hasActiveProSubscription =
+    normalizedPlan === 'pro' &&
+    (subscriptionStatus?.status === 'active' ||
+      subscriptionStatus?.status === 'trialing');
+  const showUpgradeButton =
+    isAuthenticated &&
+    !isSubscriptionLoading &&
+    (hasSubscriptionError || !hasActiveProSubscription);
 
   return (
     <header className="font-sans text-sm text-text-primary font-extrabold">
@@ -164,15 +189,17 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
             <div className="flex items-center gap-0.5 h-full w-fit shrink-0">
               {isAuthenticated && user ? (
                 <>
-                  <Button
-                    type="button"
-                    variant="premium"
-                    size="sm"
-                    className="mr-0.5 px-2.5"
-                    onClick={openUpgrade}
-                  >
-                    Upgrade now
-                  </Button>
+                  {showUpgradeButton && (
+                    <Button
+                      type="button"
+                      variant="premium"
+                      size="sm"
+                      className="mr-0.5 px-2.5"
+                      onClick={openUpgrade}
+                    >
+                      Upgrade now
+                    </Button>
+                  )}
                   {/* Avatar + dropdown */}
                   <div
                     className="relative h-12 flex items-center"
@@ -233,29 +260,27 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                     )}
                   </div>
 
-                    <div
+                  <div
                     className="relative h-12 flex items-center"
                     ref={notificationsMenuRef}
                   >
-                  <IconButton
-                    aria-label="Notifications"
-                    prefetch={shouldPrefetch(
-                      ROUTES.NOTIFICATIONS,
-                      isAuthenticated,
-                      isAuthLoading
-                    )}
-                    onClick={toggleNotificationsMenu}
-                  >
-                    <BellIcon />
-                    <Badge count={0} />
-                    <span className="sr-only">Notifications</span>
-                  </IconButton>
+                    <IconButton
+                      aria-label="Notifications"
+                      prefetch={shouldPrefetch(
+                        ROUTES.NOTIFICATIONS,
+                        isAuthenticated,
+                        isAuthLoading
+                      )}
+                      onClick={toggleNotificationsMenu}
+                    >
+                      <BellIcon />
+                      <Badge count={unreadNotificationCount} />
+                      <span className="sr-only">Notifications</span>
+                    </IconButton>
 
-                  {notificationsMenuOpen&&(
-                    <NotificationsDropdown
-                    onClose={closeNotificationsMenu}
-                    />
-                  )}
+                    {notificationsMenuOpen && (
+                      <NotificationsDropdown onClose={closeNotificationsMenu} />
+                    )}
                   </div>
                   <div
                     className="relative h-12 flex items-center"
@@ -266,7 +291,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
                       onClick={toggleMessagesMenu}
                     >
                       <MailIcon />
-                      <Badge count={11} />
+                      <Badge count={unreadInboxCount} />
                       <span className="sr-only">Messages</span>
                     </IconButton>
 
@@ -345,7 +370,7 @@ export const TopNavBar: FC<TopNavBarProps> = ({ onSearch }) => {
         <RegisterModal open={registerOpen} onClose={closeRegister} />
       </div>
 
-       <UpgradeModal open={upgradeOpen} onClose={closeUpgrade} />
+      <UpgradeModal open={upgradeOpen} onClose={closeUpgrade} />
     </header>
   );
 };

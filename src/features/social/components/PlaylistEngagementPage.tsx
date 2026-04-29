@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import LoadingSkeleton from '@/features/social/LoadingSkeleton';
 import UserGrid from '@/features/social/UserGrid';
 import { usePlaylistEngagementPage } from '@/hooks/usePlaylistEngagementPage';
@@ -10,19 +9,26 @@ type PlaylistEngagementPageProps = {
   type: 'likes' | 'reposts';
 };
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 10;
 
 export default function PlaylistEngagementPage({
   playlistId,
   type,
 }: PlaylistEngagementPageProps) {
-  const [page, setPage] = useState(0);
-  const { users, isLoading, isError, totalElements, totalPages } =
+  const {
+    users,
+    isLoading,
+    isError,
+    totalElements,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } =
     usePlaylistEngagementPage({
       playlistId,
       type,
-      page,
       size: PAGE_SIZE,
+      infinite: true,
     });
 
   const title =
@@ -54,34 +60,15 @@ export default function PlaylistEngagementPage({
       {isLoading ? (
         <LoadingSkeleton variant="user-card" count={12} />
       ) : (
-        <UserGrid users={users} showFollowButton emptyTitle={emptyTitle} />
+        <UserGrid
+          users={users}
+          showFollowButton
+          emptyTitle={emptyTitle}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
+        />
       )}
-
-      {totalPages > 1 ? (
-        <div className="mt-6 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            className="rounded border border-border-default px-3 py-1.5 text-sm text-text-primary disabled:opacity-40"
-            onClick={() => setPage((value) => Math.max(0, value - 1))}
-            disabled={page <= 0 || isLoading}
-          >
-            Previous
-          </button>
-          <span className="text-sm text-text-muted">
-            Page {page + 1} of {totalPages}
-          </span>
-          <button
-            type="button"
-            className="rounded border border-border-default px-3 py-1.5 text-sm text-text-primary disabled:opacity-40"
-            onClick={() =>
-              setPage((value) => Math.min(totalPages - 1, value + 1))
-            }
-            disabled={page >= totalPages - 1 || isLoading}
-          >
-            Next
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

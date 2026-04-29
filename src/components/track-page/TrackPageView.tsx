@@ -1,8 +1,11 @@
 'use client';
 
+import { useCallback, useState } from 'react';
 import { useTrackPage } from '@/hooks/useTrackPage';
+import { useReportComment } from '@/features/admin/hooks';
 import CommentInput from '@/components/comments/CommentInput';
 import CommentList from '@/components/comments/CommentList';
+import ReportModal from '@/components/track-page/report/components/ReportModal';
 import TrackFansPanel from '@/components/track-page/TrackFansPanel';
 
 type TrackPageViewProps = {
@@ -32,12 +35,45 @@ export default function TrackPageView({
     replyingToCommentId,
     likeCount,
     repostCount,
+    totalComments,
+    hasMoreComments,
+    isCommentsPaginating,
+    commentsSentinelRef,
     currentUserAvatar: resolvedCurrentUserAvatar,
     setCommentText,
     clearPendingTimestamp,
     onCommentSubmit,
     onReplySubmit,
   } = useTrackPage({ username, trackId, secretToken, currentUserAvatar });
+
+  const [isCommentReportOpen, setIsCommentReportOpen] = useState(false);
+  const [reportedCommentId, setReportedCommentId] = useState<number | null>(null);
+  const { reportComment, isLoading: isCommentReportSubmitting } = useReportComment();
+
+  const openCommentReport = useCallback((commentId: string | number) => {
+    setReportedCommentId(Number(commentId));
+    setIsCommentReportOpen(true);
+  }, []);
+
+  const closeCommentReport = useCallback(() => {
+    setIsCommentReportOpen(false);
+    setReportedCommentId(null);
+  }, []);
+
+  const submitCommentReport = useCallback(
+    async (reason: string, details?: string) => {
+      if (reportedCommentId === null) {
+        return;
+      }
+
+      try {
+        await reportComment(reportedCommentId, { reason, description: details });
+      } finally {
+        closeCommentReport();
+      }
+    },
+    [closeCommentReport, reportComment, reportedCommentId]
+  );
 
   if (isLoading) {
     return <div className="w-full mt-4 text-sm text-text-muted">Loading track...</div>;
@@ -88,10 +124,21 @@ export default function TrackPageView({
           <CommentList
             comments={comments}
             onReplyComment={onReplySubmit}
+            onReportComment={openCommentReport}
             currentUserAvatar={resolvedCurrentUserAvatar}
             isReplySubmitting={isCommentSubmitting}
             replyingToCommentId={replyingToCommentId}
             isLoading={isLoading}
+            hasMore={hasMoreComments}
+            isPaginating={isCommentsPaginating}
+            sentinelRef={commentsSentinelRef}
+          />
+          <ReportModal
+            isOpen={isCommentReportOpen}
+            target="comment"
+            isSubmitting={isCommentReportSubmitting}
+            onClose={closeCommentReport}
+            onSubmit={submitCommentReport}
           />
         </div>
 
@@ -103,7 +150,7 @@ export default function TrackPageView({
             trackId={trackId}
             likesCount={likeCount}
             repostsCount={repostCount}
-            commentsCount={comments.length}
+            commentsCount={totalComments}
           />
         </aside>
       </div>

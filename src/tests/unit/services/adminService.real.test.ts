@@ -72,7 +72,7 @@ describe('RealAdminService', () => {
       email: 'admin@decibel.foo',
       password: 'hashed-password',
       deviceInfo: {
-        deviceType: 'DESKTOP' as const,
+        deviceType: 'WEB' as const,
         fingerPrint: 'browser-fingerprint-string',
         deviceName: 'Chrome on Windows',
       },

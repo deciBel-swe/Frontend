@@ -13,7 +13,7 @@ import { nullableStringWithDefault } from './user';
 
 export type UserRole = 'artist' | 'listener';
 
-export const userTierSchema = z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']);
+export const userTierSchema = z.enum(['FREE', 'PRO']);
 export type UserTier = z.infer<typeof userTierSchema>;
 
 const DefaultAvatarUrl = '/images/default_song_image.png';
@@ -37,7 +37,7 @@ const imageWithDefault = (defaultValue: string) =>
 
 /** Device metadata sent to OAuth exchange endpoints. */
 export const deviceInfoDTOSchema = z.object({
-  deviceType: z.enum(['DESKTOP', 'MOBILE', 'TABLET']),
+  deviceType: z.enum(['DESKTOP', 'MOBILE', 'TABLET', 'WEB']),
   fingerPrint: z.string().trim().min(1),
   deviceName: z.string().trim().min(1),
 });
@@ -98,7 +98,9 @@ export const loginResponseDTOSchema = z.object({
   user: loginUserDTOSchema,
 });
 export type LoginResponseDTO = z.infer<typeof loginResponseDTOSchema>;
-export type RegisterLocalResponseDTO = z.infer<typeof registerLocalResponseDTOSchema>;
+export type RegisterLocalResponseDTO = z.infer<
+  typeof registerLocalResponseDTOSchema
+>;
 
 /** Response from POST /auth/refreshtoken */
 export const refreshTokenResponseDTOSchema = z.object({
@@ -123,7 +125,7 @@ export type ApiErrorDTO = z.infer<typeof apiErrorDTOSchema>;
 
 export interface AuthState {
   user: LoginUserDTO | null;
-  /** Derived from tier. ARTIST → 'artist', FREE → 'listener'. Used for conditional rendering. */
+  /** Derived from tier. PRO → 'artist', FREE → 'listener'. Used for conditional rendering. */
   role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { ShareModal } from '@/features/prof/components/ShareModal';
 import { PlaylistTrack } from '@/components/playlist-page/components/PlaylistTrackItem';
 import PlaylistBanner from '@/components/playlist-page/components/PlaylistBanner';
 import PlaylistActionBar from '@/components/playlist-page/components/PlaylistActionBar';
@@ -13,10 +14,15 @@ import PlaylistEngagementSidebar from '@/components/playlist-page/components/sid
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
+import { usePlaylistSecretLink } from '@/hooks/usePlaylistSecretLink';
 import { useWaveformData } from '@/hooks/useWaveformData';
 import { playlistService, trackService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
+import {
+  buildPlaylistSecretUrl,
+  buildPlaylistUrl,
+} from '@/utils/resourcePaths';
 import {
   getSecretTokenFromQuery,
   resolvePlaylistIdFromIdentifier,
@@ -176,6 +182,17 @@ const resolveTrackSlug = (track: PlaylistTrackDto): string | undefined => {
   return undefined;
 };
 
+const resolveTrackSecretToken = (
+  track: PlaylistTrackDto
+): string | undefined => {
+  if ('secretToken' in track && typeof track.secretToken === 'string') {
+    const normalized = track.secretToken.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  }
+
+  return undefined;
+};
+
 const resolveTrackDurationSeconds = (track: PlaylistTrackDto): number => {
   if ('durationSeconds' in track && typeof track.durationSeconds === 'number') {
     return track.durationSeconds;
@@ -264,6 +281,7 @@ const mapPlaylistTracksToItems = (
         id,
         trackSlug: resolveTrackSlug(track),
         artistUsername: resolveTrackArtistUsername(track),
+        secretToken: resolveTrackSecretToken(track)?.trim() || '',
         title: resolveTrackTitle(track),
         artist: resolveTrackArtist(track, fallbackArtist),
         coverUrl,
@@ -299,6 +317,7 @@ export default function PlaylistPage() {
   const [orderedTracks, setOrderedTracks] = useState<PlaylistTrack[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditSaving, setIsEditSaving] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -319,6 +338,17 @@ export default function PlaylistPage() {
     playlist?.owner?.displayName?.trim() ||
     playlist?.owner?.username ||
     username;
+  const playlistPathId = playlist?.playlistSlug?.trim() || id;
+  const { secretUrl: playlistSecretUrl } = usePlaylistSecretLink(
+    playlist?.isPrivate && !secretToken ? String(playlist.id) : undefined,
+    {
+      shareUsername: ownerUsername,
+      sharePathId: playlistPathId,
+    }
+  );
+  const resolvedPrivatePlaylistUrl = secretToken
+    ? buildPlaylistSecretUrl(ownerUsername, playlistPathId, secretToken)
+    : playlistSecretUrl;
   const canEditPlaylist =
     Boolean(ownerContext?.isOwner) &&
     normalizeIdentity(ownerUsername) === normalizeIdentity(username);
@@ -443,7 +473,7 @@ export default function PlaylistPage() {
 
   const bannerWaveform = useWaveformData(
     embeddedWaveform,
-    playlist?.firstTrackWaveformUrl
+    playlist?.firstTrackWaveformUrl ?? undefined
   );
 
   const activeTrack = useMemo(() => {
@@ -518,7 +548,14 @@ export default function PlaylistPage() {
       return;
     }
 
-    void navigator.clipboard.writeText(window.location.href).catch(() => {});
+    const shareLink = playlist?.isPrivate
+      ? resolvedPrivatePlaylistUrl
+      : buildPlaylistUrl(ownerUsername, playlistPathId);
+    if (!shareLink) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(shareLink).catch(() => {});
   };
 
   const handleDeletePlaylist = async () => {
@@ -893,7 +930,6 @@ export default function PlaylistPage() {
     ? ((playlist as { tags?: unknown[] }).tags ?? [])
         .filter((tag): tag is string => typeof tag === 'string')
     : [];
-  const playlistPathId = playlist.playlistSlug?.trim() || id;
 
   const bannerPlaylist = {
     title: playlist.title,
@@ -922,7 +958,7 @@ export default function PlaylistPage() {
 
       {/* ── Action bar ── */}
       <PlaylistActionBar
-        onShare={handleCopyLink}
+        onShare={() => setIsShareOpen(true)}
         onCopyLink={handleCopyLink}
         onAddToQueue={handleAddToQueue}
         onLike={() => {
@@ -964,7 +1000,7 @@ export default function PlaylistPage() {
           owner={{
             username: playlist.owner?.username || username,
             displayName: playlist.owner?.displayName,
-            avatarUrl: playlist.owner?.avatarUrl,
+            avatarUrl: playlist.owner?.avatarUrl ?? undefined,
             id: playlist.owner?.id || username,
             followersCount: playlist.owner?.followerCount,
           }}
@@ -1035,7 +1071,7 @@ export default function PlaylistPage() {
         isSaving={isEditSaving}
         playlist={{
           title: playlist.title,
-          description: playlist.description,
+          description: playlist.description ?? undefined,
           genre: playlist.genre,
           tags: playlistTags,
           isPrivate: playlist.isPrivate,
@@ -1052,6 +1088,23 @@ export default function PlaylistPage() {
         isTrackMutationPending={isReorderSaving}
         onReorderTracks={handleModalReorder}
         onRemoveTrack={handleModalRemoveTrack}
+      />
+
+      <ShareModal
+        variant="playlist"
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        playlistId={String(playlist.id)}
+        sharePathId={playlistPathId}
+        shareUsername={ownerUsername}
+        isPrivate={playlist.isPrivate? true : false}
+        existingToken={playlist.secretToken}
+        playlist={{
+          title: playlist.title,
+          owner: ownerDisplayName,
+          coverUrl: resolvePlaylistCover(playlist),
+          trackCount: orderedTracks.length,
+        }}
       />
     </div>
   );

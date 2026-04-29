@@ -1,117 +1,118 @@
-import { apiRequest, normalizeApiError } from '@/hooks/useAPI';
-import { RealMessageService } from '@/services/api/messageService';
-import { API_CONTRACTS } from '@/types/apiContracts';
-import type { MessageDTO, PaginatedMessageResponse } from '@/types/message';
+import { FirebaseMessageService } from '@/services/api/messageService';
+import {
+  onSnapshot,
+  addDoc,
+  setDoc,
+  doc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDoc,
+  getDocs,
+  writeBatch,
+} from 'firebase/firestore';
+import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
 
-jest.mock('@/hooks/useAPI', () => ({
-  apiRequest: jest.fn(),
-  normalizeApiError: jest.fn(),
+// Mock Firebase SDK
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(),
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  onSnapshot: jest.fn(),
+  addDoc: jest.fn(),
+  setDoc: jest.fn(),
+  doc: jest.fn(),
+  getDoc: jest.fn(),
+  getDocs: jest.fn(),
+  writeBatch: jest.fn(() => ({
+    update: jest.fn(),
+    commit: jest.fn().mockResolvedValue(undefined),
+  })),
+  serverTimestamp: jest.fn(() => 'mock-timestamp'),
 }));
 
-const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockedNormalizeApiError = normalizeApiError as jest.MockedFunction<
-  typeof normalizeApiError
->;
+jest.mock('@/lib/firebase', () => ({
+  db: {},
+}));
 
-describe('RealMessageService', () => {
-  let service: RealMessageService;
+describe('FirebaseMessageService (Real)', () => {
+  let service: FirebaseMessageService;
 
   beforeEach(() => {
+    service = new FirebaseMessageService();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
-    service = new RealMessageService();
   });
 
-  it('calls MESSAGES_INBOX with pagination params', async () => {
-    const response: PaginatedMessageResponse = {
-      content: [],
-      pageNumber: 0,
-      pageSize: 20,
-      totalElements: 0,
-      totalPages: 1,
-      isLast: true,
-    };
-    mockedApiRequest.mockResolvedValue(response);
+  it('should call onSnapshot when subscribing to inbox', () => {
+    const onUpdate = jest.fn();
+    const onError = jest.fn();
 
-    const result = await service.getInbox({ page: 0, size: 20 });
+    service.subscribeToInbox(1, onUpdate, onError);
 
-    expect(result).toEqual(response);
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.MESSAGES_INBOX,
-      {
-        params: { page: 0, size: 20 },
-      }
-    );
+    expect(onSnapshot).toHaveBeenCalled();
+    expect(query).toHaveBeenCalled();
+    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations');
+    expect(where).toHaveBeenCalledWith('participantIds', 'array-contains', '1');
   });
 
-  it('calls MESSAGES_CHAT_HISTORY with userId and pagination params', async () => {
-    const response: PaginatedMessageResponse = {
-      content: [],
-      pageNumber: 1,
-      pageSize: 10,
-      totalElements: 0,
-      totalPages: 1,
-      isLast: true,
-    };
-    mockedApiRequest.mockResolvedValue(response);
+  it('should call onSnapshot when subscribing to chat', () => {
+    const onUpdate = jest.fn();
+    const onError = jest.fn();
+    
+    service.subscribeToChat('conv_1', onUpdate, onError);
 
-    const result = await service.getChatHistory(42, { page: 1, size: 10 });
-
-    expect(result).toEqual(response);
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.MESSAGES_CHAT_HISTORY(42),
-      {
-        params: { page: 1, size: 10 },
-      }
-    );
+    expect(onSnapshot).toHaveBeenCalled();
+    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
   });
 
-  it('calls MESSAGES_SEND with payload', async () => {
-    const response: MessageDTO = {
-      messageId: 201,
-      conversationId: 5,
-      sender: {
-        id: 42,
-        username: 'sara',
-        displayName: 'Sara',
-        avatarUrl: 'https://example.com/avatars/sara.png',
-        isFollowing: false,
-        followerCount: 100,
-        trackCount: 24,
-      },
-      content: 'check this out',
-      resources: [],
-      isRead: false,
-      createdAt: '2025-04-08T11:55:00Z',
-    };
-    mockedApiRequest.mockResolvedValue(response);
+  it('should call addDoc when sending a message', async () => {
+    const payload: SendMessageRequest = { body: 'Real test message' };
+    const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
+    
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        participantIds: ['1', '2'],
+        unreadCounts: { '1': 0, '2': 0 },
+        manuallyUnreadBy: { '1': false, '2': false },
+      }),
+    });
+    (addDoc as jest.Mock).mockResolvedValueOnce({ id: 'new_msg_id' });
 
-    const payload = {
-      body: 'check this out',
-      resources: [{ resourceType: 'TRACK' as const, resourceId: 99 }],
-    };
+    await service.sendMessage('conv_1', payload, user);
 
-    const result = await service.sendMessage(42, payload);
-
-    expect(result).toEqual(response);
-    expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.MESSAGES_SEND(42),
-      {
-        payload,
-      }
-    );
+    expect(addDoc).toHaveBeenCalled();
+    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
+    
+    const sentData = (addDoc as jest.Mock).mock.calls[0][1];
+    expect(sentData.content).toBe('Real test message');
+    expect(sentData.sender.id).toBe(1);
   });
 
-  it('normalizes and rethrows errors from getInbox', async () => {
-    const requestError = new Error('network fail');
-    const normalizedError = {
-      statusCode: 401,
-      message: 'Access token has expired',
-      error: 'Unauthorized',
-    };
-    mockedApiRequest.mockRejectedValue(requestError);
-    mockedNormalizeApiError.mockReturnValue(normalizedError);
+  it('marks a conversation as read', async () => {
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        participantIds: ['1', '2'],
+        unreadCounts: { '1': 2, '2': 0 },
+        manuallyUnreadBy: { '1': true, '2': false },
+      }),
+    });
+    (getDocs as jest.Mock).mockResolvedValueOnce({
+      docs: [{ ref: 'msg_ref', data: () => ({ sender: { id: 2 }, isRead: false }) }],
+    });
 
-    await expect(service.getInbox()).rejects.toEqual(normalizedError);
-    expect(mockedNormalizeApiError).toHaveBeenCalledWith(requestError);
+    await service.markConversationRead('conv_1', 1);
+
+    expect(setDoc).toHaveBeenCalled();
+    const batch = (writeBatch as jest.Mock).mock.results[0].value;
+    expect(batch.update).toHaveBeenCalled();
+    expect(batch.commit).toHaveBeenCalled();
   });
 });

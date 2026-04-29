@@ -17,7 +17,7 @@ export type CheckoutResponse = z.infer<typeof checkoutResponseSchema>;
 export const subscriptionStatusDTOSchema = z.object({
   status: subscriptionStatusSchema,
   plan: z.string(),
-  currentPeriodEnd: z.number().int(),
+  currentPeriodEnd: z.number().int().nullable(),
   cancelAtPeriodEnd: z.boolean(),
 });
 export type SubscriptionStatusDTO = z.infer<typeof subscriptionStatusDTOSchema>;

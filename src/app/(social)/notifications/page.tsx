@@ -1,51 +1,76 @@
-import React from "react";
-import { NotificationsList } from "@/components/notifications/NotificationsList";
-import Link from "next/link";
-import { ArrowToggleButton } from "@/components/notifications/ArrowToggleButton";
-import { SidebarUserCardContainer } from "@/components/notifications/SidebarUserCardContainer";
+'use client';
+
+import { useState } from 'react';
+
+import { NotificationsList } from '@/components/notifications/NotificationsList';
+import type { Notification } from '@/components/notifications/types/notification';
+import { Button } from '@/components/buttons/Button';
+import { useNotifications } from '@/hooks/useNotifications';
+
+const FILTERS: Array<{
+  value: 'all' | Notification['type'];
+  label: string;
+}> = [
+  { value: 'all', label: 'All notifications' },
+  { value: 'follow', label: 'Follows' },
+  { value: 'like', label: 'Likes' },
+  { value: 'repost', label: 'Reposts' },
+  { value: 'comment', label: 'Comments' },
+  { value: 'reply', label: 'Replies' },
+  { value: 'dm', label: 'Messages' },
+];
 
 export default function Page() {
+  const [selectedFilter, setSelectedFilter] =
+    useState<'all' | Notification['type']>('all');
+  const { unreadCount, markAllAsRead } = useNotifications();
+
   return (
     <div className="w-full max-w-6xl bg-bg-base text-text-primary flex justify-center">
-      
-      {/* MAIN CONTAINER */}
-      <div className="w-full max-w-5xl flex gap-6 px-6 py-6">
-        
-        {/* LEFT: Notifications */}
-        <div className="flex-1 bg-surface-default rounded-xl p-4 border border-border-default">
-          
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/notifications" className="text-2xl font-extrabold hover:text-interactive-hover">
-              Notifications
-            </Link>
+      <div className="w-full max-w-5xl px-6 py-6">
+        <div className="rounded-xl border border-border-default bg-surface-default p-4">
+          <div className="mb-4 flex flex-col gap-3 border-b border-border-default pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h1 className="text-2xl font-extrabold text-text-primary">
+                  Notifications
+                </h1>
+                <p className="text-sm text-text-muted">
+                  {unreadCount > 0
+                    ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
+                    : 'You are all caught up.'}
+                </p>
+              </div>
+              <Button
+                variant="secondary_inverse"
+                size="sm"
+                onClick={() => void markAllAsRead()}
+                disabled={unreadCount === 0}
+              >
+                Mark all as read
+              </Button>
+            </div>
 
-            <ArrowToggleButton label="All notifications" />
+            <div className="flex flex-wrap gap-2">
+              {FILTERS.map((filter) => (
+                <Button
+                  key={filter.value}
+                  size="sm"
+                  variant={
+                    selectedFilter === filter.value
+                      ? 'secondary'
+                      : 'secondary_inverse'
+                  }
+                  onClick={() => setSelectedFilter(filter.value)}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          <NotificationsList />
+          <NotificationsList filter={selectedFilter} />
         </div>
-
-        {/* RIGHT SIDEBAR (like image) */}
-        <aside className="w-[300px] hidden lg:block space-y-4 mt-4">
-          
-
-          <div className="w-full flex flex-row"> 
-            <Link href="#" className="text-sm font-bold text-text-primary hover:text-interactive-hover">
-              Recent followers
-            </Link>
-            <Link href="#" className="ml-auto text-xs font-medium text-secondary hover:text-interactive-hover">
-              View all
-            </Link>
-          </div>
-          <SidebarUserCardContainer
-  username="akmal"
-  avatarUrl="/images/default_song_image.png"
-  followersCount={120}
-  statsCount={45}
-/>
-
-        </aside>
       </div>
     </div>
   );

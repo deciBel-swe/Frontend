@@ -1,5 +1,9 @@
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import type { ResourceRefFullDTO } from '@/types/discovery';
+import type {
+  ResourceRefFullDTO,
+  SearchResourceRefDTO,
+} from '@/types/discovery';
+import type { FeedResourceRefFullDTO } from '@/types/feed';
 import { formatDuration } from '@/utils/formatDuration';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
@@ -11,6 +15,20 @@ import type {
 } from '@/features/search/types/searchContracts';
 
 const DEFAULT_IMAGE = '/images/default_song_image.png';
+type PlaylistResourceTrack = NonNullable<
+  NonNullable<
+    (
+      | ResourceRefFullDTO
+      | FeedResourceRefFullDTO
+      | SearchResourceRefDTO
+    )['playlist']
+  >['tracks']
+>[number];
+
+type SearchMappableResource =
+  | ResourceRefFullDTO
+  | FeedResourceRefFullDTO
+  | SearchResourceRefDTO;
 
 const toDuration = (seconds?: number): string => {
   if (!seconds || seconds <= 0) {
@@ -88,6 +106,48 @@ const toTrackDurationSeconds = (track: unknown): number | undefined => {
   return undefined;
 };
 
+const mapPlaylistTrackToCompactTrack = (
+  track: PlaylistResourceTrack
+): {
+  id: number;
+  trackSlug: string;
+  artistUsername: string;
+  title: string;
+  artist: string;
+  coverUrl: string;
+  plays: string;
+  trackUrl: string;
+  durationSeconds?: number;
+  available: boolean;
+  isLiked?: boolean;
+  isReposted?: boolean;
+  likeCount?: number;
+  repostCount?: number;
+  access?: 'BLOCKED' | 'PREVIEW' | 'PLAYABLE';
+} | null => {
+  if (!('artist' in track) || !track.artist?.username) {
+    return null;
+  }
+
+  return {
+    id: track.id,
+    trackSlug: track.trackSlug ?? '',
+    artistUsername: track.artist.username,
+    title: track.title,
+    artist: track.artist.displayName || track.artist.username,
+    coverUrl: track.coverUrl || DEFAULT_IMAGE,
+    plays: (track.playCount ?? 0).toLocaleString(),
+    trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
+    durationSeconds: toTrackDurationSeconds(track),
+    available: track.access === 'PLAYABLE',
+    isLiked: track.isLiked,
+    isReposted: track.isReposted,
+    likeCount: track.likeCount,
+    repostCount: track.repostCount,
+    access: track.access,
+  };
+};
+
 const mergeUniqueBy = <T>(
   previous: T[],
   incoming: T[],
@@ -131,17 +191,17 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
   const userResources: ResourceRefFullDTO[] = [];
 
   for (const resource of resources) {
-    if (resource.resourceType === 'TRACK') {
+    if (resource.type === 'TRACK') {
       trackResources.push(resource);
       continue;
     }
 
-    if (resource.resourceType === 'PLAYLIST') {
+    if (resource.type === 'PLAYLIST') {
       playlistResources.push(resource);
       continue;
     }
 
-    if (resource.resourceType === 'USER') {
+    if (resource.type === 'USER') {
       userResources.push(resource);
     }
   }
@@ -154,13 +214,17 @@ export function partitionResourcesByType(resources: ResourceRefFullDTO[]): {
 }
 
 export function mapTrackResourceToTrackCard(
-  resource: ResourceRefFullDTO
+  resource: SearchMappableResource
 ): TrackCardProps | null {
-  if (resource.resourceType !== 'TRACK' || !resource.track) {
+  if (resource.type !== 'TRACK' || !resource.track) {
     return null;
   }
 
   const track = resource.track;
+  if (!track.artist?.username) {
+    return null;
+  }
+
   const artistName = track.artist.displayName || track.artist.username;
   const trackArtist = {
     username: track.artist.username,
@@ -176,9 +240,9 @@ export function mapTrackResourceToTrackCard(
     {
       id: track.id,
       title: track.title,
-      trackUrl: track.trackUrl,
+      trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
       artist: track.artist,
-      durationSeconds: track.trackDurationSeconds,
+      durationSeconds: toTrackDurationSeconds(track),
       coverUrl: cover,
     },
     {
@@ -197,13 +261,13 @@ export function mapTrackResourceToTrackCard(
     showHeader: true,
     track: {
       id: track.id,
-      trackSlug: track.trackSlug,
+      trackSlug: track.trackSlug ?? undefined,
       artistUsername: track.artist.username,
       artist: trackArtist,
       title: track.title,
       cover,
-      duration: toDuration(track.trackDurationSeconds),
-      waveformUrl: track.waveformUrl,
+      duration: toDuration(toTrackDurationSeconds(track)),
+      waveformUrl: track.waveformUrl ?? undefined,
       plays: track.playCount,
       comments: track.commentCount,
       genre: track.genre,
@@ -211,7 +275,7 @@ export function mapTrackResourceToTrackCard(
       isReposted: track.isReposted,
       likeCount: track.likeCount,
       repostCount: track.repostCount,
-      createdAt: track.uploadDate,
+      createdAt: track.uploadDate ?? undefined,
     },
     waveform,
     playback,
@@ -219,13 +283,17 @@ export function mapTrackResourceToTrackCard(
 }
 
 export function mapPlaylistResourceToPlaylistCard(
-  resource: ResourceRefFullDTO
+  resource: SearchMappableResource
 ): PlaylistHorizontalProps | null {
-  if (resource.resourceType !== 'PLAYLIST' || !resource.playlist) {
+  if (resource.type !== 'PLAYLIST' || !resource.playlist) {
     return null;
   }
 
   const playlist = resource.playlist;
+  if (!playlist.owner?.username) {
+    return null;
+  }
+
   const ownerDisplayName =
     playlist.owner.displayName || playlist.owner.username;
   const ownerArtist = {
@@ -234,25 +302,40 @@ export function mapPlaylistResourceToPlaylistCard(
     avatar: playlist.owner.avatarUrl || DEFAULT_IMAGE,
   };
   const cover = playlist.coverArtUrl || DEFAULT_IMAGE;
-  const queueTracks = playlist.tracks.map((track) => {
-    const artistDisplayName = track.artist.displayName || track.artist.username;
-
-    return playerTrackMappers.fromAdapterInput(
-      {
-        id: track.id,
-        title: track.title,
-        trackUrl: track.trackUrl,
-        artist: track.artist,
-        durationSeconds: toTrackDurationSeconds(track),
-        coverUrl: track.coverUrl || DEFAULT_IMAGE,
-        waveformData: toWaveform((track as { waveformData?: unknown }).waveformData),
-      },
-      {
-        access: toPlaybackAccess(track.access),
-        fallbackArtistName: artistDisplayName,
+  const queueTracks = playlist.tracks
+    .map((track) => {
+      if (!('artist' in track) || !track.artist?.username) {
+        return null;
       }
+
+      const artistDisplayName =
+        track.artist.displayName || track.artist.username;
+
+      return playerTrackMappers.fromAdapterInput(
+        {
+          id: track.id,
+          title: track.title,
+          trackUrl: track.trackUrl ?? track.trackPreviewUrl ?? '',
+          artist: track.artist,
+          durationSeconds: toTrackDurationSeconds(track),
+          coverUrl: track.coverUrl || DEFAULT_IMAGE,
+          waveformData: toWaveform(
+            (track as { waveformData?: unknown }).waveformData
+          ),
+        },
+        {
+          access: toPlaybackAccess(track.access),
+          fallbackArtistName: artistDisplayName,
+        }
+      );
+    })
+    .filter(
+      (
+        track
+      ): track is NonNullable<
+        ReturnType<typeof playerTrackMappers.fromAdapterInput>
+      > => Boolean(track)
     );
-  });
   const playback = queueTracks[0];
 
   return {
@@ -266,13 +349,13 @@ export function mapPlaylistResourceToPlaylistCard(
     showHeader: true,
     track: {
       id: playlist.id,
-      playlistSlug: playlist.playlistSlug,
+      playlistSlug: playlist.playlistSlug ?? undefined,
       artistUsername: playlist.owner.username,
       artist: ownerArtist,
       title: playlist.title,
       cover,
       duration: toDuration(playlist.totalDurationSeconds),
-      waveformUrl: playlist.firstTrackWaveformUrl,
+      waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
       plays: playlist.trackCount,
       genre: playlist.genre,
       isLiked: playlist.isLiked,
@@ -282,25 +365,29 @@ export function mapPlaylistResourceToPlaylistCard(
       createdAt: playlist.createdAt,
     },
     waveform: toWaveform(
-      (playlist as { firstTrackWaveformData?: unknown }).firstTrackWaveformData
+      (playlist as { firstTrackWaveformData?: unknown })
+        .firstTrackWaveformData ?? undefined
     ),
     playback,
     queueTracks,
     queueSource: 'playlist',
-    relatedTracks: playlist.tracks.slice(0, 5).map((track) => ({
-      id: track.id,
-      title: track.title,
-      artist: track.artist.displayName || track.artist.username,
-      coverUrl: track.coverUrl || DEFAULT_IMAGE,
-      plays: track.playCount.toLocaleString(),
-    })),
+    relatedTracks: playlist.tracks
+      .slice(0, 5)
+      .map(mapPlaylistTrackToCompactTrack)
+      .filter(
+        (
+          track
+        ): track is NonNullable<
+          ReturnType<typeof mapPlaylistTrackToCompactTrack>
+        > => Boolean(track)
+      ),
   };
 }
 
 export function mapUserResourceToUserCard(
-  resource: ResourceRefFullDTO
+  resource: SearchMappableResource
 ): UserCardData | null {
-  if (resource.resourceType !== 'USER' || !resource.user) {
+  if (resource.type !== 'USER' || !resource.user) {
     return null;
   }
 
@@ -311,24 +398,35 @@ export function mapUserResourceToUserCard(
     username: user.username,
     displayName: user.displayName || undefined,
     avatarSrc: user.avatarUrl || undefined,
-    followerCount: user.followerCount,
+    followerCount: user.followerCount ?? 0,
     isFollowing: user.isFollowing,
   };
 }
 
 export function mapResourceToEverythingOrderItem(
-  resource: ResourceRefFullDTO
+  resource: SearchMappableResource
 ): EverythingOrderItem | null {
-  if (resource.resourceType === 'TRACK') {
-    return toEverythingOrderItem('track', String(resource.resourceId));
+  const resourceId =
+    'resourceId' in resource && resource.resourceId
+      ? String(resource.resourceId)
+      : resource.id
+        ? String(resource.id)
+        : '';
+
+  if (!resourceId) {
+    return null;
   }
 
-  if (resource.resourceType === 'PLAYLIST') {
-    return toEverythingOrderItem('playlist', String(resource.resourceId));
+  if (resource.type === 'TRACK') {
+    return toEverythingOrderItem('track', resourceId);
   }
 
-  if (resource.resourceType === 'USER') {
-    return toEverythingOrderItem('user', String(resource.resourceId));
+  if (resource.type === 'PLAYLIST') {
+    return toEverythingOrderItem('playlist', resourceId);
+  }
+
+  if (resource.type === 'USER') {
+    return toEverythingOrderItem('user', resourceId);
   }
 
   return null;
@@ -339,7 +437,11 @@ export function mergeSearchBuckets(
   incoming: SearchBuckets
 ): SearchBuckets {
   return {
-    tracks: mergeUniqueBy(previous.tracks, incoming.tracks, (track) => track.trackId),
+    tracks: mergeUniqueBy(
+      previous.tracks,
+      incoming.tracks,
+      (track) => track.trackId
+    ),
     playlists: mergeUniqueBy(
       previous.playlists,
       incoming.playlists,
@@ -353,9 +455,5 @@ export function mergeEverythingOrder(
   previous: EverythingOrderItem[],
   incoming: EverythingOrderItem[]
 ): EverythingOrderItem[] {
-  return mergeUniqueBy(
-    previous,
-    incoming,
-    (item) => `${item.kind}:${item.id}`
-  );
+  return mergeUniqueBy(previous, incoming, (item) => `${item.kind}:${item.id}`);
 }

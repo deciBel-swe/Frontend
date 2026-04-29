@@ -9,14 +9,8 @@ export const userSummaryDTOSchema = z.object({
   displayName: z.string().trim().nullable().optional(),
   avatarUrl: z.string().trim().nullable().optional(),
   isFollowing: z.boolean().nullable().optional(),
-  followerCount: z
-    .number()
-    .int()
-    .nonnegative()
-    .nullable()
-    .optional()
-    .default(0),
-  trackCount: z.number().int().nonnegative().nullable().optional().default(0),
+  followerCount: z.number().int().nonnegative().nullable().optional(),
+  trackCount: z.number().int().nonnegative().nullable().optional(),
 });
 export type UserSummaryDTO = z.infer<typeof userSummaryDTOSchema>;
 
@@ -35,9 +29,28 @@ export const resourceRefFullDTOSchema = z.object({
 });
 export type ResourceRefFullDTO = z.infer<typeof resourceRefFullDTOSchema>;
 
+export const conversationParticipantSchema = z.object({
+  id: z.string().trim().min(1),
+  username: z.string().trim().min(1),
+  displayName: z.string().trim().nullable().optional(),
+  avatarUrl: z.string().trim().nullable().optional(),
+});
+export type ConversationParticipantDTO = z.infer<
+  typeof conversationParticipantSchema
+>;
+
+export const conversationLastMessageSchema = z.object({
+  content: z.string().trim().min(1),
+  senderId: z.string().trim().min(1),
+  createdAt: z.string().trim().min(1),
+});
+export type ConversationLastMessageDTO = z.infer<
+  typeof conversationLastMessageSchema
+>;
+
 export const messageDTOSchema = z.object({
-  messageId: z.number().int().nonnegative(),
-  conversationId: z.number().int().nonnegative(),
+  messageId: z.string(),
+  conversationId: z.string(),
   sender: userSummaryDTOSchema,
   content: z.string().trim().min(1),
   resources: z.array(resourceRefFullDTOSchema).default([]),
@@ -46,23 +59,19 @@ export const messageDTOSchema = z.object({
 });
 export type MessageDTO = z.infer<typeof messageDTOSchema>;
 
-export const createPaginatedResponseSchema = <T extends z.ZodTypeAny>(
-  contentSchema: T
-) =>
-  z.object({
-    content: z.array(contentSchema),
-    pageNumber: z.number().int().nonnegative(),
-    pageSize: z.number().int().positive(),
-    totalElements: z.number().int().nonnegative(),
-    totalPages: z.number().int().nonnegative(),
-    isLast: z.boolean(),
-  });
-
-export const paginatedMessageResponseSchema =
-  createPaginatedResponseSchema(messageDTOSchema);
-export type PaginatedMessageResponse = z.infer<
-  typeof paginatedMessageResponseSchema
->;
+export const conversationDTOSchema = z.object({
+  id: z.string().trim().min(1),
+  participantIds: z.array(z.string().trim().min(1)).default([]),
+  participants: z.array(conversationParticipantSchema).default([]),
+  lastMessage: conversationLastMessageSchema.nullable().optional(),
+  unreadCounts: z
+    .record(z.string(), z.number().int().nonnegative())
+    .default({}),
+  manuallyUnreadBy: z.record(z.string(), z.boolean()).default({}),
+  createdAt: z.string().trim().min(1).optional(),
+  updatedAt: z.string().trim().min(1).optional(),
+});
+export type ConversationDTO = z.infer<typeof conversationDTOSchema>;
 
 export const sendMessageRequestSchema = z.object({
   body: z.string().trim().min(1),

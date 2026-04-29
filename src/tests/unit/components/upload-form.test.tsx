@@ -113,7 +113,6 @@ describe('UploadForm', () => {
         onReleaseDateChange={jest.fn()}
       />
     );
-
     expect(screen.getByText(/release date/i)).toBeInTheDocument();
 
     rerender(

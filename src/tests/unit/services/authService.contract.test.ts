@@ -114,9 +114,8 @@ const realUser: LoginUserDTO = {
 const artistUser: LoginUserDTO = {
   id: 99,
   username: 'artist-user',
-  tier: 'ARTIST',
+  tier: 'PRO',
   avatarUrl: '/images/default_song_image.png',
-
 };
 
 const advanceMockDelay = async (ms = 350) => {
@@ -193,7 +192,7 @@ describe('AuthService contract parity', () => {
     const realGoogleResponse = await realService.loginWithGoogle('oauth-code');
 
     const parsedRealGoogle = assertValidLoginResponse(realGoogleResponse);
-    expect(parsedRealGoogle.user.tier).toBe('ARTIST');
+    expect(parsedRealGoogle.user.tier).toBe('PRO');
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.AUTH_OAUTH_GOOGLE,

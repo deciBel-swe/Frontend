@@ -1,5 +1,5 @@
 import { playbackService } from '@/services';
-import type { PaginatedFeedResponse } from '@/types/user';
+import type { PaginatedHistoryResponse } from '@/types/user';
 import type { PlaybackPaginationParams } from '@/services/api/playbackService';
 
 /**
@@ -31,6 +31,6 @@ export function addToRecentlyPlayed(trackId: number): void {
  */
 export function getListeningHistory(
   params?: PlaybackPaginationParams
-): Promise<PaginatedFeedResponse> {
+): Promise<PaginatedHistoryResponse> {
   return playbackService.getListeningHistory(params);
 }

@@ -1,7 +1,7 @@
 import { apiRequest, type ApiQueryParams } from '@/hooks/useAPI';
 import type { DeviceInfoDTO } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import type { MessageResponse, PaginatedFeedResponse } from '@/types/user';
+import type { MessageResponse, PaginatedHistoryResponse } from '@/types/user';
 
 export interface PlaybackPaginationParams {
 	page?: number;
@@ -11,7 +11,7 @@ export interface PlaybackPaginationParams {
 export interface PlaybackService {
 	getListeningHistory(
 		params?: PlaybackPaginationParams
-	): Promise<PaginatedFeedResponse>;
+	): Promise<PaginatedHistoryResponse>;
 	playTrack(trackId: number, deviceInfo?: DeviceInfoDTO): Promise<MessageResponse>;
 	completeTrack(trackId: number, deviceInfo?: DeviceInfoDTO): Promise<MessageResponse>;
 }
@@ -35,19 +35,19 @@ const toQueryParams = (
 };
 
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
-	if (typeof window === 'undefined') {
-		return 'DESKTOP';
-	}
+	// if (typeof window === 'undefined') {
+	// 	return 'DESKTOP';
+	// }
 
-	const width = window.innerWidth;
-	if (width < 768) {
-		return 'MOBILE';
-	}
-	if (width < 1024) {
-		return 'TABLET';
-	}
+	// const width = window.innerWidth;
+	// if (width < 768) {
+	// 	return 'MOBILE';
+	// }
+	// if (width < 1024) {
+	// 	return 'TABLET';
+	// }
 
-	return 'DESKTOP';
+	return 'WEB';
 };
 
 const buildDeviceInfo = (): DeviceInfoDTO => {
@@ -74,7 +74,7 @@ const buildPlaybackPayload = (
 export class RealPlaybackService implements PlaybackService {
 	async getListeningHistory(
 		params?: PlaybackPaginationParams
-	): Promise<PaginatedFeedResponse> {
+	): Promise<PaginatedHistoryResponse> {
 		return apiRequest(API_CONTRACTS.USERS_ME_HISTORY, {
 			params: toQueryParams(params),
 		});

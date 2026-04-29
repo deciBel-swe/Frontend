@@ -29,13 +29,14 @@ export const ROUTES = {
   STATIONS: '/you/stations',
   FOLLOWING: '/you/following',
   PEOPLE: '/people',
-  CHECKOUT: '/checkout',
+  CHECKOUT: '/settings/subscription',
   NOTIFICATIONS: '/notifications',
   MESSAGES: '/messages',
 
   // User account routes
   SETTINGS: '/settings',
   DASHBOARD: '/dashboard',
+  SUBSCRIPTION: '/settings/subscription',
   HELP: '/help',
   SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',
@@ -135,7 +136,7 @@ export const API_ENDPOINTS = {
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
-    PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
+    PLAYLISTS: (username: string) => `/users/${username}/playlists`,
     LIKED_PLAYLISTS: (
       username: string //this should be changed in backend should be userid not username
     ) => `/users/${username}/liked-playlists`,
@@ -146,12 +147,12 @@ export const API_ENDPOINTS = {
     WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
     WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
-    REPOSTS: (userId: number) => `/users/${userId}/repost`,
+    REPOSTS: (username: string) => `/users/${username}/reposted-tracks`,
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
   },
   TRACKS: {
-    UPLOAD: '/tracks/upload',
-    RESOLVE: '/tracks/resolve',
+    UPLOAD: '/tracks/upload/v2',
+    RESOLVE: (trackSlug: string) => `/tracks/resolve/${trackSlug}`,
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
     TOKEN: (token: string) => `/tracks/token/${token}`,
     COVER: (trackId: number) => `/tracks/${trackId}/cover`,
@@ -161,7 +162,7 @@ export const API_ENDPOINTS = {
     SECRET_TOKEN: (trackId: number | string) =>
       `/tracks/${trackId}/secret-token`,
     GENERATE_TOKEN: (trackId: number | string) =>
-      `/tracks/${trackId}/generate-token`,
+      `/tracks/${trackId}/regenerate-token`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
@@ -219,7 +220,7 @@ export const API_ENDPOINTS = {
       `/conversations/${userId}/messages`,
   },
   SUBSCRIPTION: {
-    CHECKOUT: '/subscriptions/checkout',
+    CHECKOUT: '/subscription/checkout',
     CANCEL: '/subscription/cancel',
     STATUS: '/subscription/status',
     RENEW: '/subscription/renew',

@@ -6,7 +6,7 @@ import type {
   AddNewEmailRequest,
   FollowResponse,
   MessageResponse,
-  PaginatedFeedResponse,
+  PaginatedHistoryResponse,
   PaginatedFollowersResponse,
   PaginatedTracksResponse,
   PrivateSocialLinks,
@@ -25,7 +25,7 @@ import type {
 } from '@/types/user';
 // import { paginatedPlaylistResponse } from '@/types/playlist';
 import type { PaginatedPlaylistsResponse } from '@/types/playlists';
-import type { PaginatedSearchResponseDTO } from '@/types/discovery';
+import type { PaginatedRepostResponseDTO } from '@/types/discovery';
 
 export interface PaginationParams {
   page?: number;
@@ -95,7 +95,7 @@ export interface UserService {
   updateImages(payload: FormData): Promise<UpdateImagesResponse>;
 
   /** Get current user listening history (GET /users/me/history). */
-  getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse>;
+  getHistory(params?: PaginationParams): Promise<PaginatedHistoryResponse>;
 
   /** Get suggested users to follow (GET /users/suggested). */
   getSuggestedUsers(size?: number): Promise<UsersSuggestedResponse>;
@@ -106,20 +106,20 @@ export interface UserService {
     params?: PaginationParams
   ): Promise<PaginatedTracksResponse>;
 
-  /** Get a user's public playlists (GET /users/{userId}/playlists). */
+  /** Get a user's public playlists (GET /users/{username}/playlists). */
   getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse>;
 
   /** Get current user's repost resources (GET /users/me/repost). */
-  getMyReposts(params?: PaginationParams): Promise<PaginatedSearchResponseDTO>;
+  getMyReposts(params?: PaginationParams): Promise<PaginatedRepostResponseDTO>;
 
-  /** Get a specific user's repost resources (GET /users/{userId}/repost). */
+  /** Get a specific user's repost resources (GET /users/repost/{username}). */
   getUserReposts(
-    userId: number,
+    username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO>;
+  ): Promise<PaginatedRepostResponseDTO>;
 
   /** Get current user's playlists (GET /users/me/playlists). */
   getMePlaylists(params?: PaginationParams): Promise<UserPlaylistsResponse>;
@@ -250,9 +250,7 @@ export class RealUserService implements UserService {
     });
   }
 
-  async updateImages(
-    payload: FormData
-  ): Promise<UpdateImagesResponse> {
+  async updateImages(payload: FormData): Promise<UpdateImagesResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_IMAGES_UPDATE, {
       payload,
       headers: {
@@ -261,7 +259,9 @@ export class RealUserService implements UserService {
     });
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse> {
+  async getHistory(
+    params?: PaginationParams
+  ): Promise<PaginatedHistoryResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_HISTORY, {
       params: toQueryParams(params),
     });
@@ -283,27 +283,27 @@ export class RealUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
-    return apiRequest(API_CONTRACTS.USERS_PLAYLISTS(userId), {
+    return apiRequest(API_CONTRACTS.USERS_PLAYLISTS(username), {
       params: toQueryParams(params),
     });
   }
 
   async getMyReposts(
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     return apiRequest(API_CONTRACTS.USERS_ME_REPOSTS, {
       params: toQueryParams(params),
     });
   }
 
   async getUserReposts(
-    userId: number,
+    username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
-    return apiRequest(API_CONTRACTS.USERS_REPOSTS(userId), {
+  ): Promise<PaginatedRepostResponseDTO> {
+    return apiRequest(API_CONTRACTS.USERS_REPOSTS(username), {
       params: toQueryParams(params),
     });
   }
@@ -358,8 +358,7 @@ export class RealUserService implements UserService {
   async unblockUser(userId: number): Promise<MessageResponse> {
     try {
       await apiRequest(API_CONTRACTS.USERS_UNBLOCK(userId));
-    }
-    catch (error) { 
+    } catch (error) {
       console.error(`Failed to unblock user with ID ${userId}:`, error);
     }
     return { message: 'User unblocked' };

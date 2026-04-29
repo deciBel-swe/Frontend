@@ -9,11 +9,15 @@ import {
   MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 import type {
   AddNewEmailRequest,
   FollowResponse,
   MessageResponse,
-  PaginatedFeedResponse,
+  PaginatedHistoryResponse,
   PaginatedFollowersResponse,
   PaginatedTracksResponse,
   PrivateSocialLinks,
@@ -37,10 +41,10 @@ import type {
   PlaylistType,
 } from '@/types/playlists';
 import type {
-  PaginatedSearchResponseDTO,
+  PaginatedRepostResponseDTO,
   ResourceRefFullDTO,
 } from '@/types/discovery';
-import type { FullTrackDTO } from '@/types/tracks';
+import type { FullTrackDTO, TrackSummaryDTO } from '@/types/tracks';
 import type { FullPlaylistDTO } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -209,16 +213,6 @@ const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
   return type as PlaylistType;
 };
 
-const toSlug = (value: string, id: number, fallback: string): string => {
-  const normalized = value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  return `${normalized || fallback}-${id}`;
-};
-
 const toUserSummary = (target: MockUserRecord, viewer: MockUserRecord) => {
   return {
     id: target.id,
@@ -259,6 +253,15 @@ const buildFullTrack = (
   if (!track) {
     return null;
   }
+  if (
+    !canAccessMockResource({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
 
   const owner = findTrackOwner(trackId);
   const artist = owner
@@ -276,7 +279,7 @@ const buildFullTrack = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: toSlug(track.title, track.id, 'track'),
+    trackSlug: track.trackSlug,
     artist,
     trackUrl: track.trackUrl,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -293,14 +296,39 @@ const buildFullTrack = (
     commentCount: 0,
     isPrivate: track.isPrivate,
     trackDurationSeconds: track.durationSeconds ?? 0,
-    uploadDate: track.releaseDate,
+    uploadDate: track.uploadDate ?? track.releaseDate,
     description: track.description ?? '',
     trendingRank: 0,
-    access: track.isPrivate ? 'PREVIEW' : 'PLAYABLE',
+    access: resolveMockResourceAccess({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    }),
     secretToken: track.secretLink ?? '',
     trackPreviewUrl: track.trackUrl,
   };
 };
+
+const toTrackSummary = (track: FullTrackDTO): TrackSummaryDTO => ({
+  id: track.id,
+  title: track.title,
+  trackSlug: track.trackSlug,
+  coverUrl: track.coverUrl ?? '',
+  trackUrl: track.trackUrl,
+  trackPreviewUrl: track.trackPreviewUrl,
+  artist: {
+    ...track.artist,
+    avatarUrl: track.artist.avatarUrl ?? '',
+  },
+  playCount: track.playCount,
+  likeCount: track.likeCount,
+  repostCount: track.repostCount,
+  commentCount: track.commentCount,
+  isLiked: track.isLiked,
+  isReposted: track.isReposted,
+  secretToken: track.secretToken,
+  access: track.access,
+});
 
 const findPlaylistOwner = (
   playlistId: number
@@ -316,8 +344,9 @@ const findPlaylistOwner = (
 };
 
 const playlistLikeCount = (playlistId: number): number => {
-  return inMemoryUsers.filter((user) => user.likedPlaylists.includes(playlistId))
-    .length;
+  return inMemoryUsers.filter((user) =>
+    user.likedPlaylists.includes(playlistId)
+  ).length;
 };
 
 const playlistRepostCount = (playlistId: number): number => {
@@ -336,16 +365,26 @@ const buildFullPlaylist = (
   }
 
   const { owner, playlist } = resolved;
+  if (
+    !canAccessMockResource({
+      isPrivate: playlist.isPrivate,
+      ownerId: owner.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
   const ownerSummary = toUserSummary(owner, viewer);
-  const tracks = playlist.tracks
+  const fullTracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
     .filter((item): item is FullTrackDTO => Boolean(item));
+  const tracks = fullTracks.map((item) => toTrackSummary(item));
 
-  const totalDurationSeconds = tracks.reduce(
+  const totalDurationSeconds = fullTracks.reduce(
     (total, item) => total + (item.trackDurationSeconds ?? 0),
     0
   );
-  const firstTrack = tracks[0];
+  const firstTrack = fullTracks[0];
   const firstTrackRecord = getMockTracksStore().find(
     (track) => track.id === firstTrack?.id
   );
@@ -353,7 +392,7 @@ const buildFullPlaylist = (
   return {
     id: playlist.id,
     title: playlist.title,
-    playlistSlug: toSlug(playlist.title, playlist.id, 'playlist'),
+    playlistSlug: playlist.playlistSlug,
     isLiked: viewer.likedPlaylists.includes(playlist.id),
     isReposted: viewer.repostedPlaylists.includes(playlist.id),
     likeCount: playlistLikeCount(playlist.id),
@@ -361,7 +400,9 @@ const buildFullPlaylist = (
     description: playlist.description ?? '',
     isPrivate: playlist.isPrivate,
     coverArtUrl:
-      playlist.CoverArt || firstTrack?.coverUrl || '/images/default_song_image.png',
+      playlist.CoverArt ||
+      firstTrack?.coverUrl ||
+      '/images/default_song_image.png',
     totalDurationSeconds,
     trackCount: tracks.length,
     owner: ownerSummary,
@@ -394,12 +435,13 @@ const buildTrackResource = (
   }
 
   return {
-    resourceType: 'TRACK',
-    resourceId: trackId,
+    type: 'TRACK',
+    id: trackId,
     track,
     playlist: null,
     user: null,
     repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
   } as ResourceRefFullDTO;
 };
 
@@ -422,12 +464,13 @@ const buildPlaylistResource = (
   }
 
   return {
-    resourceType: 'PLAYLIST',
-    resourceId: playlistId,
+    type: 'PLAYLIST',
+    id: playlistId,
     track: null,
     playlist,
     user: null,
     repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
   } as ResourceRefFullDTO;
 };
 
@@ -467,7 +510,10 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
 
-    if (payload.displayName !== undefined && payload.displayName.trim().length > 0) {
+    if (
+      payload.displayName !== undefined &&
+      payload.displayName.trim().length > 0
+    ) {
       me.displayName = payload.displayName.trim();
     }
 
@@ -479,7 +525,10 @@ export class MockUserService implements UserService {
     }
 
     if (payload.socialLinks) {
-      me.socialLinks = mergeDefinedSocialLinks(me.socialLinks, payload.socialLinks);
+      me.socialLinks = mergeDefinedSocialLinks(
+        me.socialLinks,
+        payload.socialLinks
+      );
     }
 
     commitMockUserState();
@@ -538,7 +587,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.role = payload.newRole;
-    if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
+    if (payload.newRole === 'LISTENER' && me.tier === 'PRO') {
       me.tier = 'FREE';
     }
     commitMockUserState();
@@ -555,9 +604,7 @@ export class MockUserService implements UserService {
     };
   }
 
-  async updateImages(
-    payload: FormData
-  ): Promise<UpdateImagesResponse> {
+  async updateImages(payload: FormData): Promise<UpdateImagesResponse> {
     await delay();
     const me = getCurrentUser();
 
@@ -595,7 +642,9 @@ export class MockUserService implements UserService {
     };
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse> {
+  async getHistory(
+    params?: PaginationParams
+  ): Promise<PaginatedHistoryResponse> {
     await delay();
     const me = getCurrentUser();
     return paginate(me.history, params);
@@ -624,11 +673,14 @@ export class MockUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     await delay();
-    const user = findUser(userId);
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     if (!params) {
       return [...user.playlists];
     }
@@ -641,7 +693,7 @@ export class MockUserService implements UserService {
 
   async getMyReposts(
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     await delay();
 
     const viewer = getCurrentUser();
@@ -670,13 +722,16 @@ export class MockUserService implements UserService {
   }
 
   async getUserReposts(
-    userId: number,
+    username: string,
     params?: PaginationParams
-  ): Promise<PaginatedSearchResponseDTO> {
+  ): Promise<PaginatedRepostResponseDTO> {
     await delay();
 
     const viewer = getCurrentUser();
-    const targetUser = findUser(userId);
+    const targetUser = inMemoryUsers.find((item) => item.username === username);
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
     const repostedBy = toUserSummary(targetUser, viewer);
     const resources: ResourceRefFullDTO[] = [];
 
@@ -735,11 +790,29 @@ export class MockUserService implements UserService {
           title: playlist.title,
           type: playlist.type,
           isLiked: user.likedPlaylists.includes(playlist.id),
-          owner: { id: owner.id, username: owner.username },
-          tracks: playlist.tracks,
+          owner: {
+            id: owner.id,
+            username: owner.username,
+            displayName: owner.displayName || owner.username,
+            avatarUrl: owner.profile.profilePic || '',
+            followerCount: owner.followers.size,
+            trackCount: owner.tracks.length,
+            isFollowing: false,
+          },
+          tracks: [],
+          trackSummary: [],
           isReposted: user.repostedPlaylists.includes(playlist.id),
           likeCount: playlistLikeCount(playlist.id),
           repostCount: playlistRepostCount(playlist.id),
+          playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+          description: playlist.description || '',
+          isPrivate: playlist.isPrivate,
+          coverArtUrl: playlist.CoverArt || '',
+          totalDurationSeconds: 0,
+          trackCount: 0,
+          genre: undefined,
+          createdAt: new Date().toISOString(),
+          firstTrackWaveformUrl: '',
         });
       }
     }
@@ -874,7 +947,9 @@ export class MockUserService implements UserService {
     }
 
     const usersWhoLiked = inMemoryUsers
-      .filter((user) => user.likedTracks.some((likedTrack) => likedTrack.id === trackId))
+      .filter((user) =>
+        user.likedTracks.some((likedTrack) => likedTrack.id === trackId)
+      )
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoLiked, params);
@@ -905,14 +980,23 @@ export class MockUserService implements UserService {
         owner: {
           id: playlist.owner.id,
           username: playlist.owner.username,
+          displayName: playlist.owner.displayName || playlist.owner.username,
+          avatarUrl: playlist.owner.avatarUrl || '',
+          followerCount: 0,
+          trackCount: 0,
+          isFollowing: false,
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tracks: playlist.tracks.map((track:any) => ({
-          trackId: track.trackId,
-          title: track.title,
-          trackUrl: track.trackUrl,
-          durationSeconds: track.durationSeconds,
-        })),
+        tracks: [],
+        trackSummary: [],
+        playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+        description: playlist.description || '',
+        isPrivate: playlist.isPrivate,
+        coverArtUrl: playlist.CoverArt || '',
+        totalDurationSeconds: 0,
+        trackCount: 0,
+        genre: undefined,
+        createdAt: new Date().toISOString(),
+        firstTrackWaveformUrl: '',
       }));
 
     return paginate(likedPlaylists, params);

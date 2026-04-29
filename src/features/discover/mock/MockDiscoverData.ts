@@ -67,6 +67,9 @@ function makeTrackListItem(
       genre,
       isLiked: id % 3 === 0,
       likeCount: 100 + (id * 97) % 9000,
+      repostCount: 50 + (id * 53) % 5000,
+      isPrivate: id % 7 === 0,
+      secretToken: `secret-${id}`
     },
     trackUrl: MOCK_TRACK_URL,
     access: 'PLAYABLE',

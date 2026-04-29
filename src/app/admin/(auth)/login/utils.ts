@@ -12,19 +12,19 @@ import {
 } from '@/types/admin';
 
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
-  if (typeof window === 'undefined') {
-    return 'DESKTOP';
-  }
+  // if (typeof window === 'undefined') {
+  //   return 'DESKTOP';
+  // }
 
-  if (window.innerWidth < 768) {
-    return 'MOBILE';
-  }
+  // if (window.innerWidth < 768) {
+  //   return 'MOBILE';
+  // }
 
-  if (window.innerWidth < 1024) {
-    return 'TABLET';
-  }
+  // if (window.innerWidth < 1024) {
+  //   return 'TABLET';
+  // }
 
-  return 'DESKTOP';
+  return 'WEB';
 };
 
 const detectPlatform = (userAgent: string): string => {

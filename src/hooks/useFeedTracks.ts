@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
 import type { TrackCardProps } from '@/components/tracks/track-card';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { feedService } from '@/services';
-import type { FeedItemDTO } from '@/types/discovery';
-import { mapPlaylistResourceToPlaylistCard, mapTrackResourceToTrackCard } from '@/features/search/mappers/searchResultMappers';
+import type { FeedItemDTO } from '@/types/feed';
+import {
+  mapPlaylistResourceToPlaylistCard,
+  mapTrackResourceToTrackCard,
+} from '@/features/search/mappers/feedMapper';
 
 type FeedCardItem =
   | {
@@ -36,11 +40,29 @@ const toPostedText = (item: FeedItemDTO): string => {
   }
 };
 
-const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: string } | undefined => {
+const toFeedActor = (
+  item: FeedItemDTO
+): { username: string; displayName?: string; avatar?: string } | undefined => {
   const actor =
     item.repostedBy ??
-    ((item as unknown as { actor?: { username?: string; displayName?: string } }).actor ??
-      (item as unknown as { likedBy?: { username?: string; displayName?: string } }).likedBy);
+    (
+      item as unknown as {
+        actor?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).actor ??
+    (
+      item as unknown as {
+        likedBy?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).likedBy;
 
   if (!actor?.username) {
     return undefined;
@@ -48,7 +70,8 @@ const toFeedActor = (item: FeedItemDTO): { username: string; displayName?: strin
 
   return {
     username: actor.username,
-    displayName: actor.displayName,
+    displayName: actor.displayName?.trim() || undefined,
+    avatar: actor.avatarUrl?.trim() || undefined,
   };
 };
 
@@ -56,24 +79,27 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
   const postedText = toPostedText(item);
   const actor = toFeedActor(item);
 
-  if (item.resource.resourceType === 'TRACK') {
+  if (item.resource.type === 'TRACK') {
     const card = mapTrackResourceToTrackCard(item.resource);
     if (!card) {
       return null;
     }
 
+    const shouldShowRepost =
+      item.type === 'TRACK_REPOSTED' || Boolean(item.repostedBy);
+
     return {
       kind: 'track',
-      id: `track-${item.id}-${item.resource.resourceId}`,
+      id: `track-${item.id}-${item.resource.id}`,
       card: {
         ...card,
         postedText,
-        repostedBy: item.type === 'TRACK_REPOSTED' ? actor : card.repostedBy,
+        repostedBy: shouldShowRepost ? actor : card.repostedBy,
       },
     };
   }
 
-  if (item.resource.resourceType === 'PLAYLIST') {
+  if (item.resource.type === 'PLAYLIST') {
     const card = mapPlaylistResourceToPlaylistCard(item.resource);
     if (!card) {
       return null;
@@ -84,7 +110,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
 
     return {
       kind: 'playlist',
-      id: `playlist-${item.id}-${item.resource.resourceId}`,
+      id: `playlist-${item.id}-${item.resource.id}`,
       card: {
         ...card,
         postedText,
@@ -93,6 +119,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
               repostedBy: {
                 username: actorUsername,
                 displayName: actorDisplayName,
+                avatar: actor?.avatar,
               },
             }
           : {}),
@@ -103,7 +130,7 @@ const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
   return null;
 };
 
-export function useFeedTracks(page = 0, size = 25) {
+export function useFeedTracks(page = 0, size = 10, infinite = false) {
   const [feedItems, setFeedItems] = useState<FeedItemDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -124,7 +151,49 @@ export function useFeedTracks(page = 0, size = 25) {
     };
   }, []);
 
+  const mapFeedItems = useCallback((items: FeedItemDTO[]) => {
+    return items.flatMap((item) => {
+      const mapped = mapFeedItem(item);
+      return mapped ? [mapped] : [];
+    });
+  }, []);
+
+  const {
+    items: infiniteFeedItems,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<FeedCardItem>({
+    enabled: infinite,
+    pageSize: size,
+    resetKey: `${size}|${refreshIndex}`,
+    fetchPage: async (pageNumber, pageSize) => {
+      const response = await feedService.getfeed({
+        page: pageNumber,
+        size: pageSize,
+      });
+
+      return {
+        items: mapFeedItems(response.content ?? []),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    dedupeBy: (item) => item.id,
+    initialErrorMessage: 'Failed to load tracks. Please try again later.',
+  });
+
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const fetchFeed = async () => {
@@ -136,11 +205,12 @@ export function useFeedTracks(page = 0, size = 25) {
         if (!isCancelled) {
           setFeedItems(response.content);
         }
-      } catch {
+      } catch (error) {
         if (!isCancelled) {
           setFeedItems([]);
           setIsError(true);
         }
+        console.error('Error fetching feed tracks:', error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -153,18 +223,23 @@ export function useFeedTracks(page = 0, size = 25) {
     return () => {
       isCancelled = true;
     };
-  }, [page, refreshIndex, size]);
+  }, [infinite, page, refreshIndex, size]);
 
   const feedCards = useMemo(() => {
-    return feedItems.flatMap((item) => {
-      const mapped = mapFeedItem(item);
-      return mapped ? [mapped] : [];
-    });
-  }, [feedItems]);
+    if (infinite) {
+      return infiniteFeedItems;
+    }
+
+    return mapFeedItems(feedItems);
+  }, [feedItems, infinite, infiniteFeedItems, mapFeedItems]);
 
   return {
     feedItems: feedCards,
-    isLoading,
-    isError,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

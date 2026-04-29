@@ -18,8 +18,8 @@ export const resolveTrackIdFromIdentifier = async (
 
   try {
     const resolved = await trackService.resolveTrackSlug(normalized);
-    if (resolved.resourceType === 'TRACK' && resolved.resourceId > 0) {
-      return resolved.resourceId;
+    if (resolved.type === 'TRACK' && resolved.id > 0) {
+      return resolved.id;
     }
   } catch {
     // Fall back to numeric id when slug resolution fails.
@@ -43,8 +43,8 @@ export const resolvePlaylistIdFromIdentifier = async (
 
   try {
     const resolved = await playlistService.resolvePlaylistSlug(normalized);
-    if (resolved.resourceType === 'PLAYLIST' && resolved.resourceId > 0) {
-      return resolved.resourceId;
+    if (resolved.type === 'PLAYLIST' && resolved.id > 0) {
+      return resolved.id;
     }
   } catch {
     // Fall back to numeric id when slug resolution fails.
@@ -69,7 +69,7 @@ export const getSecretTokenFromQuery = (
     return null;
   }
 
-  const token = searchParams.get('s') ?? searchParams.get('token');
+  const token = searchParams.get('token') ?? searchParams.get('s');
   const normalized = token?.trim() ?? '';
   return normalized.length > 0 ? normalized : null;
 };

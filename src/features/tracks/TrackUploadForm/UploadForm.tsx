@@ -175,7 +175,7 @@ export default function UploadForm({
                   value={description}
                   onChange={onDescriptionChange}
                 />
-                {showReleaseDate && onReleaseDateChange ? (
+                 {showReleaseDate && onReleaseDateChange ? (
                   <TrackReleaseDateField
                     value={releaseDate}
                     onChange={onReleaseDateChange}

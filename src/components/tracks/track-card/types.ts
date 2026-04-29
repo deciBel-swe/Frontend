@@ -18,6 +18,7 @@ export type TrackCardTrack = {
   trackSlug?: string;
   playlistSlug?: string;
   artistUsername?: string;
+  secretToken?: string;
   artist: {
     username: string;
     displayName?: string;
@@ -35,6 +36,7 @@ export type TrackCardTrack = {
   isReposted?: boolean;
   likeCount?: number;
   repostCount?: number;
+  isPrivate?: boolean;
 };
 
 export type TrackCardProps = {
@@ -46,6 +48,7 @@ export type TrackCardProps = {
   repostedBy?: {
     username: string;
     displayName?: string;
+    avatar?: string;
   };
   currentUserAvatar?: string;
   showTrackList?: boolean;
