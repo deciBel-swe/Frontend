@@ -19,11 +19,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const asIsoDate = (value: unknown): string | undefined => {
@@ -39,6 +39,12 @@ const asIsoDate = (value: unknown): string | undefined => {
   }
 
   return undefined;
+};
+
+const asOptionalString = (value: unknown): string | undefined => {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : undefined;
 };
 
 type UseLikedTracksOptions = {
@@ -164,6 +170,14 @@ export function useLikedTracks(
             track.artist?.displayName || metadata?.artist?.displayName
           );
           const durationSeconds = metadata?.durationSeconds;
+          const metadataTrackUrl = asOptionalString(metadata?.trackUrl);
+          const metadataTrackPreviewUrl = asOptionalString(
+            metadata?.trackPreviewUrl
+          );
+          const likedTrackUrl = asOptionalString(track.trackUrl);
+          const likedTrackPreviewUrl = asOptionalString(
+            track.trackPreviewUrl
+          );
 
           return {
             trackId: String(track.id),
@@ -200,8 +214,18 @@ export function useLikedTracks(
               isPrivate: metadata?.isPrivate,
               secretToken: metadata?.secretToken?.trim() || '',
             },
-            trackUrl: metadata?.trackUrl ?? track.trackUrl,
             access: toPlaybackAccess(metadata?.access),
+            trackUrl:
+              (metadata?.access === 'PREVIEW'
+                ? metadataTrackPreviewUrl
+                : metadataTrackUrl) ??
+              metadataTrackUrl ??
+              metadataTrackPreviewUrl ??
+              likedTrackUrl,
+            trackPreviewUrl:
+              metadataTrackPreviewUrl ??
+              likedTrackPreviewUrl ??
+              likedTrackUrl,
             waveform: metadata?.waveformData ?? [],
           } satisfies TrackListItem;
         })
