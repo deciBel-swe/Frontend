@@ -146,6 +146,7 @@ export const API_ENDPOINTS = {
     BLOCK: (userId: number) => `/users/${userId}/block`,
     WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
+    LIKE_TRACKS: (username: string) => `/users/${username}/liked-tracks`, //tracks user has liked
     WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
     REPOSTS: (username: string) => `/users/${username}/reposted-tracks`,
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted

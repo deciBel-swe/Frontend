@@ -8,7 +8,9 @@ import { trackService, userService } from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
 
 const normalizeUsername = (value: string | undefined): string =>
-  decodeURIComponent(value ?? '').trim().toLowerCase();
+  decodeURIComponent(value ?? '')
+    .trim()
+    .toLowerCase();
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -66,8 +68,7 @@ export function useLikedTracks(
     normalizeUsername(profileContext?.routeUsername) ===
     normalizeUsername(username);
   const isOwner =
-    forCurrentUser ||
-    (isManagedByContext && Boolean(profileContext?.isOwner));
+    forCurrentUser || (isManagedByContext && Boolean(profileContext?.isOwner));
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -117,8 +118,9 @@ export function useLikedTracks(
 
         const lookup = (async () => {
           try {
-            const publicUser =
-              await userService.getPublicUserByUsername(normalizedArtistUsername);
+            const publicUser = await userService.getPublicUserByUsername(
+              normalizedArtistUsername
+            );
             return publicUser.profile.displayName?.trim() || undefined;
           } catch {
             return undefined;
@@ -129,17 +131,22 @@ export function useLikedTracks(
         return lookup;
       };
 
-      const response = await trackService.getMyLikedTracks({
-        page: pageNumber,
-        size: pageSize,
-      });
+      const response = isOwner
+        ? await trackService.getMyLikedTracks({
+            page: pageNumber,
+            size: pageSize,
+          })
+        : await trackService.getUserLikedTracks(username, {
+            page: pageNumber,
+            size: pageSize,
+          });
       const likedTracks = response.content ?? [];
 
       const items = await Promise.all(
         likedTracks.map(async (track) => {
-          let metadata:
-            | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
-            | null = null;
+          let metadata: Awaited<
+            ReturnType<typeof trackService.getTrackMetadata>
+          > | null = null;
 
           try {
             metadata = await trackService.getTrackMetadata(track.id);
@@ -209,7 +216,7 @@ export function useLikedTracks(
         last: Boolean(response.last),
       };
     },
-    []
+    [isOwner, username]
   );
 
   const {
@@ -221,7 +228,7 @@ export function useLikedTracks(
     sentinelRef,
     loadNextPage,
   } = useInfinitePaginatedResource<TrackListItem>({
-    enabled: infinite && isOwner,
+    enabled: infinite,
     pageSize: size,
     resetKey: [
       username.trim().toLowerCase(),
@@ -247,13 +254,6 @@ export function useLikedTracks(
       setIsError(false);
 
       try {
-        if (!isOwner) {
-          if (!isCancelled) {
-            setTracks([]);
-          }
-          return;
-        }
-
         const response = await mapLikedPage(page, size);
 
         if (!isCancelled) {

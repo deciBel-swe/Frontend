@@ -979,6 +979,12 @@ export const API_CONTRACTS = {
       url: API_ENDPOINTS.USERS.ME_LIKED_TRACKS,
       responseSchema: paginatedTrackResponseSchema,
     }),
+  USER_LIKED_TRACKS: (username: string) =>
+    defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.USERS.LIKE_TRACKS(username),
+      responseSchema: paginatedTrackResponseSchema,
+    }),
   ME_REPOSTED_TRACKS: () =>
     defineContract<void, z.infer<typeof paginatedTrackResponseSchema>>({
       method: 'GET',
