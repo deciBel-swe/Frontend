@@ -90,10 +90,13 @@ import {
   updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
-// import {
-//   messageDTOSchema,
-//   sendMessageRequestSchema,
-// } from './message';
+import {
+  conversationCreatedResponseSchema,
+  paginatedConversationsResponseSchema,
+  paginatedMessagesResponseSchema,
+  sendMessageRequestSchema,
+  messageObjectSchema,
+} from './message';
 import {
   adminLoginRequestSchema,
   adminLoginResponseSchema,
@@ -113,8 +116,10 @@ import {
 } from './subscription';
 
 import {
+  paginatedNotificationsResponseSchema,
   notificationSettingsDTOSchema,
   registerDeviceTokenRequestSchema,
+  unreadCountResponseSchema,
 } from './notification';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -761,6 +766,33 @@ export const API_CONTRACTS = {
   }),
 
   // --- NOTIFICATIONS ---
+  NOTIFICATIONS_GET_ALL: defineContract<
+    void,
+    z.infer<typeof paginatedNotificationsResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.NOTIFICATIONS.GET_ALL,
+    responseSchema: paginatedNotificationsResponseSchema,
+  }),
+
+  NOTIFICATIONS_MARK_ALL_READ: defineContract<
+    void,
+    z.infer<typeof messageResponseSchema>
+  >({
+    method: 'POST',
+    url: API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ,
+    responseSchema: messageResponseSchema,
+  }),
+
+  NOTIFICATIONS_GET_UNREAD_COUNT: defineContract<
+    void,
+    z.infer<typeof unreadCountResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT,
+    responseSchema: unreadCountResponseSchema,
+  }),
+
   NOTIFICATIONS_GET_SETTINGS: defineContract<
     void,
     z.infer<typeof notificationSettingsDTOSchema>
@@ -785,10 +817,45 @@ export const API_CONTRACTS = {
     z.infer<typeof messageResponseSchema>
   >({
     method: 'POST',
-    url: API_ENDPOINTS.USERS.DEVICE_TOKENS, // Based on POST /users/me/device-tokens
+    url: API_ENDPOINTS.NOTIFICATIONS.DEVICE_TOKEN,
     requestSchema: registerDeviceTokenRequestSchema,
     responseSchema: messageResponseSchema,
   }),
+
+  // --- MESSAGES ---
+  MESSAGES_LIST_CONVERSATIONS: defineContract<
+    void,
+    z.infer<typeof paginatedConversationsResponseSchema>
+  >({
+    method: 'GET',
+    url: API_ENDPOINTS.MESSAGES.CONVERSATIONS,
+    responseSchema: paginatedConversationsResponseSchema,
+  }),
+
+  MESSAGES_START_CONVERSATION: (userId: number) =>
+    defineContract<void, z.infer<typeof conversationCreatedResponseSchema>>({
+      method: 'POST',
+      url: API_ENDPOINTS.MESSAGES.START_CONVERSATION(userId),
+      responseSchema: conversationCreatedResponseSchema,
+    }),
+
+  MESSAGES_LIST_MESSAGES: (conversationId: number | string) =>
+    defineContract<void, z.infer<typeof paginatedMessagesResponseSchema>>({
+      method: 'GET',
+      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(conversationId),
+      responseSchema: paginatedMessagesResponseSchema,
+    }),
+
+  MESSAGES_SEND: (conversationId: number | string) =>
+    defineContract<
+      z.infer<typeof sendMessageRequestSchema>,
+      z.infer<typeof messageObjectSchema>
+    >({
+      method: 'POST',
+      url: API_ENDPOINTS.MESSAGES.CONVERSATION_MESSAGES(conversationId),
+      requestSchema: sendMessageRequestSchema,
+      responseSchema: messageObjectSchema,
+    }),
 
   TRACKS_UPLOAD: defineContract<
     FormData,

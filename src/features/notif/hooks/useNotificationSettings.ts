@@ -5,6 +5,39 @@ import { notificationService } from '@/services';
 import type { ApiErrorDTO } from '@/types';
 import type { NotificationSettingsDTO } from '@/types/notification';
 
+/**
+ * useNotificationSettings Hook
+ *
+ * Fetches and manages user's notification preferences.
+ *
+ * Features:
+ * - Fetches settings from backend on mount
+ * - Syncs settings to Firestore for offline access
+ * - Can be manually refetched via getNotificationSettings()
+ * - Complete lifecycle management (loading, error states)
+ *
+ * Settings structure:
+ * - notifyOnFollow: boolean
+ * - notifyOnLike: boolean
+ * - notifyOnRepost: boolean
+ * - notifyOnComment: boolean
+ * - notifyOnDM: boolean
+ *
+ * @returns Object with settings, getNotificationSettings method, and loading/error states
+ *
+ * @example
+ * const { settings, getNotificationSettings, isLoading, error } = useNotificationSettings();
+ *
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error message={error?.message} />;
+ *
+ * return (
+ *   <NotificationPreferences
+ *     settings={settings}
+ *     onRefresh={getNotificationSettings}
+ *   />
+ * );
+ */
 export function useNotificationSettings() {
   const [settings, setSettings] = useState<NotificationSettingsDTO | null>(
     null

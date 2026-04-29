@@ -5,6 +5,34 @@ import { notificationService } from '@/services';
 import type { ApiErrorDTO } from '@/types';
 import type { NotificationDTO } from '@/types/notification';
 
+/**
+ * useNotifications Hook
+ *
+ * Real-time notification management for the current user.
+ *
+ * Features:
+ * - Real-time notification streaming from Firebase
+ * - Automatic sorting (newest first)
+ * - Complete lifecycle management (loading, error states)
+ *
+ * The hook automatically:
+ * - Connects to Firebase for real-time notification updates
+ * - Handles connection cleanup on unmount or user change
+ * - Provides error object with detailed error information
+ * - Respects user notification preferences set via settings
+ *
+ * Note: This hook provides real-time stream. For paginated fetch, use notificationService.getNotifications().
+ *
+ * @returns Object with notifications, getNotifications method, and loading/error states
+ *
+ * @example
+ * const { notifications, isLoading, error } = useNotifications();
+ *
+ * if (isLoading) return <Loading />;
+ * if (isError) return <Error message={error?.message} />;
+ *
+ * return <NotificationList notifications={notifications} />;
+ */
 export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotificationDTO[]>([]);

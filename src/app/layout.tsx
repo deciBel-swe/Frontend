@@ -2,6 +2,8 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Suspense } from 'react';
 
 import { AuthProvider } from '@/features/auth';
+import FirebaseSessionBridge from '@/features/auth/components/FirebaseSessionBridge';
+import NotificationDeviceRegistration from '@/features/notif/components/NotificationDeviceRegistration';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
@@ -85,6 +87,8 @@ export default function RootLayout({
                   {/* QueryProvider is a client‑component wrapper that creates the
                        QueryClient on the client side.*/}
                   <QueryProvider>
+                    <FirebaseSessionBridge />
+                    <NotificationDeviceRegistration />
                     {children}
                     {/*
                       Persistent global player runtime.

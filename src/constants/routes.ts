@@ -216,8 +216,9 @@ export const API_ENDPOINTS = {
   },
   MESSAGES: {
     CONVERSATIONS: '/conversations',
-    CONVERSATION_MESSAGES: (userId: number) =>
-      `/conversations/${userId}/messages`,
+    START_CONVERSATION: (userId: number) => `/conversations/${userId}/start`,
+    CONVERSATION_MESSAGES: (conversationId: number | string) =>
+      `/conversations/${conversationId}/messages`,
   },
   SUBSCRIPTION: {
     CHECKOUT: '/subscription/checkout',
@@ -230,6 +231,7 @@ export const API_ENDPOINTS = {
     MARK_ALL_READ: '/notifications/mark-all-read',
     UNREAD_COUNT: '/notifications/unread-count',
     SETTINGS: '/notifications/settings',
+    DEVICE_TOKEN: '/notification/device-token',
   },
 } as const;
 /**

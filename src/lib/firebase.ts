@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getMessaging, Messaging } from 'firebase/messaging';
 
@@ -15,6 +16,15 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let auth: Auth | null = null;
+if (typeof window !== 'undefined') {
+  try {
+    auth = getAuth(app);
+  } catch (e) {
+    console.warn('Failed to initialize Firebase Auth:', e);
+  }
+}
+
 // Initialize Messaging conditionally (client-side only)
 let messaging: Messaging | null = null;
 if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
@@ -25,4 +35,4 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
   }
 }
 
-export { db, messaging };
+export { auth, db, messaging };

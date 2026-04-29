@@ -6,7 +6,6 @@ import {
   doc,
   collection,
   query,
-  where,
   orderBy,
   getDoc,
   getDocs,
@@ -38,6 +37,21 @@ jest.mock('@/lib/firebase', () => ({
   db: {},
 }));
 
+const mockCreateRealtimeNotification = jest.fn();
+const mockGetCurrentRealtimeActor = jest.fn(() => ({
+  id: 1,
+  username: 'testuser',
+  displayName: 'Test User',
+  avatarUrl: null,
+}));
+
+jest.mock('@/services/firebase/realtimeSocial', () => ({
+  createRealtimeNotification: (...args: unknown[]) =>
+    mockCreateRealtimeNotification(...args),
+  ensureRealtimeSession: jest.fn(() => Promise.resolve()),
+  getCurrentRealtimeActor: () => mockGetCurrentRealtimeActor(),
+}));
+
 describe('FirebaseMessageService (Real)', () => {
   let service: FirebaseMessageService;
 
@@ -49,23 +63,24 @@ describe('FirebaseMessageService (Real)', () => {
     jest.clearAllMocks();
   });
 
-  it('should call onSnapshot when subscribing to inbox', () => {
+  it('should call onSnapshot when subscribing to inbox', async () => {
     const onUpdate = jest.fn();
     const onError = jest.fn();
 
     service.subscribeToInbox(1, onUpdate, onError);
+    await Promise.resolve();
 
     expect(onSnapshot).toHaveBeenCalled();
     expect(query).toHaveBeenCalled();
     expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations');
-    expect(where).toHaveBeenCalledWith('participantIds', 'array-contains', '1');
   });
 
-  it('should call onSnapshot when subscribing to chat', () => {
+  it('should call onSnapshot when subscribing to chat', async () => {
     const onUpdate = jest.fn();
     const onError = jest.fn();
     
     service.subscribeToChat('conv_1', onUpdate, onError);
+    await Promise.resolve();
 
     expect(onSnapshot).toHaveBeenCalled();
     expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
@@ -93,6 +108,13 @@ describe('FirebaseMessageService (Real)', () => {
     const sentData = (addDoc as jest.Mock).mock.calls[0][1];
     expect(sentData.content).toBe('Real test message');
     expect(sentData.sender.id).toBe(1);
+    expect(mockCreateRealtimeNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'DM',
+        recipientId: 2,
+        conversationId: 'conv_1',
+      })
+    );
   });
 
   it('marks a conversation as read', async () => {
@@ -114,5 +136,31 @@ describe('FirebaseMessageService (Real)', () => {
     const batch = (writeBatch as jest.Mock).mock.results[0].value;
     expect(batch.update).toHaveBeenCalled();
     expect(batch.commit).toHaveBeenCalled();
+  });
+
+  it('creates deterministic conversation ids', async () => {
+    const conversationRef = { id: '1_4' };
+    (doc as jest.Mock).mockReturnValue(conversationRef);
+    (getDoc as jest.Mock).mockResolvedValueOnce({
+      exists: () => false,
+    });
+
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 4,
+        username: 'sender',
+        displayName: 'Sender',
+        profile: { profilePic: null } as any,
+      } as any,
+      {
+        id: 1,
+        username: 'receiver',
+        displayName: 'Receiver',
+        avatarUrl: null,
+      }
+    );
+
+    expect(conversationId).toBe('1_4');
+    expect(setDoc).toHaveBeenCalled();
   });
 });
