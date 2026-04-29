@@ -328,9 +328,12 @@ export default function PlaylistPage() {
 
   const playerCurrentTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
   const playerIsPlaying = usePlayerStore((state) => state.isPlaying);
+  const playerCurrentTime = usePlayerStore((state) => state.currentTime);
+  const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
+  const seek = usePlayerStore((state) => state.seek);
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const ownerUsername = playlist?.owner?.username || username;
@@ -942,6 +945,7 @@ export default function PlaylistPage() {
     },
     genre: playlist.genre,
   };
+  const sharePreviewTrack = activeTrack ?? orderedTracks[0];
 
   return (
     <div className="w-full min-w-0">
@@ -1105,6 +1109,54 @@ export default function PlaylistPage() {
           coverUrl: resolvePlaylistCover(playlist),
           trackCount: orderedTracks.length,
         }}
+        activeTrackPreview={
+          sharePreviewTrack
+            ? {
+                title: sharePreviewTrack.title,
+                artist: sharePreviewTrack.artist ?? ownerDisplayName,
+                coverUrl: sharePreviewTrack.coverUrl,
+                duration: formatDuration(sharePreviewTrack.durationSeconds ?? 0),
+                waveformData: bannerWaveform,
+                waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
+                isPlaying:
+                  playerIsPlaying &&
+                  playerCurrentTrackId === sharePreviewTrack.id,
+                currentTime:
+                  playerCurrentTrackId === sharePreviewTrack.id
+                    ? playerCurrentTime
+                    : 0,
+                durationSeconds:
+                  playerCurrentTrackId === sharePreviewTrack.id &&
+                  playerDuration > 0
+                    ? playerDuration
+                    : sharePreviewTrack.durationSeconds ?? 1,
+                onPlayPause: handleBannerPlayPause,
+                onWaveformSeek: (fraction) => {
+                  const queueTrack = queueTracks.find(
+                    (track) => track.id === sharePreviewTrack.id
+                  );
+                  if (!queueTrack) {
+                    return;
+                  }
+
+                  if (playerCurrentTrackId !== sharePreviewTrack.id || !playerIsPlaying) {
+                    const startIndex = Math.max(
+                      0,
+                      queueTracks.findIndex((track) => track.id === sharePreviewTrack.id)
+                    );
+                    setQueue(queueTracks, startIndex, 'playlist');
+                    playTrack(queueTrack);
+                  }
+
+                  const durationSeconds =
+                    playerCurrentTrackId === sharePreviewTrack.id && playerDuration > 0
+                      ? playerDuration
+                      : sharePreviewTrack.durationSeconds ?? 1;
+                  seek(Math.max(0, Math.min(1, fraction)) * durationSeconds);
+                },
+              }
+            : undefined
+        }
       />
     </div>
   );

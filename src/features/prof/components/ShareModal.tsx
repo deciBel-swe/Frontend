@@ -425,6 +425,14 @@ export function ShareModal(props: ShareModalProps) {
     }
     // playlist
     const playlist = props.playlist ?? PLACEHOLDER_PLAYLIST;
+    if (props.isPrivate && props.existingToken?.trim()) {
+      return buildPlaylistSecretUrl(
+        props.shareUsername?.trim() || playlist.owner,
+        props.sharePathId?.trim() || props.playlistId,
+        props.existingToken.trim()
+      );
+    }
+
     return buildPlaylistUrl(
       props.shareUsername?.trim() || playlist.owner,
       props.sharePathId?.trim() || props.playlistId,
