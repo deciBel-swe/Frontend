@@ -410,6 +410,14 @@ export function ShareModal(props: ShareModalProps) {
     if (props.variant === 'profile') return props.profileUrl;
     if (props.variant === 'track') {
       const track = props.track ?? PLACEHOLDER_TRACK;
+      if (props.isPrivate && props.existingToken?.trim()) {
+        return buildTrackSecretUrl(
+          props.shareUsername?.trim() || track.artist,
+          props.sharePathId?.trim() || props.trackId,
+          props.existingToken.trim()
+        );
+      }
+
       return buildTrackUrl(
         props.shareUsername?.trim() || track.artist,
         props.sharePathId?.trim() || props.trackId,
