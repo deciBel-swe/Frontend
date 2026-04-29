@@ -177,7 +177,7 @@ export default function AdminReportsPage() {
                   undefined,
                 trackTitle:
                   reportDetail?.targetTitle ??
-                  `Track #${selectedReport.targetId}`,
+                  `Track #${selectedReport.targetId ?? selectedReport.id ?? 'Unknown'}`,
                 plays:
                   reportDetail?.targetPlayCount !== undefined &&
                   reportDetail.targetPlayCount !== null
@@ -244,10 +244,24 @@ export default function AdminReportsPage() {
 
     try {
       if (selectedReport.targetType.toUpperCase() === 'TRACK') {
-        await deleteTrackAsModerator(selectedReport.targetId);
+        const trackId = selectedReport.targetId ?? reportDetail?.targetId;
+
+        if (!trackId) {
+          setActionError('Unable to determine which track should be removed.');
+          return;
+        }
+
+        await deleteTrackAsModerator(trackId);
       }
 
-      await updateReportStatus(selectedReport.id ?? selectedReport.targetId, {
+      const reportId = selectedReport.id ?? reportDetail?.id;
+
+      if (!reportId) {
+        setActionError('Unable to determine which report should be updated.');
+        return;
+      }
+
+      await updateReportStatus(reportId, {
         status: 'RESOLVED',
       });
       handleClose();

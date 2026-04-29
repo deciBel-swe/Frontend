@@ -48,7 +48,7 @@ export type AdminLoginResponse = z.infer<typeof adminLoginResponseSchema>;
 export const adminReportSchema = z
   .object({
     id: z.number().int().nonnegative().optional(),
-    targetId: z.number().int().nonnegative(),
+    targetId: z.number().int().nonnegative().optional(),
     reporterId: z.number().int().nonnegative(),
     reporterUsername: z.string().trim().min(1).nullable().optional(),
     targetType: z.string().trim().min(1),
@@ -59,7 +59,7 @@ export const adminReportSchema = z
   .passthrough();
 export type AdminReport = z.infer<typeof adminReportSchema>;
 
-export const adminReportsPageSchema = z.object({
+const paginatedAdminReportsPageSchema = z.object({
   content: z.array(adminReportSchema),
   pageNumber: z.number().int().nonnegative(),
   pageSize: z.number().int().positive(),
@@ -67,10 +67,29 @@ export const adminReportsPageSchema = z.object({
   totalPages: z.number().int().nonnegative(),
   isLast: z.boolean(),
 });
+
+export const adminReportsPageSchema = z.preprocess((payload) => {
+  if (Array.isArray(payload)) {
+    const content = payload;
+    const totalElements = content.length;
+
+    return {
+      content,
+      pageNumber: 0,
+      pageSize: Math.max(totalElements, 1),
+      totalElements,
+      totalPages: totalElements > 0 ? 1 : 0,
+      isLast: true,
+    };
+  }
+
+  return payload;
+}, paginatedAdminReportsPageSchema);
 export type AdminReportsPage = z.infer<typeof adminReportsPageSchema>;
 
 export const adminReportDetailSchema = adminReportSchema
   .extend({
+    targetId: z.number().int().nonnegative(),
     reason: z.string().trim().min(1).nullable().optional(),
     description: z.string().trim().nullable().optional(),
     reporterUsername: z.string().trim().min(1).nullable().optional(),
@@ -95,7 +114,20 @@ export type UpdateUserBanStatusRequest = z.infer<
   typeof updateUserBanStatusRequestSchema
 >;
 
-export const bannedUsersResponseSchema = z
+export const bannedUsersResponseSchema = z.preprocess((payload) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload;
+  }
+
+  const candidate = payload as Record<string, unknown>;
+  const bannedUserCount =
+    candidate.bannedUserCount ?? candidate.totalBannedUsers ?? 0;
+
+  return {
+    ...candidate,
+    bannedUserCount,
+  };
+}, z
   .object({
     content: z.array(userSummarySchema).optional().default([]),
     pageNumber: z.number().int().nonnegative().optional(),
@@ -105,17 +137,30 @@ export const bannedUsersResponseSchema = z
     isLast: z.boolean().optional(),
     bannedUserCount: z.number().int().nonnegative(),
   })
-  .passthrough();
+  .passthrough());
 export type BannedUsersResponse = z.infer<typeof bannedUsersResponseSchema>;
 
-export const platformAnalyticsResponseSchema = z.object({
+export const platformAnalyticsResponseSchema = z.preprocess((payload) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload;
+  }
+
+  const candidate = payload as Record<string, unknown>;
+  const bannedUserCount =
+    candidate.bannedUserCount ?? candidate.totalBannedUsers ?? 0;
+
+  return {
+    ...candidate,
+    bannedUserCount,
+  };
+}, z.object({
   totalUsers: z.number().int().nonnegative(),
   totalTracks: z.number().int().nonnegative(),
   totalPlays: z.number().int().nonnegative(),
   playThroughRate: z.number().nonnegative(),
   totalStorageUsedBytes: z.number().int().nonnegative(),
   bannedUserCount: z.number().int().nonnegative(),
-});
+}));
 export type PlatformAnalyticsResponse = z.infer<
   typeof platformAnalyticsResponseSchema
 >;

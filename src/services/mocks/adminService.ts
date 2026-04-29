@@ -179,11 +179,11 @@ export class MockAdminService implements AdminService {
 
     const fallback = reportsState.find((report) => report.id === reportId);
 
-    if (!fallback) {
+    if (!fallback || fallback.targetId === undefined) {
       throw new Error('Report not found');
     }
 
-    return { ...fallback };
+    return { ...fallback, targetId: fallback.targetId };
   }
 
   async getBannedUsers(params?: {
