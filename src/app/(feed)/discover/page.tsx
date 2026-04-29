@@ -27,6 +27,7 @@ import type { ListeningHistoryItem, UserMe } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
 
 const PAGE_SIZE = 5;
+const TRENDING_PAGE_SIZE = 10;
 const QUEUE_LOOKAHEAD_PAGES = 4;
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 const DEFAULT_COVER = '/images/default_song_image.png';
@@ -479,13 +480,15 @@ export default function Page() {
     };
   }, [isAuthenticated, isAuthLoading]);
 
-  const trendingLimit = (trendingPage + QUEUE_LOOKAHEAD_PAGES + 1) * PAGE_SIZE;
   const {
     items: trendingCards,
     isLoading: trendingHookLoading,
     isError: hasTrendingError,
     isLast: trendingIsLast,
-  } = useTrendingTracks({ limit: trendingLimit });
+  } = useTrendingTracks({
+    page: trendingPage,
+    size: PAGE_SIZE,
+  });
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -501,13 +504,7 @@ export default function Page() {
       setIsLoadingTrending(true);
 
       try {
-        const offset = trendingPage * PAGE_SIZE;
-
-        const currentCards = trendingCards.slice(offset, offset + PAGE_SIZE);
-        const queueCards = trendingCards.slice(
-          offset,
-          offset + (QUEUE_LOOKAHEAD_PAGES + 1) * PAGE_SIZE
-        );
+        const currentCards = trendingCards;
 
         const currentSeeds = currentCards.map((c) =>
           mapTrackCardToSeed(c.card)
@@ -520,7 +517,7 @@ export default function Page() {
           return;
         }
 
-        const queueSeeds = queueCards.map((c) => mapTrackCardToSeed(c.card));
+        const queueSeeds = currentSeeds;
         const visibleItems = await Promise.all(
           currentSeeds.map(hydrateTrackSeed)
         );
@@ -531,8 +528,7 @@ export default function Page() {
             buildDiscoverTrackItems(visibleItems, queueTracks, 'likes')
           );
           setHasTrendingNextPage(
-            trendingCards.length >= offset + PAGE_SIZE &&
-              (trendingCards.length > offset + PAGE_SIZE || !trendingIsLast)
+            currentSeeds.length === PAGE_SIZE && !trendingIsLast
           );
         }
       } catch (e) {

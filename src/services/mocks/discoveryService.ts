@@ -397,7 +397,8 @@ export class MockDiscoveryService implements DiscoveryService {
   ): Promise<TrendingTracksResponseDTO> {
     await delay();
 
-    const limit = params?.limit ?? 20;
+    const pageNumber = Math.max(0, params?.page ?? 0);
+    const pageSize = Math.max(1, params?.size ?? params?.limit ?? 20);
     const viewerId = resolveCurrentMockUserId();
 
     const allTracks = [...getMockTracksStore()]
@@ -412,7 +413,12 @@ export class MockDiscoveryService implements DiscoveryService {
         (a, b) => (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
       );
 
-    const tracks = allTracks.slice(0, limit).map((track) => ({
+    const paginated = paginate(allTracks, {
+      page: pageNumber,
+      size: pageSize,
+    });
+
+    const tracks = paginated.content.map((track) => ({
       ...track,
       releaseDate: new Date(track.releaseDate),
       uploadDate: track.uploadDate ? new Date(track.uploadDate) : undefined,
@@ -431,12 +437,8 @@ export class MockDiscoveryService implements DiscoveryService {
     }));
 
     return {
+      ...paginated,
       content: tracks,
-      isLast: allTracks.length <= limit,
-      pageNumber: 0,
-      pageSize: tracks.length,
-      totalElements: allTracks.length,
-      totalPages: Math.ceil(allTracks.length / limit),
     };
   }
 

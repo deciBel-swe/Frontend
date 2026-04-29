@@ -10,9 +10,9 @@ export type TrendingItem = { kind: 'track'; id: string; card: TrackCardProps };
 
 type UseTrendingOptions = {
   genre?: string;
-  limit?: number;
   page?: number;
   size?: number;
+  limit?: number;
 };
 
 const asIsoDate = (value: unknown): string | undefined => {
@@ -31,7 +31,7 @@ const asIsoDate = (value: unknown): string | undefined => {
 };
 
 export function useTrendingTracks(options: UseTrendingOptions = {}) {
-  const { genre, limit } = options;
+  const { genre, page, size, limit } = options;
   const [items, setItems] = useState<TrendingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -45,10 +45,23 @@ export function useTrendingTracks(options: UseTrendingOptions = {}) {
       setIsError(false);
 
       try {
-        const response = await discoveryService.getTrending({
+        const requestParams: Record<string, unknown> = {
           genre: genre ?? undefined,
-          limit: limit ?? undefined,
-        });
+        };
+
+        if (typeof page === 'number') {
+          requestParams.page = page;
+        }
+
+        if (typeof size === 'number') {
+          requestParams.size = size;
+        } else if (typeof limit === 'number') {
+          requestParams.limit = limit;
+        }
+
+        const response = await discoveryService.getTrending(
+          requestParams as Parameters<typeof discoveryService.getTrending>[0]
+        );
 
         if (isCancelled) return;
 
@@ -111,12 +124,33 @@ export function useTrendingTracks(options: UseTrendingOptions = {}) {
         });
 
         const limited =
-          typeof limit === 'number'
-            ? mappedTracks.slice(0, limit)
-            : mappedTracks;
+          typeof size === 'number'
+            ? mappedTracks
+            : typeof limit === 'number'
+              ? mappedTracks.slice(0, limit)
+              : mappedTracks;
+
+        const isLastPage =
+          typeof response.isLast === 'boolean'
+            ? response.isLast
+            : typeof response.pageNumber === 'number' &&
+                typeof response.totalPages === 'number'
+              ? response.pageNumber >= response.totalPages - 1
+              : typeof response.totalElements === 'number' &&
+                  typeof size === 'number'
+                ? response.totalElements <= size
+                : typeof response.totalElements === 'number' &&
+                    typeof limit === 'number'
+                  ? response.totalElements <= limit
+                  : limited.length <
+                    (typeof size === 'number'
+                      ? size
+                      : typeof limit === 'number'
+                        ? limit
+                        : Number.POSITIVE_INFINITY);
 
         setItems(limited);
-        setIsLast(response.isLast ?? true);
+        setIsLast(isLastPage);
       } catch (error) {
         console.error('Failed to load trending resources', error);
         if (!isCancelled) {
@@ -136,7 +170,7 @@ export function useTrendingTracks(options: UseTrendingOptions = {}) {
     return () => {
       isCancelled = true;
     };
-  }, [genre, limit]);
+  }, [genre, limit, page, size]);
 
   return { items, isLoading, isError, isLast };
 }
