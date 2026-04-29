@@ -145,7 +145,7 @@ export class RealPlaylistService implements PlaylistService {
     });
 
     return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, {
-      payload: formData as any,
+      payload: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -198,6 +198,7 @@ export class RealPlaylistService implements PlaylistService {
     payload: AddPlaylistTrackRequest
   ): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_ADD_TRACK(playlistId), {
+      payload,
       params: { trackId: payload.trackId },
     });
   }

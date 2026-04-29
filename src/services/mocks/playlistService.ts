@@ -549,7 +549,11 @@ export class MockPlaylistService implements PlaylistService {
       (track) => track.trackId === payload.trackId
     );
     if (existing) {
-      return { message: 'Track already in playlist' };
+      return toPlaylistResponse(
+        resolved.owner,
+        playlist,
+        resolveCurrentMockUserId()
+      );
     }
 
     const track = getMockTracksStore().find((item) => item.id === payload.trackId);

@@ -104,6 +104,7 @@ export type MockPlaylistRecord = {
   type: PlaylistType;
   isPrivate: boolean;
   CoverArt?: string;
+  genre?: string;
   isLiked: boolean;
   isReposted?: boolean;
   owner: {
@@ -459,6 +460,7 @@ const seedPlaylists = (
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: SHARED_PLAYLIST_COVER_URLS[index % SHARED_PLAYLIST_COVER_URLS.length],
+      genre: TRACK_GENRES[index % TRACK_GENRES.length],
       isLiked: false,
       isReposted: false,
       owner: {

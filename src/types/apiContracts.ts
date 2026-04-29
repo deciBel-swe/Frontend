@@ -75,7 +75,6 @@ import {
   paginatedRepliesResponseSchema,
 } from './comments';
 import {
-  createPlaylistRequestSchema,
   addPlaylistTrackRequestSchema,
   playlistUpdateResponseSchema,
   playlistEmbedResponseSchema,
@@ -414,7 +413,7 @@ export const API_CONTRACTS = {
     }),
 
   PLAYLISTS_CREATE: defineContract<
-    any,
+    FormData,
     z.infer<typeof playlistResponseSchema>
   >({
     method: 'POST',
@@ -473,12 +472,12 @@ export const API_CONTRACTS = {
 
   PLAYLISTS_ADD_TRACK: (playlistId: number) =>
     defineContract<
-      void,
+      z.infer<typeof addPlaylistTrackRequestSchema>,
       z.infer<typeof playlistResponseSchema>
     >({
       method: 'POST',
       url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
-      requestSchema: z.undefined(),
+      requestSchema: addPlaylistTrackRequestSchema,
       responseSchema: playlistResponseSchema,
     }),
 

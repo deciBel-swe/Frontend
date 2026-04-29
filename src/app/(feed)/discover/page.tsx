@@ -24,6 +24,17 @@ const QUEUE_LOOKAHEAD_PAGES = 4;
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 const DEFAULT_COVER = '/images/default_song_image.png';
 
+const normalizeOptionalText = (
+  value: string | null | undefined
+): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
 type DiscoverTrackSeed = {
   id: number;
   title?: string;
@@ -187,10 +198,14 @@ const mapTrackResourceToSeed = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
-    artist: track.artist,
-    coverUrl: track.coverUrl,
-    trackUrl: track.trackUrl,
+    trackSlug: track.trackSlug ?? undefined,
+    artist: {
+      username: track.artist.username,
+      displayName: normalizeOptionalText(track.artist.displayName),
+      avatarUrl: track.artist.avatarUrl ?? undefined,
+    },
+    coverUrl: track.coverUrl ?? undefined,
+    trackUrl: track.trackUrl ?? undefined,
     access: track.access,
     genre: track.genre,
     playCount: track.playCount,
@@ -211,10 +226,14 @@ const mapStationTrackToSeed = (stationItem: StationItemDTO): DiscoverTrackSeed =
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
-    artist: track.artist,
-    coverUrl: track.coverUrl,
-    trackUrl: track.trackUrl,
+    trackSlug: track.trackSlug ?? undefined,
+    artist: {
+      username: track.artist.username,
+      displayName: normalizeOptionalText(track.artist.displayName),
+      avatarUrl: track.artist.avatarUrl ?? undefined,
+    },
+    coverUrl: track.coverUrl ?? undefined,
+    trackUrl: track.trackUrl ?? undefined,
     access: track.access,
     genre: (track as { genre?: string }).genre,
     playCount: track.playCount,
@@ -243,12 +262,12 @@ const buildTrackListItem = (
 ): TrackListItem => {
   const artistUsername =
     metadata?.artist.username ?? seed.artist?.username ?? 'unknown';
-  const artistDisplayName =
-    metadata?.artist.displayName?.trim() ||
-    seed.artist?.displayName?.trim() ||
-    undefined;
+  const artistDisplayName = normalizeOptionalText(
+    metadata?.artist.displayName ?? seed.artist?.displayName
+  );
   const artistAvatar =
-    metadata?.artist.avatarUrl ?? seed.artist?.avatarUrl ?? DEFAULT_AVATAR;
+    normalizeOptionalText(metadata?.artist.avatarUrl ?? seed.artist?.avatarUrl) ??
+    DEFAULT_AVATAR;
   const durationSeconds =
     metadata?.durationSeconds ?? seed.durationSeconds ?? undefined;
 
