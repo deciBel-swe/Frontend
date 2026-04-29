@@ -41,6 +41,12 @@ const asIsoDate = (value: unknown): string | undefined => {
   return undefined;
 };
 
+const asOptionalString = (value: unknown): string | undefined => {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : undefined;
+};
+
 type UseLikedTracksOptions = {
   forCurrentUser?: boolean;
   page?: number;
@@ -164,6 +170,14 @@ export function useLikedTracks(
             track.artist?.displayName || metadata?.artist?.displayName
           );
           const durationSeconds = metadata?.durationSeconds;
+          const metadataTrackUrl = asOptionalString(metadata?.trackUrl);
+          const metadataTrackPreviewUrl = asOptionalString(
+            metadata?.trackPreviewUrl
+          );
+          const likedTrackUrl = asOptionalString(track.trackUrl);
+          const likedTrackPreviewUrl = asOptionalString(
+            track.trackPreviewUrl
+          );
 
           return {
             trackId: String(track.id),
@@ -203,13 +217,15 @@ export function useLikedTracks(
             access: toPlaybackAccess(metadata?.access),
             trackUrl:
               (metadata?.access === 'PREVIEW'
-                ? metadata.trackPreviewUrl
-                : metadata?.trackUrl) ??
-              metadata?.trackUrl ??
-              metadata?.trackPreviewUrl ??
-              track.trackUrl,
+                ? metadataTrackPreviewUrl
+                : metadataTrackUrl) ??
+              metadataTrackUrl ??
+              metadataTrackPreviewUrl ??
+              likedTrackUrl,
             trackPreviewUrl:
-              metadata?.trackPreviewUrl ?? track.trackPreviewUrl ?? track.trackUrl,
+              metadataTrackPreviewUrl ??
+              likedTrackPreviewUrl ??
+              likedTrackUrl,
             waveform: metadata?.waveformData ?? [],
           } satisfies TrackListItem;
         })
