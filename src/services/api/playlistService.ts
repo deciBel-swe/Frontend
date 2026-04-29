@@ -80,7 +80,7 @@ export interface PlaylistService {
   addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }>;
+  ): Promise<PlaylistResponse>;
 
   /** Remove a track from a playlist (DELETE /playlists/:playlistId/tracks/:trackId). */
   removeTrackFromPlaylist(
@@ -137,7 +137,19 @@ export class RealPlaylistService implements PlaylistService {
   async createPlaylist(
     payload: CreatePlaylistRequest
   ): Promise<PlaylistResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, { payload });
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, {
+      payload: formData as any,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async getPlaylist(playlistId: number): Promise<PlaylistResponse> {
@@ -184,9 +196,9 @@ export class RealPlaylistService implements PlaylistService {
   async addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }> {
+  ): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_ADD_TRACK(playlistId), {
-      payload,
+      params: { trackId: payload.trackId },
     });
   }
 

@@ -373,9 +373,10 @@ export class MockPlaylistService implements PlaylistService {
       title,
       playlistSlug,
       description,
-      type: payload.type,
-      isPrivate: payload.isPrivate,
+      type: payload.type ?? 'PLAYLIST',
+      isPrivate: payload.isPrivate ?? false,
       CoverArt: payload.CoverArt,
+      genre: payload.genre,
       isLiked: false,
       owner: {
         id: owner.id,
@@ -531,7 +532,7 @@ export class MockPlaylistService implements PlaylistService {
   async addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }> {
+  ): Promise<PlaylistResponse> {
     await delay();
 
     if (!resolvePlaylistOwner(playlistId)) {
@@ -571,9 +572,9 @@ export class MockPlaylistService implements PlaylistService {
       durationSeconds: track.durationSeconds ?? 0,
       trackUrl: track.trackUrl,
     });
-
     persistMockSystemState();
-    return { message: 'Track added to playlist' };
+
+    return toPlaylistResponse(resolved.owner, playlist, resolveCurrentMockUserId());
   }
 
   async removeTrackFromPlaylist(

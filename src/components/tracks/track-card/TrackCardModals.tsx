@@ -24,6 +24,7 @@ type TrackCardModalsProps = {
     };
     cover: string;
     duration: string;
+    genre?: string;
   };
   editOpen: boolean;
   isShareOpen: boolean;
@@ -140,6 +141,7 @@ export default function TrackCardModals({
         type: 'PLAYLIST',
         isPrivate: privacy === 'private',
         CoverArt: track.cover,
+        genre: track.genre || 'Other',
       });
 
       await playlistService.addTrackToPlaylist(created.id, {

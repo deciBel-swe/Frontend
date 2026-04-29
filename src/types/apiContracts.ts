@@ -414,12 +414,12 @@ export const API_CONTRACTS = {
     }),
 
   PLAYLISTS_CREATE: defineContract<
-    z.infer<typeof createPlaylistRequestSchema>,
+    any,
     z.infer<typeof playlistResponseSchema>
   >({
     method: 'POST',
     url: API_ENDPOINTS.PLAYLISTS.CREATE,
-    requestSchema: createPlaylistRequestSchema,
+    requestSchema: z.any(),
     responseSchema: playlistResponseSchema,
   }),
 
@@ -473,13 +473,13 @@ export const API_CONTRACTS = {
 
   PLAYLISTS_ADD_TRACK: (playlistId: number) =>
     defineContract<
-      z.infer<typeof addPlaylistTrackRequestSchema>,
-      z.infer<typeof messageResponseSchema>
+      void,
+      z.infer<typeof playlistResponseSchema>
     >({
       method: 'POST',
       url: API_ENDPOINTS.PLAYLISTS.TRACKS(playlistId),
-      requestSchema: addPlaylistTrackRequestSchema,
-      responseSchema: messageResponseSchema,
+      requestSchema: z.undefined(),
+      responseSchema: playlistResponseSchema,
     }),
 
   PLAYLISTS_REMOVE_TRACK: (playlistId: number, trackId: number) =>
