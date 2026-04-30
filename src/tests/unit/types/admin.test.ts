@@ -87,6 +87,7 @@ describe('admin report schemas', () => {
       totalPlays: 127,
       playThroughRate: 0.1751243781094527,
       totalStorageUsedBytes: 734430530,
+      totalStorageCapacityBytes: 53687091200,
     });
 
     expect(parsed.bannedUserCount).toBe(0);
