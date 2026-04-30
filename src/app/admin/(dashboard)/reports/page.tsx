@@ -155,52 +155,49 @@ export default function AdminReportsPage() {
     [reports?.content, selectedReportId]
   );
 
-  const displayDetail: ReportDetail | null = selectedReport
+  const displayDetail: ReportDetail | null = reportDetail
     ? {
-        reason: reportDetail?.reason ?? undefined,
-        type: toUiReportType(selectedReport.targetType),
+        reason: reportDetail.reason ?? undefined,
+        type: toUiReportType(reportDetail.targetType),
         reportedBy:
-          reportDetail?.reporterUsername ??
-          selectedReport.reporterUsername ??
-          `Reporter #${selectedReport.reporterId}`,
-        date: toDisplayTimestamp(selectedReport.createdAt),
-        status: toUiReportStatus(selectedReport.status),
-        description: reportDetail?.description ?? undefined,
+          reportDetail.reporterUsername ?? `Reporter #${reportDetail.reporterId}`,
+        date: toDisplayTimestamp(reportDetail.createdAt),
+        status: toUiReportStatus(reportDetail.status),
+        description: reportDetail.description ?? undefined,
         track:
-          selectedReport.targetType.toUpperCase() === 'TRACK'
+          reportDetail.targetType.toUpperCase() === 'TRACK'
             ? {
-                thumbnailUrl: reportDetail?.targetThumbnailUrl ?? undefined,
+                thumbnailUrl: reportDetail.targetThumbnailUrl ?? undefined,
                 artistName:
-                  reportDetail?.targetArtistName ??
-                  reportDetail?.targetDisplayName ??
-                  reportDetail?.targetUsername ??
+                  reportDetail.targetArtistName ??
+                  reportDetail.targetDisplayName ??
+                  reportDetail.targetUsername ??
                   undefined,
                 trackTitle:
-                  reportDetail?.targetTitle ??
-                  `Track #${selectedReport.targetId ?? selectedReport.id ?? 'Unknown'}`,
+                  reportDetail.targetTitle ?? `Track #${reportDetail.targetId}`,
                 plays:
-                  reportDetail?.targetPlayCount !== undefined &&
+                  reportDetail.targetPlayCount !== undefined &&
                   reportDetail.targetPlayCount !== null
                     ? reportDetail.targetPlayCount.toLocaleString()
                     : undefined,
-                uploadedDate: reportDetail?.targetCreatedAt
+                uploadedDate: reportDetail.targetCreatedAt
                   ? toDisplayTimestamp(reportDetail.targetCreatedAt)
                   : undefined,
               }
             : undefined,
         comment:
-          selectedReport.targetType.toUpperCase() === 'COMMENT'
+          reportDetail.targetType.toUpperCase() === 'COMMENT'
             ? {
                 author:
-                  reportDetail?.commentAuthor ??
-                  reportDetail?.targetDisplayName ??
-                  reportDetail?.targetUsername ??
+                  reportDetail.commentAuthor ??
+                  reportDetail.targetDisplayName ??
+                  reportDetail.targetUsername ??
                   undefined,
-                postedOnTrack: reportDetail?.targetTitle ?? undefined,
-                uploadedDate: reportDetail?.targetCreatedAt
+                postedOnTrack: reportDetail.targetTitle ?? undefined,
+                uploadedDate: reportDetail.targetCreatedAt
                   ? toDisplayTimestamp(reportDetail.targetCreatedAt)
                   : undefined,
-                commentContent: reportDetail?.commentContent ?? undefined,
+                commentContent: reportDetail.commentContent ?? undefined,
               }
             : undefined,
       }
@@ -236,32 +233,18 @@ export default function AdminReportsPage() {
   };
 
   const handleRemove = async () => {
-    if (!selectedReport) {
+    if (!reportDetail) {
       return;
     }
 
     setActionError(null);
 
     try {
-      if (selectedReport.targetType.toUpperCase() === 'TRACK') {
-        const trackId = selectedReport.targetId ?? reportDetail?.targetId;
-
-        if (!trackId) {
-          setActionError('Unable to determine which track should be removed.');
-          return;
-        }
-
-        await deleteTrackAsModerator(trackId);
+      if (reportDetail.targetType.toUpperCase() === 'TRACK') {
+        await deleteTrackAsModerator(reportDetail.targetId);
       }
 
-      const reportId = selectedReport.id ?? reportDetail?.id;
-
-      if (!reportId) {
-        setActionError('Unable to determine which report should be updated.');
-        return;
-      }
-
-      await updateReportStatus(reportId, {
+      await updateReportStatus(reportDetail.id ?? reportDetail.targetId, {
         status: 'RESOLVED',
       });
       handleClose();

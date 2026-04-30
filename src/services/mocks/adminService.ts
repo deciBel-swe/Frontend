@@ -20,17 +20,21 @@ const INITIAL_REPORTS: MutableMockReport[] = [
     id: 1,
     targetId: 101,
     reporterId: 42,
+    reporterUsername: 'listener_reporter',
     targetType: 'TRACK',
     status: 'OPEN',
     createdAt: '2025-04-01T10:30:00Z',
+    reason: 'COPYRIGHT',
   },
   {
     id: 2,
     targetId: 77,
     reporterId: 18,
+    reporterUsername: 'comment_reporter',
     targetType: 'COMMENT',
     status: 'RESOLVED',
     createdAt: '2025-04-02T09:15:00Z',
+    reason: 'INAPPROPRIATE',
   },
 ];
 
@@ -104,7 +108,7 @@ const INITIAL_BANNED_USERS: BannedUsersResponse['content'] = [
   },
 ];
 
-let bannedUserCount = 5;
+let bannedUserCount = INITIAL_BANNED_USERS.length;
 let reportsState: MutableMockReport[] = INITIAL_REPORTS.map((report) => ({
   ...report,
 }));
