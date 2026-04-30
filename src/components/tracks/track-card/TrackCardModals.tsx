@@ -18,6 +18,7 @@ type TrackCardModalsProps = {
   track: {
     title: string;
     secretToken?: string;
+    trackUrl?: string;
     artist: {
       username: string;
       displayName?: string;
@@ -25,8 +26,7 @@ type TrackCardModalsProps = {
     };
     cover: string;
     duration: string;
-    trackNumericId?: number;
-    trackUrl?: string;
+    genre?: string;
     waveformData?: number[];
     waveformUrl?: string;
   };
@@ -211,6 +211,7 @@ export default function TrackCardModals({
         type: 'PLAYLIST',
         isPrivate: privacy === 'private',
         CoverArt: track.cover,
+        genre: track.genre || 'Other',
       });
 
       await playlistService.addTrackToPlaylist(created.id, {
@@ -228,6 +229,7 @@ export default function TrackCardModals({
     playlistTitle,
     privacy,
     track.cover,
+    track.genre,
     trackNumericId,
   ]);
 

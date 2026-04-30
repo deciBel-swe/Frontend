@@ -113,7 +113,7 @@ const buildTrackSummary = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
+    trackSlug: track.trackSlug || `track-${track.id}`,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
@@ -170,7 +170,19 @@ const buildPlaylistSummary = (
       trackCount: tracks.length,
       owner: buildUserSummary(user.id),
       genre: 'playlist-genre',
-      tracks,
+      tracks: tracks.map((track) => ({
+        ...track,
+        trackSlug: track.trackSlug || `track-${track.id}`,
+        coverUrl: track.coverUrl || '/images/default_song_image.png',
+        trackUrl: track.trackUrl || '',
+        trackPreviewUrl: track.trackPreviewUrl || track.trackUrl || '',
+        artist: {
+          ...track.artist,
+          displayName: track.artist.displayName?.trim() || track.artist.username,
+          avatarUrl: track.artist.avatarUrl?.trim() || '/images/default_avatar.png',
+        },
+        secretToken: track.secretToken || '',
+      })),
       secretToken: playlist.secretLink ?? '',
     };
   }
@@ -189,11 +201,33 @@ const buildResourceForTrack = (
 
   return {
     type: 'TRACK',
+    id: trackId,
     playlist: null,
     track: {
       ...(summary as unknown as FullTrackDTO),
-      waveformUrl:
-        getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
+      trackSlug: summary.trackSlug || `track-${trackId}`,
+      coverUrl:
+        summary.coverUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.coverUrl ??
+        '/images/default_song_image.png',
+      trackUrl:
+        summary.trackUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ??
+        '',
+      trackPreviewUrl:
+        summary.trackPreviewUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ??
+        '',
+      artist: {
+        ...summary.artist,
+        displayName:
+          summary.artist.displayName?.trim() ||
+          summary.artist.username,
+        avatarUrl:
+          summary.artist.avatarUrl?.trim() ||
+          '/images/default_avatar.png',
+      },
+      waveformUrl: getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
       genre: getMockTracksStore().find((t) => t.id === trackId)?.genre ?? '',
       isReposted: false,
       isLiked: false,
@@ -226,10 +260,7 @@ const buildResourceForTrack = (
           getMockTracksStore().find((t) => t.id === trackId)?.artist.id ?? 0,
         viewerId,
       }),
-      secretToken:
-        getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
-      trackPreviewUrl:
-        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
+      secretToken: getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
     },
     user: null,
   };

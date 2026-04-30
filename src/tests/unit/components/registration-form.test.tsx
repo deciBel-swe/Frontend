@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import RegisterationForm from '@/features/auth/components/Forms/RegisterationForm';
@@ -56,29 +56,29 @@ const fillValidRegistrationForm = async (
     throw new Error('Expected both password fields in registration form.');
   }
 
-  await user.type(emailInput, email);
+  fireEvent.change(emailInput, { target: { value: email } });
   await waitFor(() => {
     expect(displayNameInput).toHaveValue(email.split('@')[0]);
   });
 
-  await user.type(passwordInputs[0] as HTMLInputElement, 'Password1');
-  await user.type(passwordInputs[1] as HTMLInputElement, 'Password1');
-  await user.selectOptions(
-    getRequiredSelect(container, 'select[name="month"]'),
-    'January'
-  );
-  await user.selectOptions(
-    getRequiredSelect(container, 'select[name="day"]'),
-    '1'
-  );
-  await user.selectOptions(
-    getRequiredSelect(container, 'select[name="year"]'),
-    '2000'
-  );
-  await user.selectOptions(
-    getRequiredSelect(container, 'select[name="gender"]'),
-    'female'
-  );
+  fireEvent.change(passwordInputs[0] as HTMLInputElement, {
+    target: { value: 'Password1' },
+  });
+  fireEvent.change(passwordInputs[1] as HTMLInputElement, {
+    target: { value: 'Password1' },
+  });
+  fireEvent.change(getRequiredSelect(container, 'select[name="month"]'), {
+    target: { value: 'January' },
+  });
+  fireEvent.change(getRequiredSelect(container, 'select[name="day"]'), {
+    target: { value: '1' },
+  });
+  fireEvent.change(getRequiredSelect(container, 'select[name="year"]'), {
+    target: { value: '2000' },
+  });
+  fireEvent.change(getRequiredSelect(container, 'select[name="gender"]'), {
+    target: { value: 'female' },
+  });
 };
 
 describe('RegisterationForm', () => {

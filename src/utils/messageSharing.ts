@@ -135,7 +135,7 @@ export const resolveSharedResourcesFromMessage = async (
 
 export const toMessageTrackData = (track: TrackMetaData): TrackData => ({
   id: track.id,
-  trackSlug: track.trackSlug,
+  trackSlug: track.trackSlug ?? undefined,
   artistUsername: track.artist.username,
   title: track.title,
   artist: {
@@ -144,7 +144,7 @@ export const toMessageTrackData = (track: TrackMetaData): TrackData => ({
     avatar: track.artist.avatarUrl || '/images/default_avatar_image_1.png',
   },
   cover: track.coverUrl || '/images/default_song_image_1.png',
-  coverUrl: track.coverUrl,
+  coverUrl: track.coverUrl ?? undefined,
   duration: formatDuration(track.durationSeconds ?? 0),
   durationSeconds: track.durationSeconds,
   trackUrl: track.trackUrl,
@@ -166,7 +166,7 @@ const toPlaylistTrackData = (playlist: PlaylistResponse): TrackData[] =>
     if ('artist' in track) {
       return {
         id: track.id,
-        trackSlug: track.trackSlug,
+        trackSlug: track.trackSlug ?? undefined,
         artistUsername: track.artist.username,
         title: track.title,
         artist: {
@@ -176,7 +176,7 @@ const toPlaylistTrackData = (playlist: PlaylistResponse): TrackData[] =>
             track.artist.avatarUrl || '/images/default_avatar_image_1.png',
         },
         cover: track.coverUrl || '/images/default_song_image_1.png',
-        coverUrl: track.coverUrl,
+        coverUrl: track.coverUrl ?? undefined,
         duration:
           typeof track.durationSeconds === 'number'
             ? formatDuration(track.durationSeconds)
@@ -240,7 +240,7 @@ export const toMessagePlaylistData = (
     Array.isArray(playlist.tracks) &&
     playlist.tracks[0] &&
     'coverUrl' in playlist.tracks[0]
-      ? playlist.tracks[0].coverUrl
+      ? (playlist.tracks[0].coverUrl ?? undefined)
       : '/images/default_song_image_1.png'),
   trackCount: playlist.trackCount ?? playlist.tracks?.length ?? 0,
   tracks: toPlaylistTrackData(playlist),

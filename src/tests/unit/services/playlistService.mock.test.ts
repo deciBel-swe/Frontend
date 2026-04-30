@@ -9,7 +9,7 @@ const advance = async (ms = 400) => {
   await jest.advanceTimersByTimeAsync(ms);
 };
 
-describe.skip('MockPlaylistService', () => {
+describe('MockPlaylistService', () => {
   let MockPlaylistService: MockPlaylistServiceCtor;
   const storage = new Map<string, string>();
 
@@ -61,6 +61,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
 
     await advance();
@@ -85,6 +86,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
@@ -123,6 +125,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: true,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
@@ -154,24 +157,27 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
 
     const addFirstPromise = service.addTrackToPlaylist(created.id, {
-      trackId: 101,
+      trackId: 1001,
     });
     await advance();
-    await addFirstPromise;
+    const addFirstResult = await addFirstPromise;
+    expect(addFirstResult.id).toBe(created.id);
+    expect(addFirstResult.tracks?.length).toBeGreaterThan(0);
 
     const addSecondPromise = service.addTrackToPlaylist(created.id, {
-      trackId: 102,
+      trackId: 1002,
     });
     await advance();
     await addSecondPromise;
 
     const reorderedPromise = service.reorderPlaylistTracks(created.id, {
-      trackIds: [102, 101],
+      trackIds: [1002, 1001],
     });
     await advance();
     const reordered = await reorderedPromise;
@@ -181,9 +187,9 @@ describe.skip('MockPlaylistService', () => {
         ? reorderedFirstTrack.id
         : reorderedFirstTrack.trackId
       : undefined;
-    expect(reorderedFirstTrackId).toBe(102);
+    expect(reorderedFirstTrackId).toBe(1002);
 
-    const removePromise = service.removeTrackFromPlaylist(created.id, 102);
+    const removePromise = service.removeTrackFromPlaylist(created.id, 1002);
     await advance();
     await removePromise;
 
@@ -192,7 +198,7 @@ describe.skip('MockPlaylistService', () => {
     const afterRemove = await afterRemovePromise;
     const hasRemovedTrack = afterRemove.tracks?.some((track) => {
       const trackId = 'id' in track ? track.id : track.trackId;
-      return trackId === 102;
+      return trackId === 1002;
     });
     expect(hasRemovedTrack).toBe(false);
   });
@@ -206,6 +212,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
@@ -230,6 +237,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
@@ -254,6 +262,7 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
@@ -273,12 +282,13 @@ describe.skip('MockPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: '',
+      genre: 'Electronic',
     });
     await advance();
     const created = await createPromise;
 
     const addTrackPromise = service.addTrackToPlaylist(created.id, {
-      trackId: 101,
+      trackId: 1001,
     });
     await advance();
     await addTrackPromise;
@@ -290,14 +300,14 @@ describe.skip('MockPlaylistService', () => {
     await advance();
     const tracksPage = await tracksPagePromise;
     expect(tracksPage.content.length).toBe(1);
-    expect(tracksPage.content[0].id).toBe(101);
+    expect(tracksPage.content[0].id).toBe(1001);
 
     const resolvePromise = service.resolvePlaylistSlug(created.playlistSlug ?? '');
     await advance();
     const resolved = await resolvePromise;
     expect(resolved).toEqual({
-      resourceType: 'PLAYLIST',
-      resourceId: created.id,
+      type: 'PLAYLIST',
+      id: created.id,
     });
   });
 
@@ -310,7 +320,7 @@ describe.skip('MockPlaylistService', () => {
     expect(Array.isArray(myPlaylists.content)).toBe(true);
     expect(myPlaylists.pageSize).toBe(5);
 
-    const userPlaylistsPromise = service.getUserPlaylists('mockartist', {
+    const userPlaylistsPromise = service.getUserPlaylists('user001', {
       page: 0,
       size: 5,
     });
@@ -319,7 +329,7 @@ describe.skip('MockPlaylistService', () => {
     expect(Array.isArray(userPlaylists.content)).toBe(true);
     expect(userPlaylists.pageSize).toBe(5);
 
-    const likedPlaylistsPromise = service.getUserLikedPlaylists('listenertwo', {
+    const likedPlaylistsPromise = service.getUserLikedPlaylists('user002', {
       page: 0,
       size: 5,
     });

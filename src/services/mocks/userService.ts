@@ -44,7 +44,7 @@ import type {
   PaginatedRepostResponseDTO,
   ResourceRefFullDTO,
 } from '@/types/discovery';
-import type { FullTrackDTO, TrackSummaryDTO } from '@/types/tracks';
+import type { FullTrackDTO } from '@/types/tracks';
 import type { FullPlaylistDTO } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -304,7 +304,7 @@ const buildFullTrack = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
+    trackSlug: track.trackSlug ?? `track-${track.id}`,
     artist,
     trackUrl: track.trackUrl,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -333,27 +333,6 @@ const buildFullTrack = (
     trackPreviewUrl: track.trackUrl,
   };
 };
-
-const toTrackSummary = (track: FullTrackDTO): TrackSummaryDTO => ({
-  id: track.id,
-  title: track.title,
-  trackSlug: track.trackSlug,
-  coverUrl: track.coverUrl ?? '',
-  trackUrl: track.trackUrl,
-  trackPreviewUrl: track.trackPreviewUrl,
-  artist: {
-    ...track.artist,
-    avatarUrl: track.artist.avatarUrl ?? '',
-  },
-  playCount: track.playCount,
-  likeCount: track.likeCount,
-  repostCount: track.repostCount,
-  commentCount: track.commentCount,
-  isLiked: track.isLiked,
-  isReposted: track.isReposted,
-  secretToken: track.secretToken,
-  access: track.access,
-});
 
 const findPlaylistOwner = (
   playlistId: number
@@ -403,7 +382,31 @@ const buildFullPlaylist = (
   const fullTracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
     .filter((item): item is FullTrackDTO => Boolean(item));
-  const tracks = fullTracks.map((item) => toTrackSummary(item));
+  const tracks = fullTracks.map((item) => ({
+    id: item.id,
+    title: item.title,
+    trackSlug: item.trackSlug,
+    coverUrl: item.coverUrl ?? item.trackPreviewUrl,
+    trackUrl: item.trackUrl,
+    trackPreviewUrl: item.trackPreviewUrl,
+    artist: {
+      id: item.artist.id,
+      username: item.artist.username,
+      displayName: item.artist.displayName,
+      avatarUrl: item.artist.avatarUrl ?? 'https://decibel.test/default-avatar.png',
+      isFollowing: item.artist.isFollowing,
+      followerCount: item.artist.followerCount,
+      trackCount: item.artist.trackCount,
+    },
+    playCount: item.playCount,
+    likeCount: item.likeCount,
+    repostCount: item.repostCount,
+    commentCount: item.commentCount,
+    isLiked: item.isLiked,
+    isReposted: item.isReposted,
+    secretToken: item.secretToken,
+    access: item.access,
+  }));
 
   const totalDurationSeconds = fullTracks.reduce(
     (total, item) => total + (item.trackDurationSeconds ?? 0),

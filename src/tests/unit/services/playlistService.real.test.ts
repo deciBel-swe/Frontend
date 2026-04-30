@@ -29,6 +29,7 @@ describe('RealPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: 'https://example.com/cover.jpg',
+      genre: 'Electronic',
     };
 
     const response = {
@@ -47,7 +48,12 @@ describe('RealPlaylistService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_CREATE,
-      { payload }
+      expect.objectContaining({
+        payload: expect.any(FormData),
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     );
   });
 
@@ -257,7 +263,10 @@ describe('RealPlaylistService', () => {
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({ method: 'POST', url: '/playlists/5/tracks' }),
-      { payload }
+      {
+        payload,
+        params: { trackId: 101 },
+      }
     );
 
     mockedApiRequest.mockResolvedValue(undefined);

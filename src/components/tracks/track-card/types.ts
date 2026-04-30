@@ -19,6 +19,7 @@ export type TrackCardTrack = {
   playlistSlug?: string;
   artistUsername?: string;
   secretToken?: string;
+  trackUrl?: string;
   artist: {
     username: string;
     displayName?: string;
@@ -28,6 +29,7 @@ export type TrackCardTrack = {
   cover: string;
   duration: string;
   waveformUrl?: string;
+  waveformData?: number[];
   plays?: number;
   comments?: number;
   createdAt?: string;

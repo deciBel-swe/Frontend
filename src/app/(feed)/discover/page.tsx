@@ -31,6 +31,17 @@ const QUEUE_LOOKAHEAD_PAGES = 4;
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 const DEFAULT_COVER = '/images/default_song_image.png';
 
+const normalizeOptionalText = (
+  value: string | null | undefined
+): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
 type DiscoverTrackSeed = {
   id: number;
   title?: string;
@@ -183,31 +194,31 @@ const loadPaginatedWindow = async <T,>(
 };
 
 const mapTrackCardToSeed = (card: TrackCardProps): DiscoverTrackSeed => {
-  const t = card.track;
+  const track = card.track;
+  const playback = card.playback;
 
   return {
-    id: t.id,
-    title: t.title,
-    trackSlug: t.trackSlug,
+    id: track.id,
+    title: track.title,
+    trackSlug: track.trackSlug ?? undefined,
     artist: {
-      username: t.artist.username,
-      displayName: t.artist.displayName,
-      avatarUrl: t.artist.avatar,
+      username: track.artist.username,
+      displayName: normalizeOptionalText(track.artist.displayName),
+      avatarUrl: track.artist.avatar ?? undefined,
     },
-    coverUrl: t.cover,
-    trackUrl: card.playback?.trackUrl ?? null,
-    access:
-      (card.playback?.access as 'PLAYABLE' | 'BLOCKED' | 'PREVIEW') ??
-      'PLAYABLE',
-    genre: t.genre,
-    playCount: t.plays,
-    likeCount: t.likeCount,
-    repostCount: t.repostCount,
-    isLiked: t.isLiked,
-    isReposted: t.isReposted,
-    durationSeconds: card.playback?.durationSeconds,
-    waveformData: card.waveform,
-    createdAt: t.createdAt,
+    coverUrl: track.cover ?? undefined,
+    trackUrl: playback?.trackUrl ?? track.trackUrl ?? undefined,
+    access: playback?.access,
+    genre: track.genre,
+    playCount: track.plays,
+    likeCount: track.likeCount,
+    repostCount: track.repostCount,
+    isLiked: track.isLiked,
+    isReposted: track.isReposted,
+    durationSeconds: playback?.durationSeconds,
+    waveformData:
+      playback?.waveformData ?? (track as { waveformData?: unknown }).waveformData,
+    createdAt: track.createdAt,
     postedText: 'posted a track',
   };
 };
@@ -220,10 +231,14 @@ const mapStationTrackToSeed = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
-    artist: track.artist,
-    coverUrl: track.coverUrl,
-    trackUrl: track.trackUrl,
+    trackSlug: track.trackSlug ?? undefined,
+    artist: {
+      username: track.artist.username,
+      displayName: normalizeOptionalText(track.artist.displayName),
+      avatarUrl: track.artist.avatarUrl ?? undefined,
+    },
+    coverUrl: track.coverUrl ?? undefined,
+    trackUrl: track.trackUrl ?? undefined,
     access: track.access,
     genre: (track as { genre?: string }).genre,
     playCount: track.playCount,
@@ -254,12 +269,12 @@ const buildTrackListItem = (
 ): TrackListItem => {
   const artistUsername =
     metadata?.artist.username ?? seed.artist?.username ?? 'unknown';
-  const artistDisplayName =
-    metadata?.artist.displayName?.trim() ||
-    seed.artist?.displayName?.trim() ||
-    undefined;
+  const artistDisplayName = normalizeOptionalText(
+    metadata?.artist.displayName ?? seed.artist?.displayName
+  );
   const artistAvatar =
-    metadata?.artist.avatarUrl ?? seed.artist?.avatarUrl ?? DEFAULT_AVATAR;
+    normalizeOptionalText(metadata?.artist.avatarUrl ?? seed.artist?.avatarUrl) ??
+    DEFAULT_AVATAR;
   const durationSeconds =
     metadata?.durationSeconds ?? seed.durationSeconds ?? undefined;
 
@@ -523,6 +538,7 @@ export default function Page() {
     trendingPage,
     trendingCards,
     trendingHookLoading,
+    trendingIsLast,
   ]);
 
   useEffect(() => {
@@ -837,11 +853,9 @@ export default function Page() {
     isLoadingLiked,
     isLoadingMoreTrending,
     isLoadingRecent,
-    isLoadingTrending,
     likedTracks.length,
     moreTrendingTracks.length,
     recentlyPlayedItems.length,
-    trendingTracks.length,
   ]);
 
   if (isAuthLoading) {
