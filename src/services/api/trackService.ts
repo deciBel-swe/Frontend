@@ -130,8 +130,16 @@ export interface TrackService {
   /** Get paginated list of tracks liked by current user (GET /users/me/liked-tracks) */
   getMyLikedTracks(params?: PaginationParams): Promise<paginatedTrackResponse>;
 
+  /** Get paginated list of tracks liked by a specific user (GET /users/{username}/liked-tracks) */
+  getUserLikedTracks(
+    username: string,
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse>;
+
   /** Get paginated list of tracks reposted by the current user (GET /users/me/reposts) */
-  getMyRepostedTracks(params?: PaginationParams): Promise<paginatedTrackResponse>;
+  getMyRepostedTracks(
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse>;
 }
 
 const DEFAULT_COVER_PATH = '/images/default-cover.jpg';
@@ -316,10 +324,7 @@ const ensureTrackUploadFields = (formData: FormData): string => {
   formData.set('uploadId', uploadId);
 
   const currentAccess = formData.get('access');
-  if (
-    typeof currentAccess !== 'string' ||
-    currentAccess.trim().length === 0
-  ) {
+  if (typeof currentAccess !== 'string' || currentAccess.trim().length === 0) {
     formData.set('access', DEFAULT_TRACK_UPLOAD_ACCESS);
   }
 
@@ -457,10 +462,12 @@ const openTrackUploadStatusStream = async (
       await client.deactivate();
     };
 
-    const completed = new Promise<UploadTrackResponse>((resolveStream, rejectStream) => {
-      resolveCompleted = resolveStream;
-      rejectCompleted = rejectStream;
-    });
+    const completed = new Promise<UploadTrackResponse>(
+      (resolveStream, rejectStream) => {
+        resolveCompleted = resolveStream;
+        rejectCompleted = rejectStream;
+      }
+    );
 
     const settleConnectionResolve = () => {
       if (connectionSettled) {
@@ -592,7 +599,10 @@ export class RealTrackService implements TrackService {
     onProgress: (progress: number) => void
   ): Promise<UploadTrackResponse> {
     const uploadId = ensureTrackUploadFields(formData);
-    const statusStream = await openTrackUploadStatusStream(uploadId, onProgress);
+    const statusStream = await openTrackUploadStatusStream(
+      uploadId,
+      onProgress
+    );
 
     try {
       const uploadStart = await apiRequest(API_CONTRACTS.TRACKS_UPLOAD, {
@@ -796,6 +806,15 @@ export class RealTrackService implements TrackService {
     params?: PaginationParams
   ): Promise<paginatedTrackResponse> {
     return apiRequest(API_CONTRACTS.ME_LIKED_TRACKS(), {
+      params: toQueryParams(params),
+    });
+  }
+
+  async getUserLikedTracks(
+    username: string,
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
+    return apiRequest(API_CONTRACTS.USER_LIKED_TRACKS(username), {
       params: toQueryParams(params),
     });
   }

@@ -75,7 +75,13 @@ export default function MinimalTrackCard({
       {
         id: item.track.id,
         title: item.track.title,
-        trackUrl: item.trackUrl,
+        trackUrl:
+          (item.access === 'PREVIEW'
+            ? item.trackPreviewUrl
+            : item.trackUrl) ??
+          item.trackUrl ??
+          item.trackPreviewUrl ??
+          '',
         artist: item.track.artist,
         coverUrl: item.track.cover,
         waveformData: item.waveform,

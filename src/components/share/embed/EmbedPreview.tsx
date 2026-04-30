@@ -34,6 +34,10 @@ interface EmbedPreviewProps {
   onWaveformSeek?: (fraction: number) => void;
 }
 
+type EmbedPlayerProps = EmbedPreviewProps & {
+  className?: string;
+};
+
 function PlayBtn({ color, size = 36, isPlaying = false }: { color: string; size?: number; isPlaying?: boolean }) {
   return (
     <div
@@ -297,7 +301,7 @@ const PREVIEW_MAP: Record<EmbedStyle, FC<PreviewComponentProps>> = {
   text: TextPreview,
 };
 
-export const EmbedPreview: FC<EmbedPreviewProps> = ({
+export const EmbedPlayer: FC<EmbedPlayerProps> = ({
   config,
   title,
   artist,
@@ -310,16 +314,14 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
   durationSeconds = 1,
   onPlayPause,
   onWaveformSeek,
+  className,
 }) => {
   const PreviewComponent = PREVIEW_MAP[config.style];
   const resolvedSamples = useWaveformData(waveformData, waveformUrl);
   const waveformForPreview = resolvedSamples.length > 0 ? resolvedSamples : FALLBACK_WAVEFORM;
 
   return (
-    <div>
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
-        Preview
-      </p>
+    <div className={className}>
       <PreviewComponent
         title={title}
         artist={artist}
@@ -333,6 +335,17 @@ export const EmbedPreview: FC<EmbedPreviewProps> = ({
         onPlayPause={onPlayPause}
         onWaveformSeek={onWaveformSeek}
       />
+    </div>
+  );
+};
+
+export const EmbedPreview: FC<EmbedPreviewProps> = (props) => {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
+        Preview
+      </p>
+      <EmbedPlayer {...props} />
     </div>
   );
 };

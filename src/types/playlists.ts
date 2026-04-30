@@ -19,9 +19,10 @@ export type PlaylistType = z.infer<typeof playlistTypeSchema>;
 export const createPlaylistRequestSchema = z.object({
   title: z.string().trim().min(1),
   description: z.string().optional(),
-  type: playlistTypeSchema,
-  isPrivate: z.boolean(),
+  type: playlistTypeSchema.optional(),
+  isPrivate: z.boolean().optional(),
   CoverArt: z.string().optional(),
+  genre: z.string().min(1),
 });
 export type CreatePlaylistRequest = z.infer<
   typeof createPlaylistRequestSchema
@@ -302,27 +303,57 @@ export type PlaylistRepostResponse = z.infer<typeof playlistRepostResponseSchema
 // Playlist Pagination
 // ================================
 
+const paginatedPlaylistsObjectSchema = z.object({
+  content: z.array(playlistResponseSchema),
+  // Support both Spring Page naming (number/size/last) and legacy naming (pageNumber/pageSize/isLast)
+  pageNumber: z.number().int().nonnegative().optional(),
+  number: z.number().int().nonnegative().optional(),
+  pageSize: z.number().int().nonnegative().optional(),
+  size: z.number().int().nonnegative().optional(),
+  totalElements: z.number().int().nonnegative().optional(),
+  totalPages: z.number().int().nonnegative().optional(),
+  isLast: z.boolean().optional(),
+  last: z.boolean().optional(),
+});
+
 export const paginatedPlaylistsResponseSchema = z
-  .object({
-    content: z.array(playlistResponseSchema),
-    // Support both Spring Page naming (number/size/last) and legacy naming (pageNumber/pageSize/isLast)
-    pageNumber: z.number().int().nonnegative().optional(),
-    number: z.number().int().nonnegative().optional(),
-    pageSize: z.number().int().nonnegative().optional(),
-    size: z.number().int().nonnegative().optional(),
-    totalElements: z.number().int().nonnegative().optional(),
-    totalPages: z.number().int().nonnegative().optional(),
-    isLast: z.boolean().optional(),
-    last: z.boolean().optional(),
-  })
-  .transform((data) => ({
-    content: data.content,
-    pageNumber: data.pageNumber ?? data.number ?? 0,
-    pageSize: data.pageSize ?? data.size ?? data.content.length,
-    totalElements: data.totalElements ?? data.content.length,
-    totalPages: data.totalPages ?? 1,
-    isLast: data.isLast ?? data.last ?? true,
-  }));
+  .union([
+    playlistResponseSchema,
+    z.array(playlistResponseSchema),
+    paginatedPlaylistsObjectSchema,
+  ])
+  .transform((data) => {
+    if (!Array.isArray(data) && 'id' in data) {
+      return {
+        content: [data],
+        pageNumber: 0,
+        pageSize: 1,
+        totalElements: 1,
+        totalPages: 1,
+        isLast: true,
+      };
+    }
+
+    if (Array.isArray(data)) {
+      return {
+        content: data,
+        pageNumber: 0,
+        pageSize: data.length,
+        totalElements: data.length,
+        totalPages: data.length > 0 ? 1 : 0,
+        isLast: true,
+      };
+    }
+
+    return {
+      content: data.content,
+      pageNumber: data.pageNumber ?? data.number ?? 0,
+      pageSize: data.pageSize ?? data.size ?? data.content.length,
+      totalElements: data.totalElements ?? data.content.length,
+      totalPages: data.totalPages ?? (data.content.length > 0 ? 1 : 0),
+      isLast: data.isLast ?? data.last ?? true,
+    };
+  });
 export type PaginatedPlaylistsResponse = z.infer<
   typeof paginatedPlaylistsResponseSchema
 >;

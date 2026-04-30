@@ -1,5 +1,7 @@
 import type {
   DiscoveryService,
+  ArtistStationParams,
+  GenreStationParams,
   PaginationParams,
   SearchRequestOptions,
   SearchParams,
@@ -50,6 +52,9 @@ const paginate = <T>(items: T[], params?: PaginationParams) => {
     isLast,
   };
 };
+
+const normalizeGenre = (value: string | undefined | null): string =>
+  value?.trim().toLowerCase() ?? '';
 
 type StrictUserSummaryDTO = {
   [key: string]: unknown;
@@ -108,11 +113,12 @@ const buildTrackSummary = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
+    trackSlug: track.trackSlug || `track-${track.id}`,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
     trackUrl: track.trackUrl,
     trackPreviewUrl: track.trackUrl,
     artist: buildUserSummary(track.artist.id),
+    genre: track.genre,
     playCount: (track.likes ?? track.likeCount) * 25,
     likeCount: track.likes ?? track.likeCount,
     repostCount: track.reposters ?? track.repostCount,
@@ -125,6 +131,8 @@ const buildTrackSummary = (
       ownerId: track.artist.id,
       viewerId,
     }),
+    trackDurationSeconds: track.durationSeconds ?? 0,
+    waveformUrl: track.waveformUrl ?? '',
   };
 };
 
@@ -162,7 +170,19 @@ const buildPlaylistSummary = (
       trackCount: tracks.length,
       owner: buildUserSummary(user.id),
       genre: 'playlist-genre',
-      tracks,
+      tracks: tracks.map((track) => ({
+        ...track,
+        trackSlug: track.trackSlug || `track-${track.id}`,
+        coverUrl: track.coverUrl || '/images/default_song_image.png',
+        trackUrl: track.trackUrl || '',
+        trackPreviewUrl: track.trackPreviewUrl || track.trackUrl || '',
+        artist: {
+          ...track.artist,
+          displayName: track.artist.displayName?.trim() || track.artist.username,
+          avatarUrl: track.artist.avatarUrl?.trim() || '/images/default_avatar.png',
+        },
+        secretToken: track.secretToken || '',
+      })),
       secretToken: playlist.secretLink ?? '',
     };
   }
@@ -181,11 +201,33 @@ const buildResourceForTrack = (
 
   return {
     type: 'TRACK',
+    id: trackId,
     playlist: null,
     track: {
       ...(summary as unknown as FullTrackDTO),
-      waveformUrl:
-        getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
+      trackSlug: summary.trackSlug || `track-${trackId}`,
+      coverUrl:
+        summary.coverUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.coverUrl ??
+        '/images/default_song_image.png',
+      trackUrl:
+        summary.trackUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ??
+        '',
+      trackPreviewUrl:
+        summary.trackPreviewUrl ??
+        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ??
+        '',
+      artist: {
+        ...summary.artist,
+        displayName:
+          summary.artist.displayName?.trim() ||
+          summary.artist.username,
+        avatarUrl:
+          summary.artist.avatarUrl?.trim() ||
+          '/images/default_avatar.png',
+      },
+      waveformUrl: getMockTracksStore().find((t) => t.id === trackId)?.waveformUrl ?? '',
       genre: getMockTracksStore().find((t) => t.id === trackId)?.genre ?? '',
       isReposted: false,
       isLiked: false,
@@ -198,9 +240,16 @@ const buildResourceForTrack = (
       repostCount:
         getMockTracksStore().find((t) => t.id === trackId)?.reposters ?? 0,
       commentCount: 0,
-      isPrivate: Boolean(getMockTracksStore().find((t) => t.id === trackId)?.isPrivate),
-      trackDurationSeconds: getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ?? 0,
-      uploadDate: getMockTracksStore().find((t) => t.id === trackId)?.uploadDate ?? getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ?? '',
+      isPrivate: Boolean(
+        getMockTracksStore().find((t) => t.id === trackId)?.isPrivate
+      ),
+      trackDurationSeconds:
+        getMockTracksStore().find((t) => t.id === trackId)?.durationSeconds ??
+        0,
+      uploadDate:
+        getMockTracksStore().find((t) => t.id === trackId)?.uploadDate ??
+        getMockTracksStore().find((t) => t.id === trackId)?.releaseDate ??
+        '',
       description: '',
       trendingRank: 0,
       access: resolveMockResourceAccess({
@@ -211,10 +260,7 @@ const buildResourceForTrack = (
           getMockTracksStore().find((t) => t.id === trackId)?.artist.id ?? 0,
         viewerId,
       }),
-      secretToken:
-        getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
-      trackPreviewUrl:
-        getMockTracksStore().find((t) => t.id === trackId)?.trackUrl ?? '',
+      secretToken: getMockTracksStore().find((t) => t.id === trackId)?.secretLink ?? '',
     },
     user: null,
   };
@@ -390,10 +436,9 @@ export class MockDiscoveryService implements DiscoveryService {
   ): Promise<TrendingTracksResponseDTO> {
     await delay();
 
-    const limit = Math.max(1, Math.min(50, params?.limit ?? 20));
     const viewerId = resolveCurrentMockUserId();
 
-    const tracks = [...getMockTracksStore()]
+    const allTracks = [...getMockTracksStore()]
       .filter((track) =>
         canAccessMockResource({
           isPrivate: track.isPrivate,
@@ -404,24 +449,37 @@ export class MockDiscoveryService implements DiscoveryService {
       .sort(
         (a, b) => (b.likes ?? b.likeCount ?? 0) - (a.likes ?? a.likeCount ?? 0)
       )
-      .slice(0, limit)
-      .map((track, index) => {
-        const resource = buildResourceForTrack(track.id, viewerId);
-        if (resource?.track) {
-          resource.track.trendingRank = index + 1;
-        }
-        return resource;
-      })
-      .filter((resource): resource is ResourceRefFullDTO => Boolean(resource));
+      .map((track) => ({
+        ...track,
+        type: 'TRACK' as const,
+        releaseDate: new Date(track.releaseDate),
+        uploadDate: track.uploadDate ? new Date(track.uploadDate) : undefined,
+        access: resolveMockResourceAccess({
+          isPrivate: track.isPrivate,
+          ownerId: track.artist.id,
+          viewerId,
+        }),
+        commentCount: 0,
+        completedPlayCount: 0,
+        trackDurationSeconds: track.durationSeconds ?? 0,
+        trackPreviewUrl: track.trackUrl ?? null,
+        trackSlug: track.trackSlug,
+        trackUrl: track.trackUrl ?? null,
+        waveformUrl: track.waveformUrl ?? '',
+      }));
 
-    return tracks;
+    return paginate(allTracks, {
+      page: params?.page,
+      size: params?.size ?? params?.limit ?? 20,
+    });
   }
 
   async getGenreStation(
-    params?: PaginationParams
+    params: GenreStationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
     const viewerId = resolveCurrentMockUserId();
+    const requestedGenre = normalizeGenre(params.genre);
     const items = getMockTracksStore()
       .filter((track) =>
         canAccessMockResource({
@@ -429,6 +487,11 @@ export class MockDiscoveryService implements DiscoveryService {
           ownerId: track.artist.id,
           viewerId,
         })
+      )
+      .filter((track) =>
+        requestedGenre.length > 0
+          ? normalizeGenre(track.genre) === requestedGenre
+          : true
       )
       .map((track, index) => ({
         id: track.id,
@@ -451,7 +514,7 @@ export class MockDiscoveryService implements DiscoveryService {
   }
 
   async getArtistStation(
-    params?: PaginationParams
+    params: ArtistStationParams
   ): Promise<PaginatedStationResponseDTO> {
     await delay();
     const viewerId = resolveCurrentMockUserId();
@@ -463,6 +526,7 @@ export class MockDiscoveryService implements DiscoveryService {
           viewerId,
         })
       )
+      .filter((track) => track.artist.id === params.artistId)
       .map((track, index) => ({
         id: track.id,
         type: 'TRACK' as const,

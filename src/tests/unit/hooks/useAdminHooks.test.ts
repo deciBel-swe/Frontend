@@ -263,6 +263,7 @@ describe('admin hooks', () => {
       totalPlays: 100,
       playThroughRate: 0.42,
       totalStorageUsedBytes: 2048,
+      totalStorageCapacityBytes: 4096,
       bannedUserCount: 1,
     };
 
@@ -297,6 +298,7 @@ describe('admin hooks', () => {
       totalPlays: 100,
       playThroughRate: 0.42,
       totalStorageUsedBytes: 2048,
+      totalStorageCapacityBytes: 4096,
       bannedUserCount: 1,
     };
     const rawError = new Error('analytics failed');

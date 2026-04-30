@@ -163,3 +163,4 @@ export { useTrackLayoutPreference } from './useTrackLayoutPreference';
  */
 export { useFeedSidebar } from './useFeedSidebar';
 export { useProfileSidebar } from './useProfileSidebar';
+export { useTrendingTracks } from './useTrendingTracks';

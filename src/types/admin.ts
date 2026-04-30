@@ -159,6 +159,7 @@ export const platformAnalyticsResponseSchema = z.preprocess((payload) => {
   totalPlays: z.number().int().nonnegative(),
   playThroughRate: z.number().nonnegative(),
   totalStorageUsedBytes: z.number().int().nonnegative(),
+  totalStorageCapacityBytes: z.number().int().nonnegative(),
   bannedUserCount: z.number().int().nonnegative(),
 }));
 export type PlatformAnalyticsResponse = z.infer<

@@ -71,10 +71,14 @@ export function buildIframeCode(config: EmbedConfig): string {
   return `<iframe width="100%" height="${config.height}" scrolling="no" frameborder="no" allow="autoplay" src="${embedUrl}" ></iframe>`;
 }
 function buildEmbedUrl(config: EmbedConfig): string {
-  const base = appConfig.api.appUrl;
+  const base =
+    typeof window !== 'undefined' && window.location.origin
+      ? window.location.origin
+      : appConfig.api.appUrl;
   const baseUrl = `${base}/embed/player`;
   const params = new URLSearchParams({
-    trackId: config.resourceUrl, // resourceUrl holds the track ID
+    url: config.resourceUrl,
+    style: config.style,
     color: config.color.replace('#', ''),
     auto_play: String(config.autoPlay),
     hide_related: String(!config.showRecommendations),

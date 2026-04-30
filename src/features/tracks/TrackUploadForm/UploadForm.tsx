@@ -1,7 +1,8 @@
 'use client';
 
-import type { TrackPrivacyValue } from '@/types/tracks';
+import type { TrackAccess, TrackPrivacyValue } from '@/types/tracks';
 import ArtworkPreviewField from '@/features/tracks/TrackUploadForm/FormFields/ArtworkPreviewField';
+import TrackAccessField from '@/features/tracks/TrackUploadForm/FormFields/TrackAccessField';
 import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTextField';
 import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
@@ -39,6 +40,8 @@ interface UploadFormProps {
   onReleaseDateChange?: (value: string) => void;
   releaseDateMax?: string;
   showReleaseDate?: boolean;
+  access: TrackAccess;
+  onAccessChange: (value: TrackAccess) => void;
   privacy: TrackPrivacyValue;
   onPrivacyChange: (value: TrackPrivacyValue) => void;
 }
@@ -73,6 +76,8 @@ export default function UploadForm({
   onReleaseDateChange,
   releaseDateMax,
   showReleaseDate = false,
+  access,
+  onAccessChange,
   privacy,
   onPrivacyChange,
 }: UploadFormProps) {
@@ -183,6 +188,9 @@ export default function UploadForm({
                     maxDate={releaseDateMax}
                   />
                 ) : null}
+                <div>
+                  <TrackAccessField value={access} onChange={onAccessChange} />
+                </div>
                 <div>
                   <TrackPrivacy value={privacy} onChange={onPrivacyChange} />
                 </div>

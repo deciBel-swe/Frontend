@@ -26,6 +26,7 @@ const nullableStringWithDefault = (defaultValue: string) =>
   }, z.string());
 
 export const trackAccessSchema = z.enum(['BLOCKED', 'PREVIEW', 'PLAYABLE']);
+export type TrackAccess = z.infer<typeof trackAccessSchema>;
 // ================================
 // Track Upload
 // ================================
@@ -65,8 +66,8 @@ export const uploadTrackResponseSchema = z
         avatarUrl: z.string().trim().min(1).optional().nullable(),
       })
       .passthrough(),
-    trackUrl: z.string().trim().min(1),
-    trackPreviewUrl: z.string().trim().min(1),
+    trackUrl: z.string().trim().min(1).nullable().optional(),
+    trackPreviewUrl: z.string().trim().min(1).nullable().optional(),
     coverUrl: trackImageWithDefault,
     waveformUrl: z.string().trim().min(1),
     genre: z.string().trim().min(1),
@@ -88,6 +89,8 @@ export const uploadTrackResponseSchema = z
   })
   .transform((payload) => ({
     ...payload,
+    trackUrl: payload.trackUrl ?? payload.trackPreviewUrl ?? '',
+    trackPreviewUrl: payload.trackPreviewUrl ?? payload.trackUrl,
     durationSeconds: payload.trackDurationSeconds,
   }));
 export type UploadTrackResponse = z.infer<typeof uploadTrackResponseSchema>;
@@ -387,15 +390,15 @@ export const trackSummarySchema = z
   .object({
     id: z.number().int().nonnegative(),
     title: z.string().trim().min(1),
-    trackSlug: z.string().trim().min(1),
-    coverUrl: z.string().url(),
-    trackUrl: z.string().url(),
-    trackPreviewUrl: z.string().url(),
+    trackSlug: z.string().trim().min(1).nullable().optional(),
+    coverUrl: z.string().url().nullable().optional(),
+    trackUrl: z.string().url().nullable().optional(),
+    trackPreviewUrl: z.string().url().nullable().optional(),
     artist: z.object({
       id: z.number().int().nonnegative(),
       username: z.string().trim().min(1),
-      displayName: z.string().trim().min(1),
-      avatarUrl: z.string().url(),
+      displayName: z.string().trim().min(1).nullable().optional(),
+      avatarUrl: z.string().url().nullable().optional(),
       isFollowing: z.boolean(),
       followerCount: z.number().int().nonnegative(),
       trackCount: z.number().int().nonnegative(),
@@ -406,7 +409,7 @@ export const trackSummarySchema = z
     commentCount: z.number().int().nonnegative(),
     isLiked: z.boolean(),
     isReposted: z.boolean(),
-    secretToken: z.string().trim(),
+    secretToken: z.string().trim().nullable().optional(),
     access: trackAccessSchema,
   })
   .passthrough();

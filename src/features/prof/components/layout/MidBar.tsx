@@ -16,6 +16,7 @@ interface MidBarProps {
 }
 
 const MidBar = ({ username }: MidBarProps) => {
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -34,6 +35,11 @@ const buttonBase =
   const isOwnerStateLoading = ownerContext?.isOwnerLoading ?? false;
   const targetProfile = ownerContext?.publicUser?.profile;
   const targetUserId = targetProfile?.id;
+  const showStablePlaceholder = !hasHydrated || isOwnerStateLoading;
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     setIsFollowing(targetProfile?.isFollowed ?? false);
@@ -55,9 +61,8 @@ const buttonBase =
         : await userService.unfollowUser(targetUserId);
       setIsFollowing(response.isFollowing);
        
-    } catch(error) {
+    } catch {
       setIsFollowing(previousFollowing);
-      throw error;
     } finally {
       setIsFollowPending(false);
     }
@@ -80,9 +85,8 @@ const buttonBase =
         await userService.unblockUser(targetUserId);
       }
        
-    } catch(error) {
+    } catch {
       setIsBlocked(previousBlocked);
-      throw error;
     } finally {
       setIsBlockPending(false);
     }
@@ -105,7 +109,11 @@ const buttonBase =
           </IconButton>
         )} */}
 
-        {isOwnProfile && (
+        {showStablePlaceholder ? (
+          <div className="h-10 w-40 rounded-md border border-border-strong bg-bg-subtle/40" />
+        ) : null}
+
+        {!showStablePlaceholder && isOwnProfile && (
           <IconButton aria-label="edit" onClick={() => setIsEditOpen(true)}>
             <span
               className={`${buttonBase} bg-bg-subtle text-text-muted dark:text-text-secondary`}
@@ -116,7 +124,7 @@ const buttonBase =
           </IconButton>
         )}
 
-        {!isOwnProfile && !isOwnerStateLoading && (
+        {!showStablePlaceholder && !isOwnProfile && (
           <>
             <FollowButton
               size='md'

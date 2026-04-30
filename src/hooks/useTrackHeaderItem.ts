@@ -20,11 +20,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 type UseTrackHeaderItemParams = {

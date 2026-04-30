@@ -196,6 +196,7 @@ export default function TrackCardRoot({
             repostedBySlug={repostedBySlug}
             repostedByDisplayName={repostedByDisplayName}
             isBlocked={isBlocked}
+            access={playback?.access}
             hasPlayback={Boolean(playback)}
             isCurrentTrackPlaying={isCurrentTrackPlaying}
             onPlayClick={handlePlayFromCard}
@@ -275,14 +276,12 @@ export default function TrackCardRoot({
         routeTrackId={routeTrackId}
         trackNumericId={track.id}
         isPrivate={resolvedIsPrivate}
-            track={{
-      ...track,
-      // Fields required by the Embed tab's playable preview
-      trackNumericId: track.id,           // numeric id for PlayerTrack
-      trackUrl: playback?.trackUrl,       // streaming URL
-      waveformData: resolvedWaveform,     // already resolved by useWaveformData
-      waveformUrl: track.waveformUrl,     // fallback fetch URL (may be undefined)
-    }}
+        track={{
+          ...track,
+          trackUrl: playback?.trackUrl,
+          waveformData: resolvedWaveform,
+          waveformUrl: track.waveformUrl,
+        }}
         editOpen={editOpen}
         isShareOpen={isShareOpen}
         isPlaylistModalOpen={isPlaylistModalOpen}
@@ -293,12 +292,12 @@ export default function TrackCardRoot({
         setActiveTab={setActiveTab}
       />
       <ReportModal
-            isOpen={isReportOpen}
-            target="track"
-            isSubmitting={isReportSubmitting}
-            onClose={closeReport}
-            onSubmit={submitReport}
-          />
+        isOpen={isReportOpen}
+        target="track"
+        isSubmitting={isReportSubmitting}
+        onClose={closeReport}
+        onSubmit={submitReport}
+      />
     </div>
   );
 }
