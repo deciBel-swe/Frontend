@@ -371,7 +371,10 @@ export default function PlaylistPage() {
             );
           }
 
-          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(id);
+          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(
+            id,
+            username
+          );
           return normalizePlaylistResponse(
             await playlistService.getPlaylist(resolvedPlaylistId)
           );
