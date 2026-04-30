@@ -118,8 +118,8 @@ import {
 import {
   paginatedNotificationsResponseSchema,
   notificationSettingsDTOSchema,
-  registerDeviceTokenRequestSchema,
   unreadCountResponseSchema,
+  registerDeviceTokenSchema,
 } from './notification';
 /** Supported HTTP verbs for endpoint contracts. */
 export type ApiHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -813,12 +813,12 @@ export const API_CONTRACTS = {
   }),
 
   DEVICE_TOKEN_REGISTER: defineContract<
-    z.infer<typeof registerDeviceTokenRequestSchema>,
+    z.infer<typeof registerDeviceTokenSchema>,
     z.infer<typeof messageResponseSchema>
   >({
     method: 'POST',
-    url: API_ENDPOINTS.NOTIFICATIONS.DEVICE_TOKEN,
-    requestSchema: registerDeviceTokenRequestSchema,
+    url: API_ENDPOINTS.USERS.DEVICE_TOKENS,
+    requestSchema: registerDeviceTokenSchema,
     responseSchema: messageResponseSchema,
   }),
 

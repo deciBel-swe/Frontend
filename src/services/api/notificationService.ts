@@ -16,13 +16,13 @@ import {
   syncRealtimeNotificationSettings,
 } from '@/services/firebase/realtimeSocial';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import type { MessageResponse } from '@/types/user';
 import type {
   NotificationDTO,
   NotificationSettingsDTO,
-  RegisterDeviceTokenRequest,
   UnreadCountResponse,
+  RegisterDeviceTokenRequest,
 } from '@/types/notification';
+import type { MessageResponse } from '@/types/user';
 
 type FirestoreRecord = Record<string, unknown>;
 
@@ -36,10 +36,19 @@ export interface PaginationParams {
  *
  * Manages notification functionality with hybrid Firebase + REST API approach:
  * - Real-time notifications from Firestore
- * - Notification settings and device tokens via REST API
+ * - Notification settings via REST API
  * - Proper respect for user notification preferences
  */
 export interface NotificationService {
+  /**
+   * Register a device token for push notifications
+   *
+   * @param payload - The device token payload
+   */
+  registerDeviceToken(
+    payload: RegisterDeviceTokenRequest
+  ): Promise<MessageResponse>;
+
   /**
    * Subscribe to real-time notifications
    *
@@ -125,20 +134,6 @@ export interface NotificationService {
   updateNotificationSettings(
     payload: NotificationSettingsDTO
   ): Promise<NotificationSettingsDTO>;
-
-  /**
-   * Register device token for push notifications
-   *
-   * Registers a device token (Firebase messaging token) with the backend
-   * for receiving push notifications on mobile/desktop.
-   *
-   * @param payload - Device token and device type
-   * @returns Promise resolving to success response
-   * @throws {Error} If API request fails
-   */
-  registerDeviceToken(
-    payload: RegisterDeviceTokenRequest
-  ): Promise<MessageResponse>;
 }
 
 const DEFAULT_PAGINATION: Required<PaginationParams> = {

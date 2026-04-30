@@ -77,12 +77,8 @@ export type NotificationSettingsDTO = z.infer<
   typeof notificationSettingsDTOSchema
 >;
 
-export const deviceTypeSchema = z.enum(['DESKTOP', 'MOBILE', 'TABLET', 'WEB']);
-
-export const registerDeviceTokenRequestSchema = z.object({
-  token: z.string().min(1),
-  deviceType: deviceTypeSchema,
+export const registerDeviceTokenSchema = z.object({
+  token: z.string(),
+  deviceType: z.enum(['WEB', 'ANDROID', 'IOS']).default('WEB'),
 });
-export type RegisterDeviceTokenRequest = z.infer<
-  typeof registerDeviceTokenRequestSchema
->;
+export type RegisterDeviceTokenRequest = z.infer<typeof registerDeviceTokenSchema>;

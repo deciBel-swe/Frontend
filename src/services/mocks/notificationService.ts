@@ -1,9 +1,7 @@
 import type {
   NotificationDTO,
   NotificationSettingsDTO,
-  RegisterDeviceTokenRequest,
 } from '@/types/notification';
-import type { MessageResponse } from '@/types/user';
 import type {
   NotificationService,
   PaginationParams,
@@ -145,8 +143,8 @@ export class MockNotificationService implements NotificationService {
   }
 
   async registerDeviceToken(
-    _payload: RegisterDeviceTokenRequest
-  ): Promise<MessageResponse> {
-    return { message: 'Token registered successfully' };
+    _payload: import('@/types/notification').RegisterDeviceTokenRequest
+  ): Promise<import('@/types/user').MessageResponse> {
+    return { message: 'Token registered' };
   }
 }

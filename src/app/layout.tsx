@@ -3,8 +3,9 @@ import { Suspense } from 'react';
 
 import { AuthProvider } from '@/features/auth';
 import FirebaseSessionBridge from '@/features/auth/components/FirebaseSessionBridge';
-import NotificationDeviceRegistration from '@/features/notif/components/NotificationDeviceRegistration';
+
 import { ThemeProvider } from '@/providers/ThemeProvider';
+
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
@@ -88,7 +89,6 @@ export default function RootLayout({
                        QueryClient on the client side.*/}
                   <QueryProvider>
                     <FirebaseSessionBridge />
-                    <NotificationDeviceRegistration />
                     {children}
                     {/*
                       Persistent global player runtime.

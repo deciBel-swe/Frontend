@@ -153,14 +153,23 @@ export const getCurrentRealtimeActor = (): RealtimeActor | null => {
 export const getCurrentRealtimeUserId = (): number | null =>
   getStoredLoginUser()?.id ?? null;
 
+let hasFailedAuth = false;
+
 export const ensureRealtimeSession = async (): Promise<void> => {
-  if (!auth || auth.currentUser) {
+  if (!auth || auth.currentUser || hasFailedAuth) {
+    if (hasFailedAuth) {
+      console.warn('Firebase Anonymous Auth is disabled. Real-time features will not work until enabled in Firebase Console.');
+    }
     return;
   }
 
   if (!pendingRealtimeSession) {
     pendingRealtimeSession = signInAnonymously(auth)
       .then(() => undefined)
+      .catch((error) => {
+        hasFailedAuth = true;
+        console.warn('Firebase Auth failed. Please ensure "Anonymous" sign-in provider is enabled in Firebase Console:', error.message);
+      })
       .finally(() => {
         pendingRealtimeSession = null;
       });

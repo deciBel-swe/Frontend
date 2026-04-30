@@ -1,166 +1,107 @@
+import { apiRequest } from '@/hooks/useAPI';
 import { FirebaseMessageService } from '@/services/api/messageService';
-import {
-  onSnapshot,
-  addDoc,
-  setDoc,
-  doc,
-  collection,
-  query,
-  orderBy,
-  getDoc,
-  getDocs,
-  writeBatch,
-} from 'firebase/firestore';
-import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
+import { API_CONTRACTS } from '@/types/apiContracts';
+import { onMessage } from 'firebase/messaging';
 
-// Mock Firebase SDK
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(),
-  collection: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  onSnapshot: jest.fn(),
-  addDoc: jest.fn(),
-  setDoc: jest.fn(),
-  doc: jest.fn(),
-  getDoc: jest.fn(),
-  getDocs: jest.fn(),
-  writeBatch: jest.fn(() => ({
-    update: jest.fn(),
-    commit: jest.fn().mockResolvedValue(undefined),
-  })),
-  serverTimestamp: jest.fn(() => 'mock-timestamp'),
+jest.mock('@/hooks/useAPI', () => ({
+  apiRequest: jest.fn(),
+}));
+
+jest.mock('firebase/messaging', () => ({
+  onMessage: jest.fn(),
+  getToken: jest.fn(),
 }));
 
 jest.mock('@/lib/firebase', () => ({
-  db: {},
+  messaging: {},
 }));
 
-const mockCreateRealtimeNotification = jest.fn();
-const mockGetCurrentRealtimeActor = jest.fn(() => ({
-  id: 1,
-  username: 'testuser',
-  displayName: 'Test User',
-  avatarUrl: null,
-}));
+const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
+const mockedOnMessage = onMessage as jest.MockedFunction<typeof onMessage>;
 
-jest.mock('@/services/firebase/realtimeSocial', () => ({
-  createRealtimeNotification: (...args: unknown[]) =>
-    mockCreateRealtimeNotification(...args),
-  ensureRealtimeSession: jest.fn(() => Promise.resolve()),
-  getCurrentRealtimeActor: () => mockGetCurrentRealtimeActor(),
-}));
-
-describe('FirebaseMessageService (Real)', () => {
+describe('FirebaseMessageService (REST + FCM)', () => {
   let service: FirebaseMessageService;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     service = new FirebaseMessageService();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should call onSnapshot when subscribing to inbox', async () => {
+  it('calls API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS when subscribing to inbox', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+    });
     const onUpdate = jest.fn();
     const onError = jest.fn();
 
     service.subscribeToInbox(1, onUpdate, onError);
-    await Promise.resolve();
 
-    expect(onSnapshot).toHaveBeenCalled();
-    expect(query).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations');
+    // Wait for the async fetch to resolve
+    await new Promise(process.nextTick);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS
+    );
+    expect(mockedOnMessage).toHaveBeenCalled();
   });
 
-  it('should call onSnapshot when subscribing to chat', async () => {
+  it('calls API_CONTRACTS.MESSAGES_LIST_MESSAGES when subscribing to chat', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+    });
     const onUpdate = jest.fn();
     const onError = jest.fn();
-    
-    service.subscribeToChat('conv_1', onUpdate, onError);
-    await Promise.resolve();
 
-    expect(onSnapshot).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
+    service.subscribeToChat('conv_1', onUpdate, onError);
+
+    await new Promise(process.nextTick);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_LIST_MESSAGES('conv_1')
+    );
+    expect(mockedOnMessage).toHaveBeenCalled();
   });
 
-  it('should call addDoc when sending a message', async () => {
-    const payload: SendMessageRequest = { body: 'Real test message' };
-    const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
-    
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        participantIds: ['1', '2'],
-        unreadCounts: { '1': 0, '2': 0 },
-        manuallyUnreadBy: { '1': false, '2': false },
-      }),
-    });
-    (addDoc as jest.Mock).mockResolvedValueOnce({ id: 'new_msg_id' });
+  it('calls API_CONTRACTS.MESSAGES_SEND when sending a message', async () => {
+    mockedApiRequest.mockResolvedValue({ id: 1 });
 
-    await service.sendMessage('conv_1', payload, user);
+    await service.sendMessage(
+      '2',
+      { body: 'Hello' },
+      { id: 1, username: 'testuser' }
+    );
 
-    expect(addDoc).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
-    
-    const sentData = (addDoc as jest.Mock).mock.calls[0][1];
-    expect(sentData.content).toBe('Real test message');
-    expect(sentData.sender.id).toBe(1);
-    expect(mockCreateRealtimeNotification).toHaveBeenCalledWith(
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_SEND('2'),
       expect.objectContaining({
-        type: 'DM',
-        recipientId: 2,
-        conversationId: 'conv_1',
+        payload: {
+          content: 'Hello',
+          recipientId: 2,
+        },
       })
     );
   });
 
-  it('marks a conversation as read', async () => {
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        participantIds: ['1', '2'],
-        unreadCounts: { '1': 2, '2': 0 },
-        manuallyUnreadBy: { '1': true, '2': false },
-      }),
-    });
-    (getDocs as jest.Mock).mockResolvedValueOnce({
-      docs: [{ ref: 'msg_ref', data: () => ({ sender: { id: 2 }, isRead: false }) }],
-    });
+  it('calls API_CONTRACTS.MESSAGES_START_CONVERSATION when creating conversation', async () => {
+    mockedApiRequest.mockResolvedValue({ id: 99 });
 
-    await service.markConversationRead('conv_1', 1);
-
-    expect(setDoc).toHaveBeenCalled();
-    const batch = (writeBatch as jest.Mock).mock.results[0].value;
-    expect(batch.update).toHaveBeenCalled();
-    expect(batch.commit).toHaveBeenCalled();
-  });
-
-  it('creates deterministic conversation ids', async () => {
-    const conversationRef = { id: '1_4' };
-    (doc as jest.Mock).mockReturnValue(conversationRef);
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => false,
-    });
-
-    const conversationId = await service.getOrCreateConversation(
-      {
-        id: 4,
-        username: 'sender',
-        displayName: 'Sender',
-        profile: { profilePic: null } as any,
-      } as any,
+    await service.getOrCreateConversation(
       {
         id: 1,
-        username: 'receiver',
-        displayName: 'Receiver',
-        avatarUrl: null,
-      }
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      { id: 99, username: 'other' }
     );
 
-    expect(conversationId).toBe('1_4');
-    expect(setDoc).toHaveBeenCalled();
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(99)
+    );
   });
 });
