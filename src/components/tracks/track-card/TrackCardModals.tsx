@@ -18,6 +18,7 @@ type TrackCardModalsProps = {
   track: {
     title: string;
     secretToken?: string;
+    trackUrl?: string;
     artist: {
       username: string;
       displayName?: string;
@@ -26,6 +27,8 @@ type TrackCardModalsProps = {
     cover: string;
     duration: string;
     genre?: string;
+    waveformData?: number[];
+    waveformUrl?: string;
   };
   editOpen: boolean;
   isShareOpen: boolean;

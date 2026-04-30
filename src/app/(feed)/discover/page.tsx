@@ -194,7 +194,8 @@ const loadPaginatedWindow = async <T,>(
 };
 
 const mapTrackCardToSeed = (card: TrackCardProps): DiscoverTrackSeed => {
-  const t = card.track;
+  const track = card.track;
+  const playback = card.playback;
 
   return {
     id: track.id,
@@ -203,20 +204,21 @@ const mapTrackCardToSeed = (card: TrackCardProps): DiscoverTrackSeed => {
     artist: {
       username: track.artist.username,
       displayName: normalizeOptionalText(track.artist.displayName),
-      avatarUrl: track.artist.avatarUrl ?? undefined,
+      avatarUrl: track.artist.avatar ?? undefined,
     },
-    coverUrl: track.coverUrl ?? undefined,
-    trackUrl: track.trackUrl ?? undefined,
-    access: track.access,
+    coverUrl: track.cover ?? undefined,
+    trackUrl: playback?.trackUrl ?? track.trackUrl ?? undefined,
+    access: playback?.access,
     genre: track.genre,
-    playCount: track.playCount,
+    playCount: track.plays,
     likeCount: track.likeCount,
     repostCount: track.repostCount,
     isLiked: track.isLiked,
     isReposted: track.isReposted,
-    durationSeconds: resolveDurationSeconds(track),
-    waveformData: (track as { waveformData?: unknown }).waveformData,
-    createdAt: track.uploadDate || track.releaseDate,
+    durationSeconds: playback?.durationSeconds,
+    waveformData:
+      playback?.waveformData ?? (track as { waveformData?: unknown }).waveformData,
+    createdAt: track.createdAt,
     postedText: 'posted a track',
   };
 };
@@ -536,6 +538,7 @@ export default function Page() {
     trendingPage,
     trendingCards,
     trendingHookLoading,
+    trendingIsLast,
   ]);
 
   useEffect(() => {
@@ -850,11 +853,9 @@ export default function Page() {
     isLoadingLiked,
     isLoadingMoreTrending,
     isLoadingRecent,
-    isLoadingTrending,
     likedTracks.length,
     moreTrendingTracks.length,
     recentlyPlayedItems.length,
-    trendingTracks.length,
   ]);
 
   if (isAuthLoading) {

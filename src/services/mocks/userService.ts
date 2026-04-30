@@ -304,7 +304,7 @@ const buildFullTrack = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
+    trackSlug: track.trackSlug ?? `track-${track.id}`,
     artist,
     trackUrl: track.trackUrl,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -403,7 +403,31 @@ const buildFullPlaylist = (
   const fullTracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
     .filter((item): item is FullTrackDTO => Boolean(item));
-  const tracks = fullTracks.map((item) => toTrackSummary(item));
+  const tracks = fullTracks.map((item) => ({
+    id: item.id,
+    title: item.title,
+    trackSlug: item.trackSlug,
+    coverUrl: item.coverUrl ?? item.trackPreviewUrl,
+    trackUrl: item.trackUrl,
+    trackPreviewUrl: item.trackPreviewUrl,
+    artist: {
+      id: item.artist.id,
+      username: item.artist.username,
+      displayName: item.artist.displayName,
+      avatarUrl: item.artist.avatarUrl ?? 'https://decibel.test/default-avatar.png',
+      isFollowing: item.artist.isFollowing,
+      followerCount: item.artist.followerCount,
+      trackCount: item.artist.trackCount,
+    },
+    playCount: item.playCount,
+    likeCount: item.likeCount,
+    repostCount: item.repostCount,
+    commentCount: item.commentCount,
+    isLiked: item.isLiked,
+    isReposted: item.isReposted,
+    secretToken: item.secretToken,
+    access: item.access,
+  }));
 
   const totalDurationSeconds = fullTracks.reduce(
     (total, item) => total + (item.trackDurationSeconds ?? 0),
