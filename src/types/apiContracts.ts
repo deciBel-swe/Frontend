@@ -86,7 +86,6 @@ import {
   paginatedPlaylistsResponseSchema,
   paginatedPlaylistTracksResponseSchema,
   reorderPlaylistTracksRequestSchema,
-  updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
 // import {
