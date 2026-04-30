@@ -466,12 +466,12 @@ export const API_CONTRACTS = {
 
   PLAYLISTS_UPDATE: (playlistId: number) =>
     defineContract<
-      z.infer<typeof updatePlaylistRequestSchema>,
+      FormData,
       z.infer<typeof playlistUpdateResponseSchema>
     >({
       method: 'PATCH',
       url: API_ENDPOINTS.PLAYLISTS.UPDATE(playlistId),
-      requestSchema: updatePlaylistRequestSchema,
+      requestSchema: z.any(),
       responseSchema: playlistUpdateResponseSchema,
     }),
 
