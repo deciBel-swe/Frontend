@@ -44,7 +44,7 @@ import type {
   PaginatedRepostResponseDTO,
   ResourceRefFullDTO,
 } from '@/types/discovery';
-import type { FullTrackDTO, TrackSummaryDTO } from '@/types/tracks';
+import type { FullTrackDTO } from '@/types/tracks';
 import type { FullPlaylistDTO } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -333,27 +333,6 @@ const buildFullTrack = (
     trackPreviewUrl: track.trackUrl,
   };
 };
-
-const toTrackSummary = (track: FullTrackDTO): TrackSummaryDTO => ({
-  id: track.id,
-  title: track.title,
-  trackSlug: track.trackSlug,
-  coverUrl: track.coverUrl ?? '',
-  trackUrl: track.trackUrl,
-  trackPreviewUrl: track.trackPreviewUrl,
-  artist: {
-    ...track.artist,
-    avatarUrl: track.artist.avatarUrl ?? '',
-  },
-  playCount: track.playCount,
-  likeCount: track.likeCount,
-  repostCount: track.repostCount,
-  commentCount: track.commentCount,
-  isLiked: track.isLiked,
-  isReposted: track.isReposted,
-  secretToken: track.secretToken,
-  access: track.access,
-});
 
 const findPlaylistOwner = (
   playlistId: number

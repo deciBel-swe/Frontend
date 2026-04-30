@@ -93,7 +93,7 @@ export default function GlobalAudioPlayer({
    * Returns true when seek is applied immediately.
    * Returns false when the request is deferred (for example duration not ready).
    */
-  const applySeek = (targetTime: number): boolean => {
+  const applySeek = useCallback((targetTime: number): boolean => {
     const audio = audioRef.current;
     if (!audio) {
       return false;
@@ -125,7 +125,7 @@ export default function GlobalAudioPlayer({
 
     setPendingSeek(null);
     return true;
-  };
+  }, [getTrackDurationLimit]);
 
   /**
    * Public seek entrypoint used by the merged PlayerBar timeline.
@@ -408,7 +408,7 @@ export default function GlobalAudioPlayer({
     if (Math.abs(audio.currentTime - currentTime) > 0.05) {
       applySeek(currentTime);
     }
-  }, [currentTime, currentTrack]);
+  }, [applySeek, currentTime, currentTrack]);
 
   useEffect(() => {
     // Drive play/pause transitions from the global store state.

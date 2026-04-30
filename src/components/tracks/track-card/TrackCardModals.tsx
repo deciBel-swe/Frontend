@@ -229,6 +229,7 @@ export default function TrackCardModals({
     playlistTitle,
     privacy,
     track.cover,
+    track.genre,
     trackNumericId,
   ]);
 
