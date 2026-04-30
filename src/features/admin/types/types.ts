@@ -42,6 +42,7 @@ export interface StatCardData {
 
 export interface StorageUsage {
   usedGB: number;
+  totalGB: number;
 }
 
 export interface ArtistListenerRatio {

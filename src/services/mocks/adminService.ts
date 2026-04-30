@@ -269,7 +269,8 @@ export class MockAdminService implements AdminService {
       totalTracks: 89400,
       totalPlays: 1205000,
       playThroughRate: 68.5,
-      totalStorageUsedBytes: 536870912000,
+      totalStorageUsedBytes: 939433759,
+      totalStorageCapacityBytes: 53687091200,
       bannedUserCount,
     };
   }

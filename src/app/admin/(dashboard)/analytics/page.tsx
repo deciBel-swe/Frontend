@@ -17,6 +17,7 @@ const buildDashboardData = (
   totalTracks: number,
   totalPlays: number,
   totalStorageUsedBytes: number,
+  totalStorageCapacityBytes: number,
   playThroughRate: number,
   bannedUserCount: number
 ): AnalyticsDashboardData => ({
@@ -33,6 +34,7 @@ const buildDashboardData = (
   },
   storage: {
     usedGB: toGigabytes(totalStorageUsedBytes),
+    totalGB: toGigabytes(totalStorageCapacityBytes),
   },
 });
 
@@ -70,6 +72,7 @@ export default function AdminAnalyticsPage() {
     analytics.totalTracks,
     analytics.totalPlays,
     analytics.totalStorageUsedBytes,
+    analytics.totalStorageCapacityBytes,
     analytics.playThroughRate,
     analytics.bannedUserCount
   );
