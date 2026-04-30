@@ -34,7 +34,6 @@ const TYPE_OPTIONS = [
 
 const REASON_OPTIONS = [
   { label: 'All', value: '' },
-  { label: 'unknown', value: ReportReason.UNKNOWN },
   { label: 'copyright', value: ReportReason.COPYRIGHT },
   { label: 'inappropriate', value: ReportReason.INAPPROPRIATE },
   { label: 'violence', value: ReportReason.VIOLENCE },

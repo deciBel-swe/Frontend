@@ -241,6 +241,7 @@ describe('RealAdminService', () => {
       totalPlays: 1205000,
       playThroughRate: 68.5,
       totalStorageUsedBytes: 1073741824000,
+      totalStorageCapacityBytes: 1073741824000,
       bannedUserCount: 5,
     };
     mockedApiRequest.mockResolvedValue(response);
