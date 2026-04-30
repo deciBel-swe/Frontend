@@ -78,8 +78,13 @@ describe('RealPlaylistService', () => {
     await service.updatePlaylist(88, payload);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_UPDATE(88),
-      { payload }
+      expect.objectContaining({ method: 'PATCH', url: '/playlists/88' }),
+      expect.objectContaining({
+        payload: expect.any(FormData),
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     );
   });
 

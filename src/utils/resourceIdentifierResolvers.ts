@@ -34,11 +34,51 @@ export const resolveTrackIdFromIdentifier = async (
 };
 
 export const resolvePlaylistIdFromIdentifier = async (
-  playlistIdentifier: string
+  playlistIdentifier: string,
+  username?: string
 ): Promise<number> => {
   const normalized = playlistIdentifier.trim();
   if (normalized.length === 0) {
     throw new Error('Invalid playlist identifier');
+  }
+
+  const numericId = parsePositiveInteger(normalized);
+  if (numericId !== null) {
+    return numericId;
+  }
+
+  const normalizedUsername = username?.trim();
+
+  const findPlaylistInCollection = async (
+    loader: () => Promise<{ content: Array<{ id: number; playlistSlug?: string }> }>
+  ): Promise<number | null> => {
+    try {
+      const response = await loader();
+      const matched = response.content.find((playlist) => {
+        const slug = playlist.playlistSlug?.trim().toLowerCase();
+        return slug === normalized.toLowerCase();
+      });
+
+      return matched?.id ?? null;
+    } catch {
+      return null;
+    }
+  };
+
+  const matchedFromMe = await findPlaylistInCollection(() =>
+    playlistService.getMePlaylists({ page: 0, size: 100 })
+  );
+  if (matchedFromMe !== null) {
+    return matchedFromMe;
+  }
+
+  if (normalizedUsername) {
+    const matchedFromUser = await findPlaylistInCollection(() =>
+      playlistService.getUserPlaylists(normalizedUsername, { page: 0, size: 100 })
+    );
+    if (matchedFromUser !== null) {
+      return matchedFromUser;
+    }
   }
 
   try {
@@ -48,11 +88,6 @@ export const resolvePlaylistIdFromIdentifier = async (
     }
   } catch {
     // Fall back to numeric id when slug resolution fails.
-  }
-
-  const numericId = parsePositiveInteger(normalized);
-  if (numericId !== null) {
-    return numericId;
   }
 
   throw new Error('Playlist not found');

@@ -186,7 +186,19 @@ export class RealPlaylistService implements PlaylistService {
     playlistId: number,
     payload: UpdatePlaylistRequest
   ): Promise<PlaylistUpdateResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_UPDATE(playlistId), { payload });
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    return apiRequest(API_CONTRACTS.PLAYLISTS_UPDATE(playlistId), {
+      payload: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async deletePlaylist(playlistId: number): Promise<void> {
