@@ -16,10 +16,22 @@ import { formatDuration } from '@/utils/formatDuration';
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
+};
+
+const resolvePlaybackUrl = (params: {
+  access?: PlaybackAccess;
+  trackUrl?: string;
+  trackPreviewUrl?: string;
+}): string | undefined => {
+  const { access, trackUrl, trackPreviewUrl } = params;
+  const preferredUrl = access === 'PREVIEW' ? trackPreviewUrl : trackUrl;
+  const fallbackUrl = access === 'PREVIEW' ? trackUrl : trackPreviewUrl;
+
+  return preferredUrl?.trim() || fallbackUrl?.trim() || undefined;
 };
 
 export type TrackListItem = {
@@ -51,6 +63,7 @@ export type TrackListItem = {
     secretToken: string;
   };
   trackUrl?: string;
+  trackPreviewUrl?: string;
   access?: PlaybackAccess;
   playback?: PlayerTrack;
   waveform: number[];
@@ -164,7 +177,7 @@ export default function TrackList({
           title: track.title,
           cover: track.coverUrl,
           duration: durationSeconds ? formatDuration(durationSeconds) : '',
-          createdAt: track.releaseDate,
+          createdAt: track.uploadDate || track.releaseDate,
           genre: track.genre,
           durationSeconds,
           isPrivate: track.isPrivate,
@@ -174,8 +187,13 @@ export default function TrackList({
           repostCount: track.repostCount,
           secretToken: track.secretToken?.trim() || '',
         },
-        trackUrl: track.trackUrl,
         access: toPlaybackAccess(track.access),
+        trackUrl: resolvePlaybackUrl({
+          access: toPlaybackAccess(track.access),
+          trackUrl: track.trackUrl,
+          trackPreviewUrl: track.trackPreviewUrl,
+        }),
+        trackPreviewUrl: track.trackPreviewUrl,
         waveform: track.waveformData ?? [],
       };
     });
@@ -187,18 +205,24 @@ export default function TrackList({
     () =>
       items
         .map((item) => {
+          const playbackUrl = resolvePlaybackUrl({
+            access: item.access,
+            trackUrl: item.trackUrl,
+            trackPreviewUrl: item.trackPreviewUrl,
+          });
+
           if (item.playback) {
             return item.playback;
           }
 
-          if (!item.trackUrl) {
+          if (!playbackUrl) {
             return null;
           }
 
           return playerTrackMappers.fromAdapterInput({
             id: item.track.id,
             title: item.track.title,
-            trackUrl: item.trackUrl,
+            trackUrl: playbackUrl,
             artist: item.track.artist,
             coverUrl: item.track.cover,
             waveformData: item.waveform,
@@ -237,14 +261,20 @@ export default function TrackList({
   return (
     <>
       {items.map((item) => {
+        const playbackUrl = resolvePlaybackUrl({
+          access: item.access,
+          trackUrl: item.trackUrl,
+          trackPreviewUrl: item.trackPreviewUrl,
+        });
+
         // Resolve per-item canonical playback track for card integration.
         const playback = item.playback ?? (
-          item.trackUrl
+          playbackUrl
             ? playerTrackMappers.fromAdapterInput(
                 {
                   id: item.track.id,
                   title: item.track.title,
-                  trackUrl: item.trackUrl,
+                  trackUrl: playbackUrl,
                   artist: item.track.artist,
                   coverUrl: item.track.cover,
                   waveformData: item.waveform,

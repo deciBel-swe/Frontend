@@ -3,7 +3,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { normalizeApiError } from '@/hooks/useAPI';
 import { adminService } from '@/services';
 import { useAdminLogin } from '@/features/admin/hooks/useAdminLogin';
+import { useAdminReportDetail } from '@/features/admin/hooks/useAdminReportDetail';
 import { useBanUser } from '@/features/admin/hooks/useBanUser';
+import { useBannedUsers } from '@/features/admin/hooks/useBannedUsers';
 import { useDeleteTrackAsModerator } from '@/features/admin/hooks/useDeleteTrackAsModerator';
 import { usePlatformAnalytics } from '@/features/admin/hooks/usePlatformAnalytics';
 import { usePlatformReports } from '@/features/admin/hooks/usePlatformReports';
@@ -18,6 +20,8 @@ jest.mock('@/services', () => ({
     reportComment: jest.fn(),
     adminLogin: jest.fn(),
     getPlatformReports: jest.fn(),
+    getReportById: jest.fn(),
+    getBannedUsers: jest.fn(),
     updateReportStatus: jest.fn(),
     deleteTrackAsModerator: jest.fn(),
     banUser: jest.fn(),
@@ -177,6 +181,81 @@ describe('admin hooks', () => {
     expect(result.current.error).toEqual(normalizedError);
   });
 
+  it('useBannedUsers loads banned users on mount and allows refetch', async () => {
+    const firstPage = {
+      content: [
+        {
+          id: 101,
+          username: 'listener_101',
+          displayName: 'Listener 101',
+          avatarUrl: 'https://example.com/avatar.jpg',
+          isFollowing: false,
+          followerCount: 12,
+          trackCount: 3,
+        },
+      ],
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 1,
+      totalPages: 1,
+      isLast: true,
+      bannedUserCount: 1,
+    };
+    const secondPage = {
+      ...firstPage,
+      pageNumber: 1,
+      pageSize: 10,
+    };
+
+    mockAdminService.getBannedUsers
+      .mockResolvedValueOnce(firstPage as never)
+      .mockResolvedValueOnce(secondPage as never);
+
+    const { result } = renderHook(() => useBannedUsers({ page: 0, size: 20 }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockAdminService.getBannedUsers).toHaveBeenNthCalledWith(1, {
+      page: 0,
+      size: 20,
+    });
+    expect(result.current.users).toEqual(firstPage);
+
+    await act(async () => {
+      await result.current.getBannedUsers({ page: 1, size: 10 });
+    });
+
+    expect(mockAdminService.getBannedUsers).toHaveBeenNthCalledWith(2, {
+      page: 1,
+      size: 10,
+    });
+    expect(result.current.users).toEqual(secondPage);
+  });
+
+  it('useAdminReportDetail loads report details on mount', async () => {
+    const detail = {
+      id: 1,
+      targetId: 101,
+      reporterId: 42,
+      reporterUsername: 'listener_reporter',
+      targetType: 'TRACK',
+      status: 'OPEN',
+      createdAt: '2025-04-01T10:30:00Z',
+      reason: 'COPYRIGHT',
+      description: 'Unauthorized sampling.',
+      targetUserId: 205,
+    };
+
+    mockAdminService.getReportById.mockResolvedValue(detail as never);
+
+    const { result } = renderHook(() => useAdminReportDetail(1));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockAdminService.getReportById).toHaveBeenCalledWith(1);
+    expect(result.current.reportDetail).toEqual(detail);
+  });
+
   it('usePlatformAnalytics loads analytics on mount and allows refetch', async () => {
     const firstAnalytics = {
       totalUsers: 10,
@@ -334,12 +413,10 @@ describe('admin hooks', () => {
     const { result } = renderHook(() => useBanUser());
 
     await act(async () => {
-      await result.current.banUser(52, { reason: 'Abusive behavior' });
+      await result.current.banUser(52);
     });
 
-    expect(mockAdminService.banUser).toHaveBeenCalledWith(52, {
-      reason: 'Abusive behavior',
-    });
+    expect(mockAdminService.banUser).toHaveBeenCalledWith(52);
     expect(result.current.banUserResponse).toEqual(response);
     expect(result.current.isError).toBe(false);
   });

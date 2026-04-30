@@ -3,6 +3,7 @@ import type {
   PaginatedTrackMetadataResponse,
   paginationRepostUser,
   SecretLink,
+  TrackAccess,
   TrackMetaData,
   TrackResourceRefDTO,
   UploadTrackResponse,
@@ -19,13 +20,13 @@ import {
   persistMockSystemState,
   replaceMockTracksStore,
   resolveCurrentMockUserId,
+  getMockAuthAccountByUsername,
   type MockTrackRecord,
 } from './mockSystemStore';
 import { PaginationParams } from '../api/trackService';
 import {
   canAccessMockResource,
   createUniqueMockSlug,
-  resolveMockResourceAccess,
 } from './mockResourceUtils';
 
 const MOCK_DELAY_MS = 220;
@@ -63,8 +64,9 @@ const createSecretToken = (): string => Math.random().toString(36).slice(2, 10);
 
 const cloneTrack = (track: MockTrackRecord): MockTrackRecord => ({
   ...(function () {
-    const {...withoutLegacyWaveform } =
-      track as MockTrackRecord & { waveformData?: number[] };
+    const { ...withoutLegacyWaveform } = track as MockTrackRecord & {
+      waveformData?: number[];
+    };
     return withoutLegacyWaveform;
   })(),
   artist: { ...track.artist },
@@ -94,7 +96,9 @@ const parseWaveformPayload = (value: unknown): number[] => {
   return [];
 };
 
-const parseWaveformPayloadFromForm = (formData: FormData): number[] | undefined => {
+const parseWaveformPayloadFromForm = (
+  formData: FormData
+): number[] | undefined => {
   const waveformEntries = formData.getAll('waveformData');
   if (waveformEntries.length === 0) {
     return undefined;
@@ -134,8 +138,10 @@ const getWaveformSampleCountFromForm = (formData: FormData): number => {
   return waveformEntries.length;
 };
 
-const waveformPayloadToUrl = (_trackId: number, _waveformData: number[]): string =>
-  UPLOADED_TRACK_WAVEFORM_URL;
+const waveformPayloadToUrl = (
+  _trackId: number,
+  _waveformData: number[]
+): string => UPLOADED_TRACK_WAVEFORM_URL;
 
 const parseWaveformDataUrl = (waveformUrl: string): number[] | null => {
   if (!waveformUrl.startsWith('data:')) {
@@ -156,7 +162,9 @@ const parseWaveformDataUrl = (waveformUrl: string): number[] | null => {
   }
 };
 
-const fetchWaveformPayloadFromUrl = async (waveformUrl: string): Promise<number[]> => {
+const fetchWaveformPayloadFromUrl = async (
+  waveformUrl: string
+): Promise<number[]> => {
   const embedded = parseWaveformDataUrl(waveformUrl);
   if (embedded) {
     return embedded;
@@ -215,7 +223,9 @@ const toMetadata = async (
   }
 ): Promise<TrackMetaData> => {
   const currentUserId = options?.viewerId ?? resolveCurrentMockUserId();
-  const waveformDataFromUrl = await fetchWaveformPayloadFromUrl(track.waveformUrl);
+  const waveformDataFromUrl = await fetchWaveformPayloadFromUrl(
+    track.waveformUrl
+  );
   const waveformData =
     waveformDataFromUrl.length > 0
       ? waveformDataFromUrl
@@ -245,14 +255,16 @@ const toMetadata = async (
     commentCount: track.commentCount,
     playCount: 0,
     secretToken: track.secretLink ?? '',
-    uploadDate: track.releaseDate,
-    access: resolveMockResourceAccess({
+    uploadDate: track.uploadDate ?? track.releaseDate,
+    access: canAccessMockResource({
       isPrivate: track.isPrivate,
       ownerId: track.artist.id,
       viewerId: currentUserId,
       resourceToken: track.secretLink,
       providedToken: options?.providedToken,
-    }),
+    })
+      ? track.access
+      : 'BLOCKED',
   };
 };
 
@@ -272,7 +284,9 @@ const parseTrackId = (trackId: string): number => {
   return parsed;
 };
 
-const resolveTrackBySecretToken = (token: string): MockTrackRecord | undefined => {
+const resolveTrackBySecretToken = (
+  token: string
+): MockTrackRecord | undefined => {
   const normalizedToken = token.trim();
   if (normalizedToken.length === 0) {
     return undefined;
@@ -310,7 +324,9 @@ const toTrackListItem = (
   viewerId: number
 ): NonNullable<paginatedTrackResponse['content']>[number] => ({
   trackDurationSeconds:
-    track.durationSeconds ?? DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id] ?? 180,
+    track.durationSeconds ??
+    DEFAULT_TRACK_DURATION_SECONDS_BY_ID[track.id] ??
+    180,
   artist: { ...track.artist },
   coverUrl: track.coverImageDataUrl ?? track.coverUrl,
   description: track.description ?? '',
@@ -324,16 +340,19 @@ const toTrackListItem = (
   commentCount: 0,
   releaseDate: new Date(track.releaseDate),
   repostCount: track.reposters ?? track.repostCount,
-  access: resolveMockResourceAccess({
+  access: canAccessMockResource({
     isPrivate: track.isPrivate,
     ownerId: track.artist.id,
     viewerId,
-  }),
+    resourceToken: track.secretLink,
+  })
+    ? track.access
+    : 'BLOCKED',
   secretToken: track.secretLink ?? '',
   tags: [...track.tags],
   title: track.title,
   trackUrl: track.trackUrl,
-  trackPreviewUrl: track.trackUrl,
+  trackPreviewUrl: track.trackPreviewUrl || track.trackUrl,
   trendingRank: 0,
   uploadDate: new Date(track.releaseDate),
   waveformUrl: track.waveformUrl,
@@ -401,6 +420,27 @@ const getOptionalBooleanField = (
   }
 
   return undefined;
+};
+
+const getAccessField = (
+  formData: FormData,
+  fallback: TrackAccess = 'PLAYABLE'
+): TrackAccess => {
+  const value = formData.get('access');
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  if (
+    normalized === 'PLAYABLE' ||
+    normalized === 'PREVIEW' ||
+    normalized === 'BLOCKED'
+  ) {
+    return normalized;
+  }
+
+  return fallback;
 };
 
 const getTagsField = (formData: FormData): string[] => {
@@ -533,6 +573,7 @@ export class MockTrackService implements TrackService {
         const description = getStringField(formData, 'description', '');
         const tags = getTagsField(formData);
         const isPrivate = getBooleanField(formData, 'isPrivate');
+        const access = getAccessField(formData);
         const releaseDate = getStringField(
           formData,
           'releaseDate',
@@ -561,7 +602,9 @@ export class MockTrackService implements TrackService {
               id: artistId,
               username: artistName,
               displayName: sessionArtist?.displayName ?? artistName,
-              avatarUrl: sessionArtist?.avatarUrl ?? '/images/default_avatar_image_1.png',
+              avatarUrl:
+                sessionArtist?.avatarUrl ??
+                '/images/default_avatar_image_1.png',
             },
             trackUrl: resolvePlayableTrackUrl(formData),
             coverUrl: buildCoverUrl(nextId),
@@ -574,7 +617,8 @@ export class MockTrackService implements TrackService {
             description,
             tags,
             releaseDate,
-            uploadDate: releaseDate,
+            // uploadDate: releaseDate,
+            uploadDate: new Date().toISOString(),
             playCount: 0,
             completedPlayCount: 0,
             likeCount: 0,
@@ -583,7 +627,7 @@ export class MockTrackService implements TrackService {
             isPrivate,
             trackDurationSeconds: durationSeconds,
             trendingRank: 0,
-            access: 'PLAYABLE',
+            access,
             trackPreviewUrl: FALLBACK_AUDIO_TRACK_URL,
             durationSeconds,
             secretLink: undefined,
@@ -640,7 +684,7 @@ export class MockTrackService implements TrackService {
             description: uploaded.description ?? '',
             secretToken: uploaded.secretToken ?? '',
             durationSeconds: uploaded.durationSeconds ?? 0,
-            access: 'PLAYABLE',
+            access: uploaded.access,
           });
         };
 
@@ -699,7 +743,9 @@ export class MockTrackService implements TrackService {
       .filter((track) => isOwner || !track.isPrivate);
 
     return Promise.all(
-      visibleTracks.map((track) => toMetadata(track, { viewerId: currentUserId }))
+      visibleTracks.map((track) =>
+        toMetadata(track, { viewerId: currentUserId })
+      )
     );
   }
 
@@ -745,7 +791,9 @@ export class MockTrackService implements TrackService {
     const publicTracks = readTracks().filter((track) => !track.isPrivate);
     const currentUserId = resolveCurrentMockUserId();
     return Promise.all(
-      publicTracks.map((track) => toMetadata(track, { viewerId: currentUserId }))
+      publicTracks.map((track) =>
+        toMetadata(track, { viewerId: currentUserId })
+      )
     );
   }
   async updateTrack(
@@ -771,6 +819,7 @@ export class MockTrackService implements TrackService {
     const tags = getOptionalTagsField(formData);
     const artistName = getOptionalStringField(formData, 'artist');
     const isPrivate = getOptionalBooleanField(formData, 'isPrivate');
+    const access = getAccessField(formData, current.access);
     const removeCover = getOptionalBooleanField(formData, 'removeCover');
     const nextWaveformSamples = parseWaveformPayloadFromForm(formData);
 
@@ -779,7 +828,9 @@ export class MockTrackService implements TrackService {
       ? (current.secretLink ?? createSecretToken())
       : current.secretLink;
 
-    const nextCoverUrl = removeCover ? buildCoverUrl(trackId) : buildCoverUrl(trackId);
+    const nextCoverUrl = removeCover
+      ? buildCoverUrl(trackId)
+      : buildCoverUrl(trackId);
     const nextCoverImageDataUrl = undefined;
 
     const nextTrackUrl = resolvePlayableTrackUrl(formData, current.trackUrl);
@@ -809,7 +860,7 @@ export class MockTrackService implements TrackService {
           ? Math.max(30, Math.min(1200, nextWaveformSamples.length * 2))
           : current.durationSeconds,
       isPrivate: nextIsPrivate,
-      access: 'PLAYABLE',
+      access,
       secretToken: nextSecretLink,
       secretLink: nextSecretLink,
       coverUrl: nextCoverUrl,
@@ -830,7 +881,7 @@ export class MockTrackService implements TrackService {
       isPrivate: updated.isPrivate,
       tags: [...updated.tags],
       releaseDate: updated.releaseDate,
-      access: 'PLAYABLE',
+      access: updated.access,
     };
   }
 
@@ -851,7 +902,9 @@ export class MockTrackService implements TrackService {
     const usersStore = getMockUsersStore();
     for (const user of usersStore) {
       user.tracks = user.tracks.filter((track) => track.id !== trackId);
-      user.likedTracks = user.likedTracks.filter((track) => track.id !== trackId);
+      user.likedTracks = user.likedTracks.filter(
+        (track) => track.id !== trackId
+      );
       user.reposts = user.reposts.filter((repost) => repost.id !== trackId);
     }
 
@@ -905,7 +958,7 @@ export class MockTrackService implements TrackService {
     const updated: MockTrackRecord = {
       ...current,
       isPrivate: data.isPrivate,
-      access: 'PLAYABLE',
+      access: current.access,
       secretLink,
       secretToken: secretLink,
     };
@@ -1240,7 +1293,67 @@ export class MockTrackService implements TrackService {
         const currentUser = getUserById(currentUserId);
         const tracksStore = getMockTracksStore();
 
-        const likedTrackIds = currentUser?.likedTracks.map((track) => track.id) ?? [];
+        const likedTrackIds =
+          currentUser?.likedTracks.map((track) => track.id) ?? [];
+        const likedTracks = likedTrackIds
+          .map((trackId) => tracksStore.find((track) => track.id === trackId))
+          .filter((track): track is MockTrackRecord => Boolean(track))
+          .filter((track) =>
+            canAccessMockResource({
+              isPrivate: track.isPrivate,
+              ownerId: track.artist.id,
+              viewerId: currentUserId,
+            })
+          );
+
+        const allContent = likedTracks.map((track) =>
+          toTrackListItem(track, currentUserId)
+        );
+        const pageNumber = Math.max(0, params?.page ?? 0);
+        const pageSize = Math.max(1, params?.size ?? 20);
+        const start = pageNumber * pageSize;
+        const content = allContent.slice(start, start + pageSize);
+        const totalElements = allContent.length;
+        const totalPages =
+          totalElements === 0 ? 1 : Math.ceil(totalElements / pageSize);
+
+        resolve({
+          content,
+          isLast: pageNumber >= totalPages - 1,
+          pageNumber,
+          pageSize,
+          totalElements,
+          totalPages,
+        });
+      }, 1000);
+    });
+  }
+
+  async getUserLikedTracks(
+    username: string,
+    params?: PaginationParams
+  ): Promise<paginatedTrackResponse> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const account = getMockAuthAccountByUsername(username);
+        if (!account) {
+          resolve({
+            content: [],
+            isLast: true,
+            pageNumber: 0,
+            pageSize: Math.max(1, params?.size ?? 20),
+            totalElements: 0,
+            totalPages: 1,
+          });
+          return;
+        }
+
+        const currentUserId = resolveCurrentMockUserId();
+        const targetUser = getUserById(account.id);
+        const tracksStore = getMockTracksStore();
+
+        const likedTrackIds =
+          targetUser?.likedTracks.map((track) => track.id) ?? [];
         const likedTracks = likedTrackIds
           .map((trackId) => tracksStore.find((track) => track.id === trackId))
           .filter((track): track is MockTrackRecord => Boolean(track))
@@ -1284,7 +1397,8 @@ export class MockTrackService implements TrackService {
         const currentUser = getUserById(currentUserId);
         const tracksStore = getMockTracksStore();
 
-        const repostedTrackIds = currentUser?.reposts.map((track) => track.id) ?? [];
+        const repostedTrackIds =
+          currentUser?.reposts.map((track) => track.id) ?? [];
         const repostedTracks = repostedTrackIds
           .map((trackId) => tracksStore.find((track) => track.id === trackId))
           .filter((track): track is MockTrackRecord => Boolean(track))

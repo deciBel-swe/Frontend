@@ -32,6 +32,8 @@ const baseProps = {
   onTagsChange: jest.fn(),
   description: '',
   onDescriptionChange: jest.fn(),
+  access: 'PLAYABLE' as const,
+  onAccessChange: jest.fn(),
   privacy: 'public' as const,
   onPrivacyChange: jest.fn(),
 };
@@ -113,7 +115,6 @@ describe('UploadForm', () => {
         onReleaseDateChange={jest.fn()}
       />
     );
-
     expect(screen.getByText(/release date/i)).toBeInTheDocument();
 
     rerender(

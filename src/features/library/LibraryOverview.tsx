@@ -72,9 +72,9 @@ export default function LibraryOverview() {
           ? Array.from({ length: 5 }).map((_, index) => (
               <SquareSkeleton key={`history-skeleton-${index}`} />
             ))
-          : historyTracks.map((item) => (
+          : historyTracks.map((item, index) => (
               <PlaylistCard
-                key={item.trackId}
+                key={`${item.trackId}-${index}`}
                 title={item.track.title}
                 coverUrl={item.track.cover}
                 username={item.user.username}

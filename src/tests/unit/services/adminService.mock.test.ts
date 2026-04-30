@@ -46,6 +46,14 @@ describe('MockAdminService', () => {
     expect(response.content[1].targetType).toBe('COMMENT');
   });
 
+  it('getReportById returns a detailed mock report', async () => {
+    const response = await service.getReportById(1);
+
+    expect(response.reason).toBe('COPYRIGHT');
+    expect(response.description).toBe('This track samples my original work without permission.');
+    expect(response.targetUserId).toBe(205);
+  });
+
   it('updateReportStatus returns success message', async () => {
     const response = await service.updateReportStatus(5, {
       status: 'RESOLVED',
@@ -56,14 +64,20 @@ describe('MockAdminService', () => {
 
   it('deleteTrackAsModerator returns success message', async () => {
     await expect(service.deleteTrackAsModerator(7)).resolves.toEqual({
-      message: 'Track was successfully deleted',
+      message: 'Track deleted successfully',
     });
   });
 
+  it('getBannedUsers returns the mocked banned-user page', async () => {
+    const response = await service.getBannedUsers();
+
+    expect(response.content).toHaveLength(3);
+    expect(response.bannedUserCount).toBe(3);
+    expect(response.content[0].displayName).toBe('Listener 101');
+  });
+
   it('banUser returns success message', async () => {
-    const response = await service.banUser(52, {
-      reason: 'Repeated abusive behavior',
-    });
+    const response = await service.banUser(52);
 
     expect(response).toEqual({ message: 'User banned successfully' });
   });
@@ -78,12 +92,12 @@ describe('MockAdminService', () => {
     const response = await service.getPlatformAnalytics();
 
     expect(response).toEqual({
-      totalUsers: 0,
-      totalTracks: 0,
-      totalPlays: 0,
-      playThroughRate: 0,
-      totalStorageUsedBytes: 0,
-      bannedUserCount: 0,
+      totalUsers: 15420,
+      totalTracks: 89400,
+      totalPlays: 1205000,
+      playThroughRate: 68.5,
+      totalStorageUsedBytes: 536870912000,
+      bannedUserCount: 3,
     });
   });
 });

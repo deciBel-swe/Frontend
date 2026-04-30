@@ -44,7 +44,7 @@ import type {
   PaginatedRepostResponseDTO,
   ResourceRefFullDTO,
 } from '@/types/discovery';
-import type { FullTrackDTO } from '@/types/tracks';
+import type { FullTrackDTO, TrackSummaryDTO } from '@/types/tracks';
 import type { FullPlaylistDTO } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
@@ -177,6 +177,31 @@ const toUserPublic = (
     : null,
 });
 
+const getEffectiveFavoriteGenres = (user: MockUserRecord): string[] => {
+  const explicitGenres = user.profile.favoriteGenres
+    .map((genre) => genre.trim())
+    .filter((genre) => genre.length > 0);
+
+  if (explicitGenres.length > 0) {
+    return explicitGenres;
+  }
+
+  const fallbackGenres = new Set<string>();
+
+  for (const track of [...user.likedTracks, ...user.reposts, ...user.tracks]) {
+    const normalizedGenre = track.genre.trim();
+    if (normalizedGenre.length > 0) {
+      fallbackGenres.add(normalizedGenre);
+    }
+
+    if (fallbackGenres.size >= 3) {
+      break;
+    }
+  }
+
+  return [...fallbackGenres];
+};
+
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
@@ -191,7 +216,7 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
     country: user.profile.country,
     profilePic: user.profile.profilePic,
     coverPic: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
+    favoriteGenres: getEffectiveFavoriteGenres(user),
   },
   socialLinks: {
     instagram: user.socialLinks.instagram,
@@ -296,7 +321,7 @@ const buildFullTrack = (
     commentCount: 0,
     isPrivate: track.isPrivate,
     trackDurationSeconds: track.durationSeconds ?? 0,
-    uploadDate: track.releaseDate,
+    uploadDate: track.uploadDate ?? track.releaseDate,
     description: track.description ?? '',
     trendingRank: 0,
     access: resolveMockResourceAccess({
@@ -308,6 +333,27 @@ const buildFullTrack = (
     trackPreviewUrl: track.trackUrl,
   };
 };
+
+const toTrackSummary = (track: FullTrackDTO): TrackSummaryDTO => ({
+  id: track.id,
+  title: track.title,
+  trackSlug: track.trackSlug,
+  coverUrl: track.coverUrl ?? '',
+  trackUrl: track.trackUrl,
+  trackPreviewUrl: track.trackPreviewUrl,
+  artist: {
+    ...track.artist,
+    avatarUrl: track.artist.avatarUrl ?? '',
+  },
+  playCount: track.playCount,
+  likeCount: track.likeCount,
+  repostCount: track.repostCount,
+  commentCount: track.commentCount,
+  isLiked: track.isLiked,
+  isReposted: track.isReposted,
+  secretToken: track.secretToken,
+  access: track.access,
+});
 
 const findPlaylistOwner = (
   playlistId: number
@@ -354,15 +400,16 @@ const buildFullPlaylist = (
     return null;
   }
   const ownerSummary = toUserSummary(owner, viewer);
-  const tracks = playlist.tracks
+  const fullTracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
     .filter((item): item is FullTrackDTO => Boolean(item));
+  const tracks = fullTracks.map((item) => toTrackSummary(item));
 
-  const totalDurationSeconds = tracks.reduce(
+  const totalDurationSeconds = fullTracks.reduce(
     (total, item) => total + (item.trackDurationSeconds ?? 0),
     0
   );
-  const firstTrack = tracks[0];
+  const firstTrack = fullTracks[0];
   const firstTrackRecord = getMockTracksStore().find(
     (track) => track.id === firstTrack?.id
   );
@@ -565,7 +612,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.role = payload.newRole;
-    if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
+    if (payload.newRole === 'LISTENER' && me.tier === 'PRO') {
       me.tier = 'FREE';
     }
     commitMockUserState();

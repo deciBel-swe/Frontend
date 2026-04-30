@@ -6,6 +6,7 @@ import { FilterDropdown } from "@/components/nav/FilterDropdown";
 import { FC } from 'react';
 import {
   ReportRow,
+  ReportReason,
   ReportType,
 } from '@/features/admin/types/types';
 import {
@@ -33,9 +34,11 @@ const TYPE_OPTIONS = [
 
 const REASON_OPTIONS = [
   { label: 'All', value: '' },
-  { label: 'copyright', value: 'copyright' },
-  { label: 'inappropriate', value: 'inappropriate' },
-  { label: 'violence', value: 'violence' },
+  { label: 'unknown', value: ReportReason.UNKNOWN },
+  { label: 'copyright', value: ReportReason.COPYRIGHT },
+  { label: 'inappropriate', value: ReportReason.INAPPROPRIATE },
+  { label: 'violence', value: ReportReason.VIOLENCE },
+  { label: 'spam', value: ReportReason.SPAM },
 ];
 
 /**
@@ -89,14 +92,25 @@ export const ReportsTable: FC<ReportsTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {items.map((row) => (
-            <ReportTableRow
-              key={row.id}
-              {...row}
-              onView={onView}
-              onDismiss={onDismiss}
-            />
-          ))}
+          {items.length === 0 ? (
+            <tr>
+              <td
+                colSpan={TABLE_HEADERS.length}
+                className="py-6 text-center text-sm text-text-muted"
+              >
+                No reports match the current filters
+              </td>
+            </tr>
+          ) : (
+            items.map((row) => (
+              <ReportTableRow
+                key={row.id}
+                {...row}
+                onView={onView}
+                onDismiss={onDismiss}
+              />
+            ))
+          )}
         </tbody>
       </table>
     </div>

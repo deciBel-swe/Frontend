@@ -3,7 +3,6 @@ import { useCallback, useState } from 'react';
 import { normalizeApiError } from '@/hooks/useAPI';
 import { adminService } from '@/services';
 import type { ApiErrorDTO } from '@/types';
-import type { BanUserRequest } from '@/types/admin';
 import type { MessageResponse } from '@/types/user';
 
 export function useBanUser() {
@@ -14,13 +13,13 @@ export function useBanUser() {
   const [error, setError] = useState<ApiErrorDTO | null>(null);
 
   const banUser = useCallback(
-    async (userId: number, payload?: BanUserRequest) => {
+    async (userId: number) => {
       setIsLoading(true);
       setIsError(false);
       setError(null);
 
       try {
-        const result = await adminService.banUser(userId, payload);
+        const result = await adminService.banUser(userId);
         setBanUserResponse(result);
         return result;
       } catch (caughtError) {

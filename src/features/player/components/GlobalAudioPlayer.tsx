@@ -30,6 +30,8 @@ import {
   shouldMarkTrackCompleted,
 } from '@/features/player/utils/playbackTracking';
 
+const PREVIEW_DURATION_SECONDS = 10;
+
 export default function GlobalAudioPlayer({
   autoAdvanceOnEnd = true,
 }: GlobalAudioPlayerProps) {
@@ -73,9 +75,17 @@ export default function GlobalAudioPlayer({
   const canPlayCurrentTrack = useMemo(() => {
     return (
       !!currentTrack &&
-      currentTrack.access === 'PLAYABLE' &&
+      currentTrack.access !== 'BLOCKED' &&
       currentTrack.trackUrl.trim().length > 0
     );
+  }, [currentTrack]);
+
+  const getTrackDurationLimit = useCallback(() => {
+    if (currentTrack?.access === 'PREVIEW') {
+      return PREVIEW_DURATION_SECONDS;
+    }
+
+    return Number.POSITIVE_INFINITY;
   }, [currentTrack]);
 
   /**
@@ -98,8 +108,9 @@ export default function GlobalAudioPlayer({
       return false;
     }
 
+    const durationLimit = getTrackDurationLimit();
     const clamped = Number.isFinite(audio.duration) && audio.duration > 0
-      ? Math.max(0, Math.min(targetTime, audio.duration))
+      ? Math.max(0, Math.min(targetTime, audio.duration, durationLimit))
       : Math.max(0, targetTime);
 
     if (typeof audio.fastSeek === 'function') {
@@ -139,8 +150,9 @@ export default function GlobalAudioPlayer({
     }
 
     const applyPendingSeek = () => {
+      const durationLimit = getTrackDurationLimit();
       const clamped = Number.isFinite(audio.duration) && audio.duration > 0
-        ? Math.max(0, Math.min(pendingSeek, audio.duration))
+        ? Math.max(0, Math.min(pendingSeek, audio.duration, durationLimit))
         : Math.max(0, pendingSeek);
 
       if (typeof audio.fastSeek === 'function') {
@@ -165,7 +177,7 @@ export default function GlobalAudioPlayer({
     return () => {
       audio.removeEventListener('loadedmetadata', applyPendingSeek);
     };
-  }, [pendingSeek]);
+  }, [getTrackDurationLimit, pendingSeek]);
 
   const handlePlay = () => {
     if (isPlaying) {
@@ -221,7 +233,7 @@ export default function GlobalAudioPlayer({
         }
 
         const candidate = queue[cursor];
-        if (candidate.access === 'PLAYABLE' && candidate.trackUrl.trim().length > 0) {
+        if (candidate.access !== 'BLOCKED' && candidate.trackUrl.trim().length > 0) {
           return cursor;
         }
       }
@@ -239,7 +251,7 @@ export default function GlobalAudioPlayer({
 
     if (shuffleActive) {
       const playableTracks = queue.filter(
-        (item) => item.access === 'PLAYABLE' && item.trackUrl.trim().length > 0
+        (item) => item.access !== 'BLOCKED' && item.trackUrl.trim().length > 0
       );
 
       if (playableTracks.length === 0) {
@@ -283,7 +295,7 @@ export default function GlobalAudioPlayer({
 
     if (shuffleActive) {
       const playableTracks = queue.filter(
-        (item) => item.access === 'PLAYABLE' && item.trackUrl.trim().length > 0
+        (item) => item.access !== 'BLOCKED' && item.trackUrl.trim().length > 0
       );
 
       if (playableTracks.length === 0) {
@@ -344,8 +356,12 @@ export default function GlobalAudioPlayer({
           return;
         }
 
-        if (Math.abs(duration - audio.duration) > 0.01) {
-          setDuration(audio.duration);
+        const effectiveDuration = Math.min(
+          audio.duration,
+          getTrackDurationLimit()
+        );
+        if (Math.abs(duration - effectiveDuration) > 0.01) {
+          setDuration(effectiveDuration);
         }
       };
 
@@ -370,7 +386,7 @@ export default function GlobalAudioPlayer({
         audio.removeEventListener('loadedmetadata', handleMetadataOnSourceSwitch);
       }
     };
-  }, [canPlayCurrentTrack, currentTrack, duration, setDuration]);
+  }, [canPlayCurrentTrack, currentTrack, duration, getTrackDurationLimit, setDuration]);
 
   useEffect(() => {
     // Keep audio element volume in sync with store state.
@@ -438,16 +454,30 @@ export default function GlobalAudioPlayer({
 
     const handleTimeUpdate = () => {
       const now = audio.currentTime;
-      setCurrentTime(now);
+      const durationLimit = getTrackDurationLimit();
+      const clampedTime = Math.min(now, durationLimit);
+
+      if (currentTrack.access === 'PREVIEW' && now >= PREVIEW_DURATION_SECONDS) {
+        audio.pause();
+        if (Math.abs(audio.currentTime - PREVIEW_DURATION_SECONDS) > 0.01) {
+          audio.currentTime = PREVIEW_DURATION_SECONDS;
+        }
+        setCurrentTime(PREVIEW_DURATION_SECONDS);
+        pause();
+        return;
+      }
+
+      setCurrentTime(clampedTime);
 
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        if (Math.abs(duration - audio.duration) > 0.01) {
-          setDuration(audio.duration);
+        const effectiveDuration = Math.min(audio.duration, durationLimit);
+        if (Math.abs(duration - effectiveDuration) > 0.01) {
+          setDuration(effectiveDuration);
         }
       }
 
       const effectiveDuration = Number.isFinite(audio.duration) && audio.duration > 0
-        ? audio.duration
+        ? Math.min(audio.duration, durationLimit)
         : duration;
 
       if (
@@ -466,8 +496,12 @@ export default function GlobalAudioPlayer({
     const handleLoadedMetadata = () => {
       // Metadata availability unlocks precise duration.
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        if (Math.abs(duration - audio.duration) > 0.01) {
-          setDuration(audio.duration);
+        const effectiveDuration = Math.min(
+          audio.duration,
+          getTrackDurationLimit()
+        );
+        if (Math.abs(duration - effectiveDuration) > 0.01) {
+          setDuration(effectiveDuration);
         }
       }
     };
@@ -491,7 +525,7 @@ export default function GlobalAudioPlayer({
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [autoAdvanceOnEnd, currentTrack, duration, handleNextTrack, pause, setCurrentTime, setDuration]);
+  }, [autoAdvanceOnEnd, currentTrack, duration, getTrackDurationLimit, handleNextTrack, pause, setCurrentTime, setDuration]);
 
   useEffect(() => {
     // On track identity change, keep a queued seek if one already exists.
@@ -508,7 +542,11 @@ export default function GlobalAudioPlayer({
     }
 
     // Reset stale duration from the previous track immediately.
-    setDuration(currentTrack?.durationSeconds ?? 0);
+    const fallbackDuration =
+      currentTrack?.access === 'PREVIEW'
+        ? Math.min(currentTrack.durationSeconds ?? PREVIEW_DURATION_SECONDS, PREVIEW_DURATION_SECONDS)
+        : (currentTrack?.durationSeconds ?? 0);
+    setDuration(fallbackDuration);
   }, [currentTime, currentTrack, pendingSeek, setCurrentTime, setDuration]);
 
   return (

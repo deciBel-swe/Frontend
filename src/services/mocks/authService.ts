@@ -353,6 +353,12 @@ export class MockAuthService implements AuthService {
     return { message: 'Verification email sent.', coolDown: 60 };
   }
 
+  async forgotPassword(_email: string): Promise<{ message: string }> {
+    await delay();
+
+    return { message: 'Password reset email sent.' };
+  }
+
   async verifyEmail(token: string): Promise<{ message: string }> {
     await delay();
 

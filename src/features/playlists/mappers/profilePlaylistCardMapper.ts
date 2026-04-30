@@ -22,11 +22,11 @@ export type ProfilePlaylistCardOptions = {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const toWaveform = (value: unknown): number[] => {

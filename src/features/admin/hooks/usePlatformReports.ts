@@ -40,7 +40,7 @@ export function usePlatformReports(params?: PaginationParams) {
   );
 
   useEffect(() => {
-    void getPlatformReports();
+    void getPlatformReports().catch(() => undefined);
   }, [getPlatformReports]);
 
   return {

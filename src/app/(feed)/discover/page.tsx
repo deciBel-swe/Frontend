@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { TrackListItem } from '@/components/tracks/TrackList';
+import type { TrackCardProps } from '@/components/tracks/track-card';
 import { useAuth } from '@/features/auth/useAuth';
 import DiscoverPage from '@/features/discover/DiscoverPage';
 import type {
@@ -13,10 +14,16 @@ import type {
   QueueSource,
 } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import { discoveryService, playbackService, trackService } from '@/services';
-import type { ResourceRefFullDTO, StationItemDTO } from '@/types/discovery';
+import {
+  discoveryService,
+  playbackService,
+  trackService,
+  userService,
+} from '@/services';
+import { useTrendingTracks } from '@/hooks';
+import type { StationItemDTO } from '@/types/discovery';
 import type { TrackMetaData } from '@/types/tracks';
-import type { ListeningHistoryItem } from '@/types/user';
+import type { ListeningHistoryItem, UserMe } from '@/types/user';
 import { formatDuration } from '@/utils/formatDuration';
 
 const PAGE_SIZE = 5;
@@ -71,11 +78,11 @@ type PaginatedWindowResponse<T> = {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ) => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED' as const;
   }
 
-  return 'PLAYABLE' as const;
+  return access === 'PREVIEW' ? ('PREVIEW' as const) : ('PLAYABLE' as const);
 };
 
 const normalizeWaveform = (value: unknown): number[] => {
@@ -114,10 +121,13 @@ const normalizeWaveform = (value: unknown): number[] => {
 };
 
 const resolveDurationSeconds = (
-  track: {
-    trackDurationSeconds?: number | null;
-    durationSeconds?: number | null;
-  } | null | undefined
+  track:
+    | {
+        trackDurationSeconds?: number | null;
+        durationSeconds?: number | null;
+      }
+    | null
+    | undefined
 ): number | undefined => {
   if (
     typeof track?.trackDurationSeconds === 'number' &&
@@ -126,10 +136,7 @@ const resolveDurationSeconds = (
     return track.trackDurationSeconds;
   }
 
-  if (
-    typeof track?.durationSeconds === 'number' &&
-    track.durationSeconds > 0
-  ) {
+  if (typeof track?.durationSeconds === 'number' && track.durationSeconds > 0) {
     return track.durationSeconds;
   }
 
@@ -186,14 +193,8 @@ const loadPaginatedWindow = async <T,>(
   return pages;
 };
 
-const mapTrackResourceToSeed = (
-  resource: ResourceRefFullDTO
-): DiscoverTrackSeed | null => {
-  if (resource.type !== 'TRACK' || !resource.track) {
-    return null;
-  }
-
-  const track = resource.track;
+const mapTrackCardToSeed = (card: TrackCardProps): DiscoverTrackSeed => {
+  const t = card.track;
 
   return {
     id: track.id,
@@ -220,7 +221,9 @@ const mapTrackResourceToSeed = (
   };
 };
 
-const mapStationTrackToSeed = (stationItem: StationItemDTO): DiscoverTrackSeed => {
+const mapStationTrackToSeed = (
+  stationItem: StationItemDTO
+): DiscoverTrackSeed => {
   const track = stationItem.track;
 
   return {
@@ -250,7 +253,9 @@ const mapStationTrackToSeed = (stationItem: StationItemDTO): DiscoverTrackSeed =
   };
 };
 
-const mapHistoryEntryToSeed = (entry: ListeningHistoryItem): DiscoverTrackSeed => ({
+const mapHistoryEntryToSeed = (
+  entry: ListeningHistoryItem
+): DiscoverTrackSeed => ({
   id: entry.id,
   title: entry.title,
   postedText: 'played a track',
@@ -299,12 +304,11 @@ const buildTrackListItem = (
       isReposted: metadata?.isReposted ?? seed.isReposted,
       likeCount: metadata?.likeCount ?? seed.likeCount,
       repostCount: metadata?.repostCount ?? seed.repostCount,
-      secretToken: metadata?.secretToken ?? ""
+      secretToken: metadata?.secretToken ?? '',
     },
     trackUrl: metadata?.trackUrl ?? seed.trackUrl ?? undefined,
     access: toPlaybackAccess(metadata?.access ?? seed.access),
-    waveform:
-      metadata?.waveformData ?? normalizeWaveform(seed.waveformData),
+    waveform: metadata?.waveformData ?? normalizeWaveform(seed.waveformData),
   };
 };
 
@@ -391,6 +395,7 @@ const buildDiscoverTrackItems = (
 
 export default function Page() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserMe | null>(null);
 
   const [isLoadingTrending, setIsLoadingTrending] = useState(true);
   const [isLoadingLiked, setIsLoadingLiked] = useState(true);
@@ -404,9 +409,9 @@ export default function Page() {
     (DiscoverTrackItem | DiscoverPlaylistItem)[]
   >([]);
   const [genreTracks, setGenreTracks] = useState<DiscoverTrackItem[]>([]);
-  const [moreTrendingTracks, setMoreTrendingTracks] = useState<DiscoverTrackItem[]>(
-    []
-  );
+  const [moreTrendingTracks, setMoreTrendingTracks] = useState<
+    DiscoverTrackItem[]
+  >([]);
 
   const [trendingPage, setTrendingPage] = useState(0);
   const [likedPage, setLikedPage] = useState(0);
@@ -420,8 +425,55 @@ export default function Page() {
   const [hasGenreNextPage, setHasGenreNextPage] = useState(false);
   const [hasMoreTrendingNextPage, setHasMoreTrendingNextPage] = useState(false);
 
+  const preferredGenre = useMemo(() => {
+    const genres = currentUser?.profile.favoriteGenres ?? [];
+    const firstGenre = genres.find((genre) => genre.trim().length > 0);
+    return firstGenre?.trim() || null;
+  }, [currentUser?.profile.favoriteGenres]);
+
+  const seedArtistId = currentUser?.id ?? null;
+
   useEffect(() => {
-    if (isAuthLoading || isAuthenticated) {
+    if (isAuthLoading || !isAuthenticated) {
+      setCurrentUser(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadCurrentUser = async () => {
+      try {
+        const me = await userService.getUserMe();
+
+        if (!isCancelled) {
+          setCurrentUser(me);
+        }
+      } catch {
+        if (!isCancelled) {
+          setCurrentUser(null);
+        }
+      }
+    };
+
+    void loadCurrentUser();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isAuthLoading]);
+
+  const {
+    items: trendingCards,
+    isLoading: trendingHookLoading,
+    isError: hasTrendingError,
+    isLast: trendingIsLast,
+  } = useTrendingTracks({
+    page: trendingPage,
+    size: PAGE_SIZE,
+  });
+
+  useEffect(() => {
+    if (isAuthLoading) {
       setTrendingTracks([]);
       setHasTrendingNextPage(false);
       setIsLoadingTrending(false);
@@ -430,22 +482,15 @@ export default function Page() {
 
     let isCancelled = false;
 
-    const loadTrending = async () => {
+    const loadFromCards = async () => {
       setIsLoadingTrending(true);
 
       try {
-        const offset = trendingPage * PAGE_SIZE;
-        const limit =
-          (trendingPage + QUEUE_LOOKAHEAD_PAGES + 1) * PAGE_SIZE;
-        const response = await discoveryService.getTrending({ limit });
+        const currentCards = trendingCards;
 
-        const currentSeeds = response
-          .slice(offset, offset + PAGE_SIZE)
-          .flatMap((resource) => {
-            const seed = mapTrackResourceToSeed(resource);
-            return seed ? [seed] : [];
-          });
-
+        const currentSeeds = currentCards.map((c) =>
+          mapTrackCardToSeed(c.card)
+        );
         if (currentSeeds.length === 0 && trendingPage > 0) {
           if (!isCancelled) {
             setHasTrendingNextPage(false);
@@ -454,23 +499,19 @@ export default function Page() {
           return;
         }
 
-        const queueSeeds = response
-          .slice(
-            offset,
-            offset + (QUEUE_LOOKAHEAD_PAGES + 1) * PAGE_SIZE
-          )
-          .flatMap((resource) => {
-            const seed = mapTrackResourceToSeed(resource);
-            return seed ? [seed] : [];
-          });
-        const visibleItems = await Promise.all(currentSeeds.map(hydrateTrackSeed));
+        const queueSeeds = currentSeeds;
+        const visibleItems = await Promise.all(
+          currentSeeds.map(hydrateTrackSeed)
+        );
         const queueTracks = buildQueueTracksFromSeeds(queueSeeds);
 
         if (!isCancelled) {
           setTrendingTracks(
             buildDiscoverTrackItems(visibleItems, queueTracks, 'likes')
           );
-          setHasTrendingNextPage(response.length > offset + PAGE_SIZE);
+          setHasTrendingNextPage(
+            currentSeeds.length === PAGE_SIZE && !trendingIsLast
+          );
         }
       } catch {
         if (!isCancelled) {
@@ -479,17 +520,23 @@ export default function Page() {
         }
       } finally {
         if (!isCancelled) {
-          setIsLoadingTrending(false);
+          setIsLoadingTrending(trendingHookLoading);
         }
       }
     };
 
-    void loadTrending();
+    void loadFromCards();
 
     return () => {
       isCancelled = true;
     };
-  }, [isAuthenticated, isAuthLoading, trendingPage]);
+  }, [
+    isAuthenticated,
+    isAuthLoading,
+    trendingPage,
+    trendingCards,
+    trendingHookLoading,
+  ]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) {
@@ -502,6 +549,16 @@ export default function Page() {
     let isCancelled = false;
 
     const loadLikedStation = async () => {
+      if (isAuthLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
+        setLikedTracks([]);
+        setIsLoadingLiked(false);
+        return;
+      }
+
       setIsLoadingLiked(true);
 
       try {
@@ -525,7 +582,9 @@ export default function Page() {
         const queueSeeds = pages.flatMap((pageData) =>
           pageData.content.map(mapStationTrackToSeed)
         );
-        const visibleItems = await Promise.all(currentSeeds.map(hydrateTrackSeed));
+        const visibleItems = await Promise.all(
+          currentSeeds.map(hydrateTrackSeed)
+        );
         const queueTracks = buildQueueTracksFromSeeds(queueSeeds);
 
         if (!isCancelled) {
@@ -564,11 +623,18 @@ export default function Page() {
     let isCancelled = false;
 
     const loadGenreStation = async () => {
+      if (!preferredGenre) {
+        setGenreTracks([]);
+        setIsLoadingGenre(false);
+        return;
+      }
+
       setIsLoadingGenre(true);
 
       try {
         const pages = await loadPaginatedWindow(genrePage, (pageNumber) =>
           discoveryService.getGenreStation({
+            genre: preferredGenre,
             page: pageNumber,
             size: PAGE_SIZE,
           })
@@ -587,7 +653,9 @@ export default function Page() {
         const queueSeeds = pages.flatMap((pageData) =>
           pageData.content.map(mapStationTrackToSeed)
         );
-        const visibleItems = await Promise.all(currentSeeds.map(hydrateTrackSeed));
+        const visibleItems = await Promise.all(
+          currentSeeds.map(hydrateTrackSeed)
+        );
         const queueTracks = buildQueueTracksFromSeeds(queueSeeds);
 
         if (!isCancelled) {
@@ -613,7 +681,7 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [genrePage, isAuthenticated, isAuthLoading]);
+  }, [genrePage, isAuthenticated, isAuthLoading, preferredGenre]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) {
@@ -626,6 +694,12 @@ export default function Page() {
     let isCancelled = false;
 
     const loadArtistStation = async () => {
+      if (seedArtistId === null) {
+        setMoreTrendingTracks([]);
+        setIsLoadingMoreTrending(false);
+        return;
+      }
+
       setIsLoadingMoreTrending(true);
 
       try {
@@ -633,6 +707,7 @@ export default function Page() {
           moreTrendingPage,
           (pageNumber) =>
             discoveryService.getArtistStation({
+              artistId: seedArtistId,
               page: pageNumber,
               size: PAGE_SIZE,
             })
@@ -651,7 +726,9 @@ export default function Page() {
         const queueSeeds = pages.flatMap((pageData) =>
           pageData.content.map(mapStationTrackToSeed)
         );
-        const visibleItems = await Promise.all(currentSeeds.map(hydrateTrackSeed));
+        const visibleItems = await Promise.all(
+          currentSeeds.map(hydrateTrackSeed)
+        );
         const queueTracks = buildQueueTracksFromSeeds(queueSeeds);
 
         if (!isCancelled) {
@@ -677,7 +754,7 @@ export default function Page() {
     return () => {
       isCancelled = true;
     };
-  }, [isAuthenticated, isAuthLoading, moreTrendingPage]);
+  }, [isAuthenticated, isAuthLoading, moreTrendingPage, seedArtistId]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) {
@@ -752,7 +829,7 @@ export default function Page() {
     }
 
     if (!isAuthenticated) {
-      return !isLoadingTrending && trendingTracks.length === 0;
+      return false;
     }
 
     return (
@@ -780,7 +857,27 @@ export default function Page() {
     trendingTracks.length,
   ]);
 
-  if (!isAuthLoading && hasDiscoverError) {
+  if (isAuthLoading) {
+    return (
+      <div className="w-full">
+        <DiscoverPage
+          isLoggedIn={true}
+          trendingTracks={[]}
+          likedTracks={[]}
+          recentlyPlayedItems={[]}
+          genreTracks={[]}
+          moreTrendingTracks={[]}
+          isLoadingTrending={true}
+          isLoadingLiked={true}
+          isLoadingRecent={true}
+          isLoadingGenre={true}
+          isLoadingMoreTrending={true}
+        />
+      </div>
+    );
+  }
+
+  if (hasDiscoverError) {
     return (
       <p className="text-sm text-text-muted">
         Failed to load discover data. Please try again later.
@@ -795,6 +892,7 @@ export default function Page() {
       <DiscoverPage
         isLoggedIn={isLoggedIn}
         trendingTracks={trendingTracks}
+        hasTrendingError={hasTrendingError}
         likedTracks={likedTracks}
         recentlyPlayedItems={recentlyPlayedItems}
         genreTracks={genreTracks}
@@ -814,7 +912,9 @@ export default function Page() {
         onLikedNextPage={() => setLikedPage((value) => value + 1)}
         canLikedPrevPage={likedPage > 0 && !isLoadingLiked}
         canLikedNextPage={hasLikedNextPage && !isLoadingLiked}
-        onRecentPrevPage={() => setRecentPage((value) => Math.max(0, value - 1))}
+        onRecentPrevPage={() =>
+          setRecentPage((value) => Math.max(0, value - 1))
+        }
         onRecentNextPage={() => setRecentPage((value) => value + 1)}
         canRecentPrevPage={recentPage > 0 && !isLoadingRecent}
         canRecentNextPage={hasRecentNextPage && !isLoadingRecent}

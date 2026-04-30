@@ -38,11 +38,11 @@ describe('MockFeedService', () => {
 
       const resource = item.resource;
       if (resource.track) {
-        const artistId = resource.track.artist.id;
-        const artistUsername = resource.track.artist.username.toLowerCase();
+        const artistId = resource.track.artist?.id;
+        const artistUsername = resource.track.artist?.username?.toLowerCase();
         return (
-          followedUserIds.has(artistId) ||
-          followedUsernames.has(artistUsername)
+          (artistId != null && followedUserIds.has(artistId)) ||
+          (artistUsername != null && followedUsernames.has(artistUsername))
         );
       }
 
@@ -50,8 +50,7 @@ describe('MockFeedService', () => {
         const ownerId = resource.playlist.owner.id;
         const ownerUsername = resource.playlist.owner.username.toLowerCase();
         return (
-          followedUserIds.has(ownerId) ||
-          followedUsernames.has(ownerUsername)
+          followedUserIds.has(ownerId) || followedUsernames.has(ownerUsername)
         );
       }
 
