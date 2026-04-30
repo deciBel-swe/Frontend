@@ -147,14 +147,6 @@ export default function AdminReportsPage() {
     };
   }, [filteredRows, reportRows, reports?.totalElements]);
 
-  const selectedReport = useMemo(
-    () =>
-      (reports?.content ?? []).find(
-        (report) => String(report.id ?? report.targetId) === selectedReportId
-      ) ?? null,
-    [reports?.content, selectedReportId]
-  );
-
   const displayDetail: ReportDetail | null = reportDetail
     ? {
         reason: reportDetail.reason ?? undefined,
