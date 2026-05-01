@@ -44,6 +44,9 @@ export default function TrackCardRoot({
   const artistDisplayName =
     track.artist.displayName?.trim() || track.artist.username;
   const artistUsername = track.artist.username;
+  const isOwnTrack =
+    authUser?.username?.trim().toLowerCase() ===
+    artistUsername.trim().toLowerCase();
   const repostedBySlug = repostedBy?.username
     ? toUserSlug(repostedBy.username)
     : undefined;
@@ -144,14 +147,16 @@ export default function TrackCardRoot({
    * Whether to show the report option. We hide it when the viewer is the
    * track owner (same logic used to show the edit button).
    */
-  // const canReport = !showEditButton;
- 
+  const canReport = !showEditButton && !isOwnTrack;
+
   if (isDeleted) {
     return null;
   }
 
   const currentUserName =
-    authUser?.displayName?.trim() || authUser?.username?.trim() || userDisplayName;
+    authUser?.displayName?.trim() ||
+    authUser?.username?.trim() ||
+    userDisplayName;
   const currentUserAvatarSrc =
     authUser?.avatarUrl?.trim() || currentUserAvatar || user.avatar;
   const headerAvatar = repostedBy?.avatar?.trim() || user.avatar;
@@ -265,6 +270,7 @@ export default function TrackCardRoot({
             onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
             onStation={() => {}}
             onReport={openTrackReport}
+            showReport={canReport}
           />
 
           {/* <div className="pt-1 text-xs text-text-muted">{track.duration}</div> */}
