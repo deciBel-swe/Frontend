@@ -15,9 +15,10 @@ type Props = {
     // TODO: make it mandatory
     followersCount?: number;
   };
+  showFollowButton?: boolean;
 };
 
-export default function PlaylistOwnerSidebar({ owner }: Props) {
+export default function PlaylistOwnerSidebar({ owner, showFollowButton = true }: Props) {
   const ownerSlug = owner.username.toLowerCase().replace(/\s+/g, '');
   const ownerDisplayName = owner.displayName || owner.username;
 
@@ -55,13 +56,15 @@ export default function PlaylistOwnerSidebar({ owner }: Props) {
       </div>
 
       {/* Follow button */}
-      <Button
-        variant="secondary"
-        className="flex items-center justify-center px-0 w-full py-1.5 text-xs font-bold"
-      >
-        <UserPlus size={14} />
-        Follow
-      </Button>
+      {showFollowButton && (
+        <Button
+          variant="secondary"
+          className="flex items-center justify-center px-0 w-full py-1.5 text-xs font-bold"
+        >
+          <UserPlus size={14} />
+          Follow
+        </Button>
+      )}
     </aside>
   );
 }

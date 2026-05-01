@@ -1011,6 +1011,7 @@ export default function PlaylistPage() {
             id: playlist.owner?.id || username,
             followersCount: playlist.owner?.followerCount,
           }}
+          showFollowButton={!canEditPlaylist}
         />
 
         {/* LEFT — tracks + tags */}
