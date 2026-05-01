@@ -14,13 +14,17 @@ type Props = {
     id: number | string;
     // TODO: make it mandatory
     followersCount?: number;
+    isFollowing?: boolean;
   };
   showFollowButton?: boolean;
+  isFollowPending?: boolean;
+  onFollowToggle?: (nextFollowing: boolean) => void | Promise<void>;
 };
 
-export default function PlaylistOwnerSidebar({ owner, showFollowButton = true }: Props) {
+export default function PlaylistOwnerSidebar({ owner, showFollowButton = true, isFollowPending = false, onFollowToggle }: Props) {
   const ownerSlug = owner.username.toLowerCase().replace(/\s+/g, '');
   const ownerDisplayName = owner.displayName || owner.username;
+  const canToggleFollow = typeof owner.id === 'number' && Boolean(onFollowToggle);
 
   return (
     <aside className="hidden md:flex flex-col items-center gap-2 w-44 shrink-0 px-4 py-6">
@@ -60,9 +64,11 @@ export default function PlaylistOwnerSidebar({ owner, showFollowButton = true }:
         <Button
           variant="secondary"
           className="flex items-center justify-center px-0 w-full py-1.5 text-xs font-bold"
+          disabled={!canToggleFollow || isFollowPending}
+          onClick={() => void onFollowToggle?.(!(owner.isFollowing ?? false))}
         >
           <UserPlus size={14} />
-          Follow
+          {owner.isFollowing ? 'Following' : 'Follow'}
         </Button>
       )}
     </aside>
