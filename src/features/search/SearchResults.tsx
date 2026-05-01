@@ -41,6 +41,7 @@ import type { EverythingOrderItem } from '@/features/search/types/searchContract
 interface SearchResultsProps {
   tab: SearchTab;
   query: string;
+  currentUserId?: string;
   tracks?: TrackCardProps[];
   playlists?: PlaylistHorizontalProps[];
   people?: UserCardData[];
@@ -52,9 +53,7 @@ interface SearchResultsProps {
 }
 
 function ResultCount({ label }: { label: string }) {
-  return (
-    <p className="text-sm text-text-muted mb-4">{label}</p>
-  );
+  return <p className="text-sm text-text-muted mb-4">{label}</p>;
 }
 
 function EmptyState({ query }: { query: string }) {
@@ -69,7 +68,10 @@ function SkeletonRows({ count = 4 }: { count?: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="h-40 rounded-lg bg-surface-default animate-pulse mb-3" />
+        <div
+          key={i}
+          className="h-40 rounded-lg bg-surface-default animate-pulse mb-3"
+        />
       ))}
     </>
   );
@@ -77,11 +79,21 @@ function SkeletonRows({ count = 4 }: { count?: number }) {
 
 // ── Per-tab renderers ────────────────────────────────────────────────────────
 
-function TrackResults({ tracks = [], total, query }: { tracks: TrackCardProps[]; total?: number; query: string }) {
+function TrackResults({
+  tracks = [],
+  total,
+  query,
+}: {
+  tracks: TrackCardProps[];
+  total?: number;
+  query: string;
+}) {
   if (!tracks.length) return <EmptyState query={query} />;
   return (
     <>
-      <ResultCount label={`Found ${total ? `${total.toLocaleString()}+` : tracks.length} tracks`} />
+      <ResultCount
+        label={`Found ${total ? `${total.toLocaleString()}+` : tracks.length} tracks`}
+      />
       {tracks.map((trackItem) => (
         <TrackCard key={trackItem.trackId} {...trackItem} />
       ))}
@@ -89,11 +101,21 @@ function TrackResults({ tracks = [], total, query }: { tracks: TrackCardProps[];
   );
 }
 
-function PlaylistResults({ playlists = [], total, query }: { playlists: PlaylistHorizontalProps[]; total?: number; query: string }) {
+function PlaylistResults({
+  playlists = [],
+  total,
+  query,
+}: {
+  playlists: PlaylistHorizontalProps[];
+  total?: number;
+  query: string;
+}) {
   if (!playlists.length) return <EmptyState query={query} />;
   return (
     <>
-      <ResultCount label={`Found ${total ? `${total.toLocaleString()}` : playlists.length} playlists`} />
+      <ResultCount
+        label={`Found ${total ? `${total.toLocaleString()}` : playlists.length} playlists`}
+      />
       {playlists.map((playlistItem) => (
         <PlaylistCard key={playlistItem.trackId} {...playlistItem} />
       ))}
@@ -101,11 +123,23 @@ function PlaylistResults({ playlists = [], total, query }: { playlists: Playlist
   );
 }
 
-function PeopleResults({ people = [], total, query }: { people: UserCardData[]; total?: number; query: string }) {
+function PeopleResults({
+  people = [],
+  total,
+  query,
+  currentUserId,
+}: {
+  people: UserCardData[];
+  total?: number;
+  query: string;
+  currentUserId?: string;
+}) {
   if (!people.length) return <EmptyState query={query} />;
   return (
     <>
-      <ResultCount label={`Found ${total ? `${total.toLocaleString()}` : people.length} people`} />
+      <ResultCount
+        label={`Found ${total ? `${total.toLocaleString()}` : people.length} people`}
+      />
       <div className="flex flex-col  ">
         {people.map((user) => (
           <UserCard
@@ -113,6 +147,7 @@ function PeopleResults({ people = [], total, query }: { people: UserCardData[]; 
             user={user}
             variant="horizontal"
             showFollowButton
+            isOwnProfile={currentUserId === user.id}
           />
         ))}
       </div>
@@ -129,6 +164,7 @@ function EverythingResults({
   totalPeople,
   everythingOrder = [],
   query,
+  currentUserId,
 }: {
   tracks: TrackCardProps[];
   playlists: PlaylistHorizontalProps[];
@@ -138,12 +174,15 @@ function EverythingResults({
   totalPeople?: number;
   everythingOrder?: EverythingOrderItem[];
   query: string;
+  currentUserId?: string;
 }) {
   const counts = [
     totalPlaylists && `${totalPlaylists.toLocaleString()} playlists`,
     totalTracks && `${totalTracks.toLocaleString()}+ tracks`,
     totalPeople && `${totalPeople.toLocaleString()} people`,
-  ].filter(Boolean).join(', ');
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   const tracksById = new Map(tracks.map((track) => [track.trackId, track]));
   const playlistsById = new Map(
@@ -183,6 +222,7 @@ function EverythingResults({
             user={user}
             variant="horizontal"
             showFollowButton
+            isOwnProfile={currentUserId === user.id}
           />
         );
       }
@@ -226,6 +266,7 @@ function EverythingResults({
                     user={user}
                     variant="horizontal"
                     showFollowButton
+                    isOwnProfile={currentUserId === user.id}
                   />
                 ))}
               </div>
@@ -246,6 +287,7 @@ function EverythingResults({
 export default function SearchResults({
   tab,
   query,
+  currentUserId,
   tracks = [],
   playlists = [],
   people = [],
@@ -261,9 +303,22 @@ export default function SearchResults({
     case 'tracks':
       return <TrackResults tracks={tracks} total={totalTracks} query={query} />;
     case 'playlists':
-      return <PlaylistResults playlists={playlists} total={totalPlaylists} query={query} />;
+      return (
+        <PlaylistResults
+          playlists={playlists}
+          total={totalPlaylists}
+          query={query}
+        />
+      );
     case 'people':
-      return <PeopleResults people={people} total={totalPeople} query={query} />;
+      return (
+        <PeopleResults
+          people={people}
+          total={totalPeople}
+          query={query}
+          currentUserId={currentUserId}
+        />
+      );
     case 'everything':
     default:
       return (
@@ -276,6 +331,7 @@ export default function SearchResults({
           totalPeople={totalPeople}
           everythingOrder={everythingOrder}
           query={query}
+          currentUserId={currentUserId}
         />
       );
   }
