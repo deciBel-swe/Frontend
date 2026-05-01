@@ -4,8 +4,11 @@ import { useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { ShareModal } from '@/features/prof/components/ShareModal';
+import { useReportTrack } from '@/features/admin/hooks';
 import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
 import TrackHero from '@/components/track-page/TrackHero';
+import TrackPageReportButton from '@/components/track-page/TrackPageReportButton';
+import ReportModal from '@/components/track-page/report/components/ReportModal';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
 import { getSecretTokenFromQuery } from '@/utils/resourceIdentifierResolvers';
 
@@ -18,6 +21,8 @@ export default function Layout({ children }: LayoutProps) {
   const searchParams = useSearchParams();
   const secretToken = getSecretTokenFromQuery(searchParams);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const { reportTrack, isLoading: isReportSubmitting } = useReportTrack();
   const {
     hero,
     waveformComments,
@@ -36,6 +41,22 @@ export default function Layout({ children }: LayoutProps) {
     onPlayPause,
     onWaveformSeek,
   } = useTrackHeaderItem({ username, trackId, secretToken });
+
+  const closeReport = () => {
+    setIsReportOpen(false);
+  };
+
+  const submitReport = async (reason: string, details?: string) => {
+    if (!hero?.id) {
+      return;
+    }
+
+    try {
+      await reportTrack(hero.id, { reason, description: details });
+    } finally {
+      closeReport();
+    }
+  };
 
   return (
     <div className="w-full">
@@ -80,6 +101,8 @@ export default function Layout({ children }: LayoutProps) {
             onShare={() => setIsShareOpen(true)}
           />
 
+          <TrackPageReportButton onReport={() => setIsReportOpen(true)} />
+
           <ShareModal
             variant="track"
             isOpen={isShareOpen}
@@ -102,6 +125,14 @@ export default function Layout({ children }: LayoutProps) {
               onPlayPause,
               onWaveformSeek,
             }}
+          />
+
+          <ReportModal
+            isOpen={isReportOpen}
+            target="track"
+            isSubmitting={isReportSubmitting}
+            onClose={closeReport}
+            onSubmit={submitReport}
           />
         </div>
       )}
