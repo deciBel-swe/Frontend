@@ -3,6 +3,7 @@
 import SearchResults from '@/features/search/SearchResults';
 import { useSearchPageData } from '@/features/search/hooks/useSearchPageData';
 import type { SearchUiTab } from '@/features/search/types/searchContracts';
+import { useAuth } from '@/features/auth';
 
 interface SearchPageContainerProps {
   tabOverride?: SearchUiTab;
@@ -10,7 +11,11 @@ interface SearchPageContainerProps {
 
 function AppendLoader() {
   return (
-    <div className="mt-3 space-y-3" aria-live="polite" aria-label="Loading more results">
+    <div
+      className="mt-3 space-y-3"
+      aria-live="polite"
+      aria-label="Loading more results"
+    >
       <div className="h-28 rounded-lg bg-surface-default animate-pulse" />
       <div className="h-28 rounded-lg bg-surface-default animate-pulse" />
     </div>
@@ -41,6 +46,7 @@ function ErrorState({
 export default function SearchPageContainer({
   tabOverride,
 }: SearchPageContainerProps) {
+  const { user } = useAuth();
   const {
     query,
     tab,
@@ -61,11 +67,14 @@ export default function SearchPageContainer({
 
   return (
     <div className="w-full">
-      {errorMessage ? <ErrorState message={errorMessage} onRetry={retry} /> : null}
+      {errorMessage ? (
+        <ErrorState message={errorMessage} onRetry={retry} />
+      ) : null}
 
       <SearchResults
         tab={tab}
         query={query}
+        currentUserId={user?.id != null ? String(user.id) : undefined}
         tracks={tracks}
         playlists={playlists}
         people={people}
@@ -78,7 +87,9 @@ export default function SearchPageContainer({
 
       {isPaginating ? <AppendLoader /> : null}
 
-      {hasMore ? <div ref={sentinelRef} className="h-3 w-full" aria-hidden /> : null}
+      {hasMore ? (
+        <div ref={sentinelRef} className="h-3 w-full" aria-hidden />
+      ) : null}
     </div>
   );
 }

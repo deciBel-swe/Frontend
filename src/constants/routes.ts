@@ -37,6 +37,8 @@ export const ROUTES = {
   SETTINGS: '/settings',
   DASHBOARD: '/dashboard',
   SUBSCRIPTION: '/settings/subscription',
+  FAILED_SUBSCRIPTION: '/checkout/cancel',
+  SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
   HELP: '/help',
   SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',

@@ -107,8 +107,10 @@ export default function SubscriptionPage() {
   const actionLoading = isCancelling || isRenewing || isCreatingCheckout;
 
   const plan = subscriptionStatus?.plan?.trim().toLowerCase() ?? 'free';
-  const isFreePlan = plan === 'free';
-  const badge = getBadge(plan);
+  const isTrialing = subscriptionStatus?.status === 'trialing';
+  const displayPlan = isTrialing ? 'free' : plan;
+  const isFreePlan = displayPlan === 'free';
+  const badge = getBadge(displayPlan);
   const isAutoRenewOff = Boolean(subscriptionStatus?.cancelAtPeriodEnd);
 
   const latestHookError =
