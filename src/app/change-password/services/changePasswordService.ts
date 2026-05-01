@@ -10,6 +10,7 @@ import {
   type ChangePasswordRequest,
   type ChangePasswordResponse,
 } from '../types';
+import { sha256Hex } from '@/utils/sha256';
 
 const changePasswordEndpoint: ApiEndpointContract<
   ChangePasswordRequest,
@@ -22,7 +23,14 @@ const changePasswordEndpoint: ApiEndpointContract<
 };
 
 export const changePasswordService = {
-  submit(payload: ChangePasswordRequest): Promise<ChangePasswordResponse> {
-    return apiRequest(changePasswordEndpoint, { payload });
+  async submit(payload: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    const hashedNewPassword = await sha256Hex(payload.newPassword);
+    
+    return apiRequest(changePasswordEndpoint, {
+      payload: {
+        ...payload,
+        newPassword: hashedNewPassword,
+      },
+    });
   },
 };
