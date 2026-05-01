@@ -15,15 +15,6 @@ Object.defineProperty(globalThis, 'TextEncoder', {
   configurable: true,
 });
 
-const PASSWORD1_HASH =
-  '0c259750cf512f112aa470d477f7fd002fea27aa2893fe2e077555e28fcd4541';
-
-jest.mock('@/utils/sha256', () => ({
-  sha256Hex: jest.fn(async (value: string) =>
-    value === 'Password1' ? PASSWORD1_HASH : 'f'.repeat(64)
-  ),
-}));
-
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
   apiClient: {
@@ -150,7 +141,7 @@ describe('AuthService contract parity', () => {
       {
         payload: {
           email: 'service@test.dev',
-          password: expect.stringMatching(/^[a-f0-9]{64}$/),
+          password: 'Password1',
           deviceInfo: expect.objectContaining({
             deviceType: expect.any(String),
             fingerPrint: expect.any(String),

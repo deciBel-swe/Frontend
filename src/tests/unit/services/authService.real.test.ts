@@ -1,9 +1,10 @@
 import { apiClient, apiRequest } from '@/hooks/useAPI';
-import { RealAuthService } from '@/services/api/authService';
+import {
+  RealAuthService,
+  REFRESH_TOKEN_STORAGE_KEY,
+} from '@/services/api/authService';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { LoginResponseDTO, LoginUserDTO } from '@/types';
-
-const MOCKED_PASSWORD_HASH = 'a'.repeat(64);
 
 jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
@@ -12,17 +13,10 @@ jest.mock('@/hooks/useAPI', () => ({
   },
 }));
 
-jest.mock('@/utils/sha256', () => ({
-  sha256Hex: jest.fn(),
-}));
-
 const USER_STORAGE_KEY = 'user';
 const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockedSha256Hex = jest.requireMock('@/utils/sha256')
-  .sha256Hex as jest.MockedFunction<(value: string) => Promise<string>>;
 
 const user: LoginUserDTO = {
   id: 1,
@@ -33,6 +27,7 @@ const user: LoginUserDTO = {
 
 const loginResponse: LoginResponseDTO = {
   accessToken: 'access-1',
+  refreshToken: 'refresh-1',
   expiresIn: 3600,
   user,
 };
@@ -69,7 +64,6 @@ describe('RealAuthService', () => {
     jest.clearAllMocks();
     storage.clear();
     bindStorageDouble();
-    mockedSha256Hex.mockResolvedValue(MOCKED_PASSWORD_HASH);
   });
 
   it('logs in with email/password and persists session data', async () => {
@@ -79,13 +73,12 @@ describe('RealAuthService', () => {
     const response = await service.login('service@test.dev', 'pass123');
 
     expect(response).toEqual(loginResponse);
-    expect(mockedSha256Hex).toHaveBeenCalledWith('pass123');
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.AUTH_LOGIN_LOCAL,
       {
         payload: {
           email: 'service@test.dev',
-          password: MOCKED_PASSWORD_HASH,
+          password: 'pass123',
           deviceInfo: expect.objectContaining({
             deviceType: 'WEB',
             fingerPrint: expect.any(String),
@@ -97,6 +90,7 @@ describe('RealAuthService', () => {
 
     expect(storage.get(USER_STORAGE_KEY)).toBe(JSON.stringify(user));
     expect(storage.get(ACCESS_TOKEN_STORAGE_KEY)).toBe('access-1');
+    expect(storage.get(REFRESH_TOKEN_STORAGE_KEY)).toBe('refresh-1');
   });
 
   it('logs in with Google and sends device info payload', async () => {

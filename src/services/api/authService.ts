@@ -7,7 +7,6 @@ import type {
   RegisterLocalResponseDTO,
 } from '@/types';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import { sha256Hex } from '@/utils/sha256';
 
 export type RegisterLocalPayload = Omit<RegisterLocalRequestDTO, 'deviceInfo'>;
 /**
@@ -53,6 +52,7 @@ export interface AuthService {
 
 export const USER_STORAGE_KEY = 'user';
 export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
+export const REFRESH_TOKEN_STORAGE_KEY = 'decibel_refresh_token';
 export const AUTH_COOKIE = 'decibel_auth';
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
   // if (typeof window === 'undefined') {
@@ -91,10 +91,8 @@ export class RealAuthService implements AuthService {
   private accessToken: string | null = null;
 
   async login(email: string, password: string): Promise<LoginResponseDTO> {
-    const hashedPassword = await sha256Hex(password);
-
     const response = await apiRequest(API_CONTRACTS.AUTH_LOGIN_LOCAL, {
-      payload: { email, password: hashedPassword, deviceInfo: buildDeviceInfo() },
+      payload: { email, password, deviceInfo: buildDeviceInfo() },
     });
 
     this.persistSession(response);
@@ -102,12 +100,9 @@ export class RealAuthService implements AuthService {
   }
 
   async registerLocal(payload: RegisterLocalPayload): Promise<RegisterLocalResponseDTO> {
-    const hashedPassword = await sha256Hex(payload.password);
-
     return apiRequest(API_CONTRACTS.AUTH_REGISTER_LOCAL, {
       payload: {
         ...payload,
-        password: hashedPassword,
         deviceInfo: buildDeviceInfo(),
       },
     });
@@ -184,6 +179,9 @@ export class RealAuthService implements AuthService {
   private persistSession(response: LoginResponseDTO): void {
     this.accessToken = response.accessToken;
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, response.accessToken);
+    if (response.refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, response.refreshToken);
+    }
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
     document.cookie = `${AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
   }
@@ -191,6 +189,7 @@ export class RealAuthService implements AuthService {
   public clearSession(): void {
     this.accessToken = null;
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
     document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   }
