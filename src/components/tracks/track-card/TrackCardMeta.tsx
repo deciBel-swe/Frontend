@@ -50,7 +50,7 @@ export default function TrackCardMeta({
         : null;
 
   return (
-    <div className="flex h-12 items-center gap-3 px-2">
+    <div className="flex items-center gap-3 px-2">
       <TrackCardPlaybackButton
         disabled={isBlocked || !hasPlayback}
         isPlaying={isCurrentTrackPlaying}
@@ -59,27 +59,29 @@ export default function TrackCardMeta({
 
       <div className="flex w-full flex-col">
         <div className="flex items-center gap-2">
+        <div className="mt-1">
           <Link
             href={`/${userSlug}`}
             className="inline-flex self-start text-sm font-bold text-text-muted hover:opacity-40"
           >
             {artistName}
           </Link>
+          </div>
 
           {repostedBySlug && repostedByDisplayName ? (
-            <>
+            <div className="mt-1">
               <Repeat2
                 size={15}
-                className="shrink-0 text-text-muted"
+                className="inline-flex self-start text-text-muted"
                 aria-label="reposted by"
               />
               <Link
                 href={`/${repostedBySlug}`}
-                className="shrink-0 text-sm font-bold text-text-muted hover:opacity-40"
+                className="inline-flex self-start text-sm font-bold text-text-muted hover:opacity-40"
               >
                 {repostedByDisplayName}
               </Link>
-            </>
+            </div>
           ) : null}
 
           {(createdAt || genre) && (
