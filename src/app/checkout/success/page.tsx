@@ -21,8 +21,8 @@ const page = () => {
             Welcome to Premium!
           </h1>
           <p className="text-text-secondary text-sm">
-            You're all set! Unlock exclusive features and dive into unlimited
-            music. Let's explore what's waiting for you.
+            You&apos;re all set! Unlock exclusive features and dive into
+            unlimited music. Let&apos;s explore what&apos;s waiting for you.
           </p>
         </div>
 
