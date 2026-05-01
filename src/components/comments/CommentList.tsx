@@ -4,6 +4,7 @@ import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagi
 type CommentListProps = {
   comments: Comment[];
   onReplyComment?: (commentId: string | number, text: string) => Promise<void>;
+  onReportComment?: (commentId: string | number) => void;
   currentUserAvatar?: string;
   isReplySubmitting?: boolean;
   replyingToCommentId?: string | number | null;
@@ -16,6 +17,7 @@ type CommentListProps = {
 export default function CommentList({
   comments,
   onReplyComment,
+  onReportComment,
   currentUserAvatar,
   isReplySubmitting = false,
   replyingToCommentId = null,
@@ -56,6 +58,7 @@ export default function CommentList({
           key={comment.id}
           comment={comment}
           onReply={onReplyComment}
+          onReport={onReportComment}
           currentUserAvatar={currentUserAvatar}
           isReplySubmitting={isReplySubmitting}
           isReplyingThisComment={replyingToCommentId === comment.id}

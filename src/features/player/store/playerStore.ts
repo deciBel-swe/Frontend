@@ -50,7 +50,7 @@ const isValidQueueIndex = (queue: PlayerTrack[], index: number): boolean => {
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
   ...PLAYER_INITIAL_STATE,
 
-  // Start or resume a specific track. BLOCKED tracks are rejected at store level.
+  // Start or resume a specific track. Only BLOCKED tracks are rejected at store level.
   playTrack: (track) => {
     if (track.access === 'BLOCKED' || track.trackUrl.trim().length === 0) {
       set({ blockedTrackId: track.id, isPlaying: false });
@@ -218,7 +218,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         currentTrack: nextTrack,
         currentTime: 0,
         duration: nextTrack.durationSeconds ?? 0,
-        isPlaying: nextTrack.access === 'PLAYABLE' ? state.isPlaying : false,
+        isPlaying: nextTrack.access !== 'BLOCKED' ? state.isPlaying : false,
       };
     });
   },

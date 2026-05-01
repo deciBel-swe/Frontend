@@ -16,7 +16,7 @@ import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { usePlaylistSecretLink } from '@/hooks/usePlaylistSecretLink';
 import { useWaveformData } from '@/hooks/useWaveformData';
-import { playlistService, trackService } from '@/services';
+import { playlistService, trackService, userService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
 import {
@@ -325,12 +325,16 @@ export default function PlaylistPage() {
   const [isReorderSaving, setIsReorderSaving] = useState(false);
   const [isPlaylistLikePending, setIsPlaylistLikePending] = useState(false);
   const [isPlaylistRepostPending, setIsPlaylistRepostPending] = useState(false);
+  const [isOwnerFollowPending, setIsOwnerFollowPending] = useState(false);
 
   const playerCurrentTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
   const playerIsPlaying = usePlayerStore((state) => state.isPlaying);
+  const playerCurrentTime = usePlayerStore((state) => state.currentTime);
+  const playerDuration = usePlayerStore((state) => state.duration);
   const setQueue = usePlayerStore((state) => state.setQueue);
   const playTrack = usePlayerStore((state) => state.playTrack);
   const pausePlayback = usePlayerStore((state) => state.pause);
+  const seek = usePlayerStore((state) => state.seek);
   const addPlaylistToQueue = usePlayerStore((state) => state.addPlaylistToQueue);
 
   const ownerUsername = playlist?.owner?.username || username;
@@ -368,7 +372,10 @@ export default function PlaylistPage() {
             );
           }
 
-          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(id);
+          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(
+            id,
+            username
+          );
           return normalizePlaylistResponse(
             await playlistService.getPlaylist(resolvedPlaylistId)
           );
@@ -473,7 +480,7 @@ export default function PlaylistPage() {
 
   const bannerWaveform = useWaveformData(
     embeddedWaveform,
-    playlist?.firstTrackWaveformUrl
+    playlist?.firstTrackWaveformUrl ?? undefined
   );
 
   const activeTrack = useMemo(() => {
@@ -798,6 +805,72 @@ export default function PlaylistPage() {
     }
   };
 
+  const handleOwnerFollowToggle = async (nextFollowing: boolean) => {
+    if (!playlist?.owner || typeof playlist.owner.id !== 'number' || isOwnerFollowPending) {
+      return;
+    }
+
+    const previousFollowing = playlist.owner.isFollowing ?? false;
+    const previousFollowerCount = playlist.owner.followerCount;
+    const delta = nextFollowing ? 1 : -1;
+
+    setIsOwnerFollowPending(true);
+    setPlaylist((previous) => {
+      if (!previous?.owner) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        owner: {
+          ...previous.owner,
+          isFollowing: nextFollowing,
+          followerCount:
+            typeof previous.owner.followerCount === 'number'
+              ? Math.max(0, previous.owner.followerCount + delta)
+              : previous.owner.followerCount,
+        },
+      };
+    });
+
+    try {
+      const response = nextFollowing
+        ? await userService.followUser(playlist.owner.id)
+        : await userService.unfollowUser(playlist.owner.id);
+
+      setPlaylist((previous) => {
+        if (!previous?.owner) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          owner: {
+            ...previous.owner,
+            isFollowing: response.isFollowing,
+          },
+        };
+      });
+    } catch {
+      setPlaylist((previous) => {
+        if (!previous?.owner) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          owner: {
+            ...previous.owner,
+            isFollowing: previousFollowing,
+            followerCount: previousFollowerCount,
+          },
+        };
+      });
+    } finally {
+      setIsOwnerFollowPending(false);
+    }
+  };
+
   const handleModalReorder = async (trackIds: number[]) => {
     if (!playlist) {
       return;
@@ -942,6 +1015,7 @@ export default function PlaylistPage() {
     },
     genre: playlist.genre,
   };
+  const sharePreviewTrack = activeTrack ?? orderedTracks[0];
 
   return (
     <div className="w-full min-w-0">
@@ -1000,10 +1074,14 @@ export default function PlaylistPage() {
           owner={{
             username: playlist.owner?.username || username,
             displayName: playlist.owner?.displayName,
-            avatarUrl: playlist.owner?.avatarUrl,
+            avatarUrl: playlist.owner?.avatarUrl ?? undefined,
             id: playlist.owner?.id || username,
             followersCount: playlist.owner?.followerCount,
+            isFollowing: playlist.owner?.isFollowing,
           }}
+          showFollowButton={!canEditPlaylist}
+          isFollowPending={isOwnerFollowPending}
+          onFollowToggle={handleOwnerFollowToggle}
         />
 
         {/* LEFT — tracks + tags */}
@@ -1071,7 +1149,7 @@ export default function PlaylistPage() {
         isSaving={isEditSaving}
         playlist={{
           title: playlist.title,
-          description: playlist.description,
+          description: playlist.description ?? undefined,
           genre: playlist.genre,
           tags: playlistTags,
           isPrivate: playlist.isPrivate,
@@ -1105,6 +1183,54 @@ export default function PlaylistPage() {
           coverUrl: resolvePlaylistCover(playlist),
           trackCount: orderedTracks.length,
         }}
+        activeTrackPreview={
+          sharePreviewTrack
+            ? {
+                title: sharePreviewTrack.title,
+                artist: sharePreviewTrack.artist ?? ownerDisplayName,
+                coverUrl: sharePreviewTrack.coverUrl,
+                duration: formatDuration(sharePreviewTrack.durationSeconds ?? 0),
+                waveformData: bannerWaveform,
+                waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
+                isPlaying:
+                  playerIsPlaying &&
+                  playerCurrentTrackId === sharePreviewTrack.id,
+                currentTime:
+                  playerCurrentTrackId === sharePreviewTrack.id
+                    ? playerCurrentTime
+                    : 0,
+                durationSeconds:
+                  playerCurrentTrackId === sharePreviewTrack.id &&
+                  playerDuration > 0
+                    ? playerDuration
+                    : sharePreviewTrack.durationSeconds ?? 1,
+                onPlayPause: handleBannerPlayPause,
+                onWaveformSeek: (fraction) => {
+                  const queueTrack = queueTracks.find(
+                    (track) => track.id === sharePreviewTrack.id
+                  );
+                  if (!queueTrack) {
+                    return;
+                  }
+
+                  if (playerCurrentTrackId !== sharePreviewTrack.id || !playerIsPlaying) {
+                    const startIndex = Math.max(
+                      0,
+                      queueTracks.findIndex((track) => track.id === sharePreviewTrack.id)
+                    );
+                    setQueue(queueTracks, startIndex, 'playlist');
+                    playTrack(queueTrack);
+                  }
+
+                  const durationSeconds =
+                    playerCurrentTrackId === sharePreviewTrack.id && playerDuration > 0
+                      ? playerDuration
+                      : sharePreviewTrack.durationSeconds ?? 1;
+                  seek(Math.max(0, Math.min(1, fraction)) * durationSeconds);
+                },
+              }
+            : undefined
+        }
       />
     </div>
   );

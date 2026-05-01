@@ -91,6 +91,24 @@ describe('normalizeApiError', () => {
     });
   });
 
+  it('uses backend message/error fields when payload uses status instead of statusCode', () => {
+    const axiosError = makeAxiosError(400, {
+      timestamp: '2026-04-29T17:13:44.73487841',
+      status: 400,
+      error: 'Free User Out of Free Tracks',
+      message:
+        "User with ID '535' is out of free tracks. Can only upload/patch to BLOCKED.",
+      path: '/api/tracks/upload/v2',
+    });
+
+    expect(normalizeApiError(axiosError)).toEqual({
+      statusCode: 400,
+      message:
+        "User with ID '535' is out of free tracks. Can only upload/patch to BLOCKED.",
+      error: 'Free User Out of Free Tracks',
+    });
+  });
+
   it('maps Error instances to ApiErrorDTO', () => {
     expect(normalizeApiError(new Error('Boom'))).toEqual({
       statusCode: 500,

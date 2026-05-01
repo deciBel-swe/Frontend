@@ -1,6 +1,6 @@
 /**
- * @description Users tab — suspended users table with reinstate actions.
- * Circle count widget removed; filtering to suspended-only happens in UsersTable.
+ * @description Users tab — banned users table with reinstate actions.
+ * Circle count widget removed; filtering happens in the page/service layer.
  */
 
 import { FC } from 'react';
@@ -17,7 +17,7 @@ interface UsersDashboardProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
- * UsersDashboard - Shows only suspended users so the admin can reinstate them.
+ * UsersDashboard - Shows banned users so the admin can reinstate them.
  *
  * @example
  * <UsersDashboard
@@ -32,7 +32,7 @@ export const UsersDashboard: FC<UsersDashboardProps> = ({
   <div>
     <UsersTable
       users={data.users}
-      totalSuspended={data.suspendedCount}
+      totalBanned={data.bannedCount}
       onReinstate={onReinstate}
     />
   </div>

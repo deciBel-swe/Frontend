@@ -1,7 +1,7 @@
-import AvatarImage from "@/components/avatars/AvatarImage";
-import VerifiedBadge from "@/components/icons/VerifiedBadge";
-import FollowButton from "@/components/buttons/FollowButton";
-import { UserIcon } from "@/components/icons/GenrealIcons";
+import AvatarImage from '@/components/avatars/AvatarImage';
+import VerifiedBadge from '@/components/icons/VerifiedBadge';
+import FollowButton from '@/components/buttons/FollowButton';
+import { UserIcon } from '@/components/icons/GenrealIcons';
 import { useUserCardHook } from '@/hooks/useUserCardHook';
 
 export interface UserCardData {
@@ -25,8 +25,9 @@ interface UserCardProps {
 }
 
 function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  if (n >= 1_000_000)
+    return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
   return String(n);
 }
 
@@ -58,8 +59,9 @@ export default function UserCard({
   user,
   onFollowToggle,
   showFollowButton = false,
+  isOwnProfile = false,
   variant = 'vertical',
-  className = "",
+  className = '',
 }: UserCardProps) {
   const {
     user: resolvedUser,
@@ -74,9 +76,15 @@ export default function UserCard({
 
   if (variant === 'horizontal') {
     return (
-      <div className={`group flex items-center gap-4 w-full py-3 px-1 ${className}`}>
+      <div
+        className={`group flex items-center gap-4 w-full py-3 px-1 ${className}`}
+      >
         {/* Avatar */}
-        <a href={`/${slug}`} aria-label={`Visit ${resolvedUser.username}'s profile`} className="shrink-0">
+        <a
+          href={`/${slug}`}
+          aria-label={`Visit ${resolvedUser.username}'s profile`}
+          className="shrink-0"
+        >
           <AvatarImage
             src={resolvedUser.avatarSrc}
             alt={resolvedUser.username}
@@ -103,7 +111,7 @@ export default function UserCard({
         </a>
 
         {/* Follow button — always visible in horizontal mode */}
-        {showFollowButton && (
+        {showFollowButton && !isOwnProfile && (
           <div className="shrink-0">
             <FollowButton
               size="sm"
@@ -119,14 +127,21 @@ export default function UserCard({
 
   // ── vertical (default) ──────────────────────────────────────────────────
   return (
-    <div className={`group flex flex-col items-center gap-2 w-40 text-center ${className}`}>
+    <div
+      className={`group flex flex-col items-center gap-2 w-40 text-center ${className}`}
+    >
       {/* Avatar */}
-      <a 
-        href={`/${slug}`} 
-        className="block no-underline" 
+      <a
+        href={`/${slug}`}
+        className="block no-underline"
         aria-label={`Visit ${resolvedUser.username}'s profile`}
       >
-        <AvatarImage src={resolvedUser.avatarSrc} alt={resolvedUser.username} size={160} shape="circle" />
+        <AvatarImage
+          src={resolvedUser.avatarSrc}
+          alt={resolvedUser.username}
+          size={160}
+          shape="circle"
+        />
       </a>
       {/* Name + verified */}
       <a href={`/${slug}`} className="no-underline">
@@ -145,7 +160,7 @@ export default function UserCard({
       </span>
 
       {/* Follow button */}
-      {showFollowButton && (
+      {showFollowButton && !isOwnProfile && (
         <div className="h-8 flex items-center">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             <FollowButton

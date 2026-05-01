@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { trackPrivacyValueSchema } from './tracks';
+import { trackAccessSchema, trackPrivacyValueSchema } from './tracks';
 
 export const MAX_TITLE_LENGTH = 300;
 export const MAX_GENRE_LENGTH = 80;
@@ -55,13 +55,20 @@ export const uploadSchema = z.object({
       'Description contains invalid symbols'
     )
     .optional(),
-  releaseDate: z
+    releaseDate: z
     .string()
     .trim()
     .min(1, 'Release date is required')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Release date must be YYYY-MM-DD')
     .refine((value) => value <= getTodayIsoDate(), 'Release date cannot be in the future'),
+    // uploadDate: z
+    // .string()
+    // .trim()
+    // .min(1, 'Upload date is required')
+    // .regex(/^\d{4}-\d{2}-\d{2}$/, 'Upload date must be YYYY-MM-DD')
+    // .refine((value) => value <= getTodayIsoDate(), 'Upload date cannot be in the future'),
   privacy: trackPrivacyValueSchema,
+  access: trackAccessSchema,
 });
 
 export type UploadFormValues = z.infer<typeof uploadSchema>;

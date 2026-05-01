@@ -114,9 +114,9 @@ export interface UserService {
     params?: PaginationParams
   ): Promise<PaginatedTracksResponse>;
 
-  /** Get a user's public playlists (GET /users/{userId}/playlists). */
+  /** Get a user's public playlists (GET /users/{username}/playlists). */
   getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse>;
 
@@ -305,10 +305,10 @@ export class RealUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
-    return apiRequest(API_CONTRACTS.USERS_PLAYLISTS(userId), {
+    return apiRequest(API_CONTRACTS.USERS_PLAYLISTS(username), {
       params: toQueryParams(params),
     });
   }

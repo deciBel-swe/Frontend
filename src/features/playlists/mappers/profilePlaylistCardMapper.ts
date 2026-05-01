@@ -22,11 +22,11 @@ export type ProfilePlaylistCardOptions = {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const toWaveform = (value: unknown): number[] => {
@@ -217,7 +217,7 @@ export function mapProfilePlaylistToCard(
         playlist.coverArtUrl ||
         (tracks[0] ? resolveTrackCover(tracks[0]) : DEFAULT_IMAGE),
       duration: formatDuration(Math.max(0, totalDurationSeconds)),
-      waveformUrl: playlist.firstTrackWaveformUrl,
+      waveformUrl: playlist.firstTrackWaveformUrl ?? undefined,
       plays: playlist.trackCount ?? tracks.length,
       genre: playlist.genre,
       isLiked: playlist.isLiked,

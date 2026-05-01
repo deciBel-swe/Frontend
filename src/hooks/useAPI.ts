@@ -290,12 +290,57 @@ const parseWithSchema = <TSchema extends z.ZodTypeAny>(
  * 4) Final generic fallback.
  */
 export const normalizeApiError = (error: unknown): ApiErrorDTO => {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'statusCode' in error &&
+    'message' in error
+  ) {
+    const parsedError = apiErrorDTOSchema.safeParse(error);
+
+    if (parsedError.success) {
+      return parsedError.data;
+    }
+  }
+
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<unknown>;
     const parsedError = apiErrorDTOSchema.safeParse(axiosError.response?.data);
 
     if (parsedError.success) {
       return parsedError.data;
+    }
+
+    if (
+      axiosError.response?.data &&
+      typeof axiosError.response.data === 'object'
+    ) {
+      const responseData = axiosError.response.data as Record<string, unknown>;
+      const backendMessage =
+        typeof responseData.message === 'string' &&
+        responseData.message.trim().length > 0
+          ? responseData.message
+          : undefined;
+      const backendError =
+        typeof responseData.error === 'string' &&
+        responseData.error.trim().length > 0
+          ? responseData.error
+          : undefined;
+
+      if (backendMessage || backendError) {
+        return {
+          statusCode:
+            typeof responseData.status === 'number'
+              ? responseData.status
+              : axiosError.response?.status ?? 500,
+          message:
+            backendMessage ??
+            backendError ??
+            axiosError.message ??
+            'Unexpected API error',
+          error: backendError ?? axiosError.code,
+        };
+      }
     }
 
     return {
@@ -348,23 +393,28 @@ export const apiRequest = async <TRequest, TResponse>(
       )
     : requestOptions.payload;
 
-  const response = await apiClient.request({
-    method: endpoint.method,
-    url: endpoint.url,
-    data: validatedPayload,
-    params: requestOptions.params,
-    signal: requestOptions.signal,
-    headers: requestOptions.headers,
-    onUploadProgress: requestOptions.onUploadProgress,
-  });
-  const responsePayload =
-    response.status === 204 || response.data === '' ? undefined : response.data;
+  try {
+    const response = await apiClient.request({
+      method: endpoint.method,
+      url: endpoint.url,
+      data: validatedPayload,
+      params: requestOptions.params,
+      signal: requestOptions.signal,
+      headers: requestOptions.headers,
+      onUploadProgress: requestOptions.onUploadProgress,
+    });
+    const responsePayload =
+      response.status === 204 || response.data === '' ? undefined : response.data;
 
-  return parseWithSchema(
-    endpoint.responseSchema,
-    responsePayload,
-    `Invalid response DTO from ${endpoint.url}`
-  );
+    return parseWithSchema(
+      endpoint.responseSchema,
+      responsePayload,
+      `Invalid response DTO from ${endpoint.url}`
+    );
+  } catch (error) {
+    const normalizedError = normalizeApiError(error);
+    throw Object.assign(new Error(normalizedError.message), normalizedError);
+  }
 };
 
 /**

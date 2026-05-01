@@ -76,11 +76,11 @@ type UseTrackPageResult = {
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
 ): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const formatDuration = (durationSeconds: number | undefined): string => {
@@ -388,7 +388,9 @@ export function useTrackPage({
         }
 
         const trackCreatedAt =
-          trackMetadata.releaseDate && trackMetadata.releaseDate.trim().length > 0
+          trackMetadata.uploadDate && trackMetadata.uploadDate.trim().length > 0
+            ? trackMetadata.uploadDate
+            : trackMetadata.releaseDate && trackMetadata.releaseDate.trim().length > 0
             ? trackMetadata.releaseDate
             : null;
         const artistUsername = trackMetadata.artist.username ?? username;

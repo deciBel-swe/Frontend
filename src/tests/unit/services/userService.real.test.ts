@@ -78,10 +78,10 @@ describe('RealUserService', () => {
   it('calls USERS_PLAYLISTS with query params', async () => {
     mockedApiRequest.mockResolvedValue([{ id: 2, title: 'Public Set' }]);
 
-    await service.getUserPlaylists(11, { page: 1, size: 10 });
+    await service.getUserPlaylists('mockartist', { page: 1, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_PLAYLISTS(11),
+      API_CONTRACTS.USERS_PLAYLISTS('mockartist'),
       {
         params: { page: 1, size: 10 },
       }

@@ -289,6 +289,7 @@ const toPlaylistResponse = (
     genre: firstTrackRecord?.genre ?? 'Unknown',
     createdAt: new Date().toISOString(),
     tracks,
+    trackSummary: tracks,
     secretToken: playlist.secretLink ?? '',
     firstTrackWaveformUrl:
       firstTrackRecord?.waveformUrl ??
@@ -372,9 +373,10 @@ export class MockPlaylistService implements PlaylistService {
       title,
       playlistSlug,
       description,
-      type: payload.type,
-      isPrivate: payload.isPrivate,
+      type: payload.type ?? 'PLAYLIST',
+      isPrivate: payload.isPrivate ?? false,
       CoverArt: payload.CoverArt,
+      genre: payload.genre,
       isLiked: false,
       owner: {
         id: owner.id,
@@ -413,13 +415,13 @@ export class MockPlaylistService implements PlaylistService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
     await delay();
 
     const viewerId = resolveCurrentMockUserId();
-    const owner = getMockUsersStore().find((user) => user.id === userId);
+    const owner = getMockUsersStore().find((user) => user.username === username);
 
     if (!owner) {
       throw new Error('User not found');
@@ -530,7 +532,7 @@ export class MockPlaylistService implements PlaylistService {
   async addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }> {
+  ): Promise<PlaylistResponse> {
     await delay();
 
     if (!resolvePlaylistOwner(playlistId)) {
@@ -547,7 +549,11 @@ export class MockPlaylistService implements PlaylistService {
       (track) => track.trackId === payload.trackId
     );
     if (existing) {
-      return { message: 'Track already in playlist' };
+      return toPlaylistResponse(
+        resolved.owner,
+        playlist,
+        resolveCurrentMockUserId()
+      );
     }
 
     const track = getMockTracksStore().find((item) => item.id === payload.trackId);
@@ -570,9 +576,9 @@ export class MockPlaylistService implements PlaylistService {
       durationSeconds: track.durationSeconds ?? 0,
       trackUrl: track.trackUrl,
     });
-
     persistMockSystemState();
-    return { message: 'Track added to playlist' };
+
+    return toPlaylistResponse(resolved.owner, playlist, resolveCurrentMockUserId());
   }
 
   async removeTrackFromPlaylist(

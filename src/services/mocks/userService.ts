@@ -179,6 +179,31 @@ const toUserPublic = (
     : null,
 });
 
+const getEffectiveFavoriteGenres = (user: MockUserRecord): string[] => {
+  const explicitGenres = user.profile.favoriteGenres
+    .map((genre) => genre.trim())
+    .filter((genre) => genre.length > 0);
+
+  if (explicitGenres.length > 0) {
+    return explicitGenres;
+  }
+
+  const fallbackGenres = new Set<string>();
+
+  for (const track of [...user.likedTracks, ...user.reposts, ...user.tracks]) {
+    const normalizedGenre = track.genre.trim();
+    if (normalizedGenre.length > 0) {
+      fallbackGenres.add(normalizedGenre);
+    }
+
+    if (fallbackGenres.size >= 3) {
+      break;
+    }
+  }
+
+  return [...fallbackGenres];
+};
+
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
@@ -193,7 +218,7 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
     country: user.profile.country,
     profilePic: user.profile.profilePic,
     coverPic: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
+    favoriteGenres: getEffectiveFavoriteGenres(user),
   },
   socialLinks: {
     instagram: user.socialLinks.instagram,
@@ -281,7 +306,7 @@ const buildFullTrack = (
   return {
     id: track.id,
     title: track.title,
-    trackSlug: track.trackSlug,
+    trackSlug: track.trackSlug ?? `track-${track.id}`,
     artist,
     trackUrl: track.trackUrl,
     coverUrl: track.coverImageDataUrl ?? track.coverUrl,
@@ -298,7 +323,7 @@ const buildFullTrack = (
     commentCount: 0,
     isPrivate: track.isPrivate,
     trackDurationSeconds: track.durationSeconds ?? 0,
-    uploadDate: track.releaseDate,
+    uploadDate: track.uploadDate ?? track.releaseDate,
     description: track.description ?? '',
     trendingRank: 0,
     access: resolveMockResourceAccess({
@@ -356,15 +381,40 @@ const buildFullPlaylist = (
     return null;
   }
   const ownerSummary = toUserSummary(owner, viewer);
-  const tracks = playlist.tracks
+  const fullTracks = playlist.tracks
     .map((item) => buildFullTrack(item.trackId, viewer))
     .filter((item): item is FullTrackDTO => Boolean(item));
+  const tracks = fullTracks.map((item) => ({
+    id: item.id,
+    title: item.title,
+    trackSlug: item.trackSlug,
+    coverUrl: item.coverUrl ?? item.trackPreviewUrl,
+    trackUrl: item.trackUrl,
+    trackPreviewUrl: item.trackPreviewUrl,
+    artist: {
+      id: item.artist.id,
+      username: item.artist.username,
+      displayName: item.artist.displayName,
+      avatarUrl: item.artist.avatarUrl ?? 'https://decibel.test/default-avatar.png',
+      isFollowing: item.artist.isFollowing,
+      followerCount: item.artist.followerCount,
+      trackCount: item.artist.trackCount,
+    },
+    playCount: item.playCount,
+    likeCount: item.likeCount,
+    repostCount: item.repostCount,
+    commentCount: item.commentCount,
+    isLiked: item.isLiked,
+    isReposted: item.isReposted,
+    secretToken: item.secretToken,
+    access: item.access,
+  }));
 
-  const totalDurationSeconds = tracks.reduce(
+  const totalDurationSeconds = fullTracks.reduce(
     (total, item) => total + (item.trackDurationSeconds ?? 0),
     0
   );
-  const firstTrack = tracks[0];
+  const firstTrack = fullTracks[0];
   const firstTrackRecord = getMockTracksStore().find(
     (track) => track.id === firstTrack?.id
   );
@@ -590,7 +640,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.role = payload.newRole;
-    if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
+    if (payload.newRole === 'LISTENER' && me.tier === 'PRO') {
       me.tier = 'FREE';
     }
     commitMockUserState();
@@ -676,11 +726,14 @@ export class MockUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     await delay();
-    const user = findUser(userId);
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     if (!params) {
       return [...user.playlists];
     }
@@ -790,11 +843,29 @@ export class MockUserService implements UserService {
           title: playlist.title,
           type: playlist.type,
           isLiked: user.likedPlaylists.includes(playlist.id),
-          owner: { id: owner.id, username: owner.username },
-          tracks: playlist.tracks,
+          owner: {
+            id: owner.id,
+            username: owner.username,
+            displayName: owner.displayName || owner.username,
+            avatarUrl: owner.profile.profilePic || '',
+            followerCount: owner.followers.size,
+            trackCount: owner.tracks.length,
+            isFollowing: false,
+          },
+          tracks: [],
+          trackSummary: [],
           isReposted: user.repostedPlaylists.includes(playlist.id),
           likeCount: playlistLikeCount(playlist.id),
           repostCount: playlistRepostCount(playlist.id),
+          playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+          description: playlist.description || '',
+          isPrivate: playlist.isPrivate,
+          coverArtUrl: playlist.CoverArt || '',
+          totalDurationSeconds: 0,
+          trackCount: 0,
+          genre: undefined,
+          createdAt: new Date().toISOString(),
+          firstTrackWaveformUrl: '',
         });
       }
     }
@@ -962,21 +1033,23 @@ export class MockUserService implements UserService {
         owner: {
           id: playlist.owner.id,
           username: playlist.owner.username,
+          displayName: playlist.owner.displayName || playlist.owner.username,
+          avatarUrl: playlist.owner.avatarUrl || '',
+          followerCount: 0,
+          trackCount: 0,
+          isFollowing: false,
         },
-        tracks: playlist.tracks.map(
-          (track: {
-            trackId: number;
-            title: string;
-            trackUrl: string;
-            durationSeconds: number;
-            [key: string]: unknown;
-          }) => ({
-            trackId: track.trackId,
-            title: track.title,
-            trackUrl: track.trackUrl,
-            durationSeconds: track.durationSeconds,
-          })
-        ),
+        tracks: [],
+        trackSummary: [],
+        playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+        description: playlist.description || '',
+        isPrivate: playlist.isPrivate,
+        coverArtUrl: playlist.CoverArt || '',
+        totalDurationSeconds: 0,
+        trackCount: 0,
+        genre: undefined,
+        createdAt: new Date().toISOString(),
+        firstTrackWaveformUrl: '',
       }));
 
     return paginate(likedPlaylists, params);

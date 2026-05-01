@@ -20,11 +20,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 type UseTrackHeaderItemParams = {
@@ -34,6 +34,7 @@ type UseTrackHeaderItemParams = {
 };
 
 type TrackHeroHeader = {
+  id: number;
   title: string;
   artistName: string;
   artistSlug: string;
@@ -203,13 +204,14 @@ export function useTrackHeaderItem({
         const durationSeconds = trackMetadata.durationSeconds;
 
         setHero({
+          id: trackMetadata.id,
           title: trackMetadata.title,
           artistName,
           artistSlug: artistName,
           trackSlug: trackMetadata.trackSlug,
           secretToken: trackMetadata.secretToken?.trim() || undefined,
           coverUrl: trackMetadata.coverUrl,
-          timeAgo: formatTimeAgo(trackMetadata.releaseDate),
+          timeAgo: formatTimeAgo(trackMetadata.uploadDate || trackMetadata.releaseDate),
           tags: trackMetadata.tags,
           genre: trackMetadata.genre,
           waveformUrl: trackMetadata.waveformUrl ?? '',

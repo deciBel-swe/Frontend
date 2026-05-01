@@ -8,6 +8,7 @@ import type { PlaylistItem } from '@/components/playlist/AddToPlaylistTab';
 import { ShareModal } from '@/features/prof/components/ShareModal';
 import EditTrackModal from '@/features/tracks/components/EditTrackModal';
 import { playlistService } from '@/services';
+import { usePlayerStore } from '@/features/player/store/playerStore';
 
 type TrackCardModalsProps = {
   trackId: string;
@@ -17,6 +18,7 @@ type TrackCardModalsProps = {
   track: {
     title: string;
     secretToken?: string;
+    trackUrl?: string;
     artist: {
       username: string;
       displayName?: string;
@@ -24,6 +26,9 @@ type TrackCardModalsProps = {
     };
     cover: string;
     duration: string;
+    genre?: string;
+    waveformData?: number[];
+    waveformUrl?: string;
   };
   editOpen: boolean;
   isShareOpen: boolean;
@@ -53,6 +58,72 @@ export default function TrackCardModals({
   const artistDisplayName =
     track.artist.displayName?.trim() || track.artist.username;
 
+  // ── Live playback state for the embed preview ─────────────────────────────
+  const currentPlayerTrackId = usePlayerStore((s) => s.currentTrack?.id ?? null);
+  const playerIsPlaying = usePlayerStore((s) => s.isPlaying);
+  const playerCurrentTime = usePlayerStore((s) => s.currentTime);
+  const playerDuration = usePlayerStore((s) => s.duration);
+  const playTrack = usePlayerStore((s) => s.playTrack);
+  const pausePlayback = usePlayerStore((s) => s.pause);
+  const seek = usePlayerStore((s) => s.seek);
+
+  const isCurrentTrack = Number(currentPlayerTrackId) === Number(trackNumericId);
+  const isPlaying = isCurrentTrack && playerIsPlaying;
+  const currentTime = isCurrentTrack ? playerCurrentTime : 0;
+  const durationSeconds = isCurrentTrack && playerDuration > 0 ? playerDuration : 0;
+
+  const onPlayPause = useCallback(() => {
+    if (isCurrentTrack && playerIsPlaying) {
+      pausePlayback();
+      return;
+    }
+    if (track.trackUrl) {
+      playTrack({
+        id: trackNumericId,
+        title: track.title,
+        artistName: artistDisplayName,
+        trackUrl: track.trackUrl,
+        access: 'PLAYABLE',
+      });
+    }
+  }, [
+    artistDisplayName,
+    isCurrentTrack,
+    pausePlayback,
+    playTrack,
+    playerIsPlaying,
+    track.title,
+    track.trackUrl,
+    trackNumericId,
+  ]);
+
+  const onWaveformSeek = useCallback(
+    (fraction: number) => {
+      if (!track.trackUrl) return;
+      if (!isCurrentTrack) {
+        playTrack({
+          id: trackNumericId,
+          title: track.title,
+          artistName: artistDisplayName,
+          trackUrl: track.trackUrl,
+          access: 'PLAYABLE',
+        });
+      }
+      if (durationSeconds > 0) seek(fraction * durationSeconds);
+    },
+    [
+      artistDisplayName,
+      durationSeconds,
+      isCurrentTrack,
+      playTrack,
+      seek,
+      track.title,
+      track.trackUrl,
+      trackNumericId,
+    ]
+  );
+
+  // ── Playlist modal state ──────────────────────────────────────────────────
   const [filterValue, setFilterValue] = useState('');
   const [playlistTitle, setPlaylistTitle] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
@@ -71,7 +142,7 @@ export default function TrackCardModals({
           title: playlist.title,
           trackCount: playlist.trackCount ?? playlist.tracks?.length ?? 0,
           isPrivate: playlist.isPrivate,
-          coverUrl: playlist.coverArtUrl,
+          coverUrl: playlist.coverArtUrl ?? undefined,
         } satisfies PlaylistItem;
       });
 
@@ -140,6 +211,7 @@ export default function TrackCardModals({
         type: 'PLAYLIST',
         isPrivate: privacy === 'private',
         CoverArt: track.cover,
+        genre: track.genre || 'Other',
       });
 
       await playlistService.addTrackToPlaylist(created.id, {
@@ -157,6 +229,7 @@ export default function TrackCardModals({
     playlistTitle,
     privacy,
     track.cover,
+    track.genre,
     trackNumericId,
   ]);
 
@@ -176,6 +249,13 @@ export default function TrackCardModals({
           artist: artistDisplayName,
           coverUrl: track.cover,
           duration: track.duration,
+          waveformData: track.waveformData,
+          waveformUrl: track.waveformUrl,
+          isPlaying,
+          currentTime,
+          durationSeconds,
+          onPlayPause,
+          onWaveformSeek,
         }}
       />
 

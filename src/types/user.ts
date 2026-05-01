@@ -24,13 +24,7 @@ export const nullableStringWithDefault = (defaultValue: string) =>
     }
     return value;
   }, z.string().nullable().optional());
-const userTierSchema = z.enum([
-  'FREE',
-  'ARTIST',
-  'ARTIST_PRO',
-  'LISTENER',
-  'OTHER',
-]);
+const userTierSchema = z.enum(['FREE', 'PRO']);
 
 const userProfileSchema = z.object({
   displayName: nullableStringWithDefault(''),
@@ -124,8 +118,8 @@ export const userMeSchema = z
         tier: legacy.tier,
         profile: {
           displayName: legacyDisplayName,
-          bio: legacy.profile.bio??'',
-          city: legacy.profile.city??'',
+          bio: legacy.profile.bio ?? '',
+          city: legacy.profile.city ?? '',
           country: legacy.profile.country ?? '',
           profilePic: legacy.profile.profilePic,
           coverPic: legacy.profile.coverPic,
@@ -155,8 +149,8 @@ export const userMeSchema = z
       tier: profile.tier,
       profile: {
         displayName: profile.displayName ?? null,
-        bio: profile.bio??'',
-        city: profile.city??'',
+        bio: profile.bio ?? '',
+        city: profile.city ?? '',
         country: profile.country ?? '',
         profilePic: profile.profilePic,
         coverPic: profile.coverPic,
@@ -195,10 +189,15 @@ export const userSummarySchema = z
   .object({
     id: z.number().int().nonnegative(),
     username: z.string().trim().min(1),
-    displayName: z.string().trim().min(1),
-    avatarUrl: z.string().url(),
+    displayName: z.string().trim().min(1).nullable(),
+    avatarUrl: z.string().url().nullable(),
     isFollowing: z.boolean().optional().default(false),
-    followerCount: z.number().int().nonnegative().optional().default(99999999999),
+    followerCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional()
+      .default(99999999999),
     trackCount: z.number().int().nonnegative().optional().default(99999999999),
   })
   .passthrough();
@@ -243,13 +242,13 @@ export const updateRoleRequestSchema = z.object({
 export type UpdateRoleRequest = z.infer<typeof updateRoleRequestSchema>;
 
 export const updateTierRequestSchema = z.object({
-  newTier: z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']),
+  newTier: z.enum(['FREE', 'PRO']),
 });
 export type UpdateTierRequest = z.infer<typeof updateTierRequestSchema>;
 
 export const updateTierResponseSchema = z
   .object({
-    tier: z.enum(['FREE', 'ARTIST', 'ARTIST_PRO']),
+    tier: z.enum(['FREE', 'PRO']),
     login: z.unknown().optional(),
   })
   .passthrough();
@@ -387,7 +386,9 @@ export type PaginatedFollowersResponse = z.infer<
 export const paginatedHistoryResponseSchema = paginationInfoSchema.extend({
   content: z.array(listeningHistoryItemSchema),
 });
-export type PaginatedHistoryResponse = z.infer<typeof paginatedHistoryResponseSchema>;
+export type PaginatedHistoryResponse = z.infer<
+  typeof paginatedHistoryResponseSchema
+>;
 
 export const paginatedTracksResponseSchema = paginationInfoSchema.extend({
   content: z.array(listeningHistoryItemSchema),

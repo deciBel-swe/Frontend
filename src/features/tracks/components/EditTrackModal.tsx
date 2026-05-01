@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { trackService } from '@/services';
 import { useQueryClient } from '@tanstack/react-query';
-import type { TrackPrivacyValue } from '@/types/tracks';
+import type { TrackAccess, TrackPrivacyValue } from '@/types/tracks';
 import { uploadSchema } from '@/types/uploadSchema';
 import { validateImageFile } from '@/utils/fileValidation';
 import Button from '@/components/buttons/Button';
@@ -39,6 +39,7 @@ export default function EditTrackModal({
   const [releaseDate, setReleaseDate] = useState(todayIsoDate);
   const [releaseDateError, setReleaseDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
+  const [access, setAccess] = useState<TrackAccess>('PLAYABLE');
   const [artworkPreview, setArtworkPreview] = useState<string | null>(
     track.cover ?? null
   );
@@ -65,6 +66,7 @@ export default function EditTrackModal({
       setReleaseDate(todayIsoDate);
       setReleaseDateError('');
       setPrivacy('public');
+      setAccess('PLAYABLE');
       setArtworkPreview(null);
       setArtworkFile(null);
       setArtworkRemoved(false);
@@ -89,6 +91,7 @@ export default function EditTrackModal({
         setDescription(data.description ?? '');
         setReleaseDate(data.releaseDate?.trim() || todayIsoDate);
         setPrivacy(visibility.isPrivate ? 'private' : 'public');
+        setAccess(data.access ?? 'PLAYABLE');
         setArtworkPreview(data.coverUrl ?? null);
         setArtworkRemoved(false);
       } catch (err) {
@@ -161,6 +164,7 @@ export default function EditTrackModal({
       description,
       releaseDate,
       privacy,
+      access,
     });
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
@@ -201,6 +205,7 @@ export default function EditTrackModal({
 
       formData.append('releaseDate', releaseDate);
       formData.append('isPrivate', String(privacy === 'private'));
+      formData.append('access', access);
 
       const updatedTrack = await trackService.updateTrack(trackId, formData);
       if (!updatedTrack || updatedTrack.id !== trackId) {
@@ -303,6 +308,8 @@ export default function EditTrackModal({
                 releaseDateMax={todayIsoDate}
                 showReleaseDate
                 privacy={privacy}
+                access={access}
+                onAccessChange={setAccess}
                 onPrivacyChange={(nextPrivacy) => {
                   setPrivacy(nextPrivacy);
                 }}

@@ -11,6 +11,7 @@ export enum ReportStatus {
 }
 
 export enum ReportReason {
+  UNKNOWN = 'unknown',
   COPYRIGHT = 'copyright',
   INAPPROPRIATE = 'inappropriate',
   VIOLENCE = 'violence',
@@ -41,6 +42,14 @@ export interface StatCardData {
 
 export interface StorageUsage {
   usedGB: number;
+  totalGB: number;
+}
+
+export interface ArtistListenerRatio {
+  artistCount: number;
+  listenerCount: number;
+  artistPercent: number;
+  listenerPercent: number;
 }
 
 // export interface FlaggedContentBreakdown {
@@ -54,21 +63,13 @@ export interface StorageUsage {
 //   change: string;
 // }
 
-export interface ArtistListenerRatio {
-  artistCount: number;
-  listenerCount: number;
-  artistPercent: number;
-  listenerPercent: number;
-}
-
 export interface AnalyticsDashboardData {
   plays: StatCardData;
   totalUsers: StatCardData;
+  totalTracks: StatCardData;
+  playThroughRate: StatCardData;
+  bannedUsers: StatCardData;
   storage: StorageUsage;
-  // flaggedContent: FlaggedContentBreakdown & { total: number };
-  // highestMonthlyActivity: ActivityStat;
-  // lowestMonthlyActivity: ActivityStat;
-  artistListenerRatio: ArtistListenerRatio;
 }
 
 // ─── Reports ─────────────────────────────────────────────────────────────────
@@ -91,24 +92,24 @@ export interface ReportsDashboardData {
 // ─── Report View Popup ────────────────────────────────────────────────────────
 
 export interface ReportedTrackInfo {
-  thumbnailUrl: string;
-  artistName: string;
+  thumbnailUrl?: string;
+  artistName?: string;
   trackTitle: string;
-  plays: string;
-  uploadedDate: string;
+  plays?: string;
+  uploadedDate?: string;
 }
 
 export interface ReportedCommentInfo {
-  author: string;
-  postedOnTrack: string;
-  uploadedDate: string;
-  commentContent: string;
+  author?: string;
+  postedOnTrack?: string;
+  uploadedDate?: string;
+  commentContent?: string;
 }
 
 export interface ReportDetail {
-  reason: string;
+  reason?: string;
   type: ReportType;
-  reportedBy: string;
+  reportedBy?: string;
   date: string;
   status: ReportStatus;
   description?: string;
@@ -121,12 +122,13 @@ export interface ReportDetail {
 export interface UserRow {
   id: string;
   username: string;
-  avatarUrl?: string;
-  type: UserRole;
-  status: UserStatus;
+  displayName: string;
+  avatarUrl?: string | null;
+  followerCount: number;
+  trackCount: number;
 }
 
 export interface UsersDashboardData {
-  suspendedCount: number;
+  bannedCount: number;
   users: UserRow[];
 }

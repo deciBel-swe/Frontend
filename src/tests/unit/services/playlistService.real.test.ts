@@ -29,6 +29,7 @@ describe('RealPlaylistService', () => {
       type: 'PLAYLIST',
       isPrivate: false,
       CoverArt: 'https://example.com/cover.jpg',
+      genre: 'Electronic',
     };
 
     const response = {
@@ -47,7 +48,12 @@ describe('RealPlaylistService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_CREATE,
-      { payload }
+      expect.objectContaining({
+        payload: expect.any(FormData),
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     );
   });
 
@@ -72,8 +78,13 @@ describe('RealPlaylistService', () => {
     await service.updatePlaylist(88, payload);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_UPDATE(88),
-      { payload }
+      expect.objectContaining({ method: 'PATCH', url: '/playlists/88' }),
+      expect.objectContaining({
+        payload: expect.any(FormData),
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     );
   });
 
@@ -148,10 +159,10 @@ describe('RealPlaylistService', () => {
       isLast: true,
     });
 
-    await service.getUserPlaylists(7, { page: 0, size: 10 });
+    await service.getUserPlaylists('mockartist', { page: 0, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(7),
+      API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS('mockartist'),
       {
         params: { page: 0, size: 10 },
       }
@@ -257,7 +268,10 @@ describe('RealPlaylistService', () => {
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       expect.objectContaining({ method: 'POST', url: '/playlists/5/tracks' }),
-      { payload }
+      {
+        payload,
+        params: { trackId: 101 },
+      }
     );
 
     mockedApiRequest.mockResolvedValue(undefined);

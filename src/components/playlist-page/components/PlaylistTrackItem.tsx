@@ -6,6 +6,7 @@ import { GripVertical, Play } from 'lucide-react';
 import TrackActions from '@/components/tracks/actions/TrackActions';
 import { HoverPlayImage } from '@/components/sidebar/HoverPlayImage';
 import { buildTrackPath, toUserPathSlug } from '@/utils/resourcePaths';
+import { buildProfileHref } from '@/utils/socialRoutes';
 
 export type PlaylistTrack = {
   id: number;
@@ -92,10 +93,12 @@ export default function PlaylistTrackItem({
   onDragEnd,
 }: PlaylistTrackItemProps) {
   const [hovered, setHovered] = useState(false);
-  const artistPathSlug = toUserPathSlug(
-    track.artistUsername?.trim() || track.artist || ''
-  );
+  const artistUsername = track.artistUsername?.trim() || '';
+  const artistPathSlug = toUserPathSlug(artistUsername);
+  const artistProfileHref = buildProfileHref(artistUsername);
   const trackPathId = track.trackSlug?.trim() || String(track.id);
+  const trackHref =
+    artistPathSlug.length > 0 ? buildTrackPath(artistUsername, trackPathId) : '/feed';
   const unavailable = track.available === false;
 
   return (
@@ -140,7 +143,7 @@ export default function PlaylistTrackItem({
         {track.artist && (
             <>
             <Link
-                href={`/${artistPathSlug}`}
+                href={artistProfileHref}
                 onClick={(e) => e.stopPropagation()}
                 className={`text-sm font-semibold hover:opacity-60 shrink-0 ${isActive ? 'text-brand-primary' : 'text-text-muted'}`}
             >
@@ -150,7 +153,7 @@ export default function PlaylistTrackItem({
             </>
         )}
         <Link
-          href={buildTrackPath(artistPathSlug, trackPathId)}
+          href={trackHref}
             onClick={(e) => e.stopPropagation()}
             className={`text-sm font-bold hover:opacity-60 truncate ${isActive ? 'text-brand-primary' : 'text-text-primary'}`}
         >

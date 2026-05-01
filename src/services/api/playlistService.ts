@@ -52,9 +52,9 @@ export interface PlaylistService {
   /** Get a playlist with tracks (GET /playlists/:playlistId). */
   getPlaylist(playlistId: number): Promise<PlaylistResponse>;
 
-  /** Get a user's public playlists (GET /users/{userId}/playlists). */
+  /** Get a user's public playlists (GET /users/{username}/playlists). */
   getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse>;
 
@@ -80,7 +80,7 @@ export interface PlaylistService {
   addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }>;
+  ): Promise<PlaylistResponse>;
 
   /** Remove a track from a playlist (DELETE /playlists/:playlistId/tracks/:trackId). */
   removeTrackFromPlaylist(
@@ -137,7 +137,19 @@ export class RealPlaylistService implements PlaylistService {
   async createPlaylist(
     payload: CreatePlaylistRequest
   ): Promise<PlaylistResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, { payload });
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    return apiRequest(API_CONTRACTS.PLAYLISTS_CREATE, {
+      payload: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async getPlaylist(playlistId: number): Promise<PlaylistResponse> {
@@ -145,10 +157,10 @@ export class RealPlaylistService implements PlaylistService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<PaginatedPlaylistsResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(userId), {
+    return apiRequest(API_CONTRACTS.PLAYLISTS_USER_PLAYLISTS(username), {
       params: toQueryParams(params),
     });
   }
@@ -174,7 +186,19 @@ export class RealPlaylistService implements PlaylistService {
     playlistId: number,
     payload: UpdatePlaylistRequest
   ): Promise<PlaylistUpdateResponse> {
-    return apiRequest(API_CONTRACTS.PLAYLISTS_UPDATE(playlistId), { payload });
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    return apiRequest(API_CONTRACTS.PLAYLISTS_UPDATE(playlistId), {
+      payload: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async deletePlaylist(playlistId: number): Promise<void> {
@@ -184,9 +208,10 @@ export class RealPlaylistService implements PlaylistService {
   async addTrackToPlaylist(
     playlistId: number,
     payload: AddPlaylistTrackRequest
-  ): Promise<{ message: string }> {
+  ): Promise<PlaylistResponse> {
     return apiRequest(API_CONTRACTS.PLAYLISTS_ADD_TRACK(playlistId), {
       payload,
+      params: { trackId: payload.trackId },
     });
   }
 

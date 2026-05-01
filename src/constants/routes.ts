@@ -38,6 +38,8 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   SUBSCRIPTION: '/settings/subscription',
   VERIFY_EMAIL_CHANGE: '/settings/verify-email-change',
+  FAILED_SUBSCRIPTION: '/checkout/cancel',
+  SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
   HELP: '/help',
   SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',
@@ -139,7 +141,7 @@ export const API_ENDPOINTS = {
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
-    PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
+    PLAYLISTS: (username: string) => `/users/${username}/playlists`,
     LIKED_PLAYLISTS: (
       username: string //this should be changed in backend should be userid not username
     ) => `/users/${username}/liked-playlists`,
@@ -149,6 +151,7 @@ export const API_ENDPOINTS = {
     BLOCK: (userId: number) => `/users/${userId}/block`,
     WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
+    LIKE_TRACKS: (username: string) => `/users/${username}/liked-tracks`, //tracks user has liked
     WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
     REPOSTS: (username: string) => `/users/${username}/reposted-tracks`,
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
@@ -205,8 +208,8 @@ export const API_ENDPOINTS = {
     LOGIN: '/admin/login',
     REPORTS: '/admin/reports',
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
+    BANNED_USERS: '/admin/users/banned',
     BAN_USER: (userId: number) => `/admin/users/${userId}/ban`,
-    UNBAN_USER: (userId: number) => `/admin/users/${userId}/unban`,
     ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',

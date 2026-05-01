@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { UserCardData } from '@/features/social/components/UserCard';
 import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { feedService } from '@/services';
-import type { FeedItemDTO } from '@/types/discovery';
+import type { FeedItemDTO } from '@/types/feed';
 import { resolvePlaylistIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
 
 type EngagementType = 'likes' | 'reposts';
@@ -44,8 +44,8 @@ const toUserCardData = (user: LooseUser, index: number): UserCardData => {
 const resolveActor = (item: FeedItemDTO): LooseUser | null => {
   const actor =
     item.repostedBy ??
-    ((item as unknown as { actor?: LooseUser }).actor ??
-      (item as unknown as { likedBy?: LooseUser }).likedBy);
+    (item as unknown as { actor?: LooseUser }).actor ??
+    (item as unknown as { likedBy?: LooseUser }).likedBy;
 
   if (!actor?.username) {
     return null;
@@ -177,7 +177,8 @@ export function usePlaylistEngagementPage({
       };
     },
     dedupeBy: (user) => user.id,
-    initialErrorMessage: 'Failed to load this engagement page. Please try again later.',
+    initialErrorMessage:
+      'Failed to load this engagement page. Please try again later.',
   });
 
   useEffect(() => {

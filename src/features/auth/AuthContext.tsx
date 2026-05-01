@@ -22,7 +22,7 @@ import type {
  * @returns {UserRole} The user role ('artist' or 'listener')
  */
 const deriveRole = (user: LoginUserDTO): UserRole =>
-  user.tier === 'ARTIST' || user.tier === 'ARTIST_PRO' ? 'artist' : 'listener';
+  user.tier === 'PRO' ? 'artist' : 'listener';
 
 // ================================
 // Context
@@ -114,7 +114,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }
     };
 
-    bootstrap();
+    void bootstrap().catch(() => undefined);
     return () => {
       cancelled = true;
     };

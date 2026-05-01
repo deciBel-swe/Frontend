@@ -4,6 +4,10 @@ import { subscriptionService } from '@/services';
 import type { ApiErrorDTO } from '@/types';
 import type { SubscriptionStatusDTO } from '@/types/subscription';
 
+type UseSubscriptionStatusOptions = {
+  enabled?: boolean;
+};
+
 const toApiError = (error: unknown): ApiErrorDTO => {
   if (
     error !== null &&
@@ -27,10 +31,13 @@ const toApiError = (error: unknown): ApiErrorDTO => {
   };
 };
 
-export function useSubscriptionStatus() {
+export function useSubscriptionStatus(
+  options: UseSubscriptionStatusOptions = {}
+) {
+  const { enabled = true } = options;
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatusDTO | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<ApiErrorDTO | null>(null);
 
@@ -54,8 +61,15 @@ export function useSubscriptionStatus() {
   }, []);
 
   useEffect(() => {
-    void fetchSubscriptionStatus();
-  }, [fetchSubscriptionStatus]);
+    if (!enabled) {
+      setIsLoading(false);
+      setIsError(false);
+      setError(null);
+      return;
+    }
+
+    void fetchSubscriptionStatus().catch(() => undefined);
+  }, [enabled, fetchSubscriptionStatus]);
 
   return {
     subscriptionStatus,

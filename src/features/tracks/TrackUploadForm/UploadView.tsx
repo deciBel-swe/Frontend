@@ -8,7 +8,7 @@ import UploadDropzone from '@/features/tracks/TrackUploadForm/FormFields/UploadD
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess';
 import { uploadSchema } from '@/types/uploadSchema';
-import type { TrackPrivacyValue } from '@/types/tracks';
+import type { TrackAccess, TrackPrivacyValue } from '@/types/tracks';
 import { useAuth } from '@/hooks';
 import { config } from '@/config';
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
@@ -23,6 +23,7 @@ const ALLOWED_TYPES = [
   'audio/mp4',
 ];
 const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac'];
+const FREE_TRACK_LIMIT_ERROR = 'out of free tracks';
 
 const getWaveformParseErrorMessage = (err: unknown): string => {
   if (err instanceof Error && err.message.trim().length > 0) {
@@ -34,6 +35,10 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
 
 const getUploadErrorMessage = (err: unknown): string => {
   if (err instanceof Error && err.message.trim().length > 0) {
+    if (err.message.toLowerCase().includes(FREE_TRACK_LIMIT_ERROR)) {
+      return 'Free upload limit reached. Use Blocked or upgrade.';
+    }
+
     return err.message;
   }
 
@@ -56,7 +61,10 @@ export default function UploadView() {
   const [description, setDescription] = useState('');
   const [releaseDate, setReleaseDate] = useState(todayIsoDate);
   const [releaseDateError, setReleaseDateError] = useState('');
+  // const [uploadDate, setUploadDate] = useState(todayIsoDate);
+  // const [uploadDateError, setUploadDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
+  const [access, setAccess] = useState<TrackAccess>('PLAYABLE');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
@@ -124,8 +132,10 @@ export default function UploadView() {
       genre,
       tags,
       description,
+      // uploadDate,
       releaseDate,
       privacy,
+      access,
     });
 
     if (!validation.success) {
@@ -133,12 +143,14 @@ export default function UploadView() {
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
       setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      // setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setGenreError('');
     setReleaseDateError('');
+    // setUploadDateError('');
     setError('');
     setUploadProgress(0);
 
@@ -153,6 +165,7 @@ export default function UploadView() {
     formData.append('title', title);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
+    formData.append('access', access);
     formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
@@ -192,7 +205,6 @@ export default function UploadView() {
       setError(getUploadErrorMessage(err));
       setIsUploading(false);
       setUploadProgress(0);
-      console.error('Track upload error:', err);
     }
   };
 
@@ -209,9 +221,12 @@ export default function UploadView() {
     setGenre('');
     setTags([]);
     setDescription('');
+    // setUploadDate(todayIsoDate);
+    // setUploadDateError('');
     setReleaseDate(todayIsoDate);
     setReleaseDateError('');
     setPrivacy('public');
+    setAccess('PLAYABLE');
     setArtworkFile(null);
     setArtworkPreview(null);
     setGeneratedWaveform([]);
@@ -362,11 +377,24 @@ export default function UploadView() {
           setReleaseDate(nextDate);
           if (releaseDateError) {
             setReleaseDateError('');
+           
           }
         }}
-        releaseDateMax={todayIsoDate}
-        showReleaseDate
+         releaseDateMax={todayIsoDate}
+          showReleaseDate
+        // uploadDate={uploadDate}
+        // uploadDateError={uploadDateError}
+        // onUploadDateChange={(nextDate) => {
+        //   setUploadDate(nextDate);
+        //   if (uploadDateError) {
+        //     setUploadDateError('');
+        //   }
+        // }}
+        // uploadDateMax={todayIsoDate}
+        // showUploadDate
         privacy={privacy}
+        access={access}
+        onAccessChange={setAccess}
         onPrivacyChange={setPrivacy}
       />
     );
