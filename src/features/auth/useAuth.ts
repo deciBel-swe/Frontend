@@ -93,9 +93,7 @@ export const useAuth = (): UseAuthValue => {
    * <button onClick={handleGoogleLogin}>Sign in with Google</button>
    */
   const handleGoogleLogin = useCallback(() => {
-    const rawClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const clientId = (rawClientId === 'undefined' || rawClientId === 'null' || !rawClientId) ? null : rawClientId;
-
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
       console.error('Google Client ID is missing from environment variables.');
       return;
@@ -105,15 +103,15 @@ export const useAuth = (): UseAuthValue => {
       process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI ||
       `${window.location.origin}/oauth/callback`;
 
-    const queryParams = [
-      `client_id=${encodeURIComponent(clientId)}`,
-      `redirect_uri=${encodeURIComponent(redirectUri)}`,
-      'response_type=code',
-      `scope=${encodeURIComponent(GOOGLE_OAUTH_SCOPE)}`,
-      'prompt=select_account',
-    ].join('&');
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: GOOGLE_OAUTH_SCOPE,
+      prompt: 'select_account',
+    });
 
-    window.location.href = `${GOOGLE_AUTH_URL}?${queryParams}`;
+    window.location.href = `${GOOGLE_AUTH_URL}?${params.toString()}`;
   }, []);
 
   return {
