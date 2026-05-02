@@ -23,7 +23,7 @@ export default function TrackCardStats({
   commentsHref,
 }: TrackCardStatsProps) {
   const resolvedCommentsHref =
-    commentsHref ?? `/${userSlug}/${routeTrackId}/comments`;
+    commentsHref ?? `/${userSlug}/${routeTrackId}`;
 
   return (
     <div className="ml-auto flex items-center gap-4 text-xs font-semibold text-text-muted">

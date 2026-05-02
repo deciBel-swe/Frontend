@@ -10,7 +10,6 @@ import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTra
 import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
 import PlaylistOwnerSidebar from '@/components/playlist-page/components/PlaylistOwnerSidebar';
 import EditPlaylistModal from '@/components/playlist-page/components/EditPlaylistModal';
-import PlaylistEngagementSidebar from '@/components/playlist-page/components/sidebar/sidebar';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
@@ -1136,12 +1135,6 @@ export default function PlaylistPage() {
           </p>
         </aside> */}
         {/* RIGHT SIDEBAR */}
-        <PlaylistEngagementSidebar
-          username={username}
-          playlistPathId={playlistPathId}
-          likesCount={playlist.likeCount ?? 0}
-          repostsCount={playlist.repostCount ?? 0}
-        />
       </div>
 
       <EditPlaylistModal
