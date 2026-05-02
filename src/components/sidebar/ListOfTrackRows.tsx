@@ -15,6 +15,7 @@ type ListOfTrackRowsprops ={
     artist: string;
     artistUsername?: string;
     title: string;
+    trackSlug?: string;
     playback?: PlayerTrack;
     stats: {
       plays: string;

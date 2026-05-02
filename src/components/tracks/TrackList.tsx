@@ -51,7 +51,7 @@ export type TrackListItem = {
     duration: string;
     plays?: number;
     trackSlug?: string;
-    comments?: number;
+    commentCount?: number;
     createdAt?: string;
     genre?: string;
     durationSeconds?: number;
