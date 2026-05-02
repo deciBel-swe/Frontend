@@ -598,7 +598,7 @@ export class MockUserService implements UserService {
   }
 
   async changeEmail(
-    payload: UpdatePrimaryEmailRequest
+    _payload: UpdatePrimaryEmailRequest
   ): Promise<ChangeEmailResponse> {
     await delay();
     // In real flow, we don't change it here. We just send an email.

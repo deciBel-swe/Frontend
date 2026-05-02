@@ -28,32 +28,22 @@ const createWrapper = (value: AuthContextValue) => {
 };
 
 const mockLocation = (origin = 'https://decibel.test') => {
-  let href = `${origin}/signin`;
+  const url = new URL(`${origin}/signin`);
+  (url as any).assign = jest.fn();
+  (url as any).replace = jest.fn();
 
-  Object.defineProperty(window, 'location', {
-    configurable: true,
-    value: {
-      origin,
-      get href() {
-        return href;
-      },
-      set href(nextHref: string) {
-        href = nextHref;
-      },
-    } as unknown as Location,
-  });
+  // @ts-ignore
+  delete window.location;
+  window.location = url as any;
 
-  return {
-    getHref: () => href,
-  };
+  return url;
 };
 
 describe('useAuth Google login', () => {
   afterEach(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: originalLocation,
-    });
+    // @ts-ignore
+    delete window.location;
+    window.location = originalLocation;
 
     if (originalGoogleClientId === undefined) {
       delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -86,7 +76,7 @@ describe('useAuth Google login', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Google Client ID is missing from environment variables.'
     );
-    expect(locationControl.getHref()).toBe(
+    expect(locationControl.href).toBe(
       'https://client.decibel.test/signin'
     );
   });
@@ -104,7 +94,7 @@ describe('useAuth Google login', () => {
       result.current.handleGoogleLogin();
     });
 
-    const redirectTarget = new URL(locationControl.getHref());
+    const redirectTarget = new URL(locationControl.href);
 
     expect(redirectTarget.origin).toBe('https://accounts.google.com');
     expect(redirectTarget.pathname).toBe('/o/oauth2/v2/auth');
@@ -135,7 +125,7 @@ describe('useAuth Google login', () => {
       result.current.handleGoogleLogin();
     });
 
-    const redirectTarget = new URL(locationControl.getHref());
+    const redirectTarget = new URL(locationControl.href);
 
     expect(redirectTarget.searchParams.get('redirect_uri')).toBe(
       'https://api.decibel.test/oauth/callback'

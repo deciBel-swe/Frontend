@@ -1,6 +1,12 @@
 import { act, renderHook } from '@testing-library/react';
 
 import { useCopyTrackLink } from '@/hooks/useCopyTrackLink';
+import { buildTrackUrl, buildTrackSecretUrl } from '@/utils/resourcePaths';
+
+jest.mock('@/utils/resourcePaths', () => ({
+  buildTrackUrl: jest.fn(),
+  buildTrackSecretUrl: jest.fn(),
+}));
 
 describe('useCopyTrackLink', () => {
   const originalClipboard = navigator.clipboard;
@@ -8,18 +14,12 @@ describe('useCopyTrackLink', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.clearAllMocks();
+    (buildTrackUrl as jest.Mock).mockImplementation((artist, id) => `https://decibel.test/${artist.toLowerCase().replace(/\s+/g, '')}/${id}`);
+    (buildTrackSecretUrl as jest.Mock).mockImplementation((artist, id, token) => `https://decibel.test/${artist.toLowerCase().replace(/\s+/g, '')}/${id}?token=${token}`);
 
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },
-    });
-
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: {
-        origin: 'https://decibel.test',
-      } as Location,
     });
   });
 

@@ -6,7 +6,7 @@ const normalizePathSegment = (value: string): string =>
     .toLowerCase()
     .replace(/\s+/g, '');
 
-const resolveBaseUrl = (): string => {
+export const resolveBaseUrl = (): string => {
   if (typeof window !== 'undefined' && window.location.origin) {
     return window.location.origin;
   }

@@ -14,16 +14,12 @@ describe('RealPlaybackService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new RealPlaybackService();
-    Object.defineProperty(globalThis, 'navigator', {
-      value: { userAgent: 'jest-agent' },
-      configurable: true,
-      writable: true,
-    });
-    Object.defineProperty(globalThis, 'window', {
-      value: { innerWidth: 1400 },
-      configurable: true,
-      writable: true,
-    });
+    // @ts-ignore
+    delete (globalThis as any).navigator;
+    (globalThis as any).navigator = { userAgent: 'jest-agent' };
+    // @ts-ignore
+    delete (globalThis as any).window;
+    (globalThis as any).window = { innerWidth: 1400 };
   });
 
   it('calls USERS_ME_HISTORY for listening history', async () => {

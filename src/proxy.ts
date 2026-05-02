@@ -44,7 +44,7 @@ const resolveSafeRedirect = (
  * The real auth service will keep the same cookie name.
  */
 export function proxy(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
   
   // Redirect /verify-email-change to /settings/verify-email-change
   if (pathname === '/verify-email-change') {
