@@ -59,6 +59,8 @@ import {
   userPlaylistsResponseSchema,
   userPublicSchema,
   usersSuggestedResponseSchema,
+  changeEmailResponseSchema,
+  verifyEmailChangeResponseSchema,
 } from './user';
 import { paginatedTrackFeedResponseSchema } from './feed';
 import {
@@ -272,6 +274,21 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.USERS.ME_UPDATE_PRIMARY_EMAIL,
     requestSchema: updatePrimaryEmailRequestSchema,
     responseSchema: messageResponseSchema,
+  }),
+  USERS_ME_CHANGE_EMAIL: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_CHANGE_EMAIL,
+    requestSchema: updatePrimaryEmailRequestSchema,
+    responseSchema: changeEmailResponseSchema,
+  }),
+
+  USERS_ME_EMAIL_VERIFY: defineContract<{ token: string }, z.infer<typeof verifyEmailChangeResponseSchema>>({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.ME_EMAIL_VERIFY,
+    requestSchema: z.object({
+      token: z.string().trim().min(1),
+    }),
+    responseSchema: verifyEmailChangeResponseSchema,
   }),
 
   USERS_ME_SOCIAL_LINKS_UPDATE: defineContract({
