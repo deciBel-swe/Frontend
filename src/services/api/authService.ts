@@ -54,6 +54,12 @@ export interface AuthService {
 export const USER_STORAGE_KEY = 'user';
 export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
 export const AUTH_COOKIE = 'decibel_auth';
+
+const hasUsableAccessToken = (token: string | null): token is string =>
+  typeof token === 'string' &&
+  token.trim().length > 0 &&
+  token !== 'undefined' &&
+  token !== 'null';
 const getDeviceType = (): DeviceInfoDTO['deviceType'] => {
   // if (typeof window === 'undefined') {
   //   return 'DESKTOP';
@@ -127,12 +133,14 @@ export class RealAuthService implements AuthService {
 
   async getSession(): Promise<LoginResponseDTO | null> {
     const stored = localStorage.getItem(USER_STORAGE_KEY);
-    if (!stored) return null;
-
     const storedAccessToken = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+    if (!stored || !hasUsableAccessToken(storedAccessToken)) {
+      this.clearSession();
+      return null;
+    }
 
     return {
-      accessToken: this.accessToken ?? storedAccessToken ?? '',
+      accessToken: this.accessToken ?? storedAccessToken,
       user: JSON.parse(stored),
       expiresIn: 3600,
     };

@@ -131,6 +131,17 @@ describe('RealAuthService', () => {
     await expect(service.getSession()).resolves.toBeNull();
   });
 
+  it('returns null and clears session when user exists without a usable token', async () => {
+    storage.set(USER_STORAGE_KEY, JSON.stringify(user));
+    storage.set(ACCESS_TOKEN_STORAGE_KEY, 'undefined');
+
+    const service = new RealAuthService();
+
+    await expect(service.getSession()).resolves.toBeNull();
+    expect(storage.has(USER_STORAGE_KEY)).toBe(false);
+    expect(storage.has(ACCESS_TOKEN_STORAGE_KEY)).toBe(false);
+  });
+
 
   it('logs out and clears persisted session keys', async () => {
     storage.set(USER_STORAGE_KEY, JSON.stringify(user));

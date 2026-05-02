@@ -1,4 +1,5 @@
 import {
+  adminActionResponseSchema,
   adminReportDetailSchema,
   adminReportsPageSchema,
   bannedUsersResponseSchema,
@@ -91,5 +92,15 @@ describe('admin report schemas', () => {
     });
 
     expect(parsed.bannedUserCount).toBe(0);
+  });
+
+  it('normalizes empty moderation action responses into a message', () => {
+    expect(adminActionResponseSchema.parse(undefined)).toEqual({
+      message: 'Action completed successfully',
+    });
+
+    expect(adminActionResponseSchema.parse({})).toEqual({
+      message: 'Action completed successfully',
+    });
   });
 });

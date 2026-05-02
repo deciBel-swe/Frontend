@@ -1,8 +1,8 @@
 import type { AdminLoginFormValues } from './types';
 
 export const ADMIN_LOGIN_REDIRECT = '/admin/analytics';
-export const ADMIN_ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
-export const ADMIN_AUTH_COOKIE = 'decibel_auth';
+export const ADMIN_ACCESS_TOKEN_STORAGE_KEY = 'decibel_admin_access_token';
+export const ADMIN_AUTH_COOKIE = 'decibel_admin_auth';
 export const ADMIN_USER_STORAGE_KEY = 'decibel_admin_user';
 
 export const ADMIN_LOGIN_DEFAULT_VALUES: AdminLoginFormValues = {

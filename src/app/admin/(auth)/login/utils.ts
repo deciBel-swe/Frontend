@@ -1,5 +1,10 @@
 import { config } from '@/config';
 import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  AUTH_COOKIE,
+  USER_STORAGE_KEY,
+} from '@/services/api/authService';
+import {
   ADMIN_AUTH_COOKIE,
   ADMIN_ACCESS_TOKEN_STORAGE_KEY,
   ADMIN_USER_STORAGE_KEY,
@@ -97,6 +102,12 @@ export const persistAdminSession = (response: AdminLoginResponse): void => {
     ADMIN_USER_STORAGE_KEY,
     JSON.stringify(response.adminUser)
   );
+
+  // Clean up the legacy shared auth token if no public user session exists.
+  if (!window.localStorage.getItem(USER_STORAGE_KEY)) {
+    window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  }
 
   document.cookie = `${ADMIN_AUTH_COOKIE}=${response.accessToken}; path=/; max-age=${response.expiresIn}; SameSite=Lax`;
 };
