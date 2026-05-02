@@ -75,6 +75,7 @@ export function useLikedTracks(
     normalizeUsername(username);
   const isOwner =
     forCurrentUser || (isManagedByContext && Boolean(profileContext?.isOwner));
+  const normalizedUsername = username.trim();
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -142,10 +143,19 @@ export function useLikedTracks(
             page: pageNumber,
             size: pageSize,
           })
-        : await trackService.getUserLikedTracks(username, {
-            page: pageNumber,
-            size: pageSize,
-          });
+        : normalizedUsername.length > 0
+          ? await trackService.getUserLikedTracks(normalizedUsername, {
+              page: pageNumber,
+              size: pageSize,
+            })
+          : {
+              content: [],
+              pageNumber,
+              pageSize,
+              totalElements: 0,
+              totalPages: 0,
+              isLast: true,
+            };
       const likedTracks = response.content ?? [];
 
       const items = await Promise.all(
@@ -242,7 +252,7 @@ export function useLikedTracks(
         last: Boolean(response.last),
       };
     },
-    [isOwner, username]
+    [isOwner, normalizedUsername]
   );
 
   const {
@@ -254,10 +264,10 @@ export function useLikedTracks(
     sentinelRef,
     loadNextPage,
   } = useInfinitePaginatedResource<TrackListItem>({
-    enabled: infinite,
+    enabled: infinite && (isOwner || normalizedUsername.length > 0),
     pageSize: size,
     resetKey: [
-      username.trim().toLowerCase(),
+      normalizedUsername.toLowerCase(),
       String(forCurrentUser),
       String(isOwner),
       String(size),

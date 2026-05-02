@@ -1336,7 +1336,8 @@ export class MockTrackService implements TrackService {
     return new Promise((resolve) => {
       setTimeout(() => {
         const account = getMockAuthAccountByUsername(username);
-        if (!account) {
+        const targetUserId = account?.id ?? Number(username);
+        if (!Number.isFinite(targetUserId)) {
           resolve({
             content: [],
             isLast: true,
@@ -1349,7 +1350,7 @@ export class MockTrackService implements TrackService {
         }
 
         const currentUserId = resolveCurrentMockUserId();
-        const targetUser = getUserById(account.id);
+        const targetUser = getUserById(targetUserId);
         const tracksStore = getMockTracksStore();
 
         const likedTrackIds =
