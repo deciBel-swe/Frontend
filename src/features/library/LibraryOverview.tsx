@@ -104,7 +104,9 @@ export default function LibraryOverview() {
               <MinimalTrackCard
                 key={`${item.trackId}-${index}`}
                 item={item}
-                queueTracks={historyQueueTracks}
+                queueTracks={historyQueueTracks.filter(
+                  (track) => track.id === item.track.id
+                )}
                 queueSource="history"
               />
             ))}
