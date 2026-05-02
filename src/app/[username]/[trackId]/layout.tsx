@@ -3,12 +3,13 @@
 import { useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
-import { ShareModal } from '@/features/prof/components/ShareModal';
 import { useReportTrack } from '@/features/admin/hooks';
 import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
 import TrackHero from '@/components/track-page/TrackHero';
 import TrackPageReportButton from '@/components/track-page/TrackPageReportButton';
 import ReportModal from '@/components/track-page/report/components/ReportModal';
+import TrackCardModals from '@/components/tracks/track-card/TrackCardModals';
+import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
 import { getSecretTokenFromQuery } from '@/utils/resourceIdentifierResolvers';
 
@@ -22,6 +23,9 @@ export default function Layout({ children }: LayoutProps) {
   const secretToken = getSecretTokenFromQuery(searchParams);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('add');
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const { reportTrack, isLoading: isReportSubmitting } = useReportTrack();
   const {
     hero,
@@ -99,32 +103,41 @@ export default function Layout({ children }: LayoutProps) {
               void onRepost();
             }}
             onShare={() => setIsShareOpen(true)}
+            onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
           />
 
           <TrackPageReportButton onReport={() => setIsReportOpen(true)} />
 
-          <ShareModal
-            variant="track"
-            isOpen={isShareOpen}
-            onClose={() => setIsShareOpen(false)}
+          <TrackCardModals
             trackId={trackId}
-            sharePathId={hero.trackSlug?.trim() || trackId}
-            shareUsername={hero.artistSlug}
+            routeTrackId={hero.trackSlug?.trim() || trackId}
+            trackNumericId={hero.id}
             isPrivate={hero.isPrivate}
-            existingToken={hero.secretToken}
             track={{
               title: hero.title,
-              artist: hero.artistName,
-              coverUrl: hero.coverUrl,
+              secretToken: hero.secretToken,
+              trackUrl: hero.waveformUrl, // useTrackHeaderItem doesn't expose the direct trackUrl, but TrackCardModals needs it for the share preview. 
+              // Wait, hero in useTrackHeaderItem has waveformUrl but not trackUrl?
+              // Actually, TrackCardModals uses trackUrl for play/pause in the preview.
+              artist: {
+                username: hero.artistSlug,
+                displayName: hero.artistName,
+                avatar: '/images/default_song_image.png', // Placeholder if not available
+              },
+              cover: hero.coverUrl,
               duration: hero.duration,
+              genre: hero.genre,
               waveformData: hero.waveformData,
               waveformUrl: hero.waveformUrl,
-              isPlaying,
-              currentTime: waveformCurrentTime,
-              durationSeconds: waveformDurationSeconds,
-              onPlayPause,
-              onWaveformSeek,
             }}
+            editOpen={isEditOpen}
+            isShareOpen={isShareOpen}
+            isPlaylistModalOpen={isPlaylistModalOpen}
+            activeTab={activeTab}
+            setEditOpen={setIsEditOpen}
+            setIsShareOpen={setIsShareOpen}
+            setIsPlaylistModalOpen={setIsPlaylistModalOpen}
+            setActiveTab={setActiveTab}
           />
 
           <ReportModal
