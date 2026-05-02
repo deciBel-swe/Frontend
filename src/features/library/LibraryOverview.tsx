@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 
 import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
-import PlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import UserCard from '@/features/social/components/UserCard';
@@ -35,6 +34,35 @@ export default function LibraryOverview() {
     page: 0,
     size: 10,
   });
+
+  const historyQueueTracks = useMemo(
+    () =>
+      historyTracks
+        .map((item) => {
+          if (item.playback) {
+            return item.playback;
+          }
+
+          if (!item.trackUrl) {
+            return null;
+          }
+
+          return playerTrackMappers.fromAdapterInput(
+            {
+              id: item.track.id,
+              title: item.track.title,
+              trackUrl: item.trackUrl,
+              artist: item.track.artist,
+              coverUrl: item.track.cover,
+              waveformData: item.waveform,
+              durationSeconds: item.track.durationSeconds,
+            },
+            { access: item.access ?? 'PLAYABLE' }
+          );
+        })
+        .filter((item): item is PlayerTrack => item !== null),
+    [historyTracks]
+  );
 
   const likesQueueTracks = useMemo(
     () =>
@@ -73,11 +101,11 @@ export default function LibraryOverview() {
               <SquareSkeleton key={`history-skeleton-${index}`} />
             ))
           : historyTracks.map((item, index) => (
-              <PlaylistCard
+              <MinimalTrackCard
                 key={`${item.trackId}-${index}`}
-                title={item.track.title}
-                coverUrl={item.track.cover}
-                username={item.user.username}
+                item={item}
+                queueTracks={historyQueueTracks}
+                queueSource="history"
               />
             ))}
       </LibrarySection>
