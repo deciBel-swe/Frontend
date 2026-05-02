@@ -30,19 +30,18 @@ const createWrapper = (value: AuthContextValue) => {
 const mockLocation = (origin = 'https://decibel.test') => {
   let href = `${origin}/signin`;
 
-  const locationMock = {
-    origin,
-    get href() { return href; },
-    set href(v: string) { href = v; },
-    assign: jest.fn((v: string) => { href = v; }),
-    replace: jest.fn((v: string) => { href = v; }),
-    reload: jest.fn(),
-    toString: () => href,
-  };
-
-  // @ts-ignore
-  delete window.location;
-  window.location = locationMock as any;
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    value: {
+      origin,
+      get href() {
+        return href;
+      },
+      set href(nextHref: string) {
+        href = nextHref;
+      },
+    } as unknown as Location,
+  });
 
   return {
     getHref: () => href,
@@ -51,9 +50,10 @@ const mockLocation = (origin = 'https://decibel.test') => {
 
 describe('useAuth Google login', () => {
   afterEach(() => {
-    // @ts-ignore
-    delete window.location;
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
 
     if (originalGoogleClientId === undefined) {
       delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
