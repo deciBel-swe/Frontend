@@ -282,9 +282,12 @@ export const API_CONTRACTS = {
     responseSchema: changeEmailResponseSchema,
   }),
 
-  USERS_ME_EMAIL_VERIFY: defineContract<void, z.infer<typeof verifyEmailChangeResponseSchema>>({
+  USERS_ME_EMAIL_VERIFY: defineContract<{ token: string }, z.infer<typeof verifyEmailChangeResponseSchema>>({
     method: 'POST',
     url: API_ENDPOINTS.USERS.ME_EMAIL_VERIFY,
+    requestSchema: z.object({
+      token: z.string().trim().min(1),
+    }),
     responseSchema: verifyEmailChangeResponseSchema,
   }),
 

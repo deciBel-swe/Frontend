@@ -249,6 +249,7 @@ export class RealUserService implements UserService {
   async verifyEmailChange(token: string): Promise<VerifyEmailChangeResponse> {
     return apiRequest(API_CONTRACTS.USERS_ME_EMAIL_VERIFY, {
       params: { token },
+      payload: { token },
     });
   }
 

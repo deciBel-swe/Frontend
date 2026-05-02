@@ -28,15 +28,25 @@ const createWrapper = (value: AuthContextValue) => {
 };
 
 const mockLocation = (origin = 'https://decibel.test') => {
-  const url = new URL(`${origin}/signin`);
-  (url as any).assign = jest.fn();
-  (url as any).replace = jest.fn();
+  let href = `${origin}/signin`;
+
+  const locationMock = {
+    origin,
+    get href() { return href; },
+    set href(v: string) { href = v; },
+    assign: jest.fn((v: string) => { href = v; }),
+    replace: jest.fn((v: string) => { href = v; }),
+    reload: jest.fn(),
+    toString: () => href,
+  };
 
   // @ts-ignore
   delete window.location;
-  window.location = url as any;
+  window.location = locationMock as any;
 
-  return url;
+  return {
+    getHref: () => href,
+  };
 };
 
 describe('useAuth Google login', () => {
@@ -76,7 +86,7 @@ describe('useAuth Google login', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Google Client ID is missing from environment variables.'
     );
-    expect(locationControl.href).toBe(
+    expect(locationControl.getHref()).toBe(
       'https://client.decibel.test/signin'
     );
   });
@@ -94,7 +104,7 @@ describe('useAuth Google login', () => {
       result.current.handleGoogleLogin();
     });
 
-    const redirectTarget = new URL(locationControl.href);
+    const redirectTarget = new URL(locationControl.getHref());
 
     expect(redirectTarget.origin).toBe('https://accounts.google.com');
     expect(redirectTarget.pathname).toBe('/o/oauth2/v2/auth');
@@ -125,7 +135,7 @@ describe('useAuth Google login', () => {
       result.current.handleGoogleLogin();
     });
 
-    const redirectTarget = new URL(locationControl.href);
+    const redirectTarget = new URL(locationControl.getHref());
 
     expect(redirectTarget.searchParams.get('redirect_uri')).toBe(
       'https://api.decibel.test/oauth/callback'

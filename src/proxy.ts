@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
+
+
 import { PROTECTED_ROUTES, ROUTES } from '@/constants/routes';
 
 const AUTH_ENTRY_ROUTES = new Set<string>([
@@ -43,8 +57,9 @@ const resolveSafeRedirect = (
  * clears it on logout so this check works end-to-end during development.
  * The real auth service will keep the same cookie name.
  */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
   
   // Redirect /verify-email-change to /settings/verify-email-change
   if (pathname === '/verify-email-change') {
@@ -93,3 +108,5 @@ export function proxy(request: NextRequest) {
   );
   return NextResponse.redirect(signinUrl);
 }
+
+export const proxy = middleware;
