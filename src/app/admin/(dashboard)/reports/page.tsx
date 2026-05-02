@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ReportsDashboard } from '@/features/admin/components/reports/ReportsDashboard';
 import { ReportViewPopup } from '@/features/admin/components/reports/ReportViewPopup';
@@ -23,6 +23,8 @@ import {
 } from '@/features/admin/types/types';
 import type { AdminReportStatus } from '@/types/admin';
 
+const DEFAULT_REPORT_PAGE_SIZE = 20;
+
 const toUiReportStatus = (status: AdminReportStatus): ReportStatus => {
   switch (status) {
     case 'RESOLVED':
@@ -33,6 +35,9 @@ const toUiReportStatus = (status: AdminReportStatus): ReportStatus => {
       return ReportStatus.PENDING;
   }
 };
+
+const isResolvedReportStatus = (status: ReportStatus): boolean =>
+  status === ReportStatus.RESOLVED || status === ReportStatus.DISMISSED;
 
 const toUiReportType = (targetType: string): ReportType =>
   targetType.toUpperCase() === 'COMMENT'
@@ -66,8 +71,11 @@ const toDisplayTimestamp = (value: string): string => {
 };
 
 export default function AdminReportsPage() {
+  const [requestedPageSize, setRequestedPageSize] = useState(
+    DEFAULT_REPORT_PAGE_SIZE
+  );
   const { reports, getPlatformReports, isLoading, isError, error } =
-    usePlatformReports({ page: 0, size: 20 });
+    usePlatformReports({ page: 0, size: requestedPageSize });
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState('');
   const [reasonFilter, setReasonFilter] = useState('');
@@ -127,7 +135,7 @@ export default function AdminReportsPage() {
   const dashboardData = useMemo<ReportsDashboardData>(() => {
     const totalReports = reports?.totalElements ?? 0;
     const resolvedCount = reportRows.filter(
-      (report) => report.status === ReportStatus.RESOLVED
+      (report) => isResolvedReportStatus(report.status)
     ).length;
 
     return {
@@ -146,6 +154,16 @@ export default function AdminReportsPage() {
       },
     };
   }, [filteredRows, reportRows, reports?.totalElements]);
+
+  useEffect(() => {
+    if (
+      reports &&
+      reports.totalElements > requestedPageSize &&
+      reports.content.length < reports.totalElements
+    ) {
+      setRequestedPageSize(reports.totalElements);
+    }
+  }, [reports, requestedPageSize]);
 
   const displayDetail: ReportDetail | null = reportDetail
     ? {
@@ -196,7 +214,7 @@ export default function AdminReportsPage() {
     : null;
 
   const refreshReports = async () => {
-    await getPlatformReports({ page: 0, size: 20 });
+    await getPlatformReports({ page: 0, size: requestedPageSize });
   };
 
   const handleClose = () => setSelectedReportId(null);
@@ -261,6 +279,10 @@ export default function AdminReportsPage() {
     setActionError(null);
 
     try {
+      if (reportDetail?.targetType.toUpperCase() === 'TRACK') {
+        await deleteTrackAsModerator(reportDetail.targetId);
+      }
+
       await banUser(targetUserId);
       if (selectedReportId) {
         await updateReportStatus(Number(selectedReportId), {

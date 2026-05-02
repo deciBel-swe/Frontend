@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { deviceInfoDTOSchema } from './index';
-import { userSummarySchema } from './user';
+import { messageResponseSchema } from './user';
 
 export const reportRequestSchema = z.object({
   reason: z.string().trim().min(1),
@@ -108,11 +108,22 @@ export const adminReportDetailSchema = adminReportSchema
 export type AdminReportDetail = z.infer<typeof adminReportDetailSchema>;
 
 export const updateUserBanStatusRequestSchema = z.object({
-  banned: z.boolean(),
+  isBanned: z.boolean(),
 });
 export type UpdateUserBanStatusRequest = z.infer<
   typeof updateUserBanStatusRequestSchema
 >;
+
+export const bannedUserSchema = z
+  .object({
+    id: z.number().int().nonnegative(),
+    username: z.string().trim().min(1),
+    displayName: z.string().trim().min(1).nullable(),
+    avatarUrl: z.string().trim().nullable().optional(),
+    isBanned: z.boolean().optional().default(true),
+  })
+  .passthrough();
+export type BannedUser = z.infer<typeof bannedUserSchema>;
 
 export const bannedUsersResponseSchema = z.preprocess((payload) => {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -129,7 +140,7 @@ export const bannedUsersResponseSchema = z.preprocess((payload) => {
   };
 }, z
   .object({
-    content: z.array(userSummarySchema).optional().default([]),
+    content: z.array(bannedUserSchema).optional().default([]),
     pageNumber: z.number().int().nonnegative().optional(),
     pageSize: z.number().int().positive().optional(),
     totalElements: z.number().int().nonnegative().optional(),
@@ -165,6 +176,45 @@ export const platformAnalyticsResponseSchema = z.preprocess((payload) => {
 export type PlatformAnalyticsResponse = z.infer<
   typeof platformAnalyticsResponseSchema
 >;
+
+export const adminActionResponseSchema = z.preprocess((payload) => {
+  if (payload === undefined || payload === null || payload === '') {
+    return { message: 'Action completed successfully' };
+  }
+
+  if (typeof payload === 'string' && payload.trim().length > 0) {
+    return { message: payload };
+  }
+
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const candidate = payload as Record<string, unknown>;
+
+    if (
+      typeof candidate.message === 'string' &&
+      candidate.message.trim().length > 0
+    ) {
+      return candidate;
+    }
+
+    if (
+      typeof candidate.detail === 'string' &&
+      candidate.detail.trim().length > 0
+    ) {
+      return {
+        ...candidate,
+        message: candidate.detail,
+      };
+    }
+
+    return {
+      ...candidate,
+      message: 'Action completed successfully',
+    };
+  }
+
+  return payload;
+}, messageResponseSchema);
+export type AdminActionResponse = z.infer<typeof adminActionResponseSchema>;
 
 export const emptyActionSchema = z
   .unknown()

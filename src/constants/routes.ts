@@ -17,6 +17,7 @@ export const ROUTES = {
   SIGNIN: '/signin',
   REGISTER: '/register',
   RESETPASSWORD: '/reset-password',
+  ADMIN_LOGIN: '/admin/login',
 
   // Content routes
   UPLOAD: '/upload',
@@ -210,6 +211,7 @@ export const API_ENDPOINTS = {
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
     BANNED_USERS: '/admin/users/banned',
     BAN_USER: (userId: number) => `/admin/users/${userId}/ban`,
+    DELETE_TRACK: (trackId: number) => `/admin/tracks/${trackId}`,
     ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',

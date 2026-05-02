@@ -95,6 +95,7 @@ import {
 //   sendMessageRequestSchema,
 // } from './message';
 import {
+  adminActionResponseSchema,
   adminLoginRequestSchema,
   adminLoginResponseSchema,
   adminReportDetailSchema,
@@ -703,30 +704,30 @@ export const API_CONTRACTS = {
   ADMIN_UPDATE_REPORT_STATUS: (reportId: number) =>
     defineContract<
       z.infer<typeof updateAdminReportStatusRequestSchema>,
-      z.infer<typeof messageResponseSchema>
+      z.infer<typeof adminActionResponseSchema>
     >({
-      method: 'PUT',
+      method: 'PATCH',
       url: API_ENDPOINTS.ADMIN.REPORT_BY_ID(reportId),
       requestSchema: updateAdminReportStatusRequestSchema,
-      responseSchema: messageResponseSchema,
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_DELETE_TRACK: (trackId: number) =>
-    defineContract<void, z.infer<typeof messageResponseSchema>>({
+    defineContract<void, z.infer<typeof adminActionResponseSchema>>({
       method: 'DELETE',
-      url: API_ENDPOINTS.TRACKS.DELETE(trackId),
-      responseSchema: messageResponseSchema,
+      url: API_ENDPOINTS.ADMIN.DELETE_TRACK(trackId),
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_UPDATE_USER_BAN_STATUS: (userId: number) =>
     defineContract<
       z.infer<typeof updateUserBanStatusRequestSchema>,
-      z.infer<typeof messageResponseSchema>
+      z.infer<typeof adminActionResponseSchema>
     >({
       method: 'PATCH',
       url: API_ENDPOINTS.ADMIN.BAN_USER(userId),
       requestSchema: updateUserBanStatusRequestSchema,
-      responseSchema: messageResponseSchema,
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_ANALYTICS: defineContract<

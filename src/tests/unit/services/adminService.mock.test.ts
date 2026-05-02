@@ -74,6 +74,7 @@ describe('MockAdminService', () => {
     expect(response.content).toHaveLength(3);
     expect(response.bannedUserCount).toBe(3);
     expect(response.content[0].displayName).toBe('Listener 101');
+    expect(response.content[0].isBanned).toBe(true);
   });
 
   it('banUser returns success message', async () => {
