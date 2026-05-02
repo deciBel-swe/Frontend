@@ -1,11 +1,17 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, type ReactNode } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 
-import TrackActionBar from '@/components/TrackActionBar';
-import TrackHero from '@/components/TrackHero';
+import { useReportTrack } from '@/features/admin/hooks';
+import TrackActionBar from '@/components/tracks/actions/TrackActionBar';
+import TrackHero from '@/components/track-page/TrackHero';
+import TrackPageReportButton from '@/components/track-page/TrackPageReportButton';
+import ReportModal from '@/components/track-page/report/components/ReportModal';
+import TrackCardModals from '@/components/tracks/track-card/TrackCardModals';
+import type { ActiveTab } from '@/components/playlist/AddToPlaylistModal';
 import { useTrackHeaderItem } from '@/hooks/useTrackHeaderItem';
+import { getSecretTokenFromQuery } from '@/utils/resourceIdentifierResolvers';
 
 type LayoutProps = {
   children: ReactNode;
@@ -13,6 +19,14 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   const { username, trackId } = useParams<{ username: string; trackId: string }>();
+  const searchParams = useSearchParams();
+  const secretToken = getSecretTokenFromQuery(searchParams);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('add');
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const { reportTrack, isLoading: isReportSubmitting } = useReportTrack();
   const {
     hero,
     waveformComments,
@@ -30,7 +44,23 @@ export default function Layout({ children }: LayoutProps) {
     onRepost,
     onPlayPause,
     onWaveformSeek,
-  } = useTrackHeaderItem({ username, trackId });
+  } = useTrackHeaderItem({ username, trackId, secretToken });
+
+  const closeReport = () => {
+    setIsReportOpen(false);
+  };
+
+  const submitReport = async (reason: string, details?: string) => {
+    if (!hero?.id) {
+      return;
+    }
+
+    try {
+      await reportTrack(hero.id, { reason, description: details });
+    } finally {
+      closeReport();
+    }
+  };
 
   return (
     <div className="w-full">
@@ -47,7 +77,9 @@ export default function Layout({ children }: LayoutProps) {
             coverUrl={hero.coverUrl}
             timeAgo={hero.timeAgo}
             tags={hero.tags}
+            genre={hero.genre}
             waveformUrl={hero.waveformUrl}
+            waveformData={hero.waveformData}
             duration={hero.duration}
             waveformComments={waveformComments}
             waveformCurrentTime={waveformCurrentTime}
@@ -70,6 +102,50 @@ export default function Layout({ children }: LayoutProps) {
             onRepost={() => {
               void onRepost();
             }}
+            onShare={() => setIsShareOpen(true)}
+            onAddToPlaylist={() => setIsPlaylistModalOpen(true)}
+          />
+
+          <TrackPageReportButton onReport={() => setIsReportOpen(true)} />
+
+          <TrackCardModals
+            trackId={trackId}
+            routeTrackId={hero.trackSlug?.trim() || trackId}
+            trackNumericId={hero.id}
+            isPrivate={hero.isPrivate}
+            track={{
+              title: hero.title,
+              secretToken: hero.secretToken,
+              trackUrl: hero.waveformUrl, // useTrackHeaderItem doesn't expose the direct trackUrl, but TrackCardModals needs it for the share preview. 
+              // Wait, hero in useTrackHeaderItem has waveformUrl but not trackUrl?
+              // Actually, TrackCardModals uses trackUrl for play/pause in the preview.
+              artist: {
+                username: hero.artistSlug,
+                displayName: hero.artistName,
+                avatar: '/images/default_song_image.png', // Placeholder if not available
+              },
+              cover: hero.coverUrl,
+              duration: hero.duration,
+              genre: hero.genre,
+              waveformData: hero.waveformData,
+              waveformUrl: hero.waveformUrl,
+            }}
+            editOpen={isEditOpen}
+            isShareOpen={isShareOpen}
+            isPlaylistModalOpen={isPlaylistModalOpen}
+            activeTab={activeTab}
+            setEditOpen={setIsEditOpen}
+            setIsShareOpen={setIsShareOpen}
+            setIsPlaylistModalOpen={setIsPlaylistModalOpen}
+            setActiveTab={setActiveTab}
+          />
+
+          <ReportModal
+            isOpen={isReportOpen}
+            target="track"
+            isSubmitting={isReportSubmitting}
+            onClose={closeReport}
+            onSubmit={submitReport}
           />
         </div>
       )}

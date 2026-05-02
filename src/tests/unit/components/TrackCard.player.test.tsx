@@ -1,16 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import TrackCard from '@/components/TrackCard';
+import TrackCard from '@/components/tracks/track-card/TrackCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
+import { useAuth } from '@/features/auth';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 
 jest.mock('@/hooks/useCopyTrackLink', () => ({
   useCopyTrackLink: () => ({ handleCopy: jest.fn() }),
-}));
-
-jest.mock('@/hooks/useSecretLink', () => ({
-  useSecretLink: () => ({ secretUrl: '' }),
 }));
 
 jest.mock('@/hooks/useTrackVisibility', () => ({
@@ -21,14 +18,23 @@ jest.mock('@/features/prof/components/ShareModal', () => ({
   ShareModal: () => null,
 }));
 
+jest.mock('@/features/auth', () => ({
+  useAuth: jest.fn(),
+}));
+
 jest.mock('@/features/tracks/components/EditTrackModal', () => () => null);
-jest.mock('@/components/CompactTrackList', () => () => null);
-jest.mock('@/components/TrackActions', () => () => <div data-testid="track-actions" />);
-jest.mock('@/components/TimeAgo', () => () => <span>ago</span>);
+jest.mock('@/components/compact-tracks/CompactTrackList', () => () => null);
+jest.mock('@/components/tracks/actions/TrackActions', () => () => <div data-testid="track-actions" />);
+jest.mock('@/features/tracks/components/TimeAgo', () => () => <span>ago</span>);
 
-jest.mock('@/components/comments/CommentInput', () => () => <div data-testid="comment-input" />);
+jest.mock('@/components/comments/CommentInput', () => ({
+  __esModule: true,
+  default: ({ avatarUrl }: { avatarUrl?: string }) => (
+    <div data-testid="comment-input" data-avatar-url={avatarUrl ?? ''} />
+  ),
+}));
 
-jest.mock('@/components/WaveformTimedComments', () => ({
+jest.mock('@/features/tracks/components/WaveformTimedComments', () => ({
   __esModule: true,
   default: () => <div data-testid="timed-comments" />,
 }));
@@ -47,6 +53,7 @@ jest.mock('@/features/player/store/playerStore', () => ({
 }));
 
 const mockUsePlayerStore = usePlayerStore as unknown as jest.Mock;
+const mockUseAuth = useAuth as jest.Mock;
 
 const PLAYABLE_TRACK: PlayerTrack = {
   id: 1,
@@ -61,6 +68,12 @@ const BLOCKED_TRACK: PlayerTrack = {
   ...PLAYABLE_TRACK,
   id: 2,
   access: 'BLOCKED',
+};
+
+const PREVIEW_TRACK: PlayerTrack = {
+  ...PLAYABLE_TRACK,
+  id: 3,
+  access: 'PREVIEW',
 };
 
 const OTHER_PLAYABLE_TRACK: PlayerTrack = {
@@ -79,7 +92,11 @@ const baseProps = {
   },
   track: {
     id: 1,
-    artist: 'artist',
+    artist: {
+      username: 'artist',
+      displayName: 'Artist',
+      avatar: 'https://decibel.test/avatar.jpg',
+    },
     title: 'Playable',
     cover: 'https://decibel.test/cover.jpg',
     duration: '2:00',
@@ -95,6 +112,16 @@ describe('TrackCard playback integration', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseAuth.mockReturnValue({
+      user: {
+        id: 77,
+        username: 'current-user',
+        displayName: 'Current User',
+        avatarUrl: '/me.png',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+    });
 
     mockUsePlayerStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector({
@@ -124,11 +151,25 @@ describe('TrackCard playback integration', () => {
 
     const playButton = screen.getByRole('button', { name: 'Playback blocked' });
     expect(playButton).toBeDisabled();
+    expect(screen.getByText('Blocked')).toBeInTheDocument();
 
     await user.click(playButton);
 
     expect(mockPlayTrack).not.toHaveBeenCalled();
     expect(mockSetQueue).not.toHaveBeenCalled();
+  });
+
+  it('shows a preview badge when playback access is preview', () => {
+    render(
+      <TrackCard
+        {...baseProps}
+        playback={PREVIEW_TRACK}
+        queueTracks={[PREVIEW_TRACK]}
+        queueSource="feed"
+      />
+    );
+
+    expect(screen.getByText('Preview')).toBeInTheDocument();
   });
 
   it('sets queue and plays when playable track is clicked', async () => {
@@ -317,5 +358,36 @@ describe('TrackCard playback integration', () => {
     await user.click(screen.getByRole('button', { name: 'Waveform' }));
 
     expect(mockSeek).toHaveBeenCalledWith(100);
+  });
+
+  it('shows the reposter avatar in the header when repost metadata is present', () => {
+    render(
+      <TrackCard
+        {...baseProps}
+        repostedBy={{
+          username: 'reposter',
+          displayName: 'Reposter',
+          avatar: 'https://decibel.test/reposter.jpg',
+        }}
+      />
+    );
+
+    expect(screen.getByRole('img', { name: 'Reposter' })).toHaveAttribute(
+      'src',
+      expect.stringContaining('reposter')
+    );
+  });
+
+  it('uses the authenticated user avatar for the comment input', async () => {
+    const user = userEvent.setup();
+
+    render(<TrackCard {...baseProps} />);
+
+    await user.click(screen.getByRole('button', { name: 'Waveform' }));
+
+    expect(screen.getByTestId('comment-input')).toHaveAttribute(
+      'data-avatar-url',
+      '/me.png'
+    );
   });
 });

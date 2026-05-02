@@ -1,7 +1,7 @@
 "use client";
 
-import UserGrid from "@/components/ui/social/UserGrid";
-import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
+import UserGrid from "@/features/social/UserGrid";
+import LoadingSkeleton from "@/features/social/LoadingSkeleton";
 import { useFollowing } from '@/hooks/useFollowing';
 import { useParams } from "next/navigation";
 
@@ -16,7 +16,13 @@ import { useParams } from "next/navigation";
  */
 export default function ProfileFollowingPage() {
   const { username } = useParams<{ username: string }>();
-  const { users, isLoading } = useFollowing({ username });
+  const {
+    users,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useFollowing({ username, size: 12, infinite: true });
 
   return (
     <div className="max-w-[1180px] mx-auto px-6 pt-8 pb-16">
@@ -29,6 +35,9 @@ export default function ProfileFollowingPage() {
           users={users}
           showFollowButton
           emptyTitle={`${username} isn't following anyone yet`}
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </div>

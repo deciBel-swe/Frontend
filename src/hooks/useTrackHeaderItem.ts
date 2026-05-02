@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { TimedComment } from '@/components/WaveformTimedComments';
+import type { TimedComment } from '@/features/tracks/components/WaveformTimedComments';
 import type {
   PlaybackAccess,
   PlayerTrack,
@@ -9,6 +9,9 @@ import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { commentService, trackService } from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
+import {
+  resolveTrackIdFromIdentifier,
+} from '@/utils/resourceIdentifierResolvers';
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -17,28 +20,35 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 type UseTrackHeaderItemParams = {
   username: string;
   trackId: string;
+  secretToken?: string | null;
 };
 
 type TrackHeroHeader = {
+  id: number;
   title: string;
   artistName: string;
   artistSlug: string;
+  trackSlug?: string;
+  secretToken?: string;
   coverUrl: string;
   timeAgo: string;
   tags: string[];
+  genre: string;
   waveformUrl: string;
+  waveformData: number[];
   duration: string;
   plays: number;
+  isPrivate: boolean;
 };
 
 const formatTimeAgo = (value: string | undefined): string => {
@@ -103,7 +113,11 @@ const toWaveformTimedComment = (
   };
 };
 
-export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemParams) {
+export function useTrackHeaderItem({
+  username,
+  trackId,
+  secretToken,
+}: UseTrackHeaderItemParams) {
   const [hero, setHero] = useState<TrackHeroHeader | null>(null);
   const [playerTrack, setPlayerTrack] = useState<PlayerTrack | null>(null);
   const [waveformComments, setWaveformComments] = useState<TimedComment[]>([]);
@@ -134,25 +148,25 @@ export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemPara
       setIsError(false);
 
       try {
-        const parsedTrackId = Number(trackId);
-        if (!Number.isInteger(parsedTrackId) || parsedTrackId <= 0) {
-          if (!isCancelled) {
-            setHero(null);
-            setPlayerTrack(null);
-            setWaveformComments([]);
-            setPendingTimestamp(null);
-            setKnownDurationSeconds(0);
-            setLikeCount(0);
-            setRepostCount(0);
-            setIsLiked(false);
-            setIsReposted(false);
-          }
-          return;
+        const normalizedIdentifier = String(trackId ?? '').trim();
+        if (normalizedIdentifier.length === 0) {
+          throw new Error('Invalid track identifier');
         }
 
+        const resolvedTrackMetadata = secretToken
+          ? await trackService.getTrackByToken(secretToken)
+          : await (async () => {
+              const resolvedTrackId = await resolveTrackIdFromIdentifier(
+                normalizedIdentifier
+              );
+              return trackService.getTrackMetadata(resolvedTrackId);
+            })();
+
+        const resolvedTrackId = resolvedTrackMetadata.id;
+
         const [trackMetadata, commentsResponse] = await Promise.all([
-          trackService.getTrackMetadata(parsedTrackId),
-          commentService.getTrackComments(parsedTrackId, { page: 0, size: 100 }),
+          Promise.resolve(resolvedTrackMetadata),
+          commentService.getTrackComments(resolvedTrackId, { page: 0, size: 100 }),
         ]);
 
         if (isCancelled) {
@@ -190,15 +204,21 @@ export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemPara
         const durationSeconds = trackMetadata.durationSeconds;
 
         setHero({
+          id: trackMetadata.id,
           title: trackMetadata.title,
           artistName,
           artistSlug: artistName,
+          trackSlug: trackMetadata.trackSlug,
+          secretToken: trackMetadata.secretToken?.trim() || undefined,
           coverUrl: trackMetadata.coverUrl,
-          timeAgo: formatTimeAgo(trackMetadata.releaseDate),
+          timeAgo: formatTimeAgo(trackMetadata.uploadDate || trackMetadata.releaseDate),
           tags: trackMetadata.tags,
-          waveformUrl: JSON.stringify(trackMetadata.waveformData ?? []),
+          genre: trackMetadata.genre,
+          waveformUrl: trackMetadata.waveformUrl ?? '',
+          waveformData: trackMetadata.waveformData ?? [],
           duration: durationSeconds ? formatDuration(durationSeconds) : '0:00',
           plays: trackMetadata.playCount ?? 0,
+          isPrivate: trackMetadata.isPrivate ?? false,
         });
 
         setPlayerTrack(
@@ -238,7 +258,7 @@ export function useTrackHeaderItem({ username, trackId }: UseTrackHeaderItemPara
     return () => {
       isCancelled = true;
     };
-  }, [trackId, username]);
+  }, [secretToken, trackId, username]);
 
   const isCurrentPlaybackTrack =
     playerTrack?.id !== undefined && currentPlayerTrackId === playerTrack.id;

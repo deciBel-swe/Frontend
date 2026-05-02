@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -13,9 +13,11 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'i.ibb.co' },
       { protocol: 'https', hostname: 'decibelblob.blob.core.windows.net' },
       { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'api.dicebear.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'example.com' },
     ],
   },
 };
-
 
 export default nextConfig;

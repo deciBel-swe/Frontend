@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { trackService } from '@/services';
 import { formatSecretUrl } from '@/utils/formatSecretUrl';
+import { resolveTrackIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
+import { buildTrackSecretUrl } from '@/utils/resourcePaths';
 
 /**
  * Fetches and manages the secret share link for a private track.
@@ -15,13 +17,22 @@ import { formatSecretUrl } from '@/utils/formatSecretUrl';
  * @example
  * const { secretUrl, regenerate, isRegenerating } = useSecretLink(trackId);
  */
-export function useSecretLink(trackId: string | undefined) {
+type UseSecretLinkOptions = {
+  shareUsername?: string;
+  sharePathId?: string;
+};
+
+export function useSecretLink(
+  trackId: string | undefined,
+  options?: UseSecretLinkOptions
+) {
   const [data, setData] = useState<Awaited<
     ReturnType<typeof trackService.getSecretLink>
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [resolvedTrackId, setResolvedTrackId] = useState<number | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -30,6 +41,7 @@ export function useSecretLink(trackId: string | undefined) {
       setData(null);
       setIsLoading(false);
       setIsError(false);
+      setResolvedTrackId(null);
       return;
     }
 
@@ -38,8 +50,10 @@ export function useSecretLink(trackId: string | undefined) {
       setIsError(false);
 
       try {
-        const next = await trackService.getSecretLink(trackId);
+        const resolvedId = await resolveTrackIdFromIdentifier(trackId);
+        const next = await trackService.getSecretLink(String(resolvedId));
         if (!isCancelled) {
+          setResolvedTrackId(resolvedId);
           setData(next);
         }
       } catch {
@@ -60,9 +74,17 @@ export function useSecretLink(trackId: string | undefined) {
     };
   }, [trackId]);
 
-  /** Full formatted URL e.g. https://localhost:3000/tracks/1?s=nQ7ENRPl */
+  /** Full formatted URL e.g. https://localhost:3000/user/track?token=nQ7ENRPl */
   const secretUrl =
-    data && trackId ? formatSecretUrl(trackId, data.secretLink) : null;
+    data && resolvedTrackId !== null
+      ? options?.shareUsername?.trim() && options?.sharePathId?.trim()
+        ? buildTrackSecretUrl(
+            options.shareUsername,
+            options.sharePathId,
+            data.secretLink
+          )
+        : formatSecretUrl(String(resolvedTrackId), data.secretLink)
+      : null;
   const secretToken = data?.secretLink ?? null;
 
   const regenerate = useCallback(async () => {
@@ -74,7 +96,9 @@ export function useSecretLink(trackId: string | undefined) {
     setIsError(false);
 
     try {
-      const next = await trackService.regenerateSecretLink(trackId);
+      const resolvedId = await resolveTrackIdFromIdentifier(trackId);
+      const next = await trackService.regenerateSecretLink(String(resolvedId));
+      setResolvedTrackId(resolvedId);
       setData(next);
     } catch {
       setIsError(true);
@@ -83,5 +107,12 @@ export function useSecretLink(trackId: string | undefined) {
     }
   }, [trackId]);
 
-  return { secretUrl, secretToken, isLoading, isError, regenerate, isRegenerating };
+  return {
+    secretUrl,
+    secretToken,
+    isLoading,
+    isError,
+    regenerate,
+    isRegenerating,
+  };
 }

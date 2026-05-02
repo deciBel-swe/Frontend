@@ -78,12 +78,52 @@ describe('RealUserService', () => {
   it('calls USERS_PLAYLISTS with query params', async () => {
     mockedApiRequest.mockResolvedValue([{ id: 2, title: 'Public Set' }]);
 
-    await service.getUserPlaylists(11, { page: 1, size: 10 });
+    await service.getUserPlaylists('mockartist', { page: 1, size: 10 });
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
-      API_CONTRACTS.USERS_PLAYLISTS(11),
+      API_CONTRACTS.USERS_PLAYLISTS('mockartist'),
       {
         params: { page: 1, size: 10 },
+      }
+    );
+  });
+
+  it('calls USERS_ME_REPOSTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getMyReposts({ page: 0, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_ME_REPOSTS,
+      {
+        params: { page: 0, size: 10 },
+      }
+    );
+  });
+
+  it('calls USERS_REPOSTS with query params', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 1,
+      isLast: true,
+    });
+
+    await service.getUserReposts('mockartist', { page: 0, size: 10 });
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.USERS_REPOSTS('mockartist'),
+      {
+        params: { page: 0, size: 10 },
       }
     );
   });

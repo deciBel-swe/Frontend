@@ -1,119 +1,280 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { TrackListItem } from '@/components/TrackList';
-import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
+import { useCallback, useEffect, useState } from 'react';
+import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
+import type { TrackCardProps } from '@/components/tracks/track-card';
 import { useAuth } from '@/features/auth';
-import { trackService } from '@/services';
-import { formatDuration } from '@/utils/formatDuration';
+import {
+  mapPlaylistResourceToPlaylistCard,
+  mapTrackResourceToTrackCard,
+} from '@/features/search/mappers/searchResultMappers';
+import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
+import { userService } from '@/services';
+import type { ResourceRefFullDTO } from '@/types/discovery';
+import type { FullPlaylistDTO } from '@/types/playlists';
+import type { FullTrackDTO } from '@/types/tracks';
 
-const toPlaybackAccess = (
-  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
-): PlaybackAccess | undefined => {
-  if (!access) {
+type RepostedByShape = {
+  username?: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+};
+
+type RepostMetadataShape = {
+  repostedBy?: RepostedByShape | null;
+  repostedAt?: string | null;
+};
+
+type FlatTrackRepostDTO = FullTrackDTO & RepostMetadataShape;
+
+type FlatPlaylistRepostDTO = FullPlaylistDTO & RepostMetadataShape;
+
+type RepostResourceDTO =
+  | ResourceRefFullDTO
+  | FlatTrackRepostDTO
+  | FlatPlaylistRepostDTO;
+
+export type UserRepostPageItem =
+  | {
+      kind: 'track';
+      id: string;
+      card: TrackCardProps;
+    }
+  | {
+      kind: 'playlist';
+      id: string;
+      card: PlaylistHorizontalProps;
+    };
+
+const toRepostedBy = (
+  repostedBy: RepostedByShape | undefined,
+  fallbackUsername: string
+): TrackCardProps['repostedBy'] | undefined => {
+  if (repostedBy?.username) {
+    return {
+      username: repostedBy.username,
+      displayName: repostedBy.displayName ?? undefined,
+      avatar: repostedBy.avatarUrl ?? undefined,
+    };
+  }
+
+  const normalizedFallback = fallbackUsername.trim();
+  if (!normalizedFallback) {
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
-    return 'BLOCKED';
-  }
-
-  return 'PLAYABLE';
+  return {
+    username: normalizedFallback,
+    displayName: undefined,
+  };
 };
 
-const asIsoDate = (value: unknown): string | undefined => {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  if (typeof value === 'string' && value.trim().length > 0) {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed.toISOString();
+const normalizeRepostResource = (
+  resource: RepostResourceDTO
+): ResourceRefFullDTO | null => {
+  if ('type' in resource) {
+    if (resource.type === 'TRACK' && resource.track) {
+      return resource as ResourceRefFullDTO;
     }
+
+    if (resource.type === 'PLAYLIST' && resource.playlist) {
+      return resource as ResourceRefFullDTO;
+    }
+
+    return null;
   }
 
-  return undefined;
+  if ('trackSlug' in resource) {
+    return {
+      type: 'TRACK',
+      id: resource.id,
+      track: resource as FullTrackDTO,
+      playlist: null,
+      user: null,
+      repostedBy: resource.repostedBy
+        ? ({
+            username: resource.repostedBy.username,
+            displayName: resource.repostedBy.displayName,
+            avatarUrl: resource.repostedBy.avatarUrl,
+          } as ResourceRefFullDTO['repostedBy'])
+        : null,
+      repostedAt: resource.repostedAt ?? '',
+    };
+  }
+
+  if ('playlistSlug' in resource) {
+    return {
+      type: 'PLAYLIST',
+      id: resource.id,
+      track: null,
+      playlist: resource as FullPlaylistDTO,
+      user: null,
+      repostedBy: resource.repostedBy
+        ? ({
+            username: resource.repostedBy.username,
+            displayName: resource.repostedBy.displayName,
+            avatarUrl: resource.repostedBy.avatarUrl,
+          } as ResourceRefFullDTO['repostedBy'])
+        : null,
+      repostedAt: resource.repostedAt ?? '',
+    };
+  }
+
+  return null;
 };
 
-export function useUserRepostPage() {
+type UseUserRepostPageOptions = {
+  page?: number;
+  size?: number;
+  infinite?: boolean;
+};
+
+export function useUserRepostPage(
+  routeUsername?: string,
+  options: UseUserRepostPageOptions = {}
+) {
+  const { page = 0, size = 10, infinite = false } = options;
   const { user } = useAuth();
-  const [tracks, setTracks] = useState<TrackListItem[]>([]);
+  const ownerContext = useProfileOwnerContext();
+  const [items, setItems] = useState<UserRepostPageItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const targetUsername =
+    routeUsername?.trim() ||
+    ownerContext?.routeUsername?.trim() ||
+    user?.username?.trim() ||
+    '';
+
+  const fetchRepostPage = useCallback(
+    async (pageNumber: number, pageSize: number) => {
+      if (!targetUsername) {
+        return {
+          items: [],
+          pageNumber,
+          totalPages: 0,
+          totalElements: 0,
+          isLast: true,
+        };
+      }
+
+      const response = await userService.getUserReposts(targetUsername, {
+        page: pageNumber,
+        size: pageSize,
+      });
+      const repostResources = response.content as RepostResourceDTO[];
+
+      return {
+        items: repostResources.flatMap(
+          (resource, index): UserRepostPageItem[] => {
+            const normalizedResource = normalizeRepostResource(resource);
+            if (!normalizedResource) {
+              return [];
+            }
+
+            const repostedBy = normalizedResource.repostedBy ?? undefined;
+
+            if (normalizedResource.type === 'TRACK') {
+              const trackCard = mapTrackResourceToTrackCard(normalizedResource);
+              if (!trackCard) {
+                return [];
+              }
+
+              return [
+                {
+                  kind: 'track',
+                  id: `track-${normalizedResource.id}-${pageNumber}-${index}`,
+                  card: {
+                    ...trackCard,
+                    postedText: 'reposted a track',
+                    repostedBy: toRepostedBy(repostedBy, targetUsername),
+                  },
+                } satisfies UserRepostPageItem,
+              ];
+            }
+
+            if (normalizedResource.type === 'PLAYLIST') {
+              const playlistCard =
+                mapPlaylistResourceToPlaylistCard(normalizedResource);
+              if (!playlistCard) {
+                return [];
+              }
+
+              return [
+                {
+                  kind: 'playlist',
+                  id: `playlist-${normalizedResource.id}-${pageNumber}-${index}`,
+                  card: {
+                    ...playlistCard,
+                    postedText: 'reposted a set',
+                    repostedBy: toRepostedBy(repostedBy, targetUsername),
+                  },
+                } satisfies UserRepostPageItem,
+              ];
+            }
+
+            return [];
+          }
+        ),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    [targetUsername]
+  );
+
+  const {
+    items: infiniteItems,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<UserRepostPageItem>({
+    enabled: infinite && targetUsername.length > 0,
+    pageSize: size,
+    resetKey: `${targetUsername}|${size}`,
+    fetchPage: fetchRepostPage,
+    dedupeBy: (item) => item.id,
+    initialErrorMessage:
+      'Failed to load reposted resources. Please try again later.',
+  });
 
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
-    const loadRepostedTracks = async () => {
+    const loadReposts = async () => {
+      if (!targetUsername) {
+        if (!isCancelled) {
+          setItems([]);
+          setIsLoading(false);
+          setIsError(false);
+        }
+        return;
+      }
+
       setIsLoading(true);
       setIsError(false);
 
       try {
-        const response = await trackService.getMyRepostedTracks({ page: 0, size: 100 });
-        const repostedTracks = response.content ?? [];
-
-        const mappedTracks = await Promise.all(
-          repostedTracks.map(async (track) => {
-            let metadata:
-              | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
-              | null = null;
-            try {
-              metadata = await trackService.getTrackMetadata(track.id);
-            } catch {
-              metadata = null;
-            }
-
-            const artistName =
-              (typeof track.artist === 'string'
-                ? track.artist
-                : track.artist?.username) ??
-              metadata?.artist.username ??
-              'unknown';
-
-            const durationSeconds = metadata?.durationSeconds;
-
-            return {
-              trackId: String(track.id),
-              user: {
-                username: artistName,
-                displayName: track.artist?.displayName,
-                avatar: metadata?.coverUrl ?? track.coverUrl,
-              },
-              repostedBy: user?.username
-                ? {
-                    username: user.username,
-                    displayName: user.displayName ?? undefined,
-                  }
-                : undefined,
-              track: {
-                id: track.id,
-                artist: artistName,
-                title: track.title,
-                cover: metadata?.coverUrl ?? track.coverUrl,
-                duration: durationSeconds ? formatDuration(durationSeconds) : '',
-                plays: track.playCount,
-                createdAt: asIsoDate(track.releaseDate),
-                genre: track.genre,
-                durationSeconds,
-                isLiked: track.isLiked,
-                isReposted: track.isReposted,
-                likeCount: track.likeCount,
-                repostCount: track.repostCount,
-              },
-              trackUrl: metadata?.trackUrl ?? track.trackUrl,
-              access: toPlaybackAccess(metadata?.access),
-              waveform: metadata?.waveformData ?? [],
-            } satisfies TrackListItem;
-          })
-        );
+        const response = await fetchRepostPage(page, size);
 
         if (!isCancelled) {
-          setTracks(mappedTracks);
+          setItems(response.items);
+          setIsLoading(false);
+          setIsError(false);
         }
       } catch {
         if (!isCancelled) {
-          setTracks([]);
+          setItems([]);
           setIsError(true);
         }
       } finally {
@@ -123,16 +284,20 @@ export function useUserRepostPage() {
       }
     };
 
-    void loadRepostedTracks();
+    void loadReposts();
 
     return () => {
       isCancelled = true;
     };
-  }, [user?.displayName, user?.username]);
+  }, [fetchRepostPage, infinite, page, size, targetUsername]);
 
   return {
-    tracks,
-    isLoading,
-    isError,
+    items: infinite ? infiniteItems : items,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

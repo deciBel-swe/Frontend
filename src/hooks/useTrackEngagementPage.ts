@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import type { UserCardData } from '@/components/ui/social/UserCard';
+import type { UserCardData } from '@/features/social/components/UserCard';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { trackService, userService } from '@/services';
 import type { SearchUser } from '@/types/user';
+import { resolveTrackIdFromIdentifier } from '@/utils/resourceIdentifierResolvers';
 
 type EngagementType = 'likes' | 'reposts';
 
@@ -11,6 +13,7 @@ type UseTrackEngagementPageParams = {
   type: EngagementType;
   page?: number;
   size?: number;
+  infinite?: boolean;
 };
 
 type LooseUser = Partial<SearchUser> & {
@@ -44,13 +47,76 @@ export function useTrackEngagementPage({
   trackId,
   type,
   page = 0,
-  size = 48,
+  size = 12,
+  infinite = false,
 }: UseTrackEngagementPageParams) {
   const [users, setUsers] = useState<UserCardData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const normalizedTrackId = trackId.trim();
+
+  const fetchEngagementPage = useCallback(
+    async (pageNumber: number, pageSize: number) => {
+      const parsedTrackId = await resolveTrackIdFromIdentifier(trackId);
+
+      let response:
+        | Awaited<ReturnType<typeof userService.getUsersWhoLikedTrack>>
+        | Awaited<ReturnType<typeof userService.getUsersWhoRepostedTrack>>
+        | Awaited<ReturnType<typeof trackService.getRepostUsers>>;
+
+      if (type === 'likes') {
+        response = await userService.getUsersWhoLikedTrack(parsedTrackId, {
+          page: pageNumber,
+          size: pageSize,
+        });
+      } else {
+        try {
+          response = await userService.getUsersWhoRepostedTrack(parsedTrackId, {
+            page: pageNumber,
+            size: pageSize,
+          });
+        } catch {
+          response = await trackService.getRepostUsers(parsedTrackId, {
+            page: pageNumber,
+            size: pageSize,
+          });
+        }
+      }
+
+      return {
+        items: (response.content ?? []).map(toUserCardData),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    [trackId, type]
+  );
+
+  const {
+    items: infiniteUsers,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<UserCardData>({
+    enabled: infinite && normalizedTrackId.length > 0,
+    pageSize: size,
+    resetKey: `${normalizedTrackId}|${type}|${size}`,
+    fetchPage: fetchEngagementPage,
+    dedupeBy: (user) => user.id,
+    initialErrorMessage: 'Failed to load this engagement page. Please try again later.',
+  });
 
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
     const loadPageData = async () => {
@@ -58,48 +124,11 @@ export function useTrackEngagementPage({
       setIsError(false);
 
       try {
-        const parsedTrackId = Number(trackId);
-        if (!Number.isInteger(parsedTrackId) || parsedTrackId <= 0) {
-          throw new Error('Invalid track id');
+        const response = await fetchEngagementPage(page, size);
+
+        if (!isCancelled) {
+          setUsers(response.items);
         }
-
-        if (isCancelled) {
-          return;
-        }
-
-        let engagementUsers: LooseUser[] = [];
-
-        if (type === 'likes') {
-          try {
-            const likedUsersResponse = await userService.getUsersWhoLikedTrack(
-              parsedTrackId,
-              { page, size }
-            );
-            engagementUsers = (likedUsersResponse.content ?? []) as LooseUser[];
-          } catch {
-            engagementUsers = [];
-          }
-        } else {
-          try {
-            const repostUsersResponse = await userService.getUsersWhoRepostedTrack(
-              parsedTrackId,
-              { page, size }
-            );
-            engagementUsers = (repostUsersResponse.content ?? []) as LooseUser[];
-          } catch {
-            try {
-              const fallbackRepostUsers = await trackService.getRepostUsers(parsedTrackId, {
-                page,
-                size,
-              });
-              engagementUsers = (fallbackRepostUsers.content ?? []) as LooseUser[];
-            } catch {
-              engagementUsers = [];
-            }
-          }
-        }
-
-        setUsers(engagementUsers.map(toUserCardData));
       } catch {
         if (!isCancelled) {
           setUsers([]);
@@ -117,11 +146,15 @@ export function useTrackEngagementPage({
     return () => {
       isCancelled = true;
     };
-  }, [page, size, trackId, type]);
+  }, [fetchEngagementPage, infinite, page, size]);
 
   return {
-    users,
-    isLoading,
-    isError,
+    users: infinite ? infiniteUsers : users,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

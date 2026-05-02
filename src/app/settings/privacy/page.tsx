@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import Button from '@/components/buttons/Button';
 import { Toggle } from '@/components/buttons/Toggle';
-import AvatarImage from '@/components/ui/AvatarImage';
+import AvatarImage from '@/components/avatars/AvatarImage';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 

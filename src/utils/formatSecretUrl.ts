@@ -8,11 +8,11 @@ import { config } from '@/config';
  *
  * @param trackId - The track's unique identifier
  * @param token   - The secret token returned from the API
- * @returns Full shareable URL e.g. `https://localhost:3000/tracks/1?s=nQ7ENRPl`
+ * @returns Full shareable URL e.g. `https://localhost:3000/tracks/1?token=nQ7ENRPl`
  *
  * @example
  * formatSecretUrl('42', 'nQ7ENRPl')
- * // → 'https://localhost:3000/tracks/42?s=nQ7ENRPl'
+ * // → 'https://localhost:3000/tracks/42?token=nQ7ENRPl'
  */
 const slugify = (value: string): string =>
   value
@@ -23,7 +23,7 @@ const slugify = (value: string): string =>
 
 export function formatSecretUrl(trackId: string, token: string): string {
   const base = config.api.appUrl;
-  return `${base}/tracks/${trackId}?s=${token}`;
+  return `${base}/tracks/${trackId}?token=${token}`;
 }
 
 export function formatSecretUrlWithSlug(
@@ -34,5 +34,5 @@ export function formatSecretUrlWithSlug(
   const base = config.api.appUrl;
   const userSlug = slugify(artist);
   const trackSlug = slugify(title);
-  return `${base}/${userSlug}/${trackSlug}?s=${token}`;
+  return `${base}/${userSlug}/${trackSlug}?token=${token}`;
 }

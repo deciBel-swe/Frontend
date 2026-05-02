@@ -2,12 +2,21 @@
 
 import { useMemo, useState } from 'react';
 
-import TrackList from '@/components/TrackList';
+import TrackList from '@/components/tracks/TrackList';
 import FilterBar from '@/components/nav/FilterBar';
 import { useListeningHistoryTracks } from '@/hooks/useListeningHistoryTracks';
 
 export default function Page() {
-  const { tracks, isLoading } = useListeningHistoryTracks({ page: 0, size: 50 });
+  const {
+    tracks,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useListeningHistoryTracks({
+    size: 10,
+    infinite: true,
+  });
   const [filterText, setFilterText] = useState('');
 
   const filteredTracks = useMemo(() => {
@@ -18,7 +27,9 @@ export default function Page() {
     const normalized = filterText.toLowerCase();
     return tracks.filter((track) =>
       track.track.title.toLowerCase().includes(normalized) ||
-      track.track.artist.toLowerCase().includes(normalized)
+      (track.track.artist.displayName || track.track.artist.username)
+        .toLowerCase()
+        .includes(normalized)
     );
   }, [filterText, tracks]);
 
@@ -33,7 +44,14 @@ export default function Page() {
         />
       </div>
 
-      <TrackList tracks={filteredTracks} isLoading={isLoading} showHeader={false} />
+      <TrackList
+        tracks={filteredTracks}
+        isLoading={isLoading}
+        showHeader={false}
+        hasMore={hasMore}
+        isPaginating={isPaginating}
+        sentinelRef={sentinelRef}
+      />
     </section>
   );
 }

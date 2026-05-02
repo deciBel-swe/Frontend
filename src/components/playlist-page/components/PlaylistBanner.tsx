@@ -1,0 +1,160 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { Play, Pause } from 'lucide-react';
+import TimeAgo from '@/features/tracks/components/TimeAgo';
+import Waveform from '@/components/waveform/Waveform';
+import GenrePill from "@/components/GenrePill";
+
+type PlaylistTrack = {
+  id: number;
+  title: string;
+  coverUrl?: string;
+  durationSeconds?: number;
+};
+
+type Playlist = {
+  title: string;
+  updatedAt?: string;
+  coverUrl?: string;
+  tracks: PlaylistTrack[];
+  owner: { username: string; displayName?: string };
+  genre?: string;
+};
+
+type PlaylistBannerProps = {
+  playlist: Playlist;
+  trackCount: number;
+  duration: string;
+  playingTrack: PlaylistTrack | null;
+  waveform?: number[];
+  isPlaying: boolean;
+  onPlayPause: () => void;
+};
+
+export default function PlaylistBanner({
+  playlist,
+  playingTrack,
+  isPlaying,
+  trackCount,
+  duration,
+  waveform,
+  onPlayPause,
+}: PlaylistBannerProps) {
+  const ownerSlug = playlist.owner.username.toLowerCase().replace(/\s+/g, '');
+  const ownerDisplayName = playlist.owner.displayName || playlist.owner.username;
+  const coverToShow =
+    playlist.coverUrl ?? playingTrack?.coverUrl ?? playlist.tracks[0]?.coverUrl;
+
+  return (
+    <div className="relative w-full h-65 md:h-75 overflow-hidden bg-surface-raised">
+
+      {/* Blurred background */}
+      <div
+        className="absolute inset-0 bg-surface-raised"
+        style={{
+          backgroundImage: coverToShow ? `url(${coverToShow})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(40px) brightness(0.4)',
+          transform: 'scale(1.1)',
+        }}
+      />
+
+      {/* Waveform */}
+      {waveform && waveform.length > 0 ? (
+        <div className="absolute bottom-8 left-4 right-55 md:right-75 px-4 pb-2">
+          <Waveform
+            data={waveform}
+            barClassName="bg-neutral-0/40 hover:bg-brand-primary"
+          />
+        </div>
+      ) : null}
+
+      {/* Cover (RIGHT SIDE) */}
+      <div className="absolute top-0 right-0 w-55 md:w-75 h-full group cursor-pointer">
+        {coverToShow ? (
+          <Image
+            src={coverToShow}
+            alt={`${playlist.title} cover image`}
+            className="w-full h-full object-cover"
+            width={600}
+            height={600}
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full bg-surface-overlay flex items-center justify-center">
+            <span className="text-text-muted text-sm">Upload image</span>
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-surface-overlay opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span className="bg-surface-default text-text-primary text-xs font-semibold px-3 py-1.5 rounded">
+            Replace image
+          </span>
+        </div>
+      </div>
+
+      {/* LEFT CONTENT */}
+      <div className="absolute top-4 left-4 right-55 md:right-75 flex items-start gap-3">
+
+        {/* PLAY BUTTON */}
+        <button
+          onClick={onPlayPause}
+          className="w-18 h-18 rounded-full bg-neutral-950 flex items-center justify-center hover:bg-neutral-800 transition-colors shrink-0"
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? (
+            <Pause size={25} fill="white" />
+          ) : (
+            <Play size={25} fill="white" className="translate-x-px" />
+          )}
+        </button>
+
+        {/* TITLE */}
+        <div className="flex flex-col gap-1">
+
+          <span className="inline-block bg-neutral-950 text-neutral-0 text-3xl font-bold px-2.5 py-1.5 w-fit">
+            {playlist.title}
+          </span>
+
+          <Link href={`/${ownerSlug}`}>
+            <span className="inline-block bg-neutral-950 text-neutral-0 text-xl font-semibold px-2.5 py-1.5 w-fit hover:opacity-70 transition-opacity">
+              {ownerDisplayName}
+            </span>
+          </Link>
+
+        </div>
+
+        {/* RIGHT OF TITLE (TIME + GENRE COLUMN) */}
+        <div className="ml-auto flex flex-col items-end gap-3 text-right mr-6">
+
+          {playlist.updatedAt && (
+            <span className="text-neutral-200 text-xs">
+              Updated <TimeAgo date={playlist.updatedAt} />
+            </span>
+          )}
+
+          <GenrePill genre={playlist.genre ?? 'Unknown'} />
+
+        </div>
+
+      </div>
+
+      {/* TRACK BADGE */}
+      {!playingTrack && (
+        <div className="absolute bottom-4 left-4">
+          <div className="flex flex-col items-center justify-center w-20 h-20 rounded-full bg-surface-raised border border-white/10 backdrop-blur-md">
+            <span className="text-xl font-black text-text-primary">{trackCount}</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-text-secondary">
+              Tracks
+            </span>
+            <span className="text-[9px] text-text-muted">{duration}</span>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

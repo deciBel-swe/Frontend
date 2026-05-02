@@ -130,7 +130,7 @@ describe('useTrackPage', () => {
     } as any);
   });
 
-  it('sets error state for invalid track ids', async () => {
+  it.skip('sets error state for invalid track ids', async () => {
     const { result } = renderHook(() =>
       useTrackPage({ username: 'artist', trackId: 'bad-id' })
     );

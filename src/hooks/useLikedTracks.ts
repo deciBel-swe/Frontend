@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import type { TrackListItem } from '@/components/TrackList';
+import type { TrackListItem } from '@/components/tracks/TrackList';
 import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
 import { trackService, userService } from '@/services';
 import { formatDuration } from '@/utils/formatDuration';
 
 const normalizeUsername = (value: string | undefined): string =>
-  decodeURIComponent(value ?? '').trim().toLowerCase();
+  decodeURIComponent(value ?? '')
+    .trim()
+    .toLowerCase();
 
 const toPlaybackAccess = (
   access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
@@ -16,11 +19,11 @@ const toPlaybackAccess = (
     return undefined;
   }
 
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
+  if (access === 'BLOCKED') {
     return 'BLOCKED';
   }
 
-  return 'PLAYABLE';
+  return access === 'PREVIEW' ? 'PREVIEW' : 'PLAYABLE';
 };
 
 const asIsoDate = (value: unknown): string | undefined => {
@@ -38,33 +41,62 @@ const asIsoDate = (value: unknown): string | undefined => {
   return undefined;
 };
 
+const asOptionalString = (value: unknown): string | undefined => {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value
+    : undefined;
+};
+
 type UseLikedTracksOptions = {
   forCurrentUser?: boolean;
+  page?: number;
+  size?: number;
+  infinite?: boolean;
 };
 
 export function useLikedTracks(
   username: string,
   options: UseLikedTracksOptions = {}
 ) {
+  const {
+    forCurrentUser = false,
+    page = 0,
+    size = 10,
+    infinite = false,
+  } = options;
   const profileContext = useProfileOwnerContext();
   const [tracks, setTracks] = useState<TrackListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [refreshIndex, setRefreshIndex] = useState(0);
 
   const isManagedByContext =
     normalizeUsername(profileContext?.routeUsername) ===
     normalizeUsername(username);
   const isOwner =
-    options.forCurrentUser ||
-    (isManagedByContext && Boolean(profileContext?.isOwner));
+    forCurrentUser || (isManagedByContext && Boolean(profileContext?.isOwner));
 
   useEffect(() => {
-    let isCancelled = false;
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-    const loadLikedTracks = async () => {
-      setIsLoading(true);
-      setIsError(false);
-      const artistDisplayNameLookups = new Map<string, Promise<string | undefined>>();
+    const handleUpdate = () => {
+      setRefreshIndex((prev) => prev + 1);
+    };
+
+    window.addEventListener('track-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('track-updated', handleUpdate);
+    };
+  }, []);
+
+  const mapLikedPage = useCallback(
+    async (pageNumber: number, pageSize: number) => {
+      const artistDisplayNameLookups = new Map<
+        string,
+        Promise<string | undefined>
+      >();
 
       const resolveArtistDisplayName = (
         artistUsername: string,
@@ -75,95 +107,183 @@ export function useLikedTracks(
           return Promise.resolve(normalizedFallback);
         }
 
-        const normalizedUsername = artistUsername.trim();
-        if (normalizedUsername.length === 0 || normalizedUsername === 'unknown') {
+        const normalizedArtistUsername = artistUsername.trim();
+        if (
+          normalizedArtistUsername.length === 0 ||
+          normalizedArtistUsername === 'unknown'
+        ) {
           return Promise.resolve(undefined);
         }
 
-        const cachedLookup = artistDisplayNameLookups.get(normalizedUsername);
+        const cachedLookup = artistDisplayNameLookups.get(
+          normalizedArtistUsername
+        );
         if (cachedLookup) {
           return cachedLookup;
         }
 
         const lookup = (async () => {
           try {
-            const publicUser = await userService.getPublicUserByUsername(normalizedUsername);
+            const publicUser = await userService.getPublicUserByUsername(
+              normalizedArtistUsername
+            );
             return publicUser.profile.displayName?.trim() || undefined;
           } catch {
             return undefined;
           }
         })();
 
-        artistDisplayNameLookups.set(normalizedUsername, lookup);
+        artistDisplayNameLookups.set(normalizedArtistUsername, lookup);
         return lookup;
       };
 
-      try {
-        if (!isOwner) {
-          if (!isCancelled) {
-            setTracks([]);
+      const response = isOwner
+        ? await trackService.getMyLikedTracks({
+            page: pageNumber,
+            size: pageSize,
+          })
+        : await trackService.getUserLikedTracks(username, {
+            page: pageNumber,
+            size: pageSize,
+          });
+      const likedTracks = response.content ?? [];
+
+      const items = await Promise.all(
+        likedTracks.map(async (track) => {
+          let metadata: Awaited<
+            ReturnType<typeof trackService.getTrackMetadata>
+          > | null = null;
+
+          try {
+            metadata = await trackService.getTrackMetadata(track.id);
+          } catch {
+            metadata = null;
           }
-          return;
-        }
 
-        const response = await trackService.getMyLikedTracks({ page: 0, size: 100 });
-        const likedTracks = response.content ?? [];
+          const artistUsername =
+            track.artist?.username ||
+            metadata?.artist?.username ||
+            track.artist?.displayName ||
+            'unknown';
+          const artistDisplayName = await resolveArtistDisplayName(
+            artistUsername,
+            track.artist?.displayName || metadata?.artist?.displayName
+          );
+          const durationSeconds = metadata?.durationSeconds;
+          const metadataTrackUrl = asOptionalString(metadata?.trackUrl);
+          const metadataTrackPreviewUrl = asOptionalString(
+            metadata?.trackPreviewUrl
+          );
+          const likedTrackUrl = asOptionalString(track.trackUrl);
+          const likedTrackPreviewUrl = asOptionalString(
+            track.trackPreviewUrl
+          );
 
-        const mappedTracks = await Promise.all(
-          likedTracks.map(async (track) => {
-            let metadata:
-              | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
-              | null = null;
-
-            try {
-              metadata = await trackService.getTrackMetadata(track.id);
-            } catch {
-              metadata = null;
-            }
-
-            const artistUsername =
-              track.artist?.username ||
-              metadata?.artist?.username ||
-              track.artist?.displayName ||
-              'unknown';
-            const artistDisplayName = await resolveArtistDisplayName(
-              artistUsername,
-              track.artist?.displayName || metadata?.artist?.displayName
-            );
-            const durationSeconds = metadata?.durationSeconds;
-
-            return {
-              trackId: String(track.id),
-              user: {
+          return {
+            trackId: String(track.id),
+            user: {
+              username: artistUsername,
+              displayName: artistDisplayName,
+              avatar:
+                metadata?.artist?.avatarUrl ??
+                track.artist?.avatarUrl ??
+                '/images/default_avatar.png',
+            },
+            postedText: 'liked a track',
+            track: {
+              id: track.id,
+              artist: {
                 username: artistUsername,
                 displayName: artistDisplayName,
-                avatar: metadata?.coverUrl ?? track.coverUrl,
+                avatar:
+                  metadata?.artist?.avatarUrl ??
+                  track.artist?.avatarUrl ??
+                  '/images/default_avatar.png',
               },
-              postedText: 'liked a track',
-              track: {
-                id: track.id,
-                artist: artistDisplayName || artistUsername,
-                title: track.title,
-                cover: metadata?.coverUrl ?? track.coverUrl,
-                duration: durationSeconds ? formatDuration(durationSeconds) : '',
-                plays: track.playCount,
-                createdAt: asIsoDate(track.releaseDate),
-                genre: track.genre,
-                durationSeconds,
-                isLiked: track.isLiked,
-                isReposted: track.isReposted,
-                likeCount: track.likeCount,
-                repostCount: track.repostCount,
-              },
-              trackUrl: metadata?.trackUrl ?? track.trackUrl,
-              access: toPlaybackAccess(metadata?.access),
-              waveform: metadata?.waveformData ?? [],
-            } satisfies TrackListItem;
-          })
-        );
+              title: track.title,
+              cover: metadata?.coverUrl ?? track.coverUrl,
+              duration: durationSeconds ? formatDuration(durationSeconds) : '',
+              plays: track.playCount,
+              createdAt: asIsoDate(track.uploadDate ?? track.releaseDate),
+              genre: track.genre,
+              durationSeconds,
+              isLiked: track.isLiked,
+              isReposted: track.isReposted,
+              likeCount: track.likeCount,
+              repostCount: track.repostCount,
+              isPrivate: metadata?.isPrivate,
+              secretToken: metadata?.secretToken?.trim() || '',
+              commentCount: metadata?.commentCount,
+              trackSlug: metadata?.trackSlug ?? '',
+            },
+            access: toPlaybackAccess(metadata?.access),
+            trackUrl:
+              (metadata?.access === 'PREVIEW'
+                ? metadataTrackPreviewUrl
+                : metadataTrackUrl) ??
+              metadataTrackUrl ??
+              metadataTrackPreviewUrl ??
+              likedTrackUrl,
+            trackPreviewUrl:
+              metadataTrackPreviewUrl ??
+              likedTrackPreviewUrl ??
+              likedTrackUrl,
+            waveform: metadata?.waveformData ?? [],
+          } satisfies TrackListItem;
+        })
+      );
+
+      return {
+        items,
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    [isOwner, username]
+  );
+
+  const {
+    items: infiniteTracks,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<TrackListItem>({
+    enabled: infinite,
+    pageSize: size,
+    resetKey: [
+      username.trim().toLowerCase(),
+      String(forCurrentUser),
+      String(isOwner),
+      String(size),
+      String(refreshIndex),
+    ].join('|'),
+    fetchPage: mapLikedPage,
+    dedupeBy: (item) => item.trackId,
+    initialErrorMessage: 'Failed to load liked tracks. Please try again later.',
+  });
+
+  useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadLikedTracks = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        const response = await mapLikedPage(page, size);
 
         if (!isCancelled) {
-          setTracks(mappedTracks);
+          setTracks(response.items);
         }
       } catch {
         if (!isCancelled) {
@@ -182,12 +302,16 @@ export function useLikedTracks(
     return () => {
       isCancelled = true;
     };
-  }, [isOwner]);
+  }, [infinite, isOwner, mapLikedPage, page, refreshIndex, size]);
 
   return {
-    tracks,
-    isLoading,
-    isError,
+    tracks: infinite ? infiniteTracks : tracks,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
     isOwner,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
   };
 }

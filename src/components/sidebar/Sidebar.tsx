@@ -26,6 +26,7 @@ type SidebarProps = {
     artistUsername?: string;
     title: string;
     playback?: PlayerTrack;
+    trackSlug?: string;
     stats: {
       plays: string;
       likes: string;
@@ -48,7 +49,7 @@ export default function Sidebar({ artists, history, Artist_header, History_heade
     <aside className="w-85 flex flex-col gap-6 sticky top-20 h-fit">
         {/* ================= ARTISTS ================= */}
       <ListOfArtistCards 
-      headerUrl='/feed#'
+      headerUrl='/people'
       artists={resolvedArtists}
       Artist_header={Artist_header}
       />

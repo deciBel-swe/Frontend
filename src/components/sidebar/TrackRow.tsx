@@ -28,6 +28,7 @@ interface TrackRowProps {
   artist: string;
   artistUsername?: string;
   title: string;
+  trackSlug?: string;
   stats: TrackStats;
   playback?: PlayerTrack;
   queueTracks?: PlayerTrack[];
@@ -53,6 +54,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
   artistUsername,
   title,
   stats,
+  trackSlug,
   playback,
   queueTracks,
   queueSource,
@@ -70,8 +72,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
   const artistSlug = encodeURIComponent(artistSlugSource.toLowerCase().replace(/\s+/g, ''));
 
   const artistUrl = `/${artistSlug}`;
-  const trackUrl =
-    trackId === undefined ? artistUrl : `/${artistSlug}/${encodeURIComponent(String(trackId))}`;
+  const trackUrl = `/${artistSlug}/${trackSlug ?? trackId}`;
 
   const isBlocked = playback?.access === 'BLOCKED';
 
@@ -109,9 +110,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
   };
 
   return (
-    <div className="group flex w-full items-center gap-3 px-2 py-3 rounded-xl transition hover:bg-surface-raised">
+    <div className="group flex w-full items-center gap-3 px-2 py-2 rounded-xl transition hover:bg-surface-raised">
       {/* IMAGE WRAPPER (controls size now) */}
-      <div className="w-12 h-12 md:w-14 md:h-14 shrink-0">
+      <div className="w-12 h-12 md:w-12 md:h-12 shrink-0">
         <HoverPlayImage image={image} alt={title} onClick={handlePlayFromRow} />
       </div>
 

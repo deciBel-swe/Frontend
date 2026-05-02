@@ -110,6 +110,14 @@ export { useGetCountry } from './useGetCountry';
 export { useEditMe } from '@/features/prof/hooks/useEditMe';
 export { useUserMe } from '@/features/prof/hooks/useUserMe';
 export { usePublicUser } from '@/features/prof/hooks/usePublicUser';
+export {
+  useMarkAllAsRead,
+  useNotificationSettings,
+  useNotifications,
+  useRegisterDeviceToken,
+  useUnreadCount,
+  useUpdateNotificationSettings,
+} from '@/features/notif/hooks';
 
 /**
  * useTrackPage — loads and manages track page state from the service layer.
@@ -122,7 +130,7 @@ export { useTrackPage } from './useTrackPage';
 export { useTrackCard } from './useTrackCard';
 
 /**
- * useUserRepostPage — loads reposted tracks for the current user profile page.
+ * useUserRepostPage — loads reposted tracks and playlists for the current user profile page.
  */
 export { useUserRepostPage } from './useUserRepostPage';
 
@@ -163,3 +171,4 @@ export { useTrackLayoutPreference } from './useTrackLayoutPreference';
  */
 export { useFeedSidebar } from './useFeedSidebar';
 export { useProfileSidebar } from './useProfileSidebar';
+export { useTrendingTracks } from './useTrendingTracks';

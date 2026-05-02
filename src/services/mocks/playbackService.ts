@@ -1,5 +1,5 @@
 import type { DeviceInfoDTO } from '@/types';
-import type { MessageResponse, PaginatedFeedResponse } from '@/types/user';
+import type { MessageResponse, PaginatedHistoryResponse } from '@/types/user';
 import type {
   PlaybackPaginationParams,
   PlaybackService,
@@ -19,7 +19,7 @@ const delay = (ms = MOCK_DELAY_MS) =>
 const paginateHistory = (
   history: Array<{ id: number; title: string }>,
   params?: PlaybackPaginationParams
-): PaginatedFeedResponse => {
+): PaginatedHistoryResponse => {
   const pageNumber = Math.max(0, params?.page ?? 0);
   const pageSize = Math.max(1, params?.size ?? 20);
   const totalElements = history.length;
@@ -59,7 +59,7 @@ const noopDeviceInfo = (_deviceInfo?: DeviceInfoDTO): void => {
 export class MockPlaybackService implements PlaybackService {
   async getListeningHistory(
     params?: PlaybackPaginationParams
-  ): Promise<PaginatedFeedResponse> {
+  ): Promise<PaginatedHistoryResponse> {
     await delay();
 
     const currentUserId = resolveCurrentMockUserId();

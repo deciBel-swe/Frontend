@@ -7,8 +7,8 @@ import { validateAudioFile, validateImageFile } from '@/utils/fileValidation';
 import UploadDropzone from '@/features/tracks/TrackUploadForm/FormFields/UploadDropzone';
 import UploadForm from '@/features/tracks/TrackUploadForm/UploadForm';
 import UploadSuccess from '@/features/tracks/TrackUploadForm/UploadSuccess';
-import { toTrackSlug, uploadSchema } from '@/types/uploadSchema';
-import type { TrackPrivacyValue } from '@/types/tracks';
+import { uploadSchema } from '@/types/uploadSchema';
+import type { TrackAccess, TrackPrivacyValue } from '@/types/tracks';
 import { useAuth } from '@/hooks';
 import { config } from '@/config';
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
@@ -23,6 +23,7 @@ const ALLOWED_TYPES = [
   'audio/mp4',
 ];
 const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac'];
+const FREE_TRACK_LIMIT_ERROR = 'out of free tracks';
 
 const getWaveformParseErrorMessage = (err: unknown): string => {
   if (err instanceof Error && err.message.trim().length > 0) {
@@ -32,8 +33,20 @@ const getWaveformParseErrorMessage = (err: unknown): string => {
   return 'Unable to parse audio for waveform. Please try another file.';
 };
 
+const getUploadErrorMessage = (err: unknown): string => {
+  if (err instanceof Error && err.message.trim().length > 0) {
+    if (err.message.toLowerCase().includes(FREE_TRACK_LIMIT_ERROR)) {
+      return 'Free upload limit reached. Use Blocked or upgrade.';
+    }
+
+    return err.message;
+  }
+
+  return 'Track upload failed. Please try again.';
+};
+
 export default function UploadView() {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const todayIsoDate = new Date().toISOString().slice(0, 10);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
@@ -43,13 +56,15 @@ export default function UploadView() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState('');
-  const [trackLinkSuffix, setTrackLinkSuffix] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [genre, setGenre] = useState('');
   const [description, setDescription] = useState('');
   const [releaseDate, setReleaseDate] = useState(todayIsoDate);
   const [releaseDateError, setReleaseDateError] = useState('');
+  // const [uploadDate, setUploadDate] = useState(todayIsoDate);
+  // const [uploadDateError, setUploadDateError] = useState('');
   const [privacy, setPrivacy] = useState<TrackPrivacyValue>('public');
+  const [access, setAccess] = useState<TrackAccess>('PLAYABLE');
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
@@ -63,10 +78,6 @@ export default function UploadView() {
       setTitle(nameWithoutExt);
     }
   }, [audioFile]);
-
-  useEffect(() => {
-    setTrackLinkSuffix(toTrackSlug(title));
-  }, [title]);
 
   useEffect(() => {
     const updateWaveformHeight = () => {
@@ -121,8 +132,10 @@ export default function UploadView() {
       genre,
       tags,
       description,
+      // uploadDate,
       releaseDate,
       privacy,
+      access,
     });
 
     if (!validation.success) {
@@ -130,12 +143,16 @@ export default function UploadView() {
       setTitleError(fieldErrors.title?.[0] ?? '');
       setGenreError(fieldErrors.genre?.[0] ?? '');
       setReleaseDateError(fieldErrors.releaseDate?.[0] ?? '');
+      // setUploadDateError(fieldErrors.uploadDate?.[0] ?? '');
       return;
     }
 
     setTitleError('');
     setGenreError('');
     setReleaseDateError('');
+    // setUploadDateError('');
+    setError('');
+    setUploadProgress(0);
 
     const formData = new FormData();
 
@@ -146,9 +163,9 @@ export default function UploadView() {
     }
 
     formData.append('title', title);
-    formData.append('trackLinkSuffix', trackLinkSuffix);
     formData.append('genre', genre || '');
     formData.append('isPrivate', String(privacy === 'private'));
+    formData.append('access', access);
     formData.append('releaseDate', releaseDate);
     if (description.trim().length > 0) {
       formData.append('description', description);
@@ -162,24 +179,32 @@ export default function UploadView() {
     setIsUploading(true);
 
     try {
-      const waveform = await generateWaveform(audioFile);
+      const waveform =
+        generatedWaveform.length > 0
+          ? generatedWaveform
+          : await generateWaveform(audioFile);
 
       const normalizedWaveform = waveform
-        .map((value: string) => Number(value))
+        .map((value) => Number(value))
         .filter((value) => Number.isFinite(value));
       formData.append('waveformData', JSON.stringify(normalizedWaveform));
 
-      const response = await trackService.uploadTrack(
-        formData,
-        setUploadProgress
-      );
+      const response = await trackService.uploadTrack(formData, setUploadProgress);
+      const artistUsername = response.artist.username ?? user?.username;
+      const trackPathId = response.trackSlug.trim() || String(response.id);
+
+      setUploadProgress(100);
+      setIsUploading(false);
       setUploadComplete(true);
-      setIsUploading(false);
-      setUploadedTrackUrl(`${config.urls.domainName}/${user?.username}/${response.id}`);
+      setUploadedTrackUrl(
+        artistUsername
+          ? `${config.urls.domainName}/${artistUsername}/${trackPathId}`
+          : `${config.urls.domainName}/${trackPathId}`
+      );
     } catch (err) {
-      setError(getWaveformParseErrorMessage(err));
+      setError(getUploadErrorMessage(err));
       setIsUploading(false);
-      console.error('Track upload error:', err);
+      setUploadProgress(0);
     }
   };
 
@@ -193,13 +218,15 @@ export default function UploadView() {
     setTitle('');
     setTitleError('');
     setGenreError('');
-    setTrackLinkSuffix('');
     setGenre('');
     setTags([]);
     setDescription('');
+    // setUploadDate(todayIsoDate);
+    // setUploadDateError('');
     setReleaseDate(todayIsoDate);
     setReleaseDateError('');
     setPrivacy('public');
+    setAccess('PLAYABLE');
     setArtworkFile(null);
     setArtworkPreview(null);
     setGeneratedWaveform([]);
@@ -350,11 +377,24 @@ export default function UploadView() {
           setReleaseDate(nextDate);
           if (releaseDateError) {
             setReleaseDateError('');
+           
           }
         }}
-        releaseDateMax={todayIsoDate}
-        showReleaseDate
+         releaseDateMax={todayIsoDate}
+          showReleaseDate
+        // uploadDate={uploadDate}
+        // uploadDateError={uploadDateError}
+        // onUploadDateChange={(nextDate) => {
+        //   setUploadDate(nextDate);
+        //   if (uploadDateError) {
+        //     setUploadDateError('');
+        //   }
+        // }}
+        // uploadDateMax={todayIsoDate}
+        // showUploadDate
         privacy={privacy}
+        access={access}
+        onAccessChange={setAccess}
         onPrivacyChange={setPrivacy}
       />
     );

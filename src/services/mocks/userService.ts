@@ -9,11 +9,15 @@ import {
   MockPlaylistRecord,
   type MockUserRecord,
 } from './mockSystemStore';
+import {
+  canAccessMockResource,
+  resolveMockResourceAccess,
+} from './mockResourceUtils';
 import type {
   AddNewEmailRequest,
   FollowResponse,
   MessageResponse,
-  PaginatedFeedResponse,
+  PaginatedHistoryResponse,
   PaginatedFollowersResponse,
   PaginatedTracksResponse,
   PrivateSocialLinks,
@@ -36,6 +40,12 @@ import type {
   PlaylistResponse,
   PlaylistType,
 } from '@/types/playlists';
+import type {
+  PaginatedRepostResponseDTO,
+  ResourceRefFullDTO,
+} from '@/types/discovery';
+import type { FullTrackDTO } from '@/types/tracks';
+import type { FullPlaylistDTO } from '@/types/playlists';
 
 const MOCK_DELAY_MS = 120;
 
@@ -109,10 +119,28 @@ const toSearchUser = (
 ): SearchUser => ({
   id: target.id,
   username: target.username,
+  displayName: target.displayName,
   avatarUrl: target.profile.profilePic,
   tier: target.tier,
   isFollowing: viewer.following.has(target.id),
 });
+
+const mergeDefinedSocialLinks = (
+  current: MockUserRecord['socialLinks'],
+  updates: Partial<MockUserRecord['socialLinks']>
+): MockUserRecord['socialLinks'] => {
+  const merged = { ...current };
+
+  for (const [key, value] of Object.entries(updates) as Array<
+    [keyof MockUserRecord['socialLinks'], string | undefined]
+  >) {
+    if (typeof value === 'string') {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
+};
 
 const toUserPublic = (
   user: MockUserRecord,
@@ -122,7 +150,7 @@ const toUserPublic = (
     id: user.id,
     email: user.email,
     username: user.username,
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     tier: user.tier,
     followerCount: user.followers.size,
     followingCount: user.following.size,
@@ -149,21 +177,46 @@ const toUserPublic = (
     : null,
 });
 
+const getEffectiveFavoriteGenres = (user: MockUserRecord): string[] => {
+  const explicitGenres = user.profile.favoriteGenres
+    .map((genre) => genre.trim())
+    .filter((genre) => genre.length > 0);
+
+  if (explicitGenres.length > 0) {
+    return explicitGenres;
+  }
+
+  const fallbackGenres = new Set<string>();
+
+  for (const track of [...user.likedTracks, ...user.reposts, ...user.tracks]) {
+    const normalizedGenre = track.genre.trim();
+    if (normalizedGenre.length > 0) {
+      fallbackGenres.add(normalizedGenre);
+    }
+
+    if (fallbackGenres.size >= 3) {
+      break;
+    }
+  }
+
+  return [...fallbackGenres];
+};
+
 const toUserMe = (user: MockUserRecord): UserMe => ({
   id: user.id,
   email: user.email,
   username: user.username,
-  displayName: user.username,
+  displayName: user.displayName || user.username,
   isBlocked: false,
   tier: user.tier,
   profile: {
-    displayName: user.username,
+    displayName: user.displayName || user.username,
     bio: user.profile.bio,
     city: user.profile.city,
     country: user.profile.country,
     profilePic: user.profile.profilePic,
     coverPic: user.profile.coverPic,
-    favoriteGenres: [...user.profile.favoriteGenres],
+    favoriteGenres: getEffectiveFavoriteGenres(user),
   },
   socialLinks: {
     instagram: user.socialLinks.instagram,
@@ -183,6 +236,270 @@ const toUserMe = (user: MockUserRecord): UserMe => ({
 
 const toPlaylistType = (type: MockPlaylistRecord['type']): PlaylistType => {
   return type as PlaylistType;
+};
+
+const toUserSummary = (target: MockUserRecord, viewer: MockUserRecord) => {
+  return {
+    id: target.id,
+    username: target.username,
+    displayName: target.displayName || target.username,
+    avatarUrl: target.profile.profilePic || '/images/default_song_image.png',
+    isFollowing: viewer.following.has(target.id),
+    followerCount: target.followers.size,
+    trackCount: target.tracks.length,
+  };
+};
+
+const isTrackLikedByUser = (trackId: number, user: MockUserRecord): boolean => {
+  return user.likedTracks.some((track) => track.id === trackId);
+};
+
+const isTrackRepostedByUser = (
+  trackId: number,
+  user: MockUserRecord
+): boolean => {
+  return user.reposts.some((track) => track.id === trackId);
+};
+
+const findTrackOwner = (trackId: number): MockUserRecord | undefined => {
+  const track = getMockTracksStore().find((item) => item.id === trackId);
+  if (!track) {
+    return undefined;
+  }
+
+  return inMemoryUsers.find((user) => user.id === track.artist.id);
+};
+
+const buildFullTrack = (
+  trackId: number,
+  viewer: MockUserRecord
+): FullTrackDTO | null => {
+  const track = getMockTracksStore().find((item) => item.id === trackId);
+  if (!track) {
+    return null;
+  }
+  if (
+    !canAccessMockResource({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
+
+  const owner = findTrackOwner(trackId);
+  const artist = owner
+    ? toUserSummary(owner, viewer)
+    : {
+        id: track.artist.id,
+        username: track.artist.username,
+        displayName: track.artist.username,
+        avatarUrl: '/images/default_song_image.png',
+        isFollowing: false,
+        followerCount: 0,
+        trackCount: 0,
+      };
+
+  return {
+    id: track.id,
+    title: track.title,
+    trackSlug: track.trackSlug ?? `track-${track.id}`,
+    artist,
+    trackUrl: track.trackUrl,
+    coverUrl: track.coverImageDataUrl ?? track.coverUrl,
+    waveformUrl: track.waveformUrl,
+    genre: track.genre,
+    isReposted: isTrackRepostedByUser(track.id, viewer),
+    isLiked: isTrackLikedByUser(track.id, viewer),
+    tags: track.tags,
+    releaseDate: track.releaseDate,
+    playCount: (track.likes ?? track.likeCount) * 25,
+    CompletedPlayCount: 0,
+    likeCount: track.likes ?? track.likeCount,
+    repostCount: track.reposters ?? track.repostCount,
+    commentCount: 0,
+    isPrivate: track.isPrivate,
+    trackDurationSeconds: track.durationSeconds ?? 0,
+    uploadDate: track.uploadDate ?? track.releaseDate,
+    description: track.description ?? '',
+    trendingRank: 0,
+    access: resolveMockResourceAccess({
+      isPrivate: track.isPrivate,
+      ownerId: track.artist.id,
+      viewerId: viewer.id,
+    }),
+    secretToken: track.secretLink ?? '',
+    trackPreviewUrl: track.trackUrl,
+  };
+};
+
+const findPlaylistOwner = (
+  playlistId: number
+): { owner: MockUserRecord; playlist: MockPlaylistRecord } | null => {
+  for (const owner of inMemoryUsers) {
+    const playlist = owner.playlists.find((item) => item.id === playlistId);
+    if (playlist) {
+      return { owner, playlist };
+    }
+  }
+
+  return null;
+};
+
+const playlistLikeCount = (playlistId: number): number => {
+  return inMemoryUsers.filter((user) =>
+    user.likedPlaylists.includes(playlistId)
+  ).length;
+};
+
+const playlistRepostCount = (playlistId: number): number => {
+  return inMemoryUsers.filter((user) =>
+    user.repostedPlaylists.includes(playlistId)
+  ).length;
+};
+
+const buildFullPlaylist = (
+  playlistId: number,
+  viewer: MockUserRecord
+): FullPlaylistDTO | null => {
+  const resolved = findPlaylistOwner(playlistId);
+  if (!resolved) {
+    return null;
+  }
+
+  const { owner, playlist } = resolved;
+  if (
+    !canAccessMockResource({
+      isPrivate: playlist.isPrivate,
+      ownerId: owner.id,
+      viewerId: viewer.id,
+    })
+  ) {
+    return null;
+  }
+  const ownerSummary = toUserSummary(owner, viewer);
+  const fullTracks = playlist.tracks
+    .map((item) => buildFullTrack(item.trackId, viewer))
+    .filter((item): item is FullTrackDTO => Boolean(item));
+  const tracks = fullTracks.map((item) => ({
+    id: item.id,
+    title: item.title,
+    trackSlug: item.trackSlug,
+    coverUrl: item.coverUrl ?? item.trackPreviewUrl,
+    trackUrl: item.trackUrl,
+    trackPreviewUrl: item.trackPreviewUrl,
+    artist: {
+      id: item.artist.id,
+      username: item.artist.username,
+      displayName: item.artist.displayName,
+      avatarUrl: item.artist.avatarUrl ?? 'https://decibel.test/default-avatar.png',
+      isFollowing: item.artist.isFollowing,
+      followerCount: item.artist.followerCount,
+      trackCount: item.artist.trackCount,
+    },
+    playCount: item.playCount,
+    likeCount: item.likeCount,
+    repostCount: item.repostCount,
+    commentCount: item.commentCount,
+    isLiked: item.isLiked,
+    isReposted: item.isReposted,
+    secretToken: item.secretToken,
+    access: item.access,
+  }));
+
+  const totalDurationSeconds = fullTracks.reduce(
+    (total, item) => total + (item.trackDurationSeconds ?? 0),
+    0
+  );
+  const firstTrack = fullTracks[0];
+  const firstTrackRecord = getMockTracksStore().find(
+    (track) => track.id === firstTrack?.id
+  );
+
+  return {
+    id: playlist.id,
+    title: playlist.title,
+    playlistSlug: playlist.playlistSlug,
+    isLiked: viewer.likedPlaylists.includes(playlist.id),
+    isReposted: viewer.repostedPlaylists.includes(playlist.id),
+    likeCount: playlistLikeCount(playlist.id),
+    repostCount: playlistRepostCount(playlist.id),
+    description: playlist.description ?? '',
+    isPrivate: playlist.isPrivate,
+    coverArtUrl:
+      playlist.CoverArt ||
+      firstTrack?.coverUrl ||
+      '/images/default_song_image.png',
+    totalDurationSeconds,
+    trackCount: tracks.length,
+    owner: ownerSummary,
+    genre: firstTrack?.genre ?? 'Unknown',
+    createdAt: new Date().toISOString(),
+    tracks,
+    secretToken: playlist.secretLink ?? '',
+    firstTrackWaveformUrl:
+      firstTrack?.waveformUrl ?? '/images/default-waveform.json',
+    firstTrackWaveformData: firstTrackRecord?.waveformData ?? [],
+  };
+};
+
+const buildTrackResource = (
+  trackId: number,
+  viewer: MockUserRecord,
+  repostedBy?: {
+    id: number;
+    username: string;
+    displayName: string;
+    avatarUrl: string;
+    isFollowing: boolean;
+    followerCount: number;
+    trackCount: number;
+  }
+): ResourceRefFullDTO | null => {
+  const track = buildFullTrack(trackId, viewer);
+  if (!track) {
+    return null;
+  }
+
+  return {
+    type: 'TRACK',
+    id: trackId,
+    track,
+    playlist: null,
+    user: null,
+    repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
+  } as ResourceRefFullDTO;
+};
+
+const buildPlaylistResource = (
+  playlistId: number,
+  viewer: MockUserRecord,
+  repostedBy?: {
+    id: number;
+    username: string;
+    displayName: string;
+    avatarUrl: string;
+    isFollowing: boolean;
+    followerCount: number;
+    trackCount: number;
+  }
+): ResourceRefFullDTO | null => {
+  const playlist = buildFullPlaylist(playlistId, viewer);
+  if (!playlist) {
+    return null;
+  }
+
+  return {
+    type: 'PLAYLIST',
+    id: playlistId,
+    track: null,
+    playlist,
+    user: null,
+    repostedBy,
+    repostedAt: repostedBy ? new Date().toISOString() : undefined,
+  } as ResourceRefFullDTO;
 };
 
 export class MockUserService implements UserService {
@@ -221,6 +538,13 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
 
+    if (
+      payload.displayName !== undefined &&
+      payload.displayName.trim().length > 0
+    ) {
+      me.displayName = payload.displayName.trim();
+    }
+
     if (payload.bio !== undefined) me.profile.bio = payload.bio;
     if (payload.city !== undefined) me.profile.city = payload.city;
     if (payload.country !== undefined) me.profile.country = payload.country;
@@ -229,10 +553,10 @@ export class MockUserService implements UserService {
     }
 
     if (payload.socialLinks) {
-      me.socialLinks = {
-        ...me.socialLinks,
-        ...payload.socialLinks,
-      };
+      me.socialLinks = mergeDefinedSocialLinks(
+        me.socialLinks,
+        payload.socialLinks
+      );
     }
 
     commitMockUserState();
@@ -276,10 +600,7 @@ export class MockUserService implements UserService {
   ): Promise<PrivateSocialLinks> {
     await delay();
     const me = getCurrentUser();
-    me.socialLinks = {
-      ...me.socialLinks,
-      ...payload,
-    };
+    me.socialLinks = mergeDefinedSocialLinks(me.socialLinks, payload);
     commitMockUserState();
 
     return {
@@ -294,7 +615,7 @@ export class MockUserService implements UserService {
     await delay();
     const me = getCurrentUser();
     me.role = payload.newRole;
-    if (payload.newRole === 'LISTENER' && me.tier === 'ARTIST') {
+    if (payload.newRole === 'LISTENER' && me.tier === 'PRO') {
       me.tier = 'FREE';
     }
     commitMockUserState();
@@ -311,15 +632,29 @@ export class MockUserService implements UserService {
     };
   }
 
-  async updateImages(
-    payload: FormData
-  ): Promise<UpdateImagesResponse> {
+  async updateImages(payload: FormData): Promise<UpdateImagesResponse> {
     await delay();
     const me = getCurrentUser();
+
+    const removeProfilePic = payload.get('removeProfilePic');
+    if (
+      typeof removeProfilePic === 'string' &&
+      removeProfilePic.toLowerCase() === 'true'
+    ) {
+      me.profile.profilePic = '';
+    }
 
     const profilePic = payload.get('profilePic');
     if (profilePic instanceof File) {
       me.profile.profilePic = await readFileAsDataUrl(profilePic);
+    }
+
+    const removeCoverPic = payload.get('removeCoverPic');
+    if (
+      typeof removeCoverPic === 'string' &&
+      removeCoverPic.toLowerCase() === 'true'
+    ) {
+      me.profile.coverPic = '';
     }
 
     const coverPic = payload.get('coverPic');
@@ -335,7 +670,9 @@ export class MockUserService implements UserService {
     };
   }
 
-  async getHistory(params?: PaginationParams): Promise<PaginatedFeedResponse> {
+  async getHistory(
+    params?: PaginationParams
+  ): Promise<PaginatedHistoryResponse> {
     await delay();
     const me = getCurrentUser();
     return paginate(me.history, params);
@@ -364,11 +701,14 @@ export class MockUserService implements UserService {
   }
 
   async getUserPlaylists(
-    userId: number,
+    username: string,
     params?: PaginationParams
   ): Promise<UserPlaylistsResponse> {
     await delay();
-    const user = findUser(userId);
+    const user = inMemoryUsers.find((item) => item.username === username);
+    if (!user) {
+      throw new Error('User not found');
+    }
     if (!params) {
       return [...user.playlists];
     }
@@ -377,6 +717,71 @@ export class MockUserService implements UserService {
     const pageSize = Math.max(1, params.size ?? 20);
     const start = pageNumber * pageSize;
     return user.playlists.slice(start, start + pageSize);
+  }
+
+  async getMyReposts(
+    params?: PaginationParams
+  ): Promise<PaginatedRepostResponseDTO> {
+    await delay();
+
+    const viewer = getCurrentUser();
+    const repostedBy = toUserSummary(viewer, viewer);
+    const resources: ResourceRefFullDTO[] = [];
+
+    for (const repost of viewer.reposts) {
+      const trackResource = buildTrackResource(repost.id, viewer, repostedBy);
+      if (trackResource) {
+        resources.push(trackResource);
+      }
+    }
+
+    for (const playlistId of viewer.repostedPlaylists) {
+      const playlistResource = buildPlaylistResource(
+        playlistId,
+        viewer,
+        repostedBy
+      );
+      if (playlistResource) {
+        resources.push(playlistResource);
+      }
+    }
+
+    return paginate(resources, params);
+  }
+
+  async getUserReposts(
+    username: string,
+    params?: PaginationParams
+  ): Promise<PaginatedRepostResponseDTO> {
+    await delay();
+
+    const viewer = getCurrentUser();
+    const targetUser = inMemoryUsers.find((item) => item.username === username);
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
+    const repostedBy = toUserSummary(targetUser, viewer);
+    const resources: ResourceRefFullDTO[] = [];
+
+    for (const repost of targetUser.reposts) {
+      const trackResource = buildTrackResource(repost.id, viewer, repostedBy);
+      if (trackResource) {
+        resources.push(trackResource);
+      }
+    }
+
+    for (const playlistId of targetUser.repostedPlaylists) {
+      const playlistResource = buildPlaylistResource(
+        playlistId,
+        viewer,
+        repostedBy
+      );
+      if (playlistResource) {
+        resources.push(playlistResource);
+      }
+    }
+
+    return paginate(resources, params);
   }
 
   async getMePlaylists(
@@ -413,8 +818,29 @@ export class MockUserService implements UserService {
           title: playlist.title,
           type: playlist.type,
           isLiked: user.likedPlaylists.includes(playlist.id),
-          owner: { id: owner.id, username: owner.username },
-          tracks: playlist.tracks,
+          owner: {
+            id: owner.id,
+            username: owner.username,
+            displayName: owner.displayName || owner.username,
+            avatarUrl: owner.profile.profilePic || '',
+            followerCount: owner.followers.size,
+            trackCount: owner.tracks.length,
+            isFollowing: false,
+          },
+          tracks: [],
+          trackSummary: [],
+          isReposted: user.repostedPlaylists.includes(playlist.id),
+          likeCount: playlistLikeCount(playlist.id),
+          repostCount: playlistRepostCount(playlist.id),
+          playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+          description: playlist.description || '',
+          isPrivate: playlist.isPrivate,
+          coverArtUrl: playlist.CoverArt || '',
+          totalDurationSeconds: 0,
+          trackCount: 0,
+          genre: undefined,
+          createdAt: new Date().toISOString(),
+          firstTrackWaveformUrl: '',
         });
       }
     }
@@ -547,9 +973,11 @@ export class MockUserService implements UserService {
     if (!track) {
       throw new Error('Track not found');
     }
-    const usersWhoLiked = [...track.likes]
-      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
-      .filter((user): user is MockUserRecord => Boolean(user))
+
+    const usersWhoLiked = inMemoryUsers
+      .filter((user) =>
+        user.likedTracks.some((likedTrack) => likedTrack.id === trackId)
+      )
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoLiked, params);
@@ -574,17 +1002,29 @@ export class MockUserService implements UserService {
         title: playlist.title,
         type: toPlaylistType(playlist.type),
         isLiked: true,
+        isReposted: user.repostedPlaylists.includes(playlist.id),
+        likeCount: playlistLikeCount(playlist.id),
+        repostCount: playlistRepostCount(playlist.id),
         owner: {
           id: playlist.owner.id,
           username: playlist.owner.username,
+          displayName: playlist.owner.displayName || playlist.owner.username,
+          avatarUrl: playlist.owner.avatarUrl || '',
+          followerCount: 0,
+          trackCount: 0,
+          isFollowing: false,
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tracks: playlist.tracks.map((track:any) => ({
-          trackId: track.trackId,
-          title: track.title,
-          trackUrl: track.trackUrl,
-          durationSeconds: track.durationSeconds,
-        })),
+        tracks: [],
+        trackSummary: [],
+        playlistSlug: playlist.playlistSlug || `playlist-${playlist.id}`,
+        description: playlist.description || '',
+        isPrivate: playlist.isPrivate,
+        coverArtUrl: playlist.CoverArt || '',
+        totalDurationSeconds: 0,
+        trackCount: 0,
+        genre: undefined,
+        createdAt: new Date().toISOString(),
+        firstTrackWaveformUrl: '',
       }));
 
     return paginate(likedPlaylists, params);
@@ -599,9 +1039,9 @@ export class MockUserService implements UserService {
     if (!track) {
       throw new Error('Track not found');
     }
-    const usersWhoReposted = [...track.reposters]
-      .map((userId) => inMemoryUsers.find((user) => user.id === userId))
-      .filter((user): user is MockUserRecord => Boolean(user))
+
+    const usersWhoReposted = inMemoryUsers
+      .filter((user) => user.reposts.some((repost) => repost.id === trackId))
       .map((user) => toSearchUser(user, getCurrentUser()));
 
     return paginate(usersWhoReposted, params);

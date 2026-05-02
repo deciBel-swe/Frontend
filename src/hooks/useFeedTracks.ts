@@ -1,32 +1,137 @@
-import { useEffect, useState } from 'react';
-import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
-import type { PlaybackAccess } from '@/features/player/contracts/playerContracts';
-import { trackService } from '@/services';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { PlaylistHorizontalProps } from '@/components/playlist/playlist-card/types';
+import type { TrackCardProps } from '@/components/tracks/track-card';
+import { useInfinitePaginatedResource } from '@/hooks/useInfinitePaginatedResource';
+import { feedService } from '@/services';
+import type { FeedItemDTO } from '@/types/feed';
+import {
+  mapPlaylistResourceToPlaylistCard,
+  mapTrackResourceToTrackCard,
+} from '@/features/search/mappers/feedMapper';
 
-const toPlaybackAccess = (
-  access: 'PLAYABLE' | 'BLOCKED' | 'PREVIEW' | undefined
-): PlaybackAccess => {
-  if (access === 'BLOCKED' || access === 'PREVIEW') {
-    return 'BLOCKED';
+type FeedCardItem =
+  | {
+      kind: 'track';
+      id: string;
+      card: TrackCardProps;
+    }
+  | {
+      kind: 'playlist';
+      id: string;
+      card: PlaylistHorizontalProps;
+    };
+
+const toPostedText = (item: FeedItemDTO): string => {
+  switch (item.type) {
+    case 'TRACK_POSTED':
+      return 'posted a track';
+    case 'TRACK_REPOSTED':
+      return 'reposted a track';
+    case 'TRACK_LIKED':
+      return 'liked a track';
+    case 'PLAYLIST_POSTED':
+      return 'posted a set';
+    case 'PLAYLIST_REPOSTED':
+      return 'reposted a set';
+    case 'PLAYLIST_LIKED':
+      return 'liked a set';
+    default:
+      return 'shared';
   }
-  return 'PLAYABLE';
 };
 
-/**
- * useFeedTracks
- *
- * Fetches all tracks from the track service and maps them into the shape
- * expected by <TrackCard />.
- *
- * Waveform data is hydrated by the track service from waveformUrl payloads.
- *
- * @example
- * const { feedTracks, isLoading, isError } = useFeedTracks();
- */
-export function useFeedTracks() {
-  const [tracks, setTracks] = useState<
-    Awaited<ReturnType<typeof trackService.getAllTracks>>
-  >([]);
+const toFeedActor = (
+  item: FeedItemDTO
+): { username: string; displayName?: string; avatar?: string } | undefined => {
+  const actor =
+    item.repostedBy ??
+    (
+      item as unknown as {
+        actor?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).actor ??
+    (
+      item as unknown as {
+        likedBy?: {
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+        };
+      }
+    ).likedBy;
+
+  if (!actor?.username) {
+    return undefined;
+  }
+
+  return {
+    username: actor.username,
+    displayName: actor.displayName?.trim() || undefined,
+    avatar: actor.avatarUrl?.trim() || undefined,
+  };
+};
+
+const mapFeedItem = (item: FeedItemDTO): FeedCardItem | null => {
+  const postedText = toPostedText(item);
+  const actor = toFeedActor(item);
+
+  if (item.resource.type === 'TRACK') {
+    const card = mapTrackResourceToTrackCard(item.resource);
+    if (!card) {
+      return null;
+    }
+
+    const shouldShowRepost =
+      item.type === 'TRACK_REPOSTED' || Boolean(item.repostedBy);
+
+    return {
+      kind: 'track',
+      id: `track-${item.id}-${item.resource.id}`,
+      card: {
+        ...card,
+        postedText,
+        repostedBy: shouldShowRepost ? actor : card.repostedBy,
+      },
+    };
+  }
+
+  if (item.resource.type === 'PLAYLIST') {
+    const card = mapPlaylistResourceToPlaylistCard(item.resource);
+    if (!card) {
+      return null;
+    }
+
+    const actorUsername = actor?.username;
+    const actorDisplayName = actor?.displayName;
+
+    return {
+      kind: 'playlist',
+      id: `playlist-${item.id}-${item.resource.id}`,
+      card: {
+        ...card,
+        postedText,
+        ...(item.type === 'PLAYLIST_REPOSTED' && actorUsername
+          ? {
+              repostedBy: {
+                username: actorUsername,
+                displayName: actorDisplayName,
+                avatar: actor?.avatar,
+              },
+            }
+          : {}),
+      },
+    };
+  }
+
+  return null;
+};
+
+export function useFeedTracks(page = 0, size = 10, infinite = false) {
+  const [feedItems, setFeedItems] = useState<FeedItemDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
@@ -46,22 +151,66 @@ export function useFeedTracks() {
     };
   }, []);
 
+  const mapFeedItems = useCallback((items: FeedItemDTO[]) => {
+    return items.flatMap((item) => {
+      const mapped = mapFeedItem(item);
+      return mapped ? [mapped] : [];
+    });
+  }, []);
+
+  const {
+    items: infiniteFeedItems,
+    hasMore,
+    isPaginating,
+    isInitialLoading,
+    isError: isInfiniteError,
+    sentinelRef,
+    loadNextPage,
+  } = useInfinitePaginatedResource<FeedCardItem>({
+    enabled: infinite,
+    pageSize: size,
+    resetKey: `${size}|${refreshIndex}`,
+    fetchPage: async (pageNumber, pageSize) => {
+      const response = await feedService.getfeed({
+        page: pageNumber,
+        size: pageSize,
+      });
+
+      return {
+        items: mapFeedItems(response.content ?? []),
+        pageNumber: response.pageNumber,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        isLast: response.isLast,
+        last: Boolean(response.last),
+      };
+    },
+    dedupeBy: (item) => item.id,
+    initialErrorMessage: 'Failed to load tracks. Please try again later.',
+  });
+
   useEffect(() => {
+    if (infinite) {
+      return;
+    }
+
     let isCancelled = false;
 
-    const fetchTracks = async () => {
+    const fetchFeed = async () => {
       setIsLoading(true);
       setIsError(false);
+
       try {
-        const data = await trackService.getAllTracks();
-        console.log('Fetched tracks:', data);
+        const response = await feedService.getfeed({ page, size });
         if (!isCancelled) {
-          setTracks(data);
+          setFeedItems(response.content);
         }
-      } catch {
+      } catch (error) {
         if (!isCancelled) {
+          setFeedItems([]);
           setIsError(true);
         }
+        console.error('Error fetching feed tracks:', error);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -69,50 +218,28 @@ export function useFeedTracks() {
       }
     };
 
-    void fetchTracks();
+    void fetchFeed();
 
     return () => {
       isCancelled = true;
     };
-  }, [refreshIndex]);
+  }, [infinite, page, refreshIndex, size]);
 
-  // Canonical queue payload for current feed snapshot.
-  const queueTracks = tracks.map((track) =>
-    playerTrackMappers.fromTrackMetaData(track, {
-      access: toPlaybackAccess(track.access),
-    })
-  );
+  const feedCards = useMemo(() => {
+    if (infinite) {
+      return infiniteFeedItems;
+    }
 
-  // Quick lookup for mapping feed rows to playback items.
-  const queueMap = new Map(queueTracks.map((track) => [track.id, track]));
+    return mapFeedItems(feedItems);
+  }, [feedItems, infinite, infiniteFeedItems, mapFeedItems]);
 
-  // Map service DTOs into existing TrackCard presentation shape plus playback hooks.
-  const feedTracks = tracks.map((track) => {
-    const artistName =
-      typeof track.artist === 'string' ? track.artist : track.artist.username;
-
-    return {
-      id: track.id,
-      isPrivate: false,
-      user: {
-        username: artistName,
-        displayName: track.artist.displayName,
-        avatar: '/images/default_song_image.png', //use this until API provides it
-      },
-      postedText: 'posted a track' as const,
-      timeAgo: '',
-      track: {
-        id: track.id,
-        artist: artistName,
-        title: track.title,
-        cover: track.coverUrl,
-        duration: '',
-      },
-      waveform: track.waveformData ?? [],
-      playback: queueMap.get(track.id),
-      queueTracks,
-    };
-  });
-
-  return { feedTracks, isLoading, isError };
+  return {
+    feedItems: feedCards,
+    isLoading: infinite ? isInitialLoading : isLoading,
+    isError: infinite ? isInfiniteError : isError,
+    hasMore: infinite ? hasMore : false,
+    isPaginating: infinite ? isPaginating : false,
+    sentinelRef: infinite ? sentinelRef : undefined,
+    loadNextPage: infinite ? loadNextPage : undefined,
+  };
 }

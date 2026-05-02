@@ -2,8 +2,8 @@
 import React from "react";
 
 import FilterBar from "@/components/nav/FilterBar";
-import UserGrid from "@/components/ui/social/UserGrid";
-import LoadingSkeleton from "@/components/ui/social/LoadingSkeleton";
+import UserGrid from "@/features/social/UserGrid";
+import LoadingSkeleton from "@/features/social/LoadingSkeleton";
 import { useAuth } from '@/features/auth';
 import { useFollowing } from '@/hooks/useFollowing';
 
@@ -17,7 +17,17 @@ import { useFollowing } from '@/hooks/useFollowing';
  */
 export default function Page() {
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { users, isLoading } = useFollowing({ username: user?.username ?? '' });
+  const {
+    users,
+    isLoading,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useFollowing({
+    username: user?.username ?? '',
+    size: 12,
+    infinite: true,
+  });
   const [filterValue, setFilterValue] = React.useState("");
 
   const filtered = filterValue
@@ -64,6 +74,9 @@ export default function Page() {
           showFollowButton={false}
           emptyTitle="Not following anyone yet"
           emptyDescription="Find artists and people you love to follow them here."
+          hasMore={hasMore}
+          isPaginating={isPaginating}
+          sentinelRef={sentinelRef}
         />
       )}
     </div>

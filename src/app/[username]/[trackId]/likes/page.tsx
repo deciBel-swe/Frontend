@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 
-import TrackEngagementPage from '@/components/TrackEngagementPage';
+import TrackEngagementPage from '@/features/social/components/TrackEngagementPage';
 
 export default function Page() {
   const { trackId } = useParams<{ username: string; trackId: string }>();

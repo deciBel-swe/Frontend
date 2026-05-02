@@ -4,10 +4,16 @@ import { useEffect, useState } from 'react';
 import { IconButton } from '@/components/buttons/IconButton';
 import { FollowIcon, FollowingIcon } from '@/components/icons/GenrealIcons';
 
+// const SIZE_CONFIGS = {
+//   sm: 'px-2 py-1 text-xs gap-1',
+//   md: 'px-2.5 py-1.5 text-sm gap-1.5',
+//     lg: 'px-3 py-2 text-base gap-2',
+// };
+
 const SIZE_CONFIGS = {
-  sm: 'px-2 py-1 text-xs gap-1',
-  md: 'px-2.5 py-1.5 text-sm gap-1.5',
-    lg: 'px-3 py-2 text-base gap-2',
+  sm: 'px-2 py-1 text-xs gap-1',      // Small button
+  md: 'px-3 py-1.5 text-sm gap-1.5',  // Medium button
+  lg: 'px-4 py-2 text-base gap-2',    // Large button
 };
 
 interface FollowButtonProps {
@@ -37,9 +43,13 @@ export default function FollowButton({
         }
     }, [defaultFollowing, isControlled]);
 
-    const buttonBase =
-    'flex items-center min-w-30 justify-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
-    'transition-all duration-150 shrink-0';
+    // const buttonBase =
+    // 'flex items-center min-w-30 justify-center gap-1 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap ' +
+    // 'transition-all duration-150 shrink-0';
+
+    // NEW (Fixed)
+const buttonBase =
+  'flex items-center justify-center whitespace-nowrap transition-all duration-150 shrink-0 rounded-md font-medium';
 
     const handleClick = async () => {
         if (disabled || isPending) {

@@ -46,8 +46,6 @@ const resolveSafeRedirect = (
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = request.cookies.has('decibel_auth');
-  // // todo this needs to be changes later with actual cookies
-  // const isAuthenticated = true;
   if (AUTH_ENTRY_ROUTES.has(pathname) && isAuthenticated) {
     const destination = resolveSafeRedirect(
       request,

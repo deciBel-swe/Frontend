@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
-import PageTabsLayout from '@/components/ui/PageTabsLayout';
+import PageTabsLayout from '@/components/nav/PageTabsLayout';
 
 const TABS = [
   { label: 'Overview',  href: '/you/library' },
   { label: 'Likes',     href: '/you/likes' },
-  { label: 'Playlists', href: '/you/sets' },
-  { label: 'Albums',    href: '/you/albums' },
-  { label: 'Stations',  href: '/you/stations' },
+  // { label: 'Playlists', href: '/you/sets' }, // might be removed later
   { label: 'Following', href: '/you/following' },
   { label: 'History',   href: '/you/history' },
 ];

@@ -41,14 +41,16 @@ export function useProfileSidebar(username: string) {
         return {
           trackId: track.track.id,
           image: track.track.cover,
-          artist: track.track.artist,
+          artist:
+            track.track.artist.displayName || track.track.artist.username,
           title: track.track.title,
+          trackSlug: track.track.trackSlug,
           playback,
           stats: {
             plays: compactCount(track.track.plays),
             likes: compactCount(track.track.likeCount),
             reposts: compactCount(track.track.repostCount),
-            comments: compactCount(track.track.comments),
+            comments: compactCount(track.track.commentCount),
           },
         };
       }),

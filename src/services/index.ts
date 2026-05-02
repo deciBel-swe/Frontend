@@ -31,6 +31,9 @@ import type { UserService } from './api/userService';
 import { RealUserService } from './api/userService';
 import { MockUserService } from './mocks/userService';
 
+import type { DiscoveryService } from './api/discoveryService';
+import { RealDiscoveryService } from './api/discoveryService';
+import { MockDiscoveryService } from './mocks/discoveryService';
 import { RealFeedService } from '@/services/api/feedService';
 import { MockFeedService } from './mocks/feedService';
 import { FeedService } from './api/feedService';
@@ -41,6 +44,22 @@ import { MockCommentService } from './mocks/commentService';
 import type { PlaybackService } from './api/playbackService';
 import { RealPlaybackService } from './api/playbackService';
 import { MockPlaybackService } from './mocks/playbackService';
+
+import type { MessageService } from './api/messageService';
+import { FirebaseMessageService } from './api/messageService';
+import { MockMessageService } from './mocks/messageService';
+
+import type { AdminService } from './api/adminSerivce';
+import { RealAdminService } from './api/adminSerivce';
+import { MockAdminService } from './mocks/adminService';
+
+import type { SubscriptionService } from './api/subscriptionService';
+import { RealSubscriptionService } from './api/subscriptionService';
+import { MockSubscriptionService } from './mocks/subscriptionService';
+
+import type { NotificationService } from './api/notificationService';
+import { FirebaseNotificationService } from './api/notificationService';
+import { MockNotificationService } from './mocks/notificationService';
 
 const resolveTrackService = (): TrackService => {
   if (config.api.useMock) {
@@ -98,6 +117,15 @@ const resolveUserService = (): UserService => {
 
 export const userService = resolveUserService();
 
+const resolveDiscoveryService = (): DiscoveryService => {
+  if (config.api.useMock) {
+    return new MockDiscoveryService();
+  }
+  return new RealDiscoveryService();
+};
+
+export const discoveryService = resolveDiscoveryService();
+
 const resolveFeedService = (): FeedService => {
   if (config.api.useMock) {
     return new MockFeedService();
@@ -123,3 +151,41 @@ const resolvePlaybackService = (): PlaybackService => {
 };
 
 export const playbackService = resolvePlaybackService();
+
+const resolveMessageService = (): MessageService => {
+  if (config.api.useMock) {
+    return new MockMessageService();
+  }
+  return new FirebaseMessageService();
+};
+
+export const messageService = resolveMessageService();
+
+const resolveAdminService = (): AdminService => {
+  if (config.api.useMock) {
+    return new MockAdminService();
+  }
+  return new RealAdminService();
+};
+
+export const adminService = resolveAdminService();
+
+// --- Subscription Service ---
+const resolveSubscriptionService = (): SubscriptionService => {
+  if (config.api.useMock) {
+    return new MockSubscriptionService();
+  }
+  return new RealSubscriptionService();
+};
+
+export const subscriptionService = resolveSubscriptionService();
+
+// --- Notification Service ---
+const resolveNotificationService = (): NotificationService => {
+  if (config.api.useMock) {
+    return new MockNotificationService();
+  }
+  return new FirebaseNotificationService();
+};
+
+export const notificationService = resolveNotificationService();

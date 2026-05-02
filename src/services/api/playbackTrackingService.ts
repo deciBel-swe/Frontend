@@ -1,5 +1,5 @@
 import { playbackService } from '@/services';
-import type { PaginatedFeedResponse } from '@/types/user';
+import type { PaginatedHistoryResponse } from '@/types/user';
 import type { PlaybackPaginationParams } from '@/services/api/playbackService';
 
 /**
@@ -7,7 +7,7 @@ import type { PlaybackPaginationParams } from '@/services/api/playbackService';
  * @param trackId Numeric track identifier from the canonical playback model.
  */
 export function userPlayedTrack(trackId: number): void {
-	void playbackService.playTrack(trackId);
+	void playbackService.playTrack(trackId).catch(() => undefined);
 }
 
 /**
@@ -15,7 +15,7 @@ export function userPlayedTrack(trackId: number): void {
  * @param trackId Numeric track identifier from the canonical playback model.
  */
 export function userCompletedTrack(trackId: number): void {
-	void playbackService.completeTrack(trackId);
+	void playbackService.completeTrack(trackId).catch(() => undefined);
 }
 
 /**
@@ -23,7 +23,7 @@ export function userCompletedTrack(trackId: number): void {
  * @param trackId Numeric track identifier from the canonical playback model.
  */
 export function addToRecentlyPlayed(trackId: number): void {
-  void playbackService.playTrack(trackId);
+  void playbackService.playTrack(trackId).catch(() => undefined);
 }
 
 /**
@@ -31,6 +31,6 @@ export function addToRecentlyPlayed(trackId: number): void {
  */
 export function getListeningHistory(
   params?: PlaybackPaginationParams
-): Promise<PaginatedFeedResponse> {
+): Promise<PaginatedHistoryResponse> {
   return playbackService.getListeningHistory(params);
 }

@@ -69,6 +69,7 @@ const toLoginUser = (
     id: account.id,
     username: account.username,
     tier: account.tier,
+    displayName: account.displayName,
     avatarUrl: account.avatarUrl?.trim() || "/images/default_song_image.png",
   };
 };
@@ -279,7 +280,6 @@ export class MockAuthService implements AuthService {
     }
 
     const user = toLoginUser(account);
-
     const expiresIn = 3600;
     const accessToken = createMockToken(user.id, expiresIn);
     const refreshToken = createMockToken(user.id, 86400);
@@ -351,6 +351,12 @@ export class MockAuthService implements AuthService {
     persistMockSystemState();
 
     return { message: 'Verification email sent.', coolDown: 60 };
+  }
+
+  async forgotPassword(_email: string): Promise<{ message: string }> {
+    await delay();
+
+    return { message: 'Password reset email sent.' };
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {

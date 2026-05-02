@@ -3,9 +3,8 @@ import type { TrackMetaData } from '@/types/tracks';
 /**
  * Current access model implemented in this phase.
  *
- * NOTE: Preview playback is intentionally excluded for now.
  */
-export type PlaybackAccess = 'PLAYABLE' | 'BLOCKED';
+export type PlaybackAccess = 'PLAYABLE' | 'BLOCKED' | 'PREVIEW';
 
 /**
  * Canonical player track shape used by the global player store and UI.
@@ -50,6 +49,7 @@ export type QueueSource =
   | 'feed'
   | 'profile-tracks'
   | 'likes'
+  | 'history'
   | 'playlist'
   | 'track-page'
   | 'unknown';

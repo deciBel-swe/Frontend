@@ -1,45 +1,37 @@
 'use client';
 
-import PlaylistCard from '@/components/PlaylistCard';
+import PlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import { SearchBar } from '@/components/nav/SearchBar';
 import Button from '@/components/buttons/Button';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DropdownMenu } from '@/components/nav/DropdownMenu';
-
-const mockPlaylists = [
-  {
-    id: 1,
-    title: 'The Beauty of Existence',
-    artist: 'Muhammad Al Muqit',
-    image: 'https://i1.sndcdn.com/artworks-000523960650-2nc5nm-t500x500.jpg',
-  },
-  {
-    id: 2,
-    title: 'A Flower',
-    artist: 'Double Vision',
-    image: 'https://i1.sndcdn.com/artworks-000184761485-dzknun-t500x500.jpg',
-  },
-  {
-    id: 3,
-    title: 'Al-Aqsa',
-    artist: 'Palestine',
-    image: 'https://i1.sndcdn.com/artworks-000034240364-u9zoa8-t500x500.jpg',
-  },
-];
+import { useUserPlaylistsPage } from '@/hooks/useUserPlaylistsPage';
+import { useAuth } from '@/features/auth';
 
 export default function Page() {
   const [selectedView, setSelectedView] = useState<'All' | 'Created' | 'Liked'>('All');
   const [filterText, setFilterText] = useState('');
 
+  // Get current user from auth
+  const { user } = useAuth();
+  const username = user?.username ?? '';
+
+  // Fetch playlists for current user
+  const { cards: playlists, isLoading, isError } = useUserPlaylistsPage({
+    username,
+    page: 0,
+    size: 24,
+    infinite: false,
+  });
+
   const filteredItems = useMemo(() => {
-    if (!filterText.trim()) return mockPlaylists;
+    if (!filterText.trim()) return playlists;
     const normalized = filterText.toLowerCase();
-    return mockPlaylists.filter((item) =>
-      item.title.toLowerCase().includes(normalized) ||
-      item.artist.toLowerCase().includes(normalized)
+    return playlists.filter((item) =>
+      item.track?.title?.toLowerCase().includes(normalized)
     );
-  }, [filterText]);
+  }, [filterText, playlists]);
 
   // ─── VIEW MENU DROPDOWN ──────────────────────────────
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
@@ -129,14 +121,42 @@ export default function Page() {
 
       {/* GRID */}
       <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
-        {filteredItems.map((item) =>
-           (
-            <PlaylistCard key={item.id} title={item.title} coverUrl={item.image} />
-          ) 
+        {isLoading && (
+          <>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={`loading-${i}`}
+                className="w-full aspect-square rounded-lg bg-surface-dark/70 animate-pulse"
+              />
+            ))}
+          </>
+        )}
+
+        {!isLoading && isError && (
+          <div className="col-span-full text-center text-text-muted py-8">
+            Failed to load playlists. Please try again later.
+          </div>
+        )}
+
+        {!isLoading && !isError && filteredItems.length === 0 && (
+          <div className="col-span-full text-center text-text-muted py-8">
+            No playlists found.
+          </div>
+        )}
+
+        {!isLoading && !isError && filteredItems.map((item) =>
+          item.track ? (
+            <PlaylistCard 
+              key={item.trackId} 
+              title={item.track.title} 
+              coverUrl={item.track.cover}
+              username={item.user?.username}
+            />
+          ) : null
         )}
 
         {/* EMPTY PLACEHOLDERS */}
-        {Array.from({ length: 3 }).map((_, i) => (
+        {!isLoading && filteredItems.length > 0 && Array.from({ length: 3 }).map((_, i) => (
           <div
             key={`empty-${i}`}
             className="w-full aspect-square rounded-lg bg-surface-dark/70"

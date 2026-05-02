@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.decibel.decibel",
+      "sha256_cert_fingerprints": [
+        "E9:28:C2:84:67:C2:71:C2:A7:82:93:BB:1B:74:1C:73:44:88:BB:00:11:3B:D4:F6:B4:95:D8:4F:B3:AA:AE:DE"
+      ]
+    }
+  }
+]

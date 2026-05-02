@@ -14,14 +14,17 @@ describe('services/index dependency resolution', () => {
         trackService,
         authService,
         privacyService,
+        discoveryService,
       } = require('@/services');
       const { MockTrackService } = require('@/services/mocks/trackService');
       const { MockAuthService } = require('@/services/mocks/authService');
       const { MockPrivacyService } = require('@/services/mocks/privacyService');
+      const { MockDiscoveryService } = require('@/services/mocks/discoveryService');
 
       expect(trackService).toBeInstanceOf(MockTrackService);
       expect(authService).toBeInstanceOf(MockAuthService);
       expect(privacyService).toBeInstanceOf(MockPrivacyService);
+      expect(discoveryService).toBeInstanceOf(MockDiscoveryService);
     });
   });
 
@@ -33,14 +36,17 @@ describe('services/index dependency resolution', () => {
         trackService,
         authService,
         privacyService,
+        discoveryService,
       } = require('@/services');
       const { RealTrackService } = require('@/services/api/trackService');
       const { RealAuthService } = require('@/services/api/authService');
       const { RealPrivacyService } = require('@/services/api/privacyService');
+      const { RealDiscoveryService } = require('@/services/api/discoveryService');
 
       expect(trackService).toBeInstanceOf(RealTrackService);
       expect(authService).toBeInstanceOf(RealAuthService);
       expect(privacyService).toBeInstanceOf(RealPrivacyService);
+      expect(discoveryService).toBeInstanceOf(RealDiscoveryService);
     });
   });
 });

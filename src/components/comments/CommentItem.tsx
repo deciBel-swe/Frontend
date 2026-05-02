@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
 import CommentInput from '@/components/comments/CommentInput';
+import Button from '@/components/buttons/Button';
 
 export type CommentReply = {
   id: string | number;
@@ -29,6 +30,7 @@ export type Comment = {
 type CommentItemProps = {
   comment: Comment;
   onReply?: (commentId: string | number, text: string) => Promise<void>;
+  onReport?: (commentId: string | number) => void;
   isReplySubmitting?: boolean;
   isReplyingThisComment?: boolean;
   currentUserAvatar?: string;
@@ -37,6 +39,7 @@ type CommentItemProps = {
 export default function CommentItem({
   comment,
   onReply,
+  onReport,
   isReplySubmitting = false,
   isReplyingThisComment = false,
   currentUserAvatar,
@@ -95,6 +98,17 @@ export default function CommentItem({
               >
                 Reply
               </button>
+            )}
+            {onReport && (
+              <Button
+                variant='secondary'
+                size='sm'
+                onClick={() => onReport(comment.id)}
+                className="text-xs hover:text-status-error transition-colors"
+                aria-label="Report comment"
+              >
+                Report
+              </Button>
             )}
           </div>
         </div>

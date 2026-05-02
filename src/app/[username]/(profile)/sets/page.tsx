@@ -1,31 +1,64 @@
 'use client';
-import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
-import TrackList from '@/components/TrackList';
+
+import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
+import { useUserPlaylistsPage } from '@/hooks/useUserPlaylistsPage';
 import { useParams } from 'next/navigation';
-import { Suspense } from 'react';
-const TrackListFallback = () => (
+
+const PlaylistListFallback = () => (
   <>
-    {Array.from({ length: 10 }).map((_, i) => (
+    {Array.from({ length: 6 }).map((_, index) => (
       <div
-        key={i}
+        key={index}
         className="bg-surface-default rounded-lg h-40 animate-pulse"
       />
     ))}
   </>
 );
+
 export default function Page() {
   const { username } = useParams<{ username: string }>();
-  // Fetch the profile data to grab the real avatar
-  const { data: profileData } = usePublicUser(username);
+  const {
+    cards,
+    isLoading,
+    isError,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useUserPlaylistsPage({
+    username,
+    size: 10,
+    infinite: true,
+  });
+
+  if (isLoading) {
+    return <PlaylistListFallback />;
+  }
+
+  if (isError) {
+    return (
+      <p className="text-text-muted text-sm">
+        Failed to load playlists. Please try again later.
+      </p>
+    );
+  }
+
+  if (cards.length === 0) {
+    return <p className="text-text-muted text-sm">No playlists published yet.</p>;
+  }
+
   return (
     <div className="w-full min-w-0">
-      <Suspense fallback={<TrackListFallback />}>
-        <TrackList
-          username={username}
-          artistAvatar={profileData?.profile.profilePic}
-          showTrackList= {true}
-        />
-      </Suspense>
+      {cards.map((item) => (
+        <PlaylistCard key={item.trackId} {...item} />
+      ))}
+      <InfiniteScrollPagination
+        hasMore={hasMore}
+        isPaginating={isPaginating}
+        sentinelRef={sentinelRef}
+        loader={<PlaylistListFallback />}
+        className="pt-3"
+      />
     </div>
   );
 }

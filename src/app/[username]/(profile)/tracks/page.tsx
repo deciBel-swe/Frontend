@@ -31,10 +31,10 @@
 // }
 'use client';
 import { Suspense } from 'react';
-import TrackList from '@/components/TrackList';
+import TrackList from '@/components/tracks/TrackList';
 import { useParams } from 'next/navigation';
 import { usePublicUser } from '@/features/prof/hooks/usePublicUser';
-import { TrackListFallBack } from '@/components/ui/TrackListFallBack';
+import { TrackListFallBack } from '@/features/tracks/components/TrackListFallBack';
 
 export default function Page() {
   const { username } = useParams<{ username: string }>();

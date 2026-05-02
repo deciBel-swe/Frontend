@@ -1,6 +1,8 @@
 'use client';
 
-import TrackCard from '@/components/TrackCard';
+import PlaylistCard from '@/components/playlist/playlist-card/PlaylistCard';
+import InfiniteScrollPagination from '@/components/pagination/InfiniteScrollPagination';
+import TrackCard from '@/components/tracks/track-card/TrackCard';
 import { useFeedTracks } from '@/hooks/useFeedTracks';
 
 /**
@@ -15,7 +17,14 @@ import { useFeedTracks } from '@/hooks/useFeedTracks';
  *  - Layout → owns sidebar + two-column shell
  */
 export default function FeedPage() {
-  const { feedTracks, isLoading, isError } = useFeedTracks();
+  const {
+    feedItems,
+    isLoading,
+    isError,
+    hasMore,
+    isPaginating,
+    sentinelRef,
+  } = useFeedTracks(0, 10, true);
 
   if (isLoading) {
     return (
@@ -38,36 +47,38 @@ export default function FeedPage() {
     );
   }
 
-  if (feedTracks.length === 0) {
+  if (feedItems.length === 0) {
     return (
       <p className="text-text-muted text-sm">
-        No tracks yet. Upload one to get started.
+        No feed items yet.
       </p>
     );
   }
 
   return (
     <>
-      {feedTracks.map((item) => (
-        <TrackCard
-          key={item.id}
-          trackId={String(item.id)}
-          isPrivate={item.isPrivate}
-          user={item.user}
-          postedText={item.postedText}
-          // timeAgo={item.timeAgo}
-          showEditButton={false}
-          track={{
-            ...item.track,
-            duration: '2:41', // Add duration for testing
-            genre: 'Electronic', // Add genre for testing
-          }}
-          waveform={item.waveform}
-          playback={item.playback}
-          queueTracks={item.queueTracks}
-          queueSource="feed"
-        />
-      ))}
+      {feedItems.map((item) => {
+        if (item.kind === 'track') {
+          return <TrackCard key={item.id} {...item.card} queueSource="feed" />;
+        }
+
+        return <PlaylistCard key={item.id} {...item.card} queueSource="feed" />;
+      })}
+      <InfiniteScrollPagination
+        hasMore={hasMore}
+        isPaginating={isPaginating}
+        sentinelRef={sentinelRef}
+        loader={
+          <div className="space-y-3 py-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={`feed-append-${index}`}
+                className="bg-surface-default rounded-lg h-40 animate-pulse"
+              />
+            ))}
+          </div>
+        }
+      />
     </>
   );
 }

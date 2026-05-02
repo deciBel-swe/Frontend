@@ -80,7 +80,7 @@ export default function RootLayout({
           <AuthProvider>
             <Suspense fallback={<>Loading ...</>}>
               <div className="flex flex-col items-center min-h-screen pt-12 pb-12 px-4 sm:px-6 lg:px-8">
-                <div className="w-full max-w-[1200px]">
+                <div className="w-full max-w-300">
                   <TopNavBar />
                   {/* QueryProvider is a client‑component wrapper that creates the
                        QueryClient on the client side.*/}

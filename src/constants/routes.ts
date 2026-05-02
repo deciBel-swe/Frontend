@@ -19,25 +19,23 @@ export const ROUTES = {
   RESETPASSWORD: '/reset-password',
 
   // Content routes
-  ARTISTS: '/artists',
   UPLOAD: '/upload',
   FEED: '/feed',
 
   // User routes
   LIBRARY: '/you/library',
   LIKES: '/you/likes',
-  STATIONS: '/you/stations',
   FOLLOWING: '/you/following',
   PEOPLE: '/people',
-  CHECKOUT: '/checkout',
+  CHECKOUT: '/settings/subscription',
   NOTIFICATIONS: '/notifications',
   MESSAGES: '/messages',
 
   // User account routes
   SETTINGS: '/settings',
-  DASHBOARD: '/dashboard',
-  HELP: '/help',
-  SHORTCUTS: '/shortcuts',
+  SUBSCRIPTION: '/settings/subscription',
+  FAILED_SUBSCRIPTION: '/checkout/cancel',
+  SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
   LOGOUT: '/logout',
 } as const;
 
@@ -49,7 +47,12 @@ export const PROTECTED_ROUTES = [
   ROUTES.LIBRARY,
   ROUTES.NOTIFICATIONS,
   ROUTES.MESSAGES,
-  ROUTES.DASHBOARD,
+  ROUTES.CHECKOUT,
+  ROUTES.FAILED_SUBSCRIPTION, 
+  ROUTES.SUCCESSFUL_SUBSCRIPTION,
+  ROUTES.LIKES,
+  ROUTES.FOLLOWING,
+  ROUTES.PEOPLE,
 ] as const;
 
 /** Routes restricted to the artist role */
@@ -73,7 +76,6 @@ export const USER_DROPDOWN_ITEMS: Array<{
   href: string;
 } | null> = [
   { label: 'Likes', href: ROUTES.LIKES },
-  { label: 'Stations', href: ROUTES.STATIONS },
   { label: 'Following', href: ROUTES.FOLLOWING },
   { label: 'Who to Follow', href: ROUTES.PEOPLE },
   { label: 'Subscription', href: ROUTES.CHECKOUT },
@@ -130,11 +132,13 @@ export const API_ENDPOINTS = {
     ME_HISTORY: '/users/me/history',
     ME_BLOCKED: '/users/me/blocked',
     ME_REPOSTs: '/users/me/repost',
+    ME_REPOSTS: '/users/me/repost',
     SUGGESTED: '/users/suggested',
+    DEVICE_TOKENS: '/users/me/device-tokens',
     BY_ID: (userId: number) => `/users/${userId}`,
     BY_USERNAME: (username: string) => `/users/username/${username}`,
     TRACKS: (userId: number) => `/users/${userId}/tracks`,
-    PLAYLISTS: (userId: number) => `/users/${userId}/playlists`,
+    PLAYLISTS: (username: string) => `/users/${username}/playlists`,
     LIKED_PLAYLISTS: (
       username: string //this should be changed in backend should be userid not username
     ) => `/users/${username}/liked-playlists`,
@@ -144,12 +148,16 @@ export const API_ENDPOINTS = {
     BLOCK: (userId: number) => `/users/${userId}/block`,
     WHO_LIKE_TRACK: (trackid: number) => `/users/tracks/${trackid}/like`, //users who like a track
     LIKE_PLAYLISTS: (userId: number) => `/users/${userId}/liked-playlists`, //playlists user has liked
+    LIKE_TRACKS: (username: string) => `/users/${username}/liked-tracks`, //tracks user has liked
     WHO_REPOSTED: (trackId: number) => `/users/tracks/${trackId}/reposters`, //users who reposted a track
+    REPOSTS: (username: string) => `/users/${username}/reposted-tracks`,
     REPOSTS_BY_USERNAME: (username: string) => `/users/repost/${username}`, //tracks user has reposted
   },
   TRACKS: {
-    UPLOAD: '/tracks/upload',
+    UPLOAD: '/tracks/upload/v2',
+    RESOLVE: (trackSlug: string) => `/tracks/resolve/${trackSlug}`,
     BY_ID: (trackId: number) => `/tracks/${trackId}`,
+    TOKEN: (token: string) => `/tracks/token/${token}`,
     COVER: (trackId: number) => `/tracks/${trackId}/cover`,
     STATUS: (trackId: number | string) => `/tracks/${trackId}/status`,
     PEAKS: (trackId: number | string) => `/tracks/${trackId}/peaks`,
@@ -157,7 +165,7 @@ export const API_ENDPOINTS = {
     SECRET_TOKEN: (trackId: number | string) =>
       `/tracks/${trackId}/secret-token`,
     GENERATE_TOKEN: (trackId: number | string) =>
-      `/tracks/${trackId}/generate-token`,
+      `/tracks/${trackId}/regenerate-token`,
     PLAY: (trackId: number) => `/tracks/${trackId}/play`,
     COMPLETE: (trackId: number) => `/tracks/${trackId}/complete`,
     DOWNLOAD: (trackId: number) => `/tracks/${trackId}/download`,
@@ -166,13 +174,16 @@ export const API_ENDPOINTS = {
     REPOST: (trackId: number) => `/tracks/${trackId}/repost`,
     LIKE: (trackId: number) => `/tracks/${trackId}/like`,
     COMMENTS: (trackId: number) => `/tracks/${trackId}/comments`,
+    DELETE: (trackId: number) => `/tracks/${trackId}`,
   },
   PLAYLISTS: {
     CREATE: '/playlists',
+    RESOLVE: '/playlists/resolve',
     BY_ID: (playlistId: number) => `/playlists/${playlistId}`,
     UPDATE: (playlistId: number) => `/playlists/${playlistId}`,
     DELETE: (playlistId: number) => `/playlists/${playlistId}`,
     LIKE: (playlistId: number) => `/playlists/${playlistId}/like`, //this should be changed in backend currently tracks/playlists/:id/like but should be playlists/:id/like
+    REPOST: (playlistId: number) => `/playlists/${playlistId}/repost`,
     TRACKS: (playlistId: number) => `/playlists/${playlistId}/tracks`,
     TRACK: (playlistId: number, trackId: number) =>
       `/playlists/${playlistId}/tracks/${trackId}`,
@@ -191,11 +202,38 @@ export const API_ENDPOINTS = {
     DELETE: (commentId: number) => `/api/comments/${commentId}`, // change when api isn't there following api dogs
   },
   ADMIN: {
+    LOGIN: '/admin/login',
     REPORTS: '/admin/reports',
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
-    SUSPEND_USER: (userId: number) => `/admin/users/${userId}/suspend`,
+    BANNED_USERS: '/admin/users/banned',
+    BAN_USER: (userId: number) => `/admin/users/${userId}/ban`,
+    ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',
+  SEARCH: '/search',
+  TRENDING: '/explore/trending',
+  STATIONS: {
+    GENRE: '/stations/genre',
+    ARTIST: '/stations/artist',
+    LIKES: '/stations/likes',
+  },
+  MESSAGES: {
+    CONVERSATIONS: '/conversations',
+    CONVERSATION_MESSAGES: (userId: number) =>
+      `/conversations/${userId}/messages`,
+  },
+  SUBSCRIPTION: {
+    CHECKOUT: '/subscription/checkout',
+    CANCEL: '/subscription/cancel',
+    STATUS: '/subscription/status',
+    RENEW: '/subscription/renew',
+  },
+  NOTIFICATIONS: {
+    GET_ALL: '/notifications',
+    MARK_ALL_READ: '/notifications/mark-all-read',
+    UNREAD_COUNT: '/notifications/unread-count',
+    SETTINGS: '/notifications/settings',
+  },
 } as const;
 /**
  * Helper function to build full API URL
