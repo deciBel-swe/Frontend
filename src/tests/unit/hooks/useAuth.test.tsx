@@ -6,8 +6,13 @@ import { useAuth } from '@/features/auth/useAuth';
 import type { AuthContextValue } from '@/types';
 
 const originalLocation = window.location;
+const originalWindow = global.window;
 const originalGoogleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const originalOAuthRedirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI;
+
+jest.mock('@/utils/navigation', () => ({
+  navigateTo: jest.fn(),
+}));
 
 const createAuthContextValue = (): AuthContextValue => ({
   user: null,
@@ -28,32 +33,24 @@ const createWrapper = (value: AuthContextValue) => {
 };
 
 const mockLocation = (origin = 'https://decibel.test') => {
-  let href = `${origin}/signin`;
+  let currentHref = `${origin}/signin`;
+  
+  (navigation.navigateTo as jest.Mock).mockImplementation((url: string) => {
+    currentHref = url;
+  });
 
-  const locationMock = {
-    origin,
-    get href() { return href; },
-    set href(v: string) { href = v; },
-    assign: jest.fn((v: string) => { href = v; }),
-    replace: jest.fn((v: string) => { href = v; }),
-    reload: jest.fn(),
-    toString: () => href,
-  };
-
-  // @ts-ignore
-  delete window.location;
-  window.location = locationMock as any;
+  // Mock window.location.origin for useAuth to use
+  const originSpy = jest.spyOn(window.location, 'origin', 'get').mockReturnValue(origin);
 
   return {
-    getHref: () => href,
+    getHref: () => currentHref,
   };
 };
 
 describe('useAuth Google login', () => {
   afterEach(() => {
-    // @ts-ignore
-    delete window.location;
-    window.location = originalLocation;
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
 
     if (originalGoogleClientId === undefined) {
       delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;

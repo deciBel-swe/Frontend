@@ -1,6 +1,7 @@
 'use client';
 
 import Button from '@/components/buttons/Button';
+import Image from 'next/image';
 
 export type PlaylistItem = {
   id: string;
@@ -51,7 +52,13 @@ function PlaylistRow({ playlist, onAdd }: { playlist: PlaylistItem; onAdd: () =>
     <div className="flex items-center gap-3 px-1 py-2 rounded hover:bg-interactive-default/10 transition-colors">
       <div className="w-12 h-12 rounded overflow-hidden bg-bg-elevated shrink-0">
         {playlist.coverUrl
-          ? <img src={playlist.coverUrl} alt={playlist.title} className="w-full h-full object-cover" />
+          ? <Image 
+              src={playlist.coverUrl} 
+              alt={playlist.title} 
+              width={48} 
+              height={48} 
+              className="w-full h-full object-cover" 
+            />
           : <div className="w-full h-full bg-interactive-default/20" />
         }
       </div>

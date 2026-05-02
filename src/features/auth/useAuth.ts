@@ -3,6 +3,7 @@
 import { useCallback, useContext } from 'react';
 
 import { AuthContext } from '@/features/auth/AuthContext';
+import { navigateTo } from '@/utils/navigation';
 
 import type { AuthContextValue } from '@/types';
 
@@ -113,7 +114,7 @@ export const useAuth = (): UseAuthValue => {
       'prompt=select_account',
     ].join('&');
 
-    window.location.href = `${GOOGLE_AUTH_URL}?${queryParams}`;
+    navigateTo(`${GOOGLE_AUTH_URL}?${queryParams}`);
   }, []);
 
   return {

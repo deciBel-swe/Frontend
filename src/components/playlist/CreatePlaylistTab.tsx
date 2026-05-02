@@ -2,6 +2,8 @@
 
 import Button from '@/components/buttons/Button';
 
+import Image from 'next/image';
+
 export type SuggestedTrack = {
   id: string;
   title: string;
@@ -90,7 +92,13 @@ export default function CreatePlaylistTab({
         <div className="flex items-center gap-3 p-3 rounded bg-bg-elevated border border-interactive-default/30">
           {currentTrack.coverUrl && (
             <div className="w-10 h-10 rounded overflow-hidden shrink-0">
-              <img src={currentTrack.coverUrl} alt={currentTrack.title} className="w-full h-full object-cover" />
+              <Image 
+                src={currentTrack.coverUrl} 
+                alt={currentTrack.title} 
+                width={40} 
+                height={40} 
+                className="w-full h-full object-cover" 
+              />
             </div>
           )}
           <p className="text-[13px] text-text-muted truncate flex-1">
@@ -125,7 +133,13 @@ function SuggestedTrackRow({ track, onAdd }: { track: SuggestedTrack; onAdd: () 
     <div className="flex items-center gap-3 py-2 px-1 rounded hover:bg-interactive-default/10 transition-colors">
       <div className="w-10 h-10 rounded overflow-hidden bg-bg-elevated shrink-0">
         {track.coverUrl
-          ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
+          ? <Image 
+              src={track.coverUrl} 
+              alt={track.title} 
+              width={40} 
+              height={40} 
+              className="w-full h-full object-cover" 
+            />
           : <div className="w-full h-full bg-interactive-default/20" />
         }
       </div>
