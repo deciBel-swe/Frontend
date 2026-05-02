@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
@@ -20,6 +20,9 @@ export function SquareSkeleton() {
 
 export default function LibraryOverview() {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const [prioritizedHistoryTrackIds, setPrioritizedHistoryTrackIds] = useState<
+    number[]
+  >([]);
 
   const { tracks: historyTracks, isLoading: isHistoryLoading } =
     useListeningHistoryTracks({ page: 0, size: 10 });
@@ -35,9 +38,48 @@ export default function LibraryOverview() {
     size: 10,
   });
 
+  const uniqueHistoryTracks = useMemo(() => {
+    const seenTrackIds = new Set<number>();
+
+    return historyTracks.filter((item) => {
+      if (seenTrackIds.has(item.track.id)) {
+        return false;
+      }
+
+      seenTrackIds.add(item.track.id);
+      return true;
+    });
+  }, [historyTracks]);
+
+  const orderedHistoryTracks = useMemo(() => {
+    const historyByTrackId = new Map(
+      uniqueHistoryTracks.map((item) => [item.track.id, item])
+    );
+    const prioritizedTracks = prioritizedHistoryTrackIds
+      .map((trackId) => historyByTrackId.get(trackId))
+      .filter((item): item is (typeof uniqueHistoryTracks)[number] => Boolean(item));
+    const prioritizedTrackIds = new Set(
+      prioritizedTracks.map((item) => item.track.id)
+    );
+
+    return [
+      ...prioritizedTracks,
+      ...uniqueHistoryTracks.filter(
+        (item) => !prioritizedTrackIds.has(item.track.id)
+      ),
+    ];
+  }, [prioritizedHistoryTrackIds, uniqueHistoryTracks]);
+
+  const handleHistoryTrackPlay = useCallback((trackId: number) => {
+    setPrioritizedHistoryTrackIds((trackIds) => [
+      trackId,
+      ...trackIds.filter((id) => id !== trackId),
+    ]);
+  }, []);
+
   const historyQueueTracks = useMemo(
     () =>
-      historyTracks
+      orderedHistoryTracks
         .map((item) => {
           if (item.playback) {
             return item.playback;
@@ -61,7 +103,7 @@ export default function LibraryOverview() {
           );
         })
         .filter((item): item is PlayerTrack => item !== null),
-    [historyTracks]
+    [orderedHistoryTracks]
   );
 
   const likesQueueTracks = useMemo(
@@ -100,14 +142,15 @@ export default function LibraryOverview() {
           ? Array.from({ length: 5 }).map((_, index) => (
               <SquareSkeleton key={`history-skeleton-${index}`} />
             ))
-          : historyTracks.map((item, index) => (
+          : orderedHistoryTracks.map((item) => (
               <MinimalTrackCard
-                key={`${item.trackId}-${index}`}
+                key={item.trackId}
                 item={item}
                 queueTracks={historyQueueTracks.filter(
                   (track) => track.id === item.track.id
                 )}
                 queueSource="history"
+                onPlay={() => handleHistoryTrackPlay(item.track.id)}
               />
             ))}
       </LibrarySection>

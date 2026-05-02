@@ -27,12 +27,14 @@ type MinimalTrackCardProps = {
   item: TrackListItem;
   queueTracks: PlayerTrack[];
   queueSource?: QueueSource;
+  onPlay?: (item: TrackListItem) => void;
 };
 
 export default function MinimalTrackCard({
   item,
   queueTracks,
   queueSource = 'likes',
+  onPlay,
 }: MinimalTrackCardProps) {
   const playerQueue = usePlayerStore((state) => state.queue);
   const currentPlayerTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
@@ -111,6 +113,7 @@ export default function MinimalTrackCard({
       }
 
       playTrack(playbackTrack);
+      onPlay?.(item);
       return;
     }
 
@@ -120,6 +123,7 @@ export default function MinimalTrackCard({
     }
 
     playTrack(playbackTrack);
+    onPlay?.(item);
   };
 
   const handleLike = useCallback(async () => {
