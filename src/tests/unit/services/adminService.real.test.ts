@@ -148,9 +148,7 @@ describe('RealAdminService', () => {
           username: 'listener_101',
           displayName: 'Listener 101',
           avatarUrl: 'https://example.com/avatar.jpg',
-          isFollowing: false,
-          followerCount: 12,
-          trackCount: 3,
+          isBanned: true,
         },
       ],
       pageNumber: 0,
@@ -208,7 +206,7 @@ describe('RealAdminService', () => {
     );
   });
 
-  it('banUser calls ADMIN_UPDATE_USER_BAN_STATUS with banned=true', async () => {
+  it('banUser calls ADMIN_UPDATE_USER_BAN_STATUS with isBanned=true', async () => {
     const response: MessageResponse = { message: 'User banned successfully' };
     mockedApiRequest.mockResolvedValue(response);
 
@@ -217,11 +215,11 @@ describe('RealAdminService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(52),
-      { payload: { banned: true } }
+      { payload: { isBanned: true } }
     );
   });
 
-  it('unbanUser calls ADMIN_UPDATE_USER_BAN_STATUS with banned=false', async () => {
+  it('unbanUser calls ADMIN_UPDATE_USER_BAN_STATUS with isBanned=false', async () => {
     const response: MessageResponse = { message: 'User unbanned successfully' };
     mockedApiRequest.mockResolvedValue(response);
 
@@ -230,7 +228,7 @@ describe('RealAdminService', () => {
     expect(result).toEqual(response);
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(52),
-      { payload: { banned: false } }
+      { payload: { isBanned: false } }
     );
   });
 

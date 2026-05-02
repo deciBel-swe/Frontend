@@ -124,8 +124,7 @@ export interface UserRow {
   username: string;
   displayName: string;
   avatarUrl?: string | null;
-  followerCount: number;
-  trackCount: number;
+  isBanned: boolean;
 }
 
 export interface UsersDashboardData {

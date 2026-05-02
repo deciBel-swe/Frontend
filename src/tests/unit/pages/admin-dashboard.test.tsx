@@ -66,18 +66,14 @@ describe('Admin dashboard pages', () => {
             username: 'listener_101',
             displayName: 'Listener 101',
             avatarUrl: 'https://example.com/avatar-101.jpg',
-            isFollowing: false,
-            followerCount: 12,
-            trackCount: 3,
+            isBanned: true,
           },
           {
             id: 205,
             username: 'artist_205',
             displayName: 'Artist 205',
             avatarUrl: 'https://example.com/avatar-205.jpg',
-            isFollowing: false,
-            followerCount: 84,
-            trackCount: 27,
+            isBanned: true,
           },
         ],
         pageNumber: 0,
@@ -127,7 +123,7 @@ describe('Admin dashboard pages', () => {
     expect(screen.getByText(/@listener_101/i)).toBeInTheDocument();
     expect(screen.getByText(/@artist_205/i)).toBeInTheDocument();
     expect(screen.getByText('Listener 101')).toBeInTheDocument();
-    expect(screen.getByText('84')).toBeInTheDocument();
+    expect(screen.getAllByText('Banned').length).toBeGreaterThan(0);
   });
 
   it('shows report detail data and suspend action when report details are available', async () => {
@@ -194,6 +190,9 @@ describe('Admin dashboard pages', () => {
   it('suspends the reported user from the popup when report detail includes a target user', async () => {
     const user = userEvent.setup();
     const banUser = jest.fn().mockResolvedValue({ message: 'User banned' });
+    const deleteTrackAsModerator = jest
+      .fn()
+      .mockResolvedValue({ message: 'Track deleted' });
     const updateReportStatus = jest
       .fn()
       .mockResolvedValue({ message: 'Report updated' });
@@ -245,6 +244,11 @@ describe('Admin dashboard pages', () => {
       isLoading: false,
       error: null,
     });
+    (useDeleteTrackAsModerator as jest.Mock).mockReturnValue({
+      deleteTrackAsModerator,
+      isLoading: false,
+      error: null,
+    });
     (useUpdateReportStatus as jest.Mock).mockReturnValue({
       updateReportStatus,
       isLoading: false,
@@ -259,6 +263,7 @@ describe('Admin dashboard pages', () => {
     await waitFor(() => {
       expect(banUser).toHaveBeenCalledWith(205);
     });
+    expect(deleteTrackAsModerator).toHaveBeenCalledWith(101);
     expect(updateReportStatus).toHaveBeenCalledWith(1, {
       status: 'RESOLVED',
     });
@@ -310,5 +315,87 @@ describe('Admin dashboard pages', () => {
     expect(updateReportStatus).toHaveBeenCalledWith(1, {
       status: 'DISMISSED',
     });
+  });
+
+  it('counts dismissed reports as resolved and refetches the full report set for totals', async () => {
+    const firstPage = {
+      content: [
+        {
+          id: 1,
+          targetId: 101,
+          reporterId: 42,
+          reporterUsername: 'listener_reporter',
+          targetType: 'TRACK',
+          status: 'OPEN',
+          createdAt: '2025-04-01T10:30:00Z',
+          reason: 'COPYRIGHT',
+        },
+        {
+          id: 2,
+          targetId: 77,
+          reporterId: 18,
+          reporterUsername: 'comment_reporter',
+          targetType: 'COMMENT',
+          status: 'DISMISSED',
+          createdAt: '2025-04-02T09:15:00Z',
+          reason: 'SPAM',
+        },
+      ],
+      pageNumber: 0,
+      pageSize: 20,
+      totalElements: 25,
+      totalPages: 2,
+      isLast: false,
+    };
+    const fullPage = {
+      content: [
+        ...firstPage.content,
+        {
+          id: 3,
+          targetId: 202,
+          reporterId: 11,
+          reporterUsername: 'artist_reporter',
+          targetType: 'TRACK',
+          status: 'RESOLVED',
+          createdAt: '2025-04-03T11:00:00Z',
+          reason: 'INAPPROPRIATE',
+        },
+      ],
+      pageNumber: 0,
+      pageSize: 25,
+      totalElements: 25,
+      totalPages: 1,
+      isLast: true,
+    };
+
+    (usePlatformReports as jest.Mock).mockReturnValue({
+      reports: firstPage,
+      getPlatformReports: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    const { rerender } = render(<AdminReportsPage />);
+
+    expect(usePlatformReports).toHaveBeenCalledWith({ page: 0, size: 20 });
+
+    (usePlatformReports as jest.Mock).mockReturnValue({
+      reports: fullPage,
+      getPlatformReports: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    rerender(<AdminReportsPage />);
+
+    await waitFor(() => {
+      expect(usePlatformReports).toHaveBeenCalledWith({ page: 0, size: 25 });
+    });
+
+    expect(screen.getByText('25')).toBeInTheDocument();
+    expect(screen.getByText('2 / 25')).toBeInTheDocument();
+    expect(screen.getByText('8%')).toBeInTheDocument();
   });
 });
