@@ -10,6 +10,12 @@ const Layout = async ({
   params: Promise<{ username: string }>;
 }) => {
   const { username } = await params;
+  const normalizedUsername = username.toLowerCase().trim();
+  
+  // Bypass ProfileGuard for settings routes (these are handled via proxy redirect)
+  if (normalizedUsername === 'settings') {
+    return <>{children}</>;
+  }
 
   return (
     <ProfileOwnerProvider username={username}>

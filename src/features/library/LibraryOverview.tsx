@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import MinimalTrackCard from '@/components/tracks/MinimalTrackCard';
-import PlaylistCard from '@/components/playlist/MinimalPlaylistCard';
 import type { PlayerTrack } from '@/features/player/contracts/playerContracts';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import UserCard from '@/features/social/components/UserCard';
@@ -21,6 +20,9 @@ export function SquareSkeleton() {
 
 export default function LibraryOverview() {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const [prioritizedHistoryTrackIds, setPrioritizedHistoryTrackIds] = useState<
+    number[]
+  >([]);
 
   const { tracks: historyTracks, isLoading: isHistoryLoading } =
     useListeningHistoryTracks({ page: 0, size: 10 });
@@ -35,6 +37,74 @@ export default function LibraryOverview() {
     page: 0,
     size: 10,
   });
+
+  const uniqueHistoryTracks = useMemo(() => {
+    const seenTrackIds = new Set<number>();
+
+    return historyTracks.filter((item) => {
+      if (seenTrackIds.has(item.track.id)) {
+        return false;
+      }
+
+      seenTrackIds.add(item.track.id);
+      return true;
+    });
+  }, [historyTracks]);
+
+  const orderedHistoryTracks = useMemo(() => {
+    const historyByTrackId = new Map(
+      uniqueHistoryTracks.map((item) => [item.track.id, item])
+    );
+    const prioritizedTracks = prioritizedHistoryTrackIds
+      .map((trackId) => historyByTrackId.get(trackId))
+      .filter((item): item is (typeof uniqueHistoryTracks)[number] => Boolean(item));
+    const prioritizedTrackIds = new Set(
+      prioritizedTracks.map((item) => item.track.id)
+    );
+
+    return [
+      ...prioritizedTracks,
+      ...uniqueHistoryTracks.filter(
+        (item) => !prioritizedTrackIds.has(item.track.id)
+      ),
+    ];
+  }, [prioritizedHistoryTrackIds, uniqueHistoryTracks]);
+
+  const handleHistoryTrackPlay = useCallback((trackId: number) => {
+    setPrioritizedHistoryTrackIds((trackIds) => [
+      trackId,
+      ...trackIds.filter((id) => id !== trackId),
+    ]);
+  }, []);
+
+  const historyQueueTracks = useMemo(
+    () =>
+      orderedHistoryTracks
+        .map((item) => {
+          if (item.playback) {
+            return item.playback;
+          }
+
+          if (!item.trackUrl) {
+            return null;
+          }
+
+          return playerTrackMappers.fromAdapterInput(
+            {
+              id: item.track.id,
+              title: item.track.title,
+              trackUrl: item.trackUrl,
+              artist: item.track.artist,
+              coverUrl: item.track.cover,
+              waveformData: item.waveform,
+              durationSeconds: item.track.durationSeconds,
+            },
+            { access: item.access ?? 'PLAYABLE' }
+          );
+        })
+        .filter((item): item is PlayerTrack => item !== null),
+    [orderedHistoryTracks]
+  );
 
   const likesQueueTracks = useMemo(
     () =>
@@ -72,12 +142,15 @@ export default function LibraryOverview() {
           ? Array.from({ length: 5 }).map((_, index) => (
               <SquareSkeleton key={`history-skeleton-${index}`} />
             ))
-          : historyTracks.map((item, index) => (
-              <PlaylistCard
-                key={`${item.trackId}-${index}`}
-                title={item.track.title}
-                coverUrl={item.track.cover}
-                username={item.user.username}
+          : orderedHistoryTracks.map((item) => (
+              <MinimalTrackCard
+                key={item.trackId}
+                item={item}
+                queueTracks={historyQueueTracks.filter(
+                  (track) => track.id === item.track.id
+                )}
+                queueSource="history"
+                onPlay={() => handleHistoryTrackPlay(item.track.id)}
               />
             ))}
       </LibrarySection>

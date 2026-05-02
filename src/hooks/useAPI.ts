@@ -280,6 +280,44 @@ const parseWithSchema = <TSchema extends z.ZodTypeAny>(
   return result.data;
 };
 
+const ISO_DATE_TIME_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/i;
+
+const TIMEZONE_SUFFIX_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+/**
+ * Backend sends naive UTC timestamps with no timezone suffix.
+ * Appending "Z" tells JS to treat them as UTC, so relative-time
+ * libraries ("3 hours ago") compute the correct diff.
+ */
+const labelAsUtc = (value: string): string => {
+  const trimmed = value.trim();
+  if (!ISO_DATE_TIME_PATTERN.test(trimmed)) return value;
+  if (TIMEZONE_SUFFIX_PATTERN.test(trimmed)) return value;
+  return `${trimmed}Z`;
+};
+
+const normalizeBackendTimestamps = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return labelAsUtc(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeBackendTimestamps);
+  }
+
+  if (value && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        normalizeBackendTimestamps(entry),
+      ])
+    );
+  }
+
+  return value;
+};
+
 /**
  * Normalizes unknown thrown values into a shared ApiErrorDTO shape.
  *
@@ -510,7 +548,10 @@ apiClient.interceptors.request.use(attachJwtInterceptor);
 
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = normalizeBackendTimestamps(response.data);
+    return response;
+  },
   handleAuthRefreshOnUnauthorized
 );
 

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { FC } from 'react';
 
 import { ReportDetail } from '@/features/admin/types/types';
@@ -13,11 +14,14 @@ export const ReportedTrackPanel: FC<ReportedTrackPanelProps> = ({ track }) => (
     </p>
     <div className="bg-bg-subtle rounded-lg overflow-hidden border border-border-default">
       {track.thumbnailUrl ? (
-        <img
-          src={track.thumbnailUrl}
-          alt={track.trackTitle}
-          className="w-full h-28 object-cover"
-        />
+        <div className="relative w-full h-28">
+          <Image
+            src={track.thumbnailUrl}
+            alt={track.trackTitle}
+            fill
+            className="object-cover"
+          />
+        </div>
       ) : null}
       <div className="p-2 space-y-0.5">
         <p className="text-text-primary text-xs font-medium">{track.trackTitle}</p>

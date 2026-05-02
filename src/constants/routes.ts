@@ -34,6 +34,7 @@ export const ROUTES = {
   // User account routes
   SETTINGS: '/settings',
   SUBSCRIPTION: '/settings/subscription',
+  VERIFY_EMAIL_CHANGE: '/settings/verify-email-change',
   FAILED_SUBSCRIPTION: '/checkout/cancel',
   SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
   LOGOUT: '/logout',
@@ -118,6 +119,8 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     ME: '/users/me',
+    ME_CHANGE_EMAIL: '/users/me/email',
+    ME_EMAIL_VERIFY: '/users/me/email/verify',
     ME_PLAYLISTS: '/users/me/playlists',
     ME_TRACKS: '/users/me/tracks',
     ME_LIKED_TRACKS: '/users/me/liked-tracks',

@@ -295,6 +295,24 @@ export type UpdatePrimaryEmailRequest = z.infer<
   typeof updatePrimaryEmailRequestSchema
 >;
 
+export const changeEmailResponseSchema = z
+  .object({
+    messsage: z.string().min(1).optional(),
+  })
+  .transform((data) => ({
+    message: data.messsage || "Email changed successfully. Please verify your new email.",
+  }));
+export type ChangeEmailResponse = z.infer<typeof changeEmailResponseSchema>;
+
+export const verifyEmailChangeResponseSchema = z
+  .preprocess((val) => val ?? {}, z.object({
+    "email changed sucessfully ": z.string().optional(),
+  }).partial())
+  .transform((data) => ({
+    message: data["email changed sucessfully "] || "Email verified successfully!",
+  }));
+export type VerifyEmailChangeResponse = z.infer<typeof verifyEmailChangeResponseSchema>;
+
 export const followResponseSchema = z
   .object({
     message: z.string().min(1),
