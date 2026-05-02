@@ -19,14 +19,12 @@ export const ROUTES = {
   RESETPASSWORD: '/reset-password',
 
   // Content routes
-  ARTISTS: '/artists',
   UPLOAD: '/upload',
   FEED: '/feed',
 
   // User routes
   LIBRARY: '/you/library',
   LIKES: '/you/likes',
-  STATIONS: '/you/stations',
   FOLLOWING: '/you/following',
   PEOPLE: '/people',
   CHECKOUT: '/settings/subscription',
@@ -35,12 +33,9 @@ export const ROUTES = {
 
   // User account routes
   SETTINGS: '/settings',
-  DASHBOARD: '/dashboard',
   SUBSCRIPTION: '/settings/subscription',
   FAILED_SUBSCRIPTION: '/checkout/cancel',
   SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
-  HELP: '/help',
-  SHORTCUTS: '/shortcuts',
   LOGOUT: '/logout',
 } as const;
 
@@ -52,7 +47,12 @@ export const PROTECTED_ROUTES = [
   ROUTES.LIBRARY,
   ROUTES.NOTIFICATIONS,
   ROUTES.MESSAGES,
-  ROUTES.DASHBOARD,
+  ROUTES.CHECKOUT,
+  ROUTES.FAILED_SUBSCRIPTION, 
+  ROUTES.SUCCESSFUL_SUBSCRIPTION,
+  ROUTES.LIKES,
+  ROUTES.FOLLOWING,
+  ROUTES.PEOPLE,
 ] as const;
 
 /** Routes restricted to the artist role */
