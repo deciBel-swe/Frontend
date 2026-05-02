@@ -28,6 +28,7 @@ interface TrackRowProps {
   artist: string;
   artistUsername?: string;
   title: string;
+  trackSlug?: string;
   stats: TrackStats;
   playback?: PlayerTrack;
   queueTracks?: PlayerTrack[];
@@ -53,6 +54,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
   artistUsername,
   title,
   stats,
+  trackSlug,
   playback,
   queueTracks,
   queueSource,
@@ -70,8 +72,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
   const artistSlug = encodeURIComponent(artistSlugSource.toLowerCase().replace(/\s+/g, ''));
 
   const artistUrl = `/${artistSlug}`;
-  const trackUrl =
-    trackId === undefined ? artistUrl : `/${artistSlug}/${encodeURIComponent(String(trackId))}`;
+  const trackUrl = `/${artistSlug}/${trackSlug ?? trackId}`;
 
   const isBlocked = playback?.access === 'BLOCKED';
 

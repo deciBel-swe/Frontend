@@ -69,7 +69,7 @@ export function useListeningHistoryTracks({
           let metadata:
             | Awaited<ReturnType<typeof trackService.getTrackMetadata>>
             | null = null;
-
+    
           try {
             metadata = await trackService.getTrackMetadata(item.id);
           } catch {
@@ -111,7 +111,8 @@ export function useListeningHistoryTracks({
               likeCount: metadata?.likeCount,
               repostCount: metadata?.repostCount,
               isPrivate: metadata?.isPrivate,
-              secretToken: metadata?.secretToken ?? ''
+              secretToken: metadata?.secretToken ?? '',
+              commentCount: metadata?.commentCount,
             },
             access: toPlaybackAccess(metadata?.access),
             trackUrl:
