@@ -61,12 +61,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   
-  // Redirect /verify-email-change to /settings/verify-email-change
-  if (pathname === '/verify-email-change') {
-    const verifyUrl = request.nextUrl.clone();
-    verifyUrl.pathname = '/settings/verify-email-change';
-    return NextResponse.redirect(verifyUrl);
-  }
+  // // Redirect /verify-email-change to /settings/verify-email-change
+  // if (pathname === '/verify-email-change') {
+  //   const verifyUrl = request.nextUrl.clone();
+  //   verifyUrl.pathname = '/settings/verify-email-change';
+  //   return NextResponse.redirect(verifyUrl);
+  // }
   
   const isAuthenticated = request.cookies.has('decibel_auth');
   if (AUTH_ENTRY_ROUTES.has(pathname) && isAuthenticated) {
