@@ -3,7 +3,7 @@ import { UserRow } from '@/features/admin/types/types';
 import { UserTableRow } from './UsersTableRow';
 import { SectionHeader } from '@/features/admin/shared';
 
-const TABLE_HEADERS = ['user', 'followers', 'tracks', 'actions'];
+const TABLE_HEADERS = ['user', 'user id', 'status', 'actions'];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

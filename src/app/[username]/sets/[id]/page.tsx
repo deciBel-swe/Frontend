@@ -10,13 +10,12 @@ import PlaylistTrackList from '@/components/playlist-page/components/PlaylistTra
 import PlaylistTagsSection from '@/components/playlist-page/components/PlaylistTagsSection';
 import PlaylistOwnerSidebar from '@/components/playlist-page/components/PlaylistOwnerSidebar';
 import EditPlaylistModal from '@/components/playlist-page/components/EditPlaylistModal';
-import PlaylistEngagementSidebar from '@/components/playlist-page/components/sidebar/sidebar';
 import { useProfileOwnerContext } from '@/features/prof/context/ProfileOwnerContext';
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { usePlaylistSecretLink } from '@/hooks/usePlaylistSecretLink';
 import { useWaveformData } from '@/hooks/useWaveformData';
-import { playlistService, trackService } from '@/services';
+import { playlistService, trackService, userService } from '@/services';
 import type { PlaylistResponse } from '@/types/playlists';
 import { formatDuration } from '@/utils/formatDuration';
 import {
@@ -325,6 +324,7 @@ export default function PlaylistPage() {
   const [isReorderSaving, setIsReorderSaving] = useState(false);
   const [isPlaylistLikePending, setIsPlaylistLikePending] = useState(false);
   const [isPlaylistRepostPending, setIsPlaylistRepostPending] = useState(false);
+  const [isOwnerFollowPending, setIsOwnerFollowPending] = useState(false);
 
   const playerCurrentTrackId = usePlayerStore((state) => state.currentTrack?.id ?? null);
   const playerIsPlaying = usePlayerStore((state) => state.isPlaying);
@@ -371,7 +371,10 @@ export default function PlaylistPage() {
             );
           }
 
-          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(id);
+          const resolvedPlaylistId = await resolvePlaylistIdFromIdentifier(
+            id,
+            username
+          );
           return normalizePlaylistResponse(
             await playlistService.getPlaylist(resolvedPlaylistId)
           );
@@ -801,6 +804,72 @@ export default function PlaylistPage() {
     }
   };
 
+  const handleOwnerFollowToggle = async (nextFollowing: boolean) => {
+    if (!playlist?.owner || typeof playlist.owner.id !== 'number' || isOwnerFollowPending) {
+      return;
+    }
+
+    const previousFollowing = playlist.owner.isFollowing ?? false;
+    const previousFollowerCount = playlist.owner.followerCount;
+    const delta = nextFollowing ? 1 : -1;
+
+    setIsOwnerFollowPending(true);
+    setPlaylist((previous) => {
+      if (!previous?.owner) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        owner: {
+          ...previous.owner,
+          isFollowing: nextFollowing,
+          followerCount:
+            typeof previous.owner.followerCount === 'number'
+              ? Math.max(0, previous.owner.followerCount + delta)
+              : previous.owner.followerCount,
+        },
+      };
+    });
+
+    try {
+      const response = nextFollowing
+        ? await userService.followUser(playlist.owner.id)
+        : await userService.unfollowUser(playlist.owner.id);
+
+      setPlaylist((previous) => {
+        if (!previous?.owner) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          owner: {
+            ...previous.owner,
+            isFollowing: response.isFollowing,
+          },
+        };
+      });
+    } catch {
+      setPlaylist((previous) => {
+        if (!previous?.owner) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          owner: {
+            ...previous.owner,
+            isFollowing: previousFollowing,
+            followerCount: previousFollowerCount,
+          },
+        };
+      });
+    } finally {
+      setIsOwnerFollowPending(false);
+    }
+  };
+
   const handleModalReorder = async (trackIds: number[]) => {
     if (!playlist) {
       return;
@@ -1007,7 +1076,11 @@ export default function PlaylistPage() {
             avatarUrl: playlist.owner?.avatarUrl ?? undefined,
             id: playlist.owner?.id || username,
             followersCount: playlist.owner?.followerCount,
+            isFollowing: playlist.owner?.isFollowing,
           }}
+          showFollowButton={!canEditPlaylist}
+          isFollowPending={isOwnerFollowPending}
+          onFollowToggle={handleOwnerFollowToggle}
         />
 
         {/* LEFT — tracks + tags */}
@@ -1062,12 +1135,6 @@ export default function PlaylistPage() {
           </p>
         </aside> */}
         {/* RIGHT SIDEBAR */}
-        <PlaylistEngagementSidebar
-          username={username}
-          playlistPathId={playlistPathId}
-          likesCount={playlist.likeCount ?? 0}
-          repostsCount={playlist.repostCount ?? 0}
-        />
       </div>
 
       <EditPlaylistModal

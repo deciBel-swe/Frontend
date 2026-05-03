@@ -17,16 +17,15 @@ export const ROUTES = {
   SIGNIN: '/signin',
   REGISTER: '/register',
   RESETPASSWORD: '/reset-password',
+  ADMIN_LOGIN: '/admin/login',
 
   // Content routes
-  ARTISTS: '/artists',
   UPLOAD: '/upload',
   FEED: '/feed',
 
   // User routes
   LIBRARY: '/you/library',
   LIKES: '/you/likes',
-  STATIONS: '/you/stations',
   FOLLOWING: '/you/following',
   PEOPLE: '/people',
   CHECKOUT: '/settings/subscription',
@@ -35,10 +34,10 @@ export const ROUTES = {
 
   // User account routes
   SETTINGS: '/settings',
-  DASHBOARD: '/dashboard',
   SUBSCRIPTION: '/settings/subscription',
-  HELP: '/help',
-  SHORTCUTS: '/shortcuts',
+  VERIFY_EMAIL_CHANGE: '/settings/verify-email-change',
+  FAILED_SUBSCRIPTION: '/checkout/cancel',
+  SUCCESSFUL_SUBSCRIPTION: '/checkout/success',
   LOGOUT: '/logout',
 } as const;
 
@@ -50,7 +49,12 @@ export const PROTECTED_ROUTES = [
   ROUTES.LIBRARY,
   ROUTES.NOTIFICATIONS,
   ROUTES.MESSAGES,
-  ROUTES.DASHBOARD,
+  ROUTES.CHECKOUT,
+  ROUTES.FAILED_SUBSCRIPTION, 
+  ROUTES.SUCCESSFUL_SUBSCRIPTION,
+  ROUTES.LIKES,
+  ROUTES.FOLLOWING,
+  ROUTES.PEOPLE,
 ] as const;
 
 /** Routes restricted to the artist role */
@@ -116,6 +120,8 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     ME: '/users/me',
+    ME_CHANGE_EMAIL: '/users/me/email',
+    ME_EMAIL_VERIFY: '/users/me/email/verify',
     ME_PLAYLISTS: '/users/me/playlists',
     ME_TRACKS: '/users/me/tracks',
     ME_LIKED_TRACKS: '/users/me/liked-tracks',
@@ -205,6 +211,7 @@ export const API_ENDPOINTS = {
     REPORT_BY_ID: (id: number) => `/admin/reports/${id}`,
     BANNED_USERS: '/admin/users/banned',
     BAN_USER: (userId: number) => `/admin/users/${userId}/ban`,
+    DELETE_TRACK: (trackId: number) => `/admin/tracks/${trackId}`,
     ANALYTICS: '/admin/analytics',
   },
   FEED: '/feed',

@@ -151,12 +151,9 @@ export class RealAdminService implements AdminService {
     payload: UpdateAdminReportStatusRequest
   ): Promise<MessageResponse> {
     try {
-      return await apiRequest(
-        API_CONTRACTS.ADMIN_UPDATE_REPORT_STATUS(reportId),
-        {
-          payload,
-        }
-      );
+      return await apiRequest(API_CONTRACTS.ADMIN_UPDATE_REPORT_STATUS(reportId), {
+        payload,
+      });
     } catch (error) {
       throw normalizeApiError(error);
     }
@@ -172,7 +169,7 @@ export class RealAdminService implements AdminService {
 
   async banUser(userId: number): Promise<MessageResponse> {
     try {
-      const payload: UpdateUserBanStatusRequest = { banned: true };
+      const payload: UpdateUserBanStatusRequest = { isBanned: true };
 
       return await apiRequest(API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(userId), {
         payload,
@@ -184,7 +181,7 @@ export class RealAdminService implements AdminService {
 
   async unbanUser(userId: number): Promise<MessageResponse> {
     try {
-      const payload: UpdateUserBanStatusRequest = { banned: false };
+      const payload: UpdateUserBanStatusRequest = { isBanned: false };
 
       return await apiRequest(API_CONTRACTS.ADMIN_UPDATE_USER_BAN_STATUS(userId), {
         payload,

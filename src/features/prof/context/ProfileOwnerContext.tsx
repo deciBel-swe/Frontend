@@ -164,6 +164,12 @@ export const ProfileOwnerProvider = ({
     ]
   );
 
+  // Hijack system verification routes to prevent profile data fetching
+  const normalizedUsername = username.toLowerCase().trim();
+  if (normalizedUsername === 'verify-email-change' || normalizedUsername === 'verify-email') {
+    return <>{children}</>;
+  }
+
   return (
     <ProfileOwnerContext.Provider value={value}>
       {children}

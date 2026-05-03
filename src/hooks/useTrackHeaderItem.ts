@@ -34,6 +34,7 @@ type UseTrackHeaderItemParams = {
 };
 
 type TrackHeroHeader = {
+  id: number;
   title: string;
   artistName: string;
   artistSlug: string;
@@ -203,6 +204,7 @@ export function useTrackHeaderItem({
         const durationSeconds = trackMetadata.durationSeconds;
 
         setHero({
+          id: trackMetadata.id,
           title: trackMetadata.title,
           artistName,
           artistSlug: artistName,

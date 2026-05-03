@@ -23,6 +23,7 @@ type SidebarHistoryRow = {
   artist: string;
   artistUsername?: string;
   title: string;
+  trackSlug?: string;
   playback?: PlayerTrack;
   stats: {
     plays: string;
@@ -165,8 +166,9 @@ export function useFeedSidebar() {
             plays: compactCount(track.track.plays),
             likes: compactCount(track.track.likeCount),
             reposts: compactCount(track.track.repostCount),
-            comments: compactCount(track.track.comments),
+            comments: compactCount(track.track.commentCount),
           },
+          trackSlug: track.track.trackSlug,
         };
       }),
     [historyTracks]

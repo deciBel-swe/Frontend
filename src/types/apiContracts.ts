@@ -59,6 +59,8 @@ import {
   userPlaylistsResponseSchema,
   userPublicSchema,
   usersSuggestedResponseSchema,
+  changeEmailResponseSchema,
+  verifyEmailChangeResponseSchema,
 } from './user';
 import { paginatedTrackFeedResponseSchema } from './feed';
 import {
@@ -86,7 +88,6 @@ import {
   paginatedPlaylistsResponseSchema,
   paginatedPlaylistTracksResponseSchema,
   reorderPlaylistTracksRequestSchema,
-  updatePlaylistRequestSchema,
   playlistResponseSchema,
 } from './playlists';
 import {
@@ -97,6 +98,7 @@ import {
   messageObjectSchema,
 } from './message';
 import {
+  adminActionResponseSchema,
   adminLoginRequestSchema,
   adminLoginResponseSchema,
   adminReportDetailSchema,
@@ -278,6 +280,21 @@ export const API_CONTRACTS = {
     url: API_ENDPOINTS.USERS.ME_UPDATE_PRIMARY_EMAIL,
     requestSchema: updatePrimaryEmailRequestSchema,
     responseSchema: messageResponseSchema,
+  }),
+  USERS_ME_CHANGE_EMAIL: defineContract({
+    method: 'PATCH',
+    url: API_ENDPOINTS.USERS.ME_CHANGE_EMAIL,
+    requestSchema: updatePrimaryEmailRequestSchema,
+    responseSchema: changeEmailResponseSchema,
+  }),
+
+  USERS_ME_EMAIL_VERIFY: defineContract<{ token: string }, z.infer<typeof verifyEmailChangeResponseSchema>>({
+    method: 'POST',
+    url: API_ENDPOINTS.USERS.ME_EMAIL_VERIFY,
+    requestSchema: z.object({
+      token: z.string().trim().min(1),
+    }),
+    responseSchema: verifyEmailChangeResponseSchema,
   }),
 
   USERS_ME_SOCIAL_LINKS_UPDATE: defineContract({
@@ -471,12 +488,12 @@ export const API_CONTRACTS = {
 
   PLAYLISTS_UPDATE: (playlistId: number) =>
     defineContract<
-      z.infer<typeof updatePlaylistRequestSchema>,
+      FormData,
       z.infer<typeof playlistUpdateResponseSchema>
     >({
       method: 'PATCH',
       url: API_ENDPOINTS.PLAYLISTS.UPDATE(playlistId),
-      requestSchema: updatePlaylistRequestSchema,
+      requestSchema: z.any(),
       responseSchema: playlistUpdateResponseSchema,
     }),
 
@@ -692,30 +709,30 @@ export const API_CONTRACTS = {
   ADMIN_UPDATE_REPORT_STATUS: (reportId: number) =>
     defineContract<
       z.infer<typeof updateAdminReportStatusRequestSchema>,
-      z.infer<typeof messageResponseSchema>
+      z.infer<typeof adminActionResponseSchema>
     >({
-      method: 'PUT',
+      method: 'PATCH',
       url: API_ENDPOINTS.ADMIN.REPORT_BY_ID(reportId),
       requestSchema: updateAdminReportStatusRequestSchema,
-      responseSchema: messageResponseSchema,
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_DELETE_TRACK: (trackId: number) =>
-    defineContract<void, z.infer<typeof messageResponseSchema>>({
+    defineContract<void, z.infer<typeof adminActionResponseSchema>>({
       method: 'DELETE',
-      url: API_ENDPOINTS.TRACKS.DELETE(trackId),
-      responseSchema: messageResponseSchema,
+      url: API_ENDPOINTS.ADMIN.DELETE_TRACK(trackId),
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_UPDATE_USER_BAN_STATUS: (userId: number) =>
     defineContract<
       z.infer<typeof updateUserBanStatusRequestSchema>,
-      z.infer<typeof messageResponseSchema>
+      z.infer<typeof adminActionResponseSchema>
     >({
       method: 'PATCH',
       url: API_ENDPOINTS.ADMIN.BAN_USER(userId),
       requestSchema: updateUserBanStatusRequestSchema,
-      responseSchema: messageResponseSchema,
+      responseSchema: adminActionResponseSchema,
     }),
 
   ADMIN_ANALYTICS: defineContract<

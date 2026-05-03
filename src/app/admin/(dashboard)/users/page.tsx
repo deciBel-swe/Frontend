@@ -23,8 +23,7 @@ export default function AdminUsersPage() {
         username: user.username,
         displayName: user.displayName ?? user.username,
         avatarUrl: user.avatarUrl,
-        followerCount: user.followerCount,
-        trackCount: user.trackCount,
+        isBanned: user.isBanned,
       })),
     [bannedUsersResponse]
   );

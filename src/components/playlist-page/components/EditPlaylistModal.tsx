@@ -5,9 +5,7 @@ import { GripVertical, Trash2, X } from 'lucide-react';
 import Button from '@/components/buttons/Button';
 import ArtworkPreviewField from '@/features/tracks/TrackUploadForm/FormFields/ArtworkPreviewField';
 import TrackDescriptionField from '@/features/tracks/TrackUploadForm/FormFields/TrackDescriptionField';
-import TrackGenreField from '@/features/tracks/TrackUploadForm/FormFields/TrackGenreField';
 import { TrackPrivacy } from '@/features/tracks/TrackUploadForm/FormFields/TrackPrivacy';
-import TrackTagsCombobox from '@/features/tracks/TrackUploadForm/FormFields/TrackTagsCombobox';
 import TrackTextField from '@/features/tracks/TrackUploadForm/FormFields/TrackTextField';
 import type { TrackPrivacyValue } from '@/types/tracks';
 import { validateImageFile } from '@/utils/fileValidation';
@@ -36,8 +34,6 @@ type EditPlaylistModalProps = {
   onSave: (payload: {
     title: string;
     description: string;
-    genre?: string;
-    tags?: string[];
     isPrivate: boolean;
     coverArt?: string;
   }) => Promise<void>;
@@ -345,11 +341,6 @@ export default function EditPlaylistModal({
                     value={description}
                     onChange={setDescription}
                   />
-
-                  <TrackGenreField value={genre} onChange={setGenre} />
-
-                  <TrackTagsCombobox value={tags} onChange={setTags} />
-
                   <TrackPrivacy value={privacy} onChange={setPrivacy} />
                 </div>
               </div>

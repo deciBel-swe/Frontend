@@ -18,6 +18,8 @@ interface FloatingEmailFieldProps {
   onFocus?: () => void;
   autoComplete?: string;
   name?: string;
+  disabled?: boolean;
+  required?: boolean;
 }
 
 /**
@@ -51,6 +53,8 @@ const FloatingEmailField: React.FC<FloatingEmailFieldProps> = ({
   autoComplete = 'email',
   label = 'Your email address',
   name = 'email',
+  disabled = false,
+  required = false,
 }) => {
   return (
     <label className="relative block w-full">
@@ -62,7 +66,9 @@ const FloatingEmailField: React.FC<FloatingEmailFieldProps> = ({
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
         autoComplete={autoComplete}
-        className="peer w-full h-[3.2rem] bg-interactive-default outline-none text-text-primary text-[13px] font-medium  px-3.5 placeholder:text-text-muted  border border-transparent rounded focus-within:border-interactive-active transition-[border-color] duration-150"
+        disabled={disabled}
+        required={required}
+        className="peer w-full h-[3.2rem] bg-interactive-default outline-none text-text-primary text-[13px] font-medium  px-3.5 placeholder:text-text-muted  border border-transparent rounded focus-within:border-interactive-active transition-[border-color] duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       />
 
       <span

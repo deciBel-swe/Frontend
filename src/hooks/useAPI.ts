@@ -35,6 +35,7 @@ import { useMemo } from 'react';
 import { z } from 'zod';
 
 import { config } from '@/config';
+import { ROUTES } from '@/constants/routes';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type { ApiEndpointContract } from '@/types/apiContracts';
 import { apiErrorDTOSchema, type ApiErrorDTO } from '@/types';
@@ -132,6 +133,9 @@ export const apiClient = axios.create({
 });
 
 export const ACCESS_TOKEN_STORAGE_KEY = 'decibel_access_token';
+const ADMIN_ACCESS_TOKEN_STORAGE_KEY = 'decibel_admin_access_token';
+const ADMIN_AUTH_COOKIE = 'decibel_admin_auth';
+const ADMIN_USER_STORAGE_KEY = 'decibel_admin_user';
 
 const getStoredAccessToken = (): string | null => {
   if (typeof window === 'undefined') {
@@ -139,7 +143,11 @@ const getStoredAccessToken = (): string | null => {
   }
 
   try {
-    return window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+    const storageKey = isAdminSessionRoute()
+      ? ADMIN_ACCESS_TOKEN_STORAGE_KEY
+      : ACCESS_TOKEN_STORAGE_KEY;
+
+    return window.localStorage.getItem(storageKey);
   } catch {
     return null;
   }
@@ -205,6 +213,60 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 
 let refreshTokenRequest: Promise<void> | null = null;
 
+const isAdminPathname = (pathname: string): boolean =>
+  pathname === '/admin' || pathname.startsWith('/admin/');
+
+const isAdminSessionRoute = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return isAdminPathname(window.location.pathname);
+};
+
+const buildAdminLoginRedirectUrl = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  if (!isAdminSessionRoute()) {
+    return null;
+  }
+
+  const redirectTarget = `${window.location.pathname}${window.location.search}`;
+  const signinUrl = new URL(ROUTES.ADMIN_LOGIN, window.location.origin);
+
+  if (redirectTarget && redirectTarget !== ROUTES.ADMIN_LOGIN) {
+    signinUrl.searchParams.set('redirect', redirectTarget);
+  }
+
+  return signinUrl.toString();
+};
+
+export const redirectToSignin = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const redirectUrl = buildAdminLoginRedirectUrl();
+
+  if (!redirectUrl) {
+    return;
+  }
+
+  window.location.replace(redirectUrl);
+};
+
+const clearAdminSession = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(ADMIN_ACCESS_TOKEN_STORAGE_KEY);
+  window.localStorage.removeItem(ADMIN_USER_STORAGE_KEY);
+  document.cookie = `${ADMIN_AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+};
+
 const shouldHandleUnauthorized = (error: AxiosError): boolean => {
   const status = error.response?.status;
   const requestConfig = error.config as RetryableRequestConfig | undefined;
@@ -251,9 +313,13 @@ export const handleAuthRefreshOnUnauthorized = async (
     await refreshSessionToken();
     return apiClient.request(requestConfig);
   } catch {
-    const { authService } = await import('@/services');
-    authService.clearSession();
+    if (!isAdminSessionRoute()) {
+      return Promise.reject(error);
+    }
+
+    clearAdminSession();
     toast.error('Please log in to continue');
+    redirectToSignin();
     return Promise.reject(error);
   }
 };
@@ -278,6 +344,44 @@ const parseWithSchema = <TSchema extends z.ZodTypeAny>(
     throw new Error(`${context}. ${formatZodIssues(result.error)}`);
   }
   return result.data;
+};
+
+const ISO_DATE_TIME_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/i;
+
+const TIMEZONE_SUFFIX_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+/**
+ * Backend sends naive UTC timestamps with no timezone suffix.
+ * Appending "Z" tells JS to treat them as UTC, so relative-time
+ * libraries ("3 hours ago") compute the correct diff.
+ */
+const labelAsUtc = (value: string): string => {
+  const trimmed = value.trim();
+  if (!ISO_DATE_TIME_PATTERN.test(trimmed)) return value;
+  if (TIMEZONE_SUFFIX_PATTERN.test(trimmed)) return value;
+  return `${trimmed}Z`;
+};
+
+const normalizeBackendTimestamps = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return labelAsUtc(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeBackendTimestamps);
+  }
+
+  if (value && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        normalizeBackendTimestamps(entry),
+      ])
+    );
+  }
+
+  return value;
 };
 
 /**
@@ -510,7 +614,10 @@ apiClient.interceptors.request.use(attachJwtInterceptor);
 
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = normalizeBackendTimestamps(response.data);
+    return response;
+  },
   handleAuthRefreshOnUnauthorized
 );
 
@@ -519,8 +626,14 @@ apiClient.interceptors.response.use(
   async (error) => {
     const status = error?.response?.status;
 
-    if (status === 403) {
+    if ((status === 401 || status === 403) && isAdminSessionRoute()) {
+      try {
+        clearAdminSession();
+      } catch {
+        // Ignore cleanup issues and still force a fresh login.
+      }
       toast.error('Please log in to continue');
+      redirectToSignin();
     }
     return Promise.reject(error);
   }

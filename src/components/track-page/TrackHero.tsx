@@ -76,7 +76,7 @@ export default function TrackHero({
               variant="ghost"
               onClick={onPlayPause}
               aria-label={isPlaying ? 'Pause' : 'Play'}
-              className="shrink-0 w-14 h-14 rounded-full bg-brand-primary hover:bg-brand-primary-hover text-white flex items-center justify-center p-0"
+              className="shrink-0 w-14 h-14 rounded-full bg-brand-primary hover:bg-interactive-hover flex items-center justify-center p-0 shadow-lg border border-white/20"
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6" fill="currentColor" />

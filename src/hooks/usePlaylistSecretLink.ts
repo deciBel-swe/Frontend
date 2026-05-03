@@ -62,7 +62,10 @@ export function usePlaylistSecretLink(
       setIsError(false);
 
       try {
-        const resolvedId = await resolvePlaylistIdFromIdentifier(playlistId);
+        const resolvedId = await resolvePlaylistIdFromIdentifier(
+          playlistId,
+          options?.shareUsername
+        );
         const next = await playlistService.getPlaylistSecretLink(resolvedId);
         if (!isCancelled) {
           setResolvedPlaylistId(resolvedId);
@@ -84,7 +87,7 @@ export function usePlaylistSecretLink(
     return () => {
       isCancelled = true;
     };
-  }, [playlistId]);
+  }, [options?.shareUsername, playlistId]);
 
   const secretUrl =
     secretToken && options?.shareUsername?.trim() && options?.sharePathId?.trim()
@@ -104,7 +107,10 @@ export function usePlaylistSecretLink(
     setIsError(false);
 
     try {
-      const resolvedId = await resolvePlaylistIdFromIdentifier(playlistId);
+      const resolvedId = await resolvePlaylistIdFromIdentifier(
+        playlistId,
+        options?.shareUsername
+      );
       const next = await playlistService.regeneratePlaylistSecretLink(
         resolvedId
       );
@@ -115,7 +121,7 @@ export function usePlaylistSecretLink(
     } finally {
       setIsRegenerating(false);
     }
-  }, [playlistId]);
+  }, [options?.shareUsername, playlistId]);
 
   return {
     resolvedPlaylistId,

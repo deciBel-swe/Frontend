@@ -23,6 +23,7 @@ interface ProfileGuardProps {
  * // In layout.tsx (server component):
  * <ProfileGuard username={username}>{children}</ProfileGuard>
  */
+
 export function ProfileGuard({ username, children }: ProfileGuardProps) {
   const {isLoading, isError, errorStatusCode } = useUserProfile(username);
 

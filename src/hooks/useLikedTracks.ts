@@ -213,6 +213,8 @@ export function useLikedTracks(
               repostCount: track.repostCount,
               isPrivate: metadata?.isPrivate,
               secretToken: metadata?.secretToken?.trim() || '',
+              commentCount: metadata?.commentCount,
+              trackSlug: metadata?.trackSlug ?? '',
             },
             access: toPlaybackAccess(metadata?.access),
             trackUrl:

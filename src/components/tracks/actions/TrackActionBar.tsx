@@ -100,7 +100,7 @@ export default function TrackActionBar({
       </div>
 
       {/* Right: play count */}
-      <div className="flex items-center gap-1.5 text-sm text-text-muted pr-1">
+      <div className="flex items-center gap-1.5 text-sm text-text-secondary pr-1">
         {/* Play icon (triangle) */}
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
           <path d="M2 1.5l8 4.5-8 4.5z" />

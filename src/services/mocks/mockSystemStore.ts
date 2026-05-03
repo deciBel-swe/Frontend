@@ -184,13 +184,13 @@ const createFallbackPassword = (): string => {
 
   return `mock-pass-${Math.random().toString(36).slice(2)}`;
 };
-const TOTAL_USERS = 100;
-const TOTAL_TRACKS = 1000;
-const TOTAL_PLAYLISTS = 100;
-const TOP_OWNER_COUNT = 10;
-const FOLLOW_COUNT = 30;
-const LIKED_TRACKS_PER_USER = 100;
-const REPOSTED_TRACKS_PER_USER = 100;
+const TOTAL_USERS = 5;
+const TOTAL_TRACKS = 100;
+const TOTAL_PLAYLISTS = 10;
+const TOP_OWNER_COUNT = 5;
+const FOLLOW_COUNT = 10;
+const LIKED_TRACKS_PER_USER = 10;
+const REPOSTED_TRACKS_PER_USER = 10;
 const LIKED_PLAYLISTS_PER_USER = 10;
 const REPOSTED_PLAYLISTS_PER_USER = 10;
 const COMMENTS_PER_TRACK = 10;
