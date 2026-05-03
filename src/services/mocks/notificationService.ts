@@ -1,10 +1,11 @@
 import type {
   NotificationDTO,
   NotificationSettingsDTO,
-  RegisterDeviceTokenRequest,
 } from '@/types/notification';
-import type { MessageResponse } from '@/types/user';
-import type { NotificationService } from '../api/notificationService';
+import type {
+  NotificationService,
+  PaginationParams,
+} from '../api/notificationService';
 import { MOCK_NOTIFICATIONS } from './mockData';
 
 export class MockNotificationService implements NotificationService {
@@ -101,13 +102,38 @@ export class MockNotificationService implements NotificationService {
   async markAllAsRead(userId: number): Promise<void> {
     const userIdStr = String(userId);
     if (this.notifications[userIdStr]) {
-      this.notifications[userIdStr] = this.notifications[userIdStr].map((notification) => ({
-        ...notification,
-        isRead: true,
-      }));
+      this.notifications[userIdStr] = this.notifications[userIdStr].map(
+        (notification) => ({
+          ...notification,
+          isRead: true,
+        })
+      );
       this.emit(userIdStr);
     }
     return Promise.resolve();
+  }
+
+  async getNotifications(
+    params?: PaginationParams
+  ): Promise<NotificationDTO[]> {
+    const size = params?.size ?? 50;
+    const page = params?.page ?? 0;
+    const allNotifications = Object.values(this.notifications)
+      .flat()
+      .sort(
+        (left, right) =>
+          Date.parse(right.createdAt) - Date.parse(left.createdAt)
+      );
+
+    return allNotifications.slice(page * size, page * size + size);
+  }
+
+  async getUnreadCount(): Promise<{ unreadCount: number }> {
+    const unreadCount = Object.values(this.notifications)
+      .flat()
+      .filter((notification) => !notification.isRead).length;
+
+    return { unreadCount };
   }
 
   async getNotificationSettings(): Promise<NotificationSettingsDTO> {
@@ -122,8 +148,14 @@ export class MockNotificationService implements NotificationService {
   }
 
   async registerDeviceToken(
-    _payload: RegisterDeviceTokenRequest
-  ): Promise<MessageResponse> {
-    return { message: 'Token registered successfully' };
+    _payload: import('@/types/notification').RegisterDeviceTokenRequest
+  ): Promise<import('@/types/user').MessageResponse> {
+    return { message: 'Token registered' };
+  }
+
+  async unregisterDeviceToken(
+    _token: string
+  ): Promise<import('@/types/user').MessageResponse> {
+    return { message: 'Token unregistered' };
   }
 }

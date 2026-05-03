@@ -32,7 +32,7 @@ describe('MockMessageService', () => {
   });
 
   it('should send a message and update state', async () => {
-    const payload: SendMessageRequest = { body: 'New test message' };
+    const payload: SendMessageRequest = { content: 'New test message', recipientId: 40 };
     const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
     
     await service.sendMessage('conv_1', payload, user);

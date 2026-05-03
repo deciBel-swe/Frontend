@@ -26,6 +26,10 @@ jest.mock('@/services', () => ({
   },
 }));
 
+jest.mock('@/services/firebase/realtimeSocial', () => ({
+  createRealtimeNotification: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('@/features/player/store/playerStore', () => ({
   usePlayerStore: jest.fn(),
 }));

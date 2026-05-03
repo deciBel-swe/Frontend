@@ -22,11 +22,14 @@ export function useNotifications() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [targetCache, setTargetCache] = useState<NotificationTargetCache>({});
   const pendingKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user?.id) {
+      setRawNotifications([]);
+      setUnreadCount(0);
       setIsLoading(false);
       return;
     }
@@ -38,6 +41,12 @@ export function useNotifications() {
       (data) => {
         setRawNotifications(data);
         setIsLoading(false);
+        void notificationService
+          .getUnreadCount()
+          .then((response) => {
+            setUnreadCount(response.unreadCount);
+          })
+          .catch(() => undefined);
       },
       (err) => {
         setError(err);
@@ -176,16 +185,12 @@ export function useNotifications() {
     [rawNotifications, targetCache]
   );
 
-  const unreadCount = useMemo(
-    () => rawNotifications.filter((notification) => !notification.isRead).length,
-    [rawNotifications]
-  );
-
   const markAllAsRead = async () => {
     if (!user?.id) return;
     setRawNotifications((previous) =>
       previous.map((notification) => ({ ...notification, isRead: true }))
     );
+    setUnreadCount(0);
     await notificationService.markAllAsRead(user.id);
   };
 
