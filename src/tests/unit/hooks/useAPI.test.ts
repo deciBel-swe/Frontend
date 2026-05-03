@@ -239,6 +239,29 @@ describe('attachJwtInterceptor', () => {
       })
     );
   });
+
+  it('does not use the admin access token on the admin login route', () => {
+    mockWindowLocation('/admin/login', '');
+    window.localStorage.setItem(
+      'decibel_admin_access_token',
+      'admin-jwt-token-123'
+    );
+
+    const requestConfig = attachJwtInterceptor({
+      headers: {
+        'x-test': 'on',
+      },
+    } as never);
+
+    expect(requestConfig.headers).toEqual(
+      expect.objectContaining({
+        'x-test': 'on',
+      })
+    );
+    expect(
+      (requestConfig.headers as Record<string, string>).Authorization
+    ).toBeUndefined();
+  });
 });
 
 describe('auth redirect helpers', () => {
@@ -254,6 +277,14 @@ describe('auth redirect helpers', () => {
 
   it('does not redirect non-admin pages', () => {
     const locationControl = mockWindowLocation('/feed', '?tab=recent');
+
+    redirectToSignin();
+
+    expect(locationControl.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect the admin login page to itself', () => {
+    const locationControl = mockWindowLocation('/admin/login', '');
 
     redirectToSignin();
 

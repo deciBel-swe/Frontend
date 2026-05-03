@@ -216,12 +216,16 @@ let refreshTokenRequest: Promise<void> | null = null;
 const isAdminPathname = (pathname: string): boolean =>
   pathname === '/admin' || pathname.startsWith('/admin/');
 
+const isAdminAuthPathname = (pathname: string): boolean =>
+  pathname === ROUTES.ADMIN_LOGIN || pathname.startsWith(`${ROUTES.ADMIN_LOGIN}/`);
+
 const isAdminSessionRoute = (): boolean => {
   if (typeof window === 'undefined') {
     return false;
   }
 
-  return isAdminPathname(window.location.pathname);
+  const { pathname } = window.location;
+  return isAdminPathname(pathname) && !isAdminAuthPathname(pathname);
 };
 
 const buildAdminLoginRedirectUrl = (): string | null => {
