@@ -7,7 +7,6 @@ const mockUseAuth = jest.fn();
 const mockSubscribeToInbox = jest.fn();
 const mockSubscribeToNotifications = jest.fn();
 const mockMarkAllAsRead = jest.fn();
-const mockGetUnreadCount = jest.fn();
 const mockGetTrackMetadata = jest.fn();
 
 jest.mock('@/features/auth/useAuth', () => ({
@@ -22,7 +21,6 @@ jest.mock('@/services', () => ({
     subscribeToNotifications: (...args: unknown[]) =>
       mockSubscribeToNotifications(...args),
     markAllAsRead: (...args: unknown[]) => mockMarkAllAsRead(...args),
-    getUnreadCount: (...args: unknown[]) => mockGetUnreadCount(...args),
   },
   trackService: {
     getTrackMetadata: (...args: unknown[]) => mockGetTrackMetadata(...args),
@@ -35,7 +33,6 @@ jest.mock('@/services', () => ({
 describe('messaging and notifications hooks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetUnreadCount.mockResolvedValue({ unreadCount: 2 });
     mockUseAuth.mockReturnValue({
       user: {
         id: 1,

@@ -1,5 +1,4 @@
 import { apiRequest, type ApiQueryParams } from '@/hooks/useAPI';
-import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   CreateCommentRequest,
@@ -62,22 +61,6 @@ export interface CommentService {
   deleteComment(commentId: number): Promise<void>;
 }
 
-const getTrackNotificationMeta = async (trackId: number) => {
-  const track = await apiRequest(API_CONTRACTS.TRACKS_BY_ID(trackId));
-  const artistId = track.artist?.id ?? track.userId ?? 0;
-  const artistUsername = track.artist?.username ?? track.username ?? '';
-  const trackIdentifier = track.trackSlug ?? track.slug ?? String(track.id);
-
-  return {
-    recipientId: artistId,
-    targetTitle: track.title,
-    targetUrl:
-      artistUsername.trim().length > 0
-        ? `/${artistUsername}/${trackIdentifier}`
-        : '/feed',
-  };
-};
-
 /** Real implementation backed by centralized axios + Zod API template. */
 export class RealCommentService implements CommentService {
   async getTrackComments(
@@ -102,26 +85,9 @@ export class RealCommentService implements CommentService {
     trackId: number,
     payload: CreateCommentRequest
   ): Promise<Comment> {
-    const response = await apiRequest(API_CONTRACTS.TRACKS_COMMENTS_CREATE(trackId), {
+    return apiRequest(API_CONTRACTS.TRACKS_COMMENTS_CREATE(trackId), {
       payload,
     });
-
-    void getTrackNotificationMeta(trackId)
-      .then(async ({ recipientId, targetTitle, targetUrl }) => {
-        await createRealtimeNotification({
-          type: 'COMMENT',
-          recipientId,
-          resource: {
-            resourceType: 'TRACK',
-            resourceId: trackId,
-          },
-          targetTitle,
-          targetUrl,
-        });
-      })
-      .catch(() => undefined);
-
-    return response;
   }
 
   async getCommentReplies(

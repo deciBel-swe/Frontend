@@ -116,7 +116,7 @@ export class MockMessageService implements MessageService {
     const newMessage: MessageDTO = {
       messageId: `msg_${Date.now()}`,
       conversationId,
-      content: payload.content,
+      content: payload.body,
       sender: {
         id: currentUserSummary.id,
         username: currentUserSummary.username,

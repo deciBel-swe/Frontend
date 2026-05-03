@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { paginatedResponseSchema } from './pagination';
 
 export const userSummarySchema = z.object({
   id: z.number().int().nonnegative(),
@@ -39,28 +38,6 @@ export const notificationDTOSchema = z.object({
 });
 export type NotificationDTO = z.infer<typeof notificationDTOSchema>;
 
-export const notificationActorSchema = z.object({
-  id: z.number().int().nonnegative(),
-  username: z.string().trim().min(1),
-});
-export type NotificationActorDTO = z.infer<typeof notificationActorSchema>;
-
-export const notificationObjectSchema = z.object({
-  id: z.number().int().nonnegative(),
-  type: z.string().trim().min(1),
-  actor: notificationActorSchema,
-  entityId: z.number().int().nonnegative(),
-  isRead: z.boolean(),
-  createdAt: z.string().trim().min(1),
-});
-export type NotificationObjectDTO = z.infer<typeof notificationObjectSchema>;
-
-export const paginatedNotificationsResponseSchema =
-  paginatedResponseSchema(notificationObjectSchema);
-export type PaginatedNotificationsResponseDTO = z.infer<
-  typeof paginatedNotificationsResponseSchema
->;
-
 export const unreadCountResponseSchema = z.object({
   unreadCount: z.number().int().nonnegative(),
 });
@@ -77,8 +54,12 @@ export type NotificationSettingsDTO = z.infer<
   typeof notificationSettingsDTOSchema
 >;
 
-export const registerDeviceTokenSchema = z.object({
-  token: z.string(),
-  deviceType: z.enum(['WEB', 'ANDROID', 'IOS']).default('WEB'),
+export const deviceTypeSchema = z.enum(['DESKTOP', 'MOBILE', 'TABLET', 'WEB']);
+
+export const registerDeviceTokenRequestSchema = z.object({
+  token: z.string().min(1),
+  deviceType: deviceTypeSchema,
 });
-export type RegisterDeviceTokenRequest = z.infer<typeof registerDeviceTokenSchema>;
+export type RegisterDeviceTokenRequest = z.infer<
+  typeof registerDeviceTokenRequestSchema
+>;

@@ -1,7 +1,5 @@
 import { apiRequest } from '@/hooks/useAPI';
-import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import { buildPlaylistHref } from '@/utils/socialRoutes';
 import type {
   CreatePlaylistRequest,
   AddPlaylistTrackRequest,
@@ -40,17 +38,6 @@ const toQueryParams = (
   }
 
   return Object.keys(query).length > 0 ? query : undefined;
-};
-
-const getPlaylistNotificationMeta = async (playlistId: number) => {
-  const playlist = await apiRequest(API_CONTRACTS.PLAYLISTS_BY_ID(playlistId));
-  const creatorId = playlist.owner?.id ?? 0;
-
-  return {
-    recipientId: creatorId,
-    targetTitle: playlist.title,
-    targetUrl: buildPlaylistHref(playlist),
-  };
 };
 
 /**
@@ -284,26 +271,7 @@ export class RealPlaylistService implements PlaylistService {
   }
 
   async likePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
-    const response = await apiRequest(API_CONTRACTS.PLAYLISTS_LIKE(playlistId));
-
-    if (response.isLiked) {
-      void getPlaylistNotificationMeta(playlistId)
-        .then(async ({ recipientId, targetTitle, targetUrl }) => {
-          await createRealtimeNotification({
-            type: 'LIKE',
-            recipientId,
-            resource: {
-              resourceType: 'PLAYLIST',
-              resourceId: playlistId,
-            },
-            targetTitle,
-            targetUrl,
-          });
-        })
-        .catch(() => undefined);
-    }
-
-    return response;
+    return apiRequest(API_CONTRACTS.PLAYLISTS_LIKE(playlistId));
   }
 
   async unlikePlaylist(playlistId: number): Promise<PlaylistLikeResponse> {
@@ -311,26 +279,7 @@ export class RealPlaylistService implements PlaylistService {
   }
 
   async repostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {
-    const response = await apiRequest(API_CONTRACTS.PLAYLISTS_REPOST(playlistId));
-
-    if (response.isReposted) {
-      void getPlaylistNotificationMeta(playlistId)
-        .then(async ({ recipientId, targetTitle, targetUrl }) => {
-          await createRealtimeNotification({
-            type: 'REPOST',
-            recipientId,
-            resource: {
-              resourceType: 'PLAYLIST',
-              resourceId: playlistId,
-            },
-            targetTitle,
-            targetUrl,
-          });
-        })
-        .catch(() => undefined);
-    }
-
-    return response;
+    return apiRequest(API_CONTRACTS.PLAYLISTS_REPOST(playlistId));
   }
 
   async unrepostPlaylist(playlistId: number): Promise<PlaylistRepostResponse> {

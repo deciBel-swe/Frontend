@@ -5,7 +5,6 @@ import {
   apiRequest,
 } from '@/hooks/useAPI';
 import { API_CONTRACTS } from '@/types/apiContracts';
-import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import type {
   PaginatedTrackMetadataResponse,
   paginatedTrackResponse,
@@ -23,7 +22,6 @@ import type {
   repostResponse,
 } from '@/types/tracks';
 import { trackUploadStatusResponseSchema } from '@/types/tracks';
-import { buildTrackHref } from '@/utils/socialRoutes';
 
 export interface PaginationParams {
   page?: number;
@@ -286,15 +284,6 @@ type StompSubscriptionLike = {
   unsubscribe: () => void;
 };
 
-type StompFrameLike = {
-  body: string;
-  headers: Record<string, string | undefined>;
-};
-
-type WebSocketCloseEventLike = {
-  reason?: string;
-};
-
 const getErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
@@ -384,39 +373,7 @@ const openTrackUploadStatusStream = async (
   }
 
   const [{ Client }, sockJsModule] = await Promise.all([
-    import('@stomp/stompjs').catch(() => ({
-      Client: class {
-        connectHeaders?: Record<string, string>;
-        debug?: () => void;
-        reconnectDelay?: number;
-        webSocketFactory?: () => unknown;
-        onConnect?: () => void;
-        onStompError?: (_frame: StompFrameLike) => void;
-        onWebSocketError?: () => void;
-        onWebSocketClose?: (_event: WebSocketCloseEventLike) => void;
-
-        constructor(config: Record<string, unknown>) {
-          Object.assign(this, config);
-        }
-
-        subscribe(
-          _destination: string,
-          _callback: (_frame: StompFrameLike) => void
-        ): StompSubscriptionLike {
-          return {
-            unsubscribe: () => undefined,
-          };
-        }
-
-        activate(): void {
-          throw new Error('STOMP client is unavailable.');
-        }
-
-        deactivate(): Promise<void> {
-          return Promise.resolve();
-        }
-      },
-    })),
+    import('@stomp/stompjs'),
     import('sockjs-client'),
   ]);
 
@@ -540,7 +497,7 @@ const openTrackUploadStatusStream = async (
     client.onConnect = () => {
       subscription = client.subscribe(
         `${TRACK_UPLOAD_STATUS_TOPIC_PREFIX}/${uploadId}`,
-        (frame: StompFrameLike) => {
+        (frame) => {
           try {
             const payload = JSON.parse(frame.body) as unknown;
             const status = trackUploadStatusResponseSchema.parse(payload);
@@ -561,7 +518,7 @@ const openTrackUploadStatusStream = async (
       settleConnectionResolve();
     };
 
-    client.onStompError = (frame: StompFrameLike) => {
+    client.onStompError = (frame) => {
       const message =
         frame.headers.message?.trim() ||
         'Track upload status connection failed.';
@@ -572,7 +529,7 @@ const openTrackUploadStatusStream = async (
       rejectUpload('Track upload status connection failed.');
     };
 
-    client.onWebSocketClose = (event: WebSocketCloseEventLike) => {
+    client.onWebSocketClose = (event) => {
       if (disconnecting || uploadSettled) {
         return;
       }
@@ -749,26 +706,7 @@ export class RealTrackService implements TrackService {
   }
 
   async likeTrack(trackId: number): Promise<likeResponse> {
-    const response = await apiRequest(API_CONTRACTS.TRACK_LIKE(trackId));
-
-    if (response.isLiked) {
-      void this.getTrackMetadata(trackId)
-        .then(async (track) => {
-          await createRealtimeNotification({
-            type: 'LIKE',
-            recipientId: track.artist.id,
-            resource: {
-              resourceType: 'TRACK',
-              resourceId: track.id,
-            },
-            targetTitle: track.title,
-            targetUrl: buildTrackHref(track),
-          });
-        })
-        .catch(() => undefined);
-    }
-
-    return response;
+    return apiRequest(API_CONTRACTS.TRACK_LIKE(trackId));
   }
 
   async unlikeTrack(trackId: number): Promise<likeResponse> {
@@ -776,26 +714,7 @@ export class RealTrackService implements TrackService {
   }
 
   async repostTrack(trackId: number): Promise<repostResponse> {
-    const response = await apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
-
-    if (response.isReposted) {
-      void this.getTrackMetadata(trackId)
-        .then(async (track) => {
-          await createRealtimeNotification({
-            type: 'REPOST',
-            recipientId: track.artist.id,
-            resource: {
-              resourceType: 'TRACK',
-              resourceId: track.id,
-            },
-            targetTitle: track.title,
-            targetUrl: buildTrackHref(track),
-          });
-        })
-        .catch(() => undefined);
-    }
-
-    return response;
+    return apiRequest(API_CONTRACTS.TRACK_REPOST(trackId));
   }
 
   async unrepostTrack(trackId: number): Promise<repostResponse> {
