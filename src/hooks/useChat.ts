@@ -249,10 +249,19 @@ export function useChat(conversationId: string | null) {
           );
         }
 
+        let recipientId = 0;
+        if (targetConversationId.includes('_')) {
+          const parts = targetConversationId.split('_');
+          const id1 = parseInt(parts[0], 10);
+          const id2 = parseInt(parts[1], 10);
+          recipientId = id1 === user.id ? id2 : id1;
+        }
+
         await messageService.sendMessage(
           targetConversationId,
           {
-            body,
+            content: body,
+            recipientId,
             resources: resources.length > 0 ? resources : undefined,
           },
           currentUserSummary

@@ -75,7 +75,8 @@ export const conversationDTOSchema = z.object({
 export type ConversationDTO = z.infer<typeof conversationDTOSchema>;
 
 export const sendMessageRequestSchema = z.object({
-  body: z.string().trim().min(1),
+  content: z.string().trim().min(1),
+  recipientId: z.number().int().nonnegative(),
   resources: z.array(resourceRefDTOSchema).optional(),
   resourceType: messageResourceTypeSchema.optional(),
   resourceId: z.number().int().positive().optional(),
@@ -86,7 +87,9 @@ export const conversationUserLiteSchema = z.object({
   id: z.number().int().nonnegative(),
   username: z.string().trim().min(1),
 });
-export type ConversationUserLiteDTO = z.infer<typeof conversationUserLiteSchema>;
+export type ConversationUserLiteDTO = z.infer<
+  typeof conversationUserLiteSchema
+>;
 
 export const conversationResponseSchema = z.object({
   id: z.number().int().nonnegative(),
@@ -95,23 +98,35 @@ export const conversationResponseSchema = z.object({
   unreadCount: z.number().int().nonnegative().default(0),
   lastMessageAt: z.string().trim().nullable().optional(),
 });
-export type ConversationResponseDTO = z.infer<typeof conversationResponseSchema>;
+export type ConversationResponseDTO = z.infer<
+  typeof conversationResponseSchema
+>;
 
-export const paginatedConversationsResponseSchema =
-  paginatedResponseSchema(conversationResponseSchema);
+export const paginatedConversationsResponseSchema = paginatedResponseSchema(
+  conversationResponseSchema
+);
 export type PaginatedConversationsResponseDTO = z.infer<
   typeof paginatedConversationsResponseSchema
 >;
 
+const stringOrNumber = z.union([z.string(), z.number()]);
+
 export const messageObjectSchema = z.object({
-  id: z.number().int().nonnegative(),
-  conversationId: z.number().int().nonnegative(),
-  senderId: z.number().int().nonnegative(),
-  content: z.string().trim().min(1),
+  id: stringOrNumber,
+  conversationId: stringOrNumber.optional(),
+  senderId: stringOrNumber.optional(),
+  sender: z.object({
+    id: stringOrNumber.optional(),
+    username: z.string().optional(),
+    displayName: z.string().nullable().optional(),
+    avatarUrl: z.string().nullable().optional()
+  }).optional(),
+  content: z.string().optional().default(''),
   resourceType: messageResourceTypeSchema.nullable().optional(),
-  resourceId: z.number().int().nonnegative().nullable().optional(),
-  createdAt: z.string().trim().min(1),
-  isRead: z.boolean(),
+  resourceId: stringOrNumber.nullable().optional(),
+  createdAt: z.string().optional(),
+  timestamp: z.string().optional(),
+  isRead: z.boolean().optional().default(false),
 });
 export type MessageObjectDTO = z.infer<typeof messageObjectSchema>;
 
@@ -121,9 +136,27 @@ export type PaginatedMessagesResponseDTO = z.infer<
   typeof paginatedMessagesResponseSchema
 >;
 
-export const conversationCreatedResponseSchema = z.object({
-  conversationId: z.number().int().nonnegative(),
-});
+// Accept string IDs returned from the server.
+const stringFromString = z.preprocess((val) => {
+  if (typeof val === 'number') return String(val);
+  return val;
+}, z.string().trim().min(1));
+
+export const conversationCreatedResponseSchema = z
+  .object({
+    conversationId: stringFromString.optional(),
+    id: stringFromString.optional(),
+  })
+  .refine(
+    (payload) =>
+      payload.conversationId !== undefined || payload.id !== undefined,
+    {
+      message: 'Response must include either conversationId or id.',
+    }
+  )
+  .transform((payload) => ({
+    conversationId: payload.conversationId ?? payload.id!,
+  }));
 export type ConversationCreatedResponseDTO = z.infer<
   typeof conversationCreatedResponseSchema
 >;

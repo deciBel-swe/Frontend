@@ -71,7 +71,7 @@ describe('FirebaseMessageService (REST + FCM)', () => {
 
     await service.sendMessage(
       '2',
-      { body: 'Hello' },
+      { content: 'Hello', recipientId: 40 },
       { id: 1, username: 'testuser' }
     );
 
@@ -80,16 +80,16 @@ describe('FirebaseMessageService (REST + FCM)', () => {
       expect.objectContaining({
         payload: {
           content: 'Hello',
-          recipientId: 2,
+          recipientId: 40,
         },
       })
     );
   });
 
-  it('calls API_CONTRACTS.MESSAGES_START_CONVERSATION when creating conversation', async () => {
-    mockedApiRequest.mockResolvedValue({ id: 99 });
+  it('creates a conversation and returns the conversation id', async () => {
+    mockedApiRequest.mockResolvedValue({ conversationId: 99 });
 
-    await service.getOrCreateConversation(
+    const conversationId = await service.getOrCreateConversation(
       {
         id: 1,
         username: 'me',
@@ -103,5 +103,68 @@ describe('FirebaseMessageService (REST + FCM)', () => {
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.MESSAGES_START_CONVERSATION(99)
     );
+    expect(conversationId).toBe('99');
+  });
+
+  it('creates a conversation when other user is a UserPublic object', async () => {
+    mockedApiRequest.mockResolvedValue({ conversationId: 100 });
+
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 1,
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      {
+        profile: {
+          id: 42,
+          email: 'other@example.com',
+          username: 'other',
+          displayName: 'Other',
+          tier: 'FREE',
+          followerCount: 0,
+          followingCount: 0,
+          trackCount: 0,
+          isFollowed: false,
+          isFollowing: false,
+          isBlocked: false,
+          bio: '',
+          city: '',
+          country: '',
+          profilePic: '',
+          coverPic: '',
+          favoriteGenres: [],
+          socialLinksDto: [],
+        },
+        privacySettings: null,
+      } as unknown as any
+    );
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(42)
+    );
+    expect(conversationId).toBe('100');
+  });
+
+  it('accepts backend response with id instead of conversationId', async () => {
+    mockedApiRequest.mockResolvedValue({ id: 101 });
+
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 1,
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      { id: 99, username: 'other' }
+    );
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(99)
+    );
+    expect(conversationId).toBe('101');
   });
 });

@@ -50,6 +50,12 @@ export interface NotificationService {
   ): Promise<MessageResponse>;
 
   /**
+   * Unregister a previously registered device token
+   * @param token - Device token string to remove
+   */
+  unregisterDeviceToken(token: string): Promise<MessageResponse>;
+
+  /**
    * Subscribe to real-time notifications
    *
    * Establishes a persistent listener to the user's notifications.
@@ -526,6 +532,16 @@ export class FirebaseNotificationService implements NotificationService {
   ): Promise<MessageResponse> {
     try {
       return await apiRequest(API_CONTRACTS.DEVICE_TOKEN_REGISTER, { payload });
+    } catch (error) {
+      throw normalizeApiError(error);
+    }
+  }
+
+  async unregisterDeviceToken(token: string): Promise<MessageResponse> {
+    try {
+      return await apiRequest(API_CONTRACTS.DEVICE_TOKEN_UNREGISTER, {
+        params: { token },
+      });
     } catch (error) {
       throw normalizeApiError(error);
     }

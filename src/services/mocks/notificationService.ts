@@ -102,10 +102,12 @@ export class MockNotificationService implements NotificationService {
   async markAllAsRead(userId: number): Promise<void> {
     const userIdStr = String(userId);
     if (this.notifications[userIdStr]) {
-      this.notifications[userIdStr] = this.notifications[userIdStr].map((notification) => ({
-        ...notification,
-        isRead: true,
-      }));
+      this.notifications[userIdStr] = this.notifications[userIdStr].map(
+        (notification) => ({
+          ...notification,
+          isRead: true,
+        })
+      );
       this.emit(userIdStr);
     }
     return Promise.resolve();
@@ -118,7 +120,10 @@ export class MockNotificationService implements NotificationService {
     const page = params?.page ?? 0;
     const allNotifications = Object.values(this.notifications)
       .flat()
-      .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+      .sort(
+        (left, right) =>
+          Date.parse(right.createdAt) - Date.parse(left.createdAt)
+      );
 
     return allNotifications.slice(page * size, page * size + size);
   }
@@ -146,5 +151,11 @@ export class MockNotificationService implements NotificationService {
     _payload: import('@/types/notification').RegisterDeviceTokenRequest
   ): Promise<import('@/types/user').MessageResponse> {
     return { message: 'Token registered' };
+  }
+
+  async unregisterDeviceToken(
+    _token: string
+  ): Promise<import('@/types/user').MessageResponse> {
+    return { message: 'Token unregistered' };
   }
 }

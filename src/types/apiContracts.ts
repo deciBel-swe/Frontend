@@ -816,8 +816,16 @@ export const API_CONTRACTS = {
     z.infer<typeof messageResponseSchema>
   >({
     method: 'POST',
-    url: API_ENDPOINTS.USERS.DEVICE_TOKENS,
+    url: API_ENDPOINTS.NOTIFICATIONS.DEVICE_TOKEN,
     requestSchema: registerDeviceTokenSchema,
+    responseSchema: messageResponseSchema,
+  }),
+  DEVICE_TOKEN_UNREGISTER: defineContract<
+    void,
+    z.infer<typeof messageResponseSchema>
+  >({
+    method: 'DELETE',
+    url: API_ENDPOINTS.NOTIFICATIONS.DEVICE_TOKEN,
     responseSchema: messageResponseSchema,
   }),
 

@@ -43,7 +43,10 @@ export interface MessageService {
   markConversationUnread(conversationId: string, userId: number): Promise<void>;
 }
 
-const mapConversation = (dto: ConversationResponseDTO, currentUserId: number): ConversationDTO => ({
+const mapConversation = (
+  dto: ConversationResponseDTO,
+  currentUserId: number
+): ConversationDTO => ({
   id: String(dto.id),
   participantIds: [String(dto.user1.id), String(dto.user2.id)],
   participants: [
@@ -55,20 +58,31 @@ const mapConversation = (dto: ConversationResponseDTO, currentUserId: number): C
   updatedAt: dto.lastMessageAt || undefined,
 });
 
-const mapMessage = (dto: MessageObjectDTO): MessageDTO => ({
-  messageId: String(dto.id),
-  conversationId: String(dto.conversationId),
-  sender: {
-    id: dto.senderId,
-    username: 'User', // Fallback
-  },
-  content: dto.content,
-  resources: dto.resourceType && dto.resourceId ? [{ resourceType: dto.resourceType, resourceId: dto.resourceId }] : [],
-  isRead: dto.isRead,
-  createdAt: dto.createdAt,
-});
+const mapMessage = (dto: MessageObjectDTO): MessageDTO => {
+  const senderId = dto.senderId ?? dto.sender?.id ?? 0;
+  return {
+    messageId: String(dto.id),
+    conversationId: dto.conversationId ? String(dto.conversationId) : '',
+    sender: {
+      id: Number(senderId),
+      username: dto.sender?.username || 'User',
+      displayName: dto.sender?.displayName || null,
+      avatarUrl: dto.sender?.avatarUrl || null,
+    },
+    content: dto.content,
+    resources:
+      dto.resourceType && dto.resourceId
+        ? [{ resourceType: dto.resourceType, resourceId: Number(dto.resourceId) }]
+        : [],
+    isRead: dto.isRead ?? false,
+    createdAt: dto.createdAt || dto.timestamp || new Date().toISOString(),
+  };
+};
 
 export class FirebaseMessageService implements MessageService {
+  private chatRefreshCallbacks = new Map<string, Set<() => void>>();
+  private inboxRefreshCallbacks = new Set<() => void>();
+
   subscribeToInbox(
     userId: number,
     onUpdate: (conversations: ConversationDTO[]) => void,
@@ -78,9 +92,11 @@ export class FirebaseMessageService implements MessageService {
 
     const fetchInbox = async () => {
       try {
-        const response: PaginatedConversationsResponseDTO = await apiRequest(API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS);
+        const response: PaginatedConversationsResponseDTO = await apiRequest(
+          API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS
+        );
         if (!isCancelled) {
-          onUpdate(response.content.map(c => mapConversation(c, userId)));
+          onUpdate(response.content.map((c) => mapConversation(c, userId)));
         }
       } catch (err) {
         if (!isCancelled) onError(err as Error);
@@ -88,6 +104,7 @@ export class FirebaseMessageService implements MessageService {
     };
 
     void fetchInbox();
+    this.inboxRefreshCallbacks.add(fetchInbox);
 
     let unsubscribeFcm: Unsubscribe | undefined;
     if (messaging) {
@@ -98,6 +115,7 @@ export class FirebaseMessageService implements MessageService {
 
     return () => {
       isCancelled = true;
+      this.inboxRefreshCallbacks.delete(fetchInbox);
       if (unsubscribeFcm) unsubscribeFcm();
     };
   }
@@ -111,7 +129,9 @@ export class FirebaseMessageService implements MessageService {
 
     const fetchChat = async () => {
       try {
-        const response: PaginatedMessagesResponseDTO = await apiRequest(API_CONTRACTS.MESSAGES_LIST_MESSAGES(conversationId));
+        const response: PaginatedMessagesResponseDTO = await apiRequest(
+          API_CONTRACTS.MESSAGES_LIST_MESSAGES(conversationId)
+        );
         if (!isCancelled) {
           onUpdate(response.content.map(mapMessage));
         }
@@ -121,6 +141,11 @@ export class FirebaseMessageService implements MessageService {
     };
 
     void fetchChat();
+    
+    if (!this.chatRefreshCallbacks.has(conversationId)) {
+      this.chatRefreshCallbacks.set(conversationId, new Set());
+    }
+    this.chatRefreshCallbacks.get(conversationId)!.add(fetchChat);
 
     let unsubscribeFcm: Unsubscribe | undefined;
     if (messaging) {
@@ -131,6 +156,13 @@ export class FirebaseMessageService implements MessageService {
 
     return () => {
       isCancelled = true;
+      const callbacks = this.chatRefreshCallbacks.get(conversationId);
+      if (callbacks) {
+        callbacks.delete(fetchChat);
+        if (callbacks.size === 0) {
+          this.chatRefreshCallbacks.delete(conversationId);
+        }
+      }
       if (unsubscribeFcm) unsubscribeFcm();
     };
   }
@@ -141,26 +173,52 @@ export class FirebaseMessageService implements MessageService {
     _currentUserSummary: UserSummaryDTO
   ): Promise<void> {
     await apiRequest(API_CONTRACTS.MESSAGES_SEND(conversationId), {
-      payload: {
-        content: payload.body,
-        recipientId: Number(conversationId),
-      } as unknown as SendMessageRequest
+      payload,
     });
+
+    // Trigger local refetch immediately for the sender
+    const chatCallbacks = this.chatRefreshCallbacks.get(conversationId);
+    if (chatCallbacks) {
+      chatCallbacks.forEach(cb => void cb());
+    }
+    this.inboxRefreshCallbacks.forEach(cb => void cb());
   }
 
   async getOrCreateConversation(
     _currentUser: UserMe,
     otherUser: UserPublic | UserSummaryDTO
   ): Promise<string> {
-    await apiRequest(API_CONTRACTS.MESSAGES_START_CONVERSATION(Number(otherUser.id)));
-    return String(otherUser.id);
+    const otherUserId =
+      'profile' in otherUser && otherUser.profile?.id !== undefined
+        ? otherUser.profile.id
+        : Number(otherUser.id);
+
+    const response = await apiRequest(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(otherUserId)
+    );
+
+    const conversationId =
+      (response as { conversationId?: string; id?: string }).conversationId ??
+      (response as { conversationId?: string; id?: string }).id;
+
+    if (!conversationId) {
+      throw new Error('Failed to create conversation: missing id');
+    }
+
+    return String(conversationId);
   }
 
-  async markConversationRead(_conversationId: string, _userId: number): Promise<void> {
+  async markConversationRead(
+    _conversationId: string,
+    _userId: number
+  ): Promise<void> {
     console.warn('markConversationRead via REST is not implemented yet.');
   }
 
-  async markConversationUnread(_conversationId: string, _userId: number): Promise<void> {
+  async markConversationUnread(
+    _conversationId: string,
+    _userId: number
+  ): Promise<void> {
     console.warn('markConversationUnread via REST is not implemented yet.');
   }
 }

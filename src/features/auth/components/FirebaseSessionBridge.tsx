@@ -30,9 +30,41 @@ export default function FirebaseSessionBridge() {
       return;
     }
 
+    const unregisterIfNeeded = async () => {
+      if (!isRegisteredRef.current) {
+        isRegisteredRef.current = false;
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.getRegistration(
+          '/firebase-messaging-sw.js'
+        );
+
+        const currentToken = await getToken(
+          messagingInstance,
+          registration
+            ? {
+                vapidKey: VAPID_KEY,
+                serviceWorkerRegistration: registration,
+              }
+            : { vapidKey: VAPID_KEY }
+        );
+
+        if (currentToken) {
+          await notificationService.unregisterDeviceToken(currentToken);
+          console.log('Successfully unregistered FCM device token.');
+        }
+      } catch (error) {
+        console.warn('Failed to unregister device token:', error);
+      } finally {
+        isRegisteredRef.current = false;
+      }
+    };
+
     if (!user?.id) {
-      // Clear registration state when the user logs out so a new login can re-register.
-      isRegisteredRef.current = false;
+      // User logged out — attempt to unregister previous device token.
+      void unregisterIfNeeded();
       return;
     }
 

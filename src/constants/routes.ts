@@ -232,7 +232,7 @@ export const API_ENDPOINTS = {
     MARK_ALL_READ: '/notifications/mark-all-read',
     UNREAD_COUNT: '/notifications/unread-count',
     SETTINGS: '/notifications/settings',
-    DEVICE_TOKEN: '/notification/device-token',
+    DEVICE_TOKEN: '/notifications/device-tokens',
   },
 } as const;
 /**
