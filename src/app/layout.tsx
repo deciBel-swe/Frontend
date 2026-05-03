@@ -2,7 +2,10 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Suspense } from 'react';
 
 import { AuthProvider } from '@/features/auth';
+import FirebaseSessionBridge from '@/features/auth/components/FirebaseSessionBridge';
+
 import { ThemeProvider } from '@/providers/ThemeProvider';
+
 import { TopNavBar } from '@/components/nav/TopNavBar';
 import { QueryProvider } from '@/providers/QueryProvider';
 import GlobalAudioPlayer from '@/features/player/components/GlobalAudioPlayer';
@@ -78,9 +81,16 @@ export default function RootLayout({
                 <div className="w-full max-w-300">
                   <TopNavBar />
                   <QueryProvider>
-                    <RootRouteHijack>
-                      {children}
-                    </RootRouteHijack>
+                    {/* FirebaseSessionBridge runs client-side to register/unregister FCM tokens */}
+                    <FirebaseSessionBridge />
+
+                    {/* Keep route hijack wrapper for change-email flows */}
+                    <RootRouteHijack>{children}</RootRouteHijack>
+
+                    {/*
+                      Persistent global player runtime.
+                      Mounted once at the app shell so playback survives route changes.
+                    */}
                     <Toaster />
                     <GlobalAudioPlayer />
                   </QueryProvider>

@@ -6,6 +6,7 @@ import type { PlaybackAccess, PlayerTrack } from '@/features/player/contracts/pl
 import { playerTrackMappers } from '@/features/player/utils/playerTrackMappers';
 import { usePlayerStore } from '@/features/player/store/playerStore';
 import { useInfiniteScrollSentinel } from '@/features/search/hooks/useInfiniteScrollSentinel';
+import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import { commentService, trackService } from '@/services';
 import type { Comment as ApiComment, ReplyComment as ApiReplyComment } from '@/types/comments';
 import type { Comment as ViewComment, CommentReply as ViewCommentReply } from '@/components/comments/CommentItem';
@@ -253,6 +254,7 @@ export function useTrackPage({
   const [comments, setComments] = useState<ViewComment[]>([]);
   const [waveformComments, setWaveformComments] = useState<TimedComment[]>([]);
   const [fans, setFans] = useState<Fan[]>([]);
+  const [commentAuthorsById, setCommentAuthorsById] = useState<Record<number, number>>({});
 
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -314,11 +316,13 @@ export function useTrackPage({
       );
 
       const repliesByParent = new Map<number, ReturnType<typeof mapApiReplyToView>[]>();
+      const commentAuthorsById = new Map<number, number>();
       for (const entry of repliesByParentId) {
         repliesByParent.set(entry.commentId, entry.replies);
       }
 
       const mappedComments = topLevelComments.map((comment) => {
+        commentAuthorsById.set(comment.id, comment.user.id);
         const mapped = mapApiCommentToView(comment);
         return {
           ...mapped,
@@ -343,6 +347,7 @@ export function useTrackPage({
 
       return {
         comments: mappedComments,
+        commentAuthorsById: Object.fromEntries(commentAuthorsById),
         timedComments,
         pageNumber: commentsResponse.pageNumber,
         totalPages: commentsResponse.totalPages,
@@ -436,6 +441,7 @@ export function useTrackPage({
         setPlayerTrack(resolvedPlayerTrack);
         setKnownDurationSeconds(trackMetadata.durationSeconds ?? 0);
         setComments(initialCommentsPage.comments);
+        setCommentAuthorsById(initialCommentsPage.commentAuthorsById);
         setWaveformComments(initialCommentsPage.timedComments);
         setFans([]);
         setLikeCount(resolvedLikeCount);
@@ -455,6 +461,7 @@ export function useTrackPage({
           setPlayerTrack(null);
           setKnownDurationSeconds(0);
           setComments([]);
+          setCommentAuthorsById({});
           setWaveformComments([]);
           setFans([]);
           setPendingTimestamp(null);
@@ -517,6 +524,10 @@ export function useTrackPage({
           String(comment.id)
         )
       );
+      setCommentAuthorsById((previous) => ({
+        ...previous,
+        ...nextCommentsPage.commentAuthorsById,
+      }));
       setWaveformComments((previous) =>
         mergeUniqueBy(previous, nextCommentsPage.timedComments, (comment) => comment.id)
       );
@@ -692,6 +703,10 @@ export function useTrackPage({
 
         if (isTopLevelTrackComment(created)) {
           setComments((prev) => [mapApiCommentToView(created), ...prev]);
+          setCommentAuthorsById((previous) => ({
+            ...previous,
+            [created.id]: created.user.id,
+          }));
           setWaveformComments((prev) => [mapApiCommentToWaveform(created), ...prev]);
           setTotalComments((count) => count + 1);
         }
@@ -773,13 +788,38 @@ export function useTrackPage({
           },
         ]);
 
+        const replyRecipientId = commentAuthorsById[numericCommentId];
+        if (replyRecipientId) {
+          const targetUrl = `/${username}/${trackId}`;
+
+          void createRealtimeNotification({
+            type: 'REPLY',
+            recipientId: replyRecipientId,
+            resource: {
+              resourceType: 'TRACK',
+              resourceId: track.id,
+            },
+            targetTitle: track.title,
+            targetUrl,
+          }).catch(() => undefined);
+        }
+
         setPendingTimestamp(null);
       } finally {
         setIsCommentSubmitting(false);
         setReplyingToCommentId(null);
       }
     },
-    [isCommentSubmitting, isCurrentPlaybackTrack, pendingTimestamp, playerCurrentTime, track]
+    [
+      commentAuthorsById,
+      isCommentSubmitting,
+      isCurrentPlaybackTrack,
+      pendingTimestamp,
+      playerCurrentTime,
+      track,
+      trackId,
+      username,
+    ]
   );
 
   return {

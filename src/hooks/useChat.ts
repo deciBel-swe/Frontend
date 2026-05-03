@@ -24,6 +24,39 @@ type MessageResourceCache = Record<
     }
 >;
 
+/**
+ * useChat Hook
+ *
+ * Real-time chat management for a specific conversation.
+ *
+ * Features:
+ * - Real-time message streaming from Firebase
+ * - Automatic resource hydration (fetches track/playlist metadata)
+ * - Message composition and sending
+ * - Complete lifecycle management (loading, error states)
+ *
+ * The hook automatically:
+ * - Connects to Firebase for real-time updates when conversationId is set
+ * - Resolves shared resources (tracks, playlists) referenced in messages
+ * - Handles connection cleanup on unmount or ID change
+ * - Manages sending state and error handling
+ *
+ * @param conversationId - The conversation to chat in, or null to disable
+ * @returns Object with messages, sending state, and sendMessage function
+ *
+ * @example
+ * const { messages, isLoading, isSending, error, sendMessage } = useChat(conversationId);
+ *
+ * if (isLoading) return <Loading />;
+ * if (error) return <Error message={error.message} />;
+ *
+ * return (
+ *   <>
+ *     <MessageList messages={messages} />
+ *     <MessageInput onSend={(body, resources) => sendMessage(conversationId, body, resources)} />
+ *   </>
+ * );
+ */
 export function useChat(conversationId: string | null) {
   const { user } = useAuth();
   const [rawMessages, setRawMessages] = useState<MessageDTO[]>([]);
@@ -61,8 +94,27 @@ export function useChat(conversationId: string | null) {
     let isCancelled = false;
 
     const hydrateResources = async () => {
-      const resourcesToFetch = rawMessages.flatMap((message) =>
-        message.resources.filter((resource) => {
+      const resolvedResourceGroups = await Promise.all(
+        rawMessages.map(async (message) => {
+          if (message.resources.length > 0) {
+            return message.resources;
+          }
+
+          const { resources } = await resolveSharedResourcesFromMessage(
+            message.content
+          );
+
+          return resources.map((resource) => ({
+            ...resource,
+            track: null,
+            playlist: null,
+            user: null,
+          }));
+        })
+      );
+
+      const resourcesToFetch = resolvedResourceGroups.flatMap((resources) =>
+        resources.filter((resource) => {
           const cacheKey = `${resource.resourceType}:${resource.resourceId}`;
           return (
             !resourceCache[cacheKey] &&
@@ -154,8 +206,14 @@ export function useChat(conversationId: string | null) {
           senderId: String(message.sender.id),
           sender: {
             id: String(message.sender.id),
-            username: message.sender.username,
-            displayName: message.sender.displayName || message.sender.username,
+            username:
+              message.sender.username ||
+              (message.sender.id === user?.id ? user.username || '' : `user-${message.sender.id}`),
+            displayName:
+              message.sender.displayName ||
+              (message.sender.id === user?.id
+                ? user.displayName || user.username || `User ${message.sender.id}`
+                : message.sender.username || `User ${message.sender.id}`),
             avatarUrl: message.sender.avatarUrl || undefined,
           },
           content,
@@ -163,7 +221,7 @@ export function useChat(conversationId: string | null) {
           isRead: message.isRead,
         };
       }),
-    [rawMessages, resourceCache]
+    [rawMessages, resourceCache, user?.displayName, user?.id, user?.username]
   );
 
   const sendMessageToConversation = useCallback(
@@ -191,10 +249,19 @@ export function useChat(conversationId: string | null) {
           );
         }
 
+        let recipientId = 0;
+        if (targetConversationId.includes('_')) {
+          const parts = targetConversationId.split('_');
+          const id1 = parseInt(parts[0], 10);
+          const id2 = parseInt(parts[1], 10);
+          recipientId = id1 === user.id ? id2 : id1;
+        }
+
         await messageService.sendMessage(
           targetConversationId,
           {
-            body,
+            content: body,
+            recipientId,
             resources: resources.length > 0 ? resources : undefined,
           },
           currentUserSummary
@@ -241,6 +308,20 @@ export function useChat(conversationId: string | null) {
     await messageService.markConversationUnread(conversationId, user.id);
   }, [conversationId, user]);
 
+  /**
+   * Hook return value
+   *
+   * @property rawMessages - Raw MessageDTO array from Firestore (for debugging)
+   * @property messages - Processed messages with resolved resources and sender info
+   * @property isLoading - True while connecting to chat stream or loading initial messages
+   * @property error - Error object if connection failed
+   * @property isSending - True while sending a message
+   * @property sendMessage - Send message to current conversation (uses conversationId)
+   * @property sendMessageToConversation - Send message to specific conversation
+   * @property getOrCreateConversation - Get or create conversation with another user
+   * @property markConversationRead - Mark current conversation as read
+   * @property markConversationUnread - Mark current conversation as unread
+   */
   return {
     rawMessages,
     messages,

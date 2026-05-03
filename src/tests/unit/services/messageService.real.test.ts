@@ -1,118 +1,170 @@
+import { apiRequest } from '@/hooks/useAPI';
 import { FirebaseMessageService } from '@/services/api/messageService';
-import {
-  onSnapshot,
-  addDoc,
-  setDoc,
-  doc,
-  collection,
-  query,
-  where,
-  orderBy,
-  getDoc,
-  getDocs,
-  writeBatch,
-} from 'firebase/firestore';
-import type { SendMessageRequest, UserSummaryDTO } from '@/types/message';
+import { API_CONTRACTS } from '@/types/apiContracts';
+import { onMessage } from 'firebase/messaging';
 
-// Mock Firebase SDK
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(),
-  collection: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  onSnapshot: jest.fn(),
-  addDoc: jest.fn(),
-  setDoc: jest.fn(),
-  doc: jest.fn(),
-  getDoc: jest.fn(),
-  getDocs: jest.fn(),
-  writeBatch: jest.fn(() => ({
-    update: jest.fn(),
-    commit: jest.fn().mockResolvedValue(undefined),
-  })),
-  serverTimestamp: jest.fn(() => 'mock-timestamp'),
+jest.mock('@/hooks/useAPI', () => ({
+  apiRequest: jest.fn(),
+}));
+
+jest.mock('firebase/messaging', () => ({
+  onMessage: jest.fn(),
+  getToken: jest.fn(),
 }));
 
 jest.mock('@/lib/firebase', () => ({
-  db: {},
+  messaging: {},
 }));
 
-describe('FirebaseMessageService (Real)', () => {
+const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
+const mockedOnMessage = onMessage as jest.MockedFunction<typeof onMessage>;
+
+describe('FirebaseMessageService (REST + FCM)', () => {
   let service: FirebaseMessageService;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     service = new FirebaseMessageService();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should call onSnapshot when subscribing to inbox', () => {
+  it('calls API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS when subscribing to inbox', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+    });
     const onUpdate = jest.fn();
     const onError = jest.fn();
 
     service.subscribeToInbox(1, onUpdate, onError);
 
-    expect(onSnapshot).toHaveBeenCalled();
-    expect(query).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations');
-    expect(where).toHaveBeenCalledWith('participantIds', 'array-contains', '1');
+    // Wait for the async fetch to resolve
+    await new Promise(process.nextTick);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_LIST_CONVERSATIONS
+    );
+    expect(mockedOnMessage).toHaveBeenCalled();
   });
 
-  it('should call onSnapshot when subscribing to chat', () => {
+  it('calls API_CONTRACTS.MESSAGES_LIST_MESSAGES when subscribing to chat', async () => {
+    mockedApiRequest.mockResolvedValue({
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+    });
     const onUpdate = jest.fn();
     const onError = jest.fn();
-    
+
     service.subscribeToChat('conv_1', onUpdate, onError);
 
-    expect(onSnapshot).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
+    await new Promise(process.nextTick);
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_LIST_MESSAGES('conv_1')
+    );
+    expect(mockedOnMessage).toHaveBeenCalled();
   });
 
-  it('should call addDoc when sending a message', async () => {
-    const payload: SendMessageRequest = { body: 'Real test message' };
-    const user: UserSummaryDTO = { id: 1, username: 'testuser', displayName: 'Test User' };
-    
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        participantIds: ['1', '2'],
-        unreadCounts: { '1': 0, '2': 0 },
-        manuallyUnreadBy: { '1': false, '2': false },
-      }),
-    });
-    (addDoc as jest.Mock).mockResolvedValueOnce({ id: 'new_msg_id' });
+  it('calls API_CONTRACTS.MESSAGES_SEND when sending a message', async () => {
+    mockedApiRequest.mockResolvedValue({ id: 1 });
 
-    await service.sendMessage('conv_1', payload, user);
+    await service.sendMessage(
+      '2',
+      { content: 'Hello', recipientId: 40 },
+      { id: 1, username: 'testuser' }
+    );
 
-    expect(addDoc).toHaveBeenCalled();
-    expect(collection).toHaveBeenCalledWith(expect.anything(), 'conversations', 'conv_1', 'messages');
-    
-    const sentData = (addDoc as jest.Mock).mock.calls[0][1];
-    expect(sentData.content).toBe('Real test message');
-    expect(sentData.sender.id).toBe(1);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_SEND('2'),
+      expect.objectContaining({
+        payload: {
+          content: 'Hello',
+          recipientId: 40,
+        },
+      })
+    );
   });
 
-  it('marks a conversation as read', async () => {
-    (getDoc as jest.Mock).mockResolvedValueOnce({
-      exists: () => true,
-      data: () => ({
-        participantIds: ['1', '2'],
-        unreadCounts: { '1': 2, '2': 0 },
-        manuallyUnreadBy: { '1': true, '2': false },
-      }),
-    });
-    (getDocs as jest.Mock).mockResolvedValueOnce({
-      docs: [{ ref: 'msg_ref', data: () => ({ sender: { id: 2 }, isRead: false }) }],
-    });
+  it('creates a conversation and returns the conversation id', async () => {
+    mockedApiRequest.mockResolvedValue({ conversationId: 99 });
 
-    await service.markConversationRead('conv_1', 1);
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 1,
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      { id: 99, username: 'other' }
+    );
 
-    expect(setDoc).toHaveBeenCalled();
-    const batch = (writeBatch as jest.Mock).mock.results[0].value;
-    expect(batch.update).toHaveBeenCalled();
-    expect(batch.commit).toHaveBeenCalled();
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(99)
+    );
+    expect(conversationId).toBe('99');
+  });
+
+  it('creates a conversation when other user is a UserPublic object', async () => {
+    mockedApiRequest.mockResolvedValue({ conversationId: 100 });
+
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 1,
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      {
+        profile: {
+          id: 42,
+          email: 'other@example.com',
+          username: 'other',
+          displayName: 'Other',
+          tier: 'FREE',
+          followerCount: 0,
+          followingCount: 0,
+          trackCount: 0,
+          isFollowed: false,
+          isFollowing: false,
+          isBlocked: false,
+          bio: '',
+          city: '',
+          country: '',
+          profilePic: '',
+          coverPic: '',
+          favoriteGenres: [],
+          socialLinksDto: [],
+        },
+        privacySettings: null,
+      } as unknown as any
+    );
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(42)
+    );
+    expect(conversationId).toBe('100');
+  });
+
+  it('accepts backend response with id instead of conversationId', async () => {
+    mockedApiRequest.mockResolvedValue({ id: 101 });
+
+    const conversationId = await service.getOrCreateConversation(
+      {
+        id: 1,
+        username: 'me',
+        email: 'me@me.com',
+        role: 'USER',
+        tier: 'FREE',
+      } as unknown as any,
+      { id: 99, username: 'other' }
+    );
+
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      API_CONTRACTS.MESSAGES_START_CONVERSATION(99)
+    );
+    expect(conversationId).toBe('101');
   });
 });
