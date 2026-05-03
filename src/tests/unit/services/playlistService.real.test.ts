@@ -1,6 +1,5 @@
 import { apiRequest } from '@/hooks/useAPI';
 import { RealPlaylistService } from '@/services/api/playlistService';
-import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import type {
   AddPlaylistTrackRequest,
@@ -13,12 +12,7 @@ jest.mock('@/hooks/useAPI', () => ({
   apiRequest: jest.fn(),
 }));
 
-jest.mock('@/services/firebase/realtimeSocial', () => ({
-  createRealtimeNotification: jest.fn(),
-}));
-
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
-const mockCreateRealtimeNotification = createRealtimeNotification as jest.MockedFunction<typeof createRealtimeNotification>;
 
 describe('RealPlaylistService', () => {
   let service: RealPlaylistService;
@@ -292,37 +286,14 @@ describe('RealPlaylistService', () => {
   });
 
   it('likes and unlikes via PLAYLISTS_LIKE contracts', async () => {
-    mockedApiRequest.mockImplementation(async (contract) => {
-      if (contract.url.includes('/like') && contract.method === 'POST') {
-        return { message: 'Liked', isLiked: true };
-      }
-      if (contract.url.includes('/like') && contract.method === 'DELETE') {
-        return { message: 'Unliked', isLiked: false };
-      }
-      return {
-        id: 13,
-        title: 'Playlist 13',
-        owner: { id: 99, username: 'owner' },
-      };
-    });
-
+    mockedApiRequest.mockResolvedValue({ message: 'Liked', isLiked: true });
     await service.likePlaylist(13);
-
-    // wait for background promise to resolve
-    await new Promise(process.nextTick);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_LIKE(13)
     );
-    expect(mockCreateRealtimeNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'LIKE',
-        recipientId: 99,
-        targetTitle: 'Playlist 13',
-        resource: { resourceType: 'PLAYLIST', resourceId: 13 },
-      })
-    );
 
+    mockedApiRequest.mockResolvedValue({ message: 'Unliked', isLiked: false });
     await service.unlikePlaylist(13);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
@@ -331,37 +302,17 @@ describe('RealPlaylistService', () => {
   });
 
   it('reposts and unreposts via PLAYLISTS_REPOST contracts', async () => {
-    mockedApiRequest.mockImplementation(async (contract) => {
-      if (contract.url.includes('/repost') && contract.method === 'POST') {
-        return { message: 'Reposted', isReposted: true };
-      }
-      if (contract.url.includes('/repost') && contract.method === 'DELETE') {
-        return { message: 'Unreposted', isReposted: false };
-      }
-      return {
-        id: 13,
-        title: 'Playlist 13',
-        owner: { id: 99, username: 'owner' },
-      };
-    });
-
+    mockedApiRequest.mockResolvedValue({ message: 'Reposted', isReposted: true });
     await service.repostPlaylist(13);
-
-    // wait for background promise to resolve
-    await new Promise(process.nextTick);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(
       API_CONTRACTS.PLAYLISTS_REPOST(13)
     );
-    expect(mockCreateRealtimeNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'REPOST',
-        recipientId: 99,
-        targetTitle: 'Playlist 13',
-        resource: { resourceType: 'PLAYLIST', resourceId: 13 },
-      })
-    );
 
+    mockedApiRequest.mockResolvedValue({
+      message: 'Unreposted',
+      isReposted: false,
+    });
     await service.unrepostPlaylist(13);
 
     expect(mockedApiRequest).toHaveBeenCalledWith(

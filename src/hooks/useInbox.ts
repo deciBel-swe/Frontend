@@ -6,10 +6,7 @@ import { messageService } from '@/services';
 import type { InboxItem, User } from '@/components/messages/types';
 import type { ConversationDTO } from '@/types/message';
 
-const getUnreadCount = (
-  conversation: ConversationDTO,
-  userId: string
-): number =>
+const getUnreadCount = (conversation: ConversationDTO, userId: string): number =>
   Math.max(
     conversation.unreadCounts[userId] ?? 0,
     conversation.manuallyUnreadBy[userId] ? 1 : 0
@@ -51,39 +48,6 @@ const mapConversationToInboxItem = (
   };
 };
 
-/**
- * useInbox Hook
- *
- * Real-time inbox management for the current user.
- *
- * Features:
- * - Real-time conversation list from Firebase
- * - Automatic unread count calculation (including manual flags)
- * - Conversations sorted by most recent update
- * - Complete lifecycle management (loading, error states)
- *
- * The hook automatically:
- * - Connects to Firebase for real-time conversation updates
- * - Maps raw conversation data to UI-friendly InboxItem format
- * - Calculates total unread count across all conversations
- * - Handles connection cleanup on unmount or user change
- *
- * Unread count is the maximum of:
- * - Actual unreadCounts[userId] from message tracking
- * - 1 if manuallyUnreadBy[userId] is true (manual flag)
- *
- * @returns Object with conversations, inbox items, unread count, and loading/error states
- *
- * @example
- * const { inboxItems, unreadCount, isLoading, error } = useInbox();
- *
- * if (isLoading) return <Loading />;
- * if (error) return <Error message={error.message} />;
- *
- * return (
- *   <InboxList items={inboxItems} unreadBadge={unreadCount} />
- * );
- */
 export function useInbox() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ConversationDTO[]>([]);
@@ -116,10 +80,7 @@ export function useInbox() {
   const userId = String(user?.id ?? '');
 
   const inboxItems = useMemo(
-    () =>
-      conversations.map((conversation) =>
-        mapConversationToInboxItem(conversation, userId)
-      ),
+    () => conversations.map((conversation) => mapConversationToInboxItem(conversation, userId)),
     [conversations, userId]
   );
 

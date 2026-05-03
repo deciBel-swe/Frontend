@@ -1,5 +1,4 @@
 import { apiRequest, type ApiQueryParams } from '@/hooks/useAPI';
-import { createRealtimeNotification } from '@/services/firebase/realtimeSocial';
 import { API_CONTRACTS } from '@/types/apiContracts';
 import { sha256Hex } from '@/utils/sha256';
 
@@ -350,20 +349,7 @@ export class RealUserService implements UserService {
   }
 
   async followUser(userId: number): Promise<FollowResponse> {
-    const response = await apiRequest(API_CONTRACTS.USERS_FOLLOW(userId), {});
-
-    if (response.isFollowing) {
-      void createRealtimeNotification({
-        type: 'FOLLOW',
-        recipientId: userId,
-        resource: {
-          resourceType: 'USER',
-          resourceId: userId,
-        },
-      }).catch(() => undefined);
-    }
-
-    return response;
+    return apiRequest(API_CONTRACTS.USERS_FOLLOW(userId), {});
   }
 
   async unfollowUser(userId: number): Promise<FollowResponse> {
