@@ -20,16 +20,6 @@ export default function VerificationHandler() {
   const [message, setMessage] = useState<string>("Verifying your email change...");
 
   useEffect(() => {
-    // Wait for auth to load
-    if (isAuthLoading) return;
-
-    // Backend requires Authorization header for /users/me/email/verify
-    if (!isAuthenticated) {
-      setStatus("unauthorized");
-      setMessage("You must be logged in to verify your email change.");
-      return;
-    }
-
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
 
